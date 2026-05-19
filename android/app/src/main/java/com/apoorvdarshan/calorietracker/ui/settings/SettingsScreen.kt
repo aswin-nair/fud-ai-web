@@ -602,7 +602,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(112.dp))
         }
     }
 
