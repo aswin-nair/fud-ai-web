@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -63,7 +64,6 @@ import com.apoorvdarshan.calorietracker.AppContainer
 import com.apoorvdarshan.calorietracker.services.update.AndroidUpdateChecker
 import com.apoorvdarshan.calorietracker.services.update.AndroidUpdateState
 import com.apoorvdarshan.calorietracker.ui.components.FudGlassSurface
-import com.apoorvdarshan.calorietracker.ui.components.FudIconBubble
 import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
@@ -304,8 +304,13 @@ private fun AboutRow(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(22.dp)) {
-            FudIconBubble(icon = icon, size = 22.dp, iconSize = 15.dp)
+        Box(Modifier.size(22.dp), contentAlignment = Alignment.Center) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = AppColors.Calorie,
+                modifier = Modifier.size(22.dp)
+            )
             if (showDot) {
                 Box(
                     Modifier

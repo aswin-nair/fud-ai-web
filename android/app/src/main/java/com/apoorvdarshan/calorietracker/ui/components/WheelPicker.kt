@@ -2,6 +2,7 @@ package com.apoorvdarshan.calorietracker.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -28,11 +29,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.distinctUntilChanged
+import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.abs
@@ -92,14 +95,7 @@ fun <T> WheelPicker(
         // iOS UIPickerView paints a single rounded "capsule" tint behind the
         // selected row instead of two divider lines. Match that look.
         if (showSelectionHighlight) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(ITEM_HEIGHT)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f))
-                    .align(Alignment.Center)
-            )
+            WheelSelectionHighlight(Modifier.align(Alignment.Center))
         }
 
         LazyColumn(
@@ -164,14 +160,7 @@ fun DateWheelPicker(
         modifier = modifier.fillMaxWidth().height(ROW_HEIGHT),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(ITEM_HEIGHT)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f))
-                .align(Alignment.Center)
-        )
+        WheelSelectionHighlight(Modifier.align(Alignment.Center))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -206,6 +195,37 @@ fun DateWheelPicker(
             )
         }
     }
+}
+
+@Composable
+private fun WheelSelectionHighlight(modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(14.dp)
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(ITEM_HEIGHT)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color.White.copy(alpha = 0.10f),
+                        Color.White.copy(alpha = 0.025f),
+                        AppColors.Calorie.copy(alpha = 0.045f)
+                    )
+                )
+            )
+            .border(
+                0.7.dp,
+                Brush.linearGradient(
+                    listOf(
+                        Color.White.copy(alpha = 0.18f),
+                        AppColors.Calorie.copy(alpha = 0.14f)
+                    )
+                ),
+                shape
+            )
+    )
 }
 
 /** Single-column wheel picker specialized for a numeric range with optional unit suffix. */

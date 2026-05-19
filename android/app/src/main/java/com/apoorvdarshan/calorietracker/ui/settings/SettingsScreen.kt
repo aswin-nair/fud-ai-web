@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -111,6 +112,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -688,7 +690,13 @@ private fun SettingsSheets(
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val invalidLoseMsg = stringResource(R.string.settings_invalid_goal_lose)
     val invalidGainMsg = stringResource(R.string.settings_invalid_goal_gain)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, shape = RoundedCornerShape(28.dp)) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = state,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = if (isDark) Color(0xF2141416) else Color.White.copy(alpha = 0.98f)
+    ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
             when (sheet) {
                 SettingsSheet.AI_PROVIDER -> ListSheet(
@@ -1225,13 +1233,33 @@ private fun <T> ListSheet(
             val isSel = selected(item)
             val rowIcon = icon?.invoke(item)
             val sub = subtitle?.invoke(item)
+            val shape = RoundedCornerShape(16.dp)
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(shape)
                     .background(
                         if (isSel) AppColors.Calorie.copy(alpha = 0.13f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f)
+                    )
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.08f),
+                                Color.White.copy(alpha = 0.02f),
+                                AppColors.Calorie.copy(alpha = if (isSel) 0.055f else 0.025f)
+                            )
+                        )
+                    )
+                    .border(
+                        0.7.dp,
+                        Brush.linearGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.16f),
+                                AppColors.Calorie.copy(alpha = if (isSel) 0.20f else 0.08f)
+                            )
+                        ),
+                        shape
                     )
                     .clickable { onSelect(item) }
                     .padding(horizontal = 14.dp, vertical = 14.dp),

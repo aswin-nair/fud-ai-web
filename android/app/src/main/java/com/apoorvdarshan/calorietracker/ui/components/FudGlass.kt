@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -96,19 +95,16 @@ fun FudIconBubble(
     iconSize: Dp = 19.dp,
     tint: Color = AppColors.Calorie
 ) {
+    val plainIconSize = if (iconSize < size * 0.88f) size * 0.88f else iconSize
     Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(tint.copy(alpha = 0.13f))
-            .border(0.7.dp, tint.copy(alpha = 0.22f), CircleShape),
+        modifier = modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             icon,
             contentDescription = null,
             tint = tint,
-            modifier = Modifier.size(iconSize)
+            modifier = Modifier.size(plainIconSize)
         )
     }
 }
