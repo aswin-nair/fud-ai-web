@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +40,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -117,6 +121,12 @@ fun EditFoodEntrySheet(
     val sheetSurface = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFAF3EE)
     val dateFormatter = remember { DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US) }
     val timeFormatter = remember { DateTimeFormatter.ofPattern("h:mm a", Locale.US) }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val dismissKeyboard = {
+        focusManager.clearFocus(force = true)
+        keyboardController?.hide()
+    }
 
     fun scaledInt(v: Int) = (v * scale).roundToInt()
     fun scaledD(v: Double?) = v?.let { ((it * scale) * 10).roundToInt() / 10.0 }
@@ -175,7 +185,13 @@ fun EditFoodEntrySheet(
         )
 
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { dismissKeyboard() })
+                }
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             // Square hero (saved photo) OR 80sp emoji fallback — centered.
@@ -349,7 +365,10 @@ fun EditFoodEntrySheet(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable { showDatePicker = true }
+                            .clickable {
+                                dismissKeyboard()
+                                showDatePicker = true
+                            }
                             .padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -365,7 +384,10 @@ fun EditFoodEntrySheet(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable { showTimePicker = true }
+                            .clickable {
+                                dismissKeyboard()
+                                showTimePicker = true
+                            }
                             .padding(horizontal = 18.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

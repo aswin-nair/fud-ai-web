@@ -551,7 +551,10 @@ fun HomeScreen(container: AppContainer) {
                     }
                     items(group.entries, key = { it.id }) { entry ->
                         val index = group.entries.indexOf(entry)
-                        SectionCardWrapper(isFirst = index == 0, isLast = index == group.entries.lastIndex) {
+                        val isFirst = index == 0
+                        val isLast = index == group.entries.lastIndex
+                        val rowShape = sectionCardShape(isFirst, isLast)
+                        SectionCardWrapper(isFirst = isFirst, isLast = isLast, transparent = true) {
                             // Tap row -> open EditFoodEntrySheet (matches iOS .onTapGesture).
                             // Swipe trailing edge -> delete; swipe leading edge -> toggle favorite.
                             // Mirrors iOS ContentView.swift .swipeActions(edge: .trailing) on the row,
@@ -560,6 +563,7 @@ fun HomeScreen(container: AppContainer) {
                             SwipeableFoodRow(
                                 entry = entry,
                                 isFavorite = isFav,
+                                rowShape = rowShape,
                                 onTap = { editingEntry = entry },
                                 onDelete = { vm.deleteEntry(entry.id) },
                                 onToggleFavorite = { vm.toggleFavorite(entry) }
@@ -967,27 +971,23 @@ private fun MenuRow(label: String, icon: ImageVector, onClick: () -> Unit) {
 
 @Composable
 private fun ViewMoreButton() {
-    val shape = CircleShape
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clip(shape)
-            .background(AppColors.Calorie.copy(alpha = 0.08f))
-            .border(0.6.dp, AppColors.Calorie.copy(alpha = 0.15f), shape)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
     ) {
         Text(
             "View More",
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
-            color = AppColors.Calorie.copy(alpha = 0.6f)
+            color = AppColors.Calorie.copy(alpha = 0.72f)
         )
-        Spacer(Modifier.width(2.dp))
+        Spacer(Modifier.width(5.dp))
         Icon(
             Icons.Filled.ChevronRight,
             contentDescription = null,
-            tint = AppColors.Calorie.copy(alpha = 0.6f),
-            modifier = Modifier.size(14.dp)
+            tint = AppColors.Calorie.copy(alpha = 0.72f),
+            modifier = Modifier.size(15.dp)
         )
     }
 }
@@ -1141,21 +1141,30 @@ private fun mealIcon(meal: MealType): ImageVector = when (meal) {
     MealType.OTHER -> Icons.Filled.Restaurant
 }
 
-@Composable
-private fun SectionCardWrapper(isFirst: Boolean, isLast: Boolean, content: @Composable () -> Unit) {
+private fun sectionCardShape(isFirst: Boolean, isLast: Boolean): RoundedCornerShape {
     // 22dp corners on the meal card matches the softer iOS look (was 14dp).
-    val shape = when {
+    return when {
         isFirst && isLast -> RoundedCornerShape(22.dp)
         isFirst -> RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
         isLast -> RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
         else -> RoundedCornerShape(0.dp)
     }
+}
+
+@Composable
+private fun SectionCardWrapper(
+    isFirst: Boolean,
+    isLast: Boolean,
+    transparent: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val shape = sectionCardShape(isFirst, isLast)
     Box(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(if (transparent) Color.Transparent else MaterialTheme.colorScheme.surface)
     ) { content() }
 }
 
@@ -1186,6 +1195,7 @@ private fun Divider() {
 private fun SwipeableFoodRow(
     entry: FoodEntry,
     isFavorite: Boolean,
+    rowShape: RoundedCornerShape,
     onTap: () -> Unit,
     onDelete: () -> Unit,
     onToggleFavorite: () -> Unit
@@ -1225,7 +1235,7 @@ private fun SwipeableFoodRow(
                     }
                     .clickable(onClick = onTap)
             ) {
-                FoodRow(entry = entry, isFavorite = isFavorite)
+                FoodRow(entry = entry, isFavorite = isFavorite, rowShape = rowShape)
             }
         }
     }
@@ -1275,7 +1285,11 @@ private fun BoxScope.SwipeBackground(offsetPx: Float, isFavorite: Boolean) {
 private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
 @Composable
-private fun FoodRow(entry: FoodEntry, isFavorite: Boolean = false) {
+private fun FoodRow(
+    entry: FoodEntry,
+    isFavorite: Boolean = false,
+    rowShape: RoundedCornerShape = RoundedCornerShape(22.dp)
+) {
     val timeFmt = DateTimeFormatter.ofPattern("h:mma", Locale.US).withZone(ZoneId.systemDefault())
     val ctx = LocalContext.current
     val container = (ctx.applicationContext as com.apoorvdarshan.calorietracker.FudAIApp).container
@@ -1287,7 +1301,7 @@ private fun FoodRow(entry: FoodEntry, isFavorite: Boolean = false) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
+            .clip(rowShape)
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.86f))
             .background(AppColors.Calorie.copy(alpha = 0.025f))
             .border(
@@ -1299,7 +1313,7 @@ private fun FoodRow(entry: FoodEntry, isFavorite: Boolean = false) {
                         AppColors.Calorie.copy(alpha = 0.07f)
                     )
                 ),
-                RoundedCornerShape(22.dp)
+                rowShape
             )
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.Top,
@@ -1545,9 +1559,12 @@ private fun CopyFromDaySheet(
                     }
                     items(group.entries, key = { "copy-entry-${it.id}" }) { entry ->
                         val index = group.entries.indexOf(entry)
-                        SectionCardWrapper(isFirst = index == 0, isLast = index == group.entries.lastIndex) {
+                        val isFirst = index == 0
+                        val isLast = index == group.entries.lastIndex
+                        val rowShape = sectionCardShape(isFirst, isLast)
+                        SectionCardWrapper(isFirst = isFirst, isLast = isLast, transparent = true) {
                             Box(Modifier.clickable { onCopy(listOf(entry)) }) {
-                                FoodRow(entry = entry)
+                                FoodRow(entry = entry, rowShape = rowShape)
                             }
                             if (index != group.entries.lastIndex) Divider()
                         }
