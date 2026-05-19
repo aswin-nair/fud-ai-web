@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -200,31 +201,48 @@ fun DateWheelPicker(
 @Composable
 private fun WheelSelectionHighlight(modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(14.dp)
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val fill = if (isDark) {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f)
+    } else {
+        Color(0xFFEAE0DA).copy(alpha = 0.92f)
+    }
+    val sheen = Brush.verticalGradient(
+        colors = if (isDark) {
+            listOf(
+                Color.White.copy(alpha = 0.10f),
+                Color.White.copy(alpha = 0.025f),
+                AppColors.Calorie.copy(alpha = 0.045f)
+            )
+        } else {
+            listOf(
+                Color.White.copy(alpha = 0.38f),
+                Color.White.copy(alpha = 0.10f),
+                AppColors.Calorie.copy(alpha = 0.050f)
+            )
+        }
+    )
+    val stroke = Brush.linearGradient(
+        colors = if (isDark) {
+            listOf(
+                Color.White.copy(alpha = 0.18f),
+                AppColors.Calorie.copy(alpha = 0.14f)
+            )
+        } else {
+            listOf(
+                Color.White.copy(alpha = 0.70f),
+                AppColors.Calorie.copy(alpha = 0.18f)
+            )
+        }
+    )
     Box(
         modifier
             .fillMaxWidth()
             .height(ITEM_HEIGHT)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f))
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.10f),
-                        Color.White.copy(alpha = 0.025f),
-                        AppColors.Calorie.copy(alpha = 0.045f)
-                    )
-                )
-            )
-            .border(
-                0.7.dp,
-                Brush.linearGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.18f),
-                        AppColors.Calorie.copy(alpha = 0.14f)
-                    )
-                ),
-                shape
-            )
+            .background(fill)
+            .background(sheen)
+            .border(0.7.dp, stroke, shape)
     )
 }
 

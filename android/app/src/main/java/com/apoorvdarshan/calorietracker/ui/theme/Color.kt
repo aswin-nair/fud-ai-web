@@ -59,7 +59,7 @@ object AppColors {
     val CalorieGradient: Brush
         get() = Brush.linearGradient(listOf(CalorieStart, CalorieEnd))
 
-    val AppBackgroundLight = Color(0xFFFFF8F2)
+    val AppBackgroundLight = Color(0xFFF3ECE6)
     val AppBackgroundDark = Color(0xFF0C0C0C)
 
     val AppCardLight = Color(0xFFFFFFFF)

@@ -327,35 +327,51 @@ fun HomeScreen(container: AppContainer) {
                             }
                         }
                         val glassMenuShape = RoundedCornerShape(26.dp)
+                        val glassMenuContainer = if (isDark) {
+                            Color(0xF2141416)
+                        } else {
+                            Color(0xFFFAF3EE).copy(alpha = 0.98f)
+                        }
+                        val glassMenuSheen = Brush.verticalGradient(
+                            colors = if (isDark) {
+                                listOf(
+                                    Color.White.copy(alpha = 0.045f),
+                                    Color.White.copy(alpha = 0.015f),
+                                    AppColors.Calorie.copy(alpha = 0.025f)
+                                )
+                            } else {
+                                listOf(
+                                    Color.White.copy(alpha = 0.70f),
+                                    Color.White.copy(alpha = 0.24f),
+                                    AppColors.Calorie.copy(alpha = 0.040f)
+                                )
+                            }
+                        )
+                        val glassMenuBorder = Brush.linearGradient(
+                            colors = if (isDark) {
+                                listOf(
+                                    Color.White.copy(alpha = 0.18f),
+                                    Color.White.copy(alpha = 0.055f),
+                                    AppColors.Calorie.copy(alpha = 0.08f)
+                                )
+                            } else {
+                                listOf(
+                                    Color.White.copy(alpha = 0.95f),
+                                    Color.White.copy(alpha = 0.40f),
+                                    AppColors.Calorie.copy(alpha = 0.14f)
+                                )
+                            }
+                        )
                         DropdownMenu(
                             expanded = showAddMenu,
                             onDismissRequest = { showAddMenu = false },
                             shape = glassMenuShape,
-                            containerColor = Color(0xF2141416),
+                            containerColor = glassMenuContainer,
                             shadowElevation = 22.dp,
                             modifier = Modifier
                                 .width(248.dp)
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            Color.White.copy(alpha = 0.045f),
-                                            Color.White.copy(alpha = 0.015f),
-                                            AppColors.Calorie.copy(alpha = 0.025f)
-                                        )
-                                    ),
-                                    glassMenuShape
-                                )
-                                .border(
-                                    0.8.dp,
-                                    Brush.linearGradient(
-                                        listOf(
-                                            Color.White.copy(alpha = 0.18f),
-                                            Color.White.copy(alpha = 0.055f),
-                                            AppColors.Calorie.copy(alpha = 0.08f)
-                                        )
-                                    ),
-                                    glassMenuShape
-                                )
+                                .background(glassMenuSheen, glassMenuShape)
+                                .border(0.8.dp, glassMenuBorder, glassMenuShape)
                                 .padding(vertical = 7.dp)
                         ) {
                             // Mirrors iOS HomeView toolbar Menu, in the same order:
@@ -903,7 +919,7 @@ private fun MenuRow(label: String, icon: ImageVector, onClick: () -> Unit) {
             label,
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.White.copy(alpha = 0.92f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
             maxLines = 1
         )
     }

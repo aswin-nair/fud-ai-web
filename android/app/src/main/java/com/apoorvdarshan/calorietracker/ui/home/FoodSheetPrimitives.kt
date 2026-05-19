@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -353,35 +354,48 @@ internal fun SheetGlassDropdownMenu(
 ) {
     val shape = RoundedCornerShape(22.dp)
     val sizedModifier = if (menuWidth != null) modifier.width(menuWidth) else modifier
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val menuContainer = if (isDark) Color(0xF2141416) else Color(0xFFFAF3EE).copy(alpha = 0.98f)
+    val menuSheen = Brush.verticalGradient(
+        colors = if (isDark) {
+            listOf(
+                Color.White.copy(alpha = 0.045f),
+                Color.White.copy(alpha = 0.015f),
+                AppColors.Calorie.copy(alpha = 0.025f)
+            )
+        } else {
+            listOf(
+                Color.White.copy(alpha = 0.70f),
+                Color.White.copy(alpha = 0.24f),
+                AppColors.Calorie.copy(alpha = 0.040f)
+            )
+        }
+    )
+    val menuBorder = Brush.linearGradient(
+        colors = if (isDark) {
+            listOf(
+                Color.White.copy(alpha = 0.18f),
+                Color.White.copy(alpha = 0.055f),
+                AppColors.Calorie.copy(alpha = 0.08f)
+            )
+        } else {
+            listOf(
+                Color.White.copy(alpha = 0.95f),
+                Color.White.copy(alpha = 0.40f),
+                AppColors.Calorie.copy(alpha = 0.14f)
+            )
+        }
+    )
 
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         shape = shape,
-        containerColor = Color(0xF2141416),
+        containerColor = menuContainer,
         shadowElevation = 22.dp,
         modifier = sizedModifier
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.045f),
-                        Color.White.copy(alpha = 0.015f),
-                        AppColors.Calorie.copy(alpha = 0.025f)
-                    )
-                ),
-                shape
-            )
-            .border(
-                0.8.dp,
-                Brush.linearGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.18f),
-                        Color.White.copy(alpha = 0.055f),
-                        AppColors.Calorie.copy(alpha = 0.08f)
-                    )
-                ),
-                shape
-            )
+            .background(menuSheen, shape)
+            .border(0.8.dp, menuBorder, shape)
             .padding(vertical = 5.dp),
         content = content
     )
@@ -395,6 +409,8 @@ internal fun SheetGlassDropdownMenuItem(
     reserveSelectionSlot: Boolean = false,
     onClick: () -> Unit
 ) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val checkTint = if (isDark) Color.White else AppColors.Calorie
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -420,7 +436,7 @@ internal fun SheetGlassDropdownMenuItem(
                         Icon(
                             Icons.Filled.Check,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = checkTint,
                             modifier = Modifier.size(17.dp)
                         )
                     }
@@ -433,7 +449,7 @@ internal fun SheetGlassDropdownMenuItem(
             label,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.White.copy(alpha = 0.94f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f),
             lineHeight = 19.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -445,7 +461,7 @@ internal fun SheetGlassDropdownMenuItem(
             Icon(
                 Icons.Filled.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = checkTint,
                 modifier = Modifier.size(17.dp)
             )
         }
