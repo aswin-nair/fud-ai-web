@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Delete
@@ -993,22 +994,77 @@ private fun MealSectionHeader(
                 }
                 DropdownMenu(
                     expanded = sortMenuExpanded,
-                    onDismissRequest = onSortDismiss
+                    onDismissRequest = onSortDismiss,
+                    shape = RoundedCornerShape(26.dp),
+                    containerColor = Color(0xF2141416),
+                    shadowElevation = 22.dp,
+                    modifier = Modifier
+                        .width(310.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.045f),
+                                    Color.White.copy(alpha = 0.015f),
+                                    AppColors.Calorie.copy(alpha = 0.025f)
+                                )
+                            ),
+                            RoundedCornerShape(26.dp)
+                        )
+                        .border(
+                            0.8.dp,
+                            Brush.linearGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.18f),
+                                    Color.White.copy(alpha = 0.055f),
+                                    AppColors.Calorie.copy(alpha = 0.08f)
+                                )
+                            ),
+                            RoundedCornerShape(26.dp)
+                        )
+                        .padding(vertical = 10.dp)
                 ) {
                     for (order in FoodLogSortOrder.values()) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    order.displayName,
-                                    fontWeight = if (order == sortOrder) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                            },
+                        SortMenuRow(
+                            label = order.displayName,
+                            selected = order == sortOrder,
                             onClick = { onSortOrderSelected(order) }
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SortMenuRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 2.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+            if (selected) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+        Text(
+            label,
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.94f),
+            lineHeight = 23.sp
+        )
     }
 }
 
