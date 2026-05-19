@@ -39,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -99,7 +100,10 @@ fun SavedMealsSheet(
     onDismiss: () -> Unit,
     onRelogEntry: (FoodEntry) -> Unit
 ) {
-    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val state = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden }
+    )
     val scope = rememberCoroutineScope()
 
     // Restore the last-selected segment from DataStore so reopening the sheet
@@ -151,7 +155,7 @@ fun SavedMealsSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         sheetState = state,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surface
@@ -162,15 +166,7 @@ fun SavedMealsSheet(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp)
         ) {
-            Text(
-                "Saved Meals",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 12.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
+            SavedMealsToolbar(onCancel = onDismiss)
             SegmentedTabs(selected = tab, onSelect = { newTab ->
                 tab = newTab
                 scope.launch { container.prefs.setLastSavedMealsSegment(newTab.name) }
@@ -272,6 +268,33 @@ fun SavedMealsSheet(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SavedMealsToolbar(onCancel: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
+                .clickable(onClick = onCancel)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                "Cancel",
+                color = AppColors.Calorie,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        Text("Saved Meals", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.width(76.dp))
     }
 }
 
