@@ -7,8 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import java.io.File
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -118,6 +116,7 @@ import com.apoorvdarshan.calorietracker.R
 import com.apoorvdarshan.calorietracker.AppContainer
 import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.MealType
+import com.apoorvdarshan.calorietracker.ui.components.InAppCameraCaptureDialog
 import com.apoorvdarshan.calorietracker.ui.components.MacroCard
 import com.apoorvdarshan.calorietracker.ui.components.WeekEnergyStrip
 import com.apoorvdarshan.calorietracker.ui.theme.AppColors
@@ -151,13 +150,8 @@ fun HomeScreen(container: AppContainer) {
     var editingEntry by remember { mutableStateOf<FoodEntry?>(null) }
     var showNutritionDetail by remember { mutableStateOf(false) }
 
-    // Holds the file the next camera capture will write to. We need this outside
-    // the lambda because TakePicture only gives us a Boolean, not the bytes.
-    var pendingCaptureFile by remember { mutableStateOf<File?>(null) }
-    // True when the next capture should open the Camera + Note sheet instead
-    // of analyzing immediately. Reset after each capture so the plain Camera
-    // option keeps its one-shot behavior.
-    var pendingCaptureWantsNote by remember { mutableStateOf(false) }
+    var showCameraCapture by remember { mutableStateOf(false) }
+    var cameraCaptureWantsNote by remember { mutableStateOf(false) }
     // Holds the just-captured bytes while the Camera + Note sheet is shown.
     var pendingNoteImageBytes by remember { mutableStateOf<ByteArray?>(null) }
     var pendingPickedPhotoWantsNote by remember { mutableStateOf(false) }
@@ -179,40 +173,15 @@ fun HomeScreen(container: AppContainer) {
         }
     }
 
-    val cameraLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { saved: Boolean ->
-        val file = pendingCaptureFile
-        val wantsNote = pendingCaptureWantsNote
-        pendingCaptureFile = null
-        pendingCaptureWantsNote = false
-        if (saved && file != null && file.exists()) {
-            val bytes = file.readBytes()
-            if (bytes.isNotEmpty()) {
-                if (wantsNote) {
-                    pendingNoteImageBytes = bytes
-                } else {
-                    vm.analyzePhoto(bytes)
-                }
-            }
-        }
-    }
-
-    fun launchCamera(withNote: Boolean = false) {
-        val dir = File(ctx.cacheDir, "capture").apply { mkdirs() }
-        val file = File(dir, "shot-${System.currentTimeMillis()}.jpg")
-        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-        pendingCaptureFile = file
-        pendingCaptureWantsNote = withNote
-        cameraLauncher.launch(uri)
-    }
-
     // Tracks whether the next permission grant should also show the note sheet.
     var permissionWantsNote by remember { mutableStateOf(false) }
     val cameraPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) launchCamera(withNote = permissionWantsNote)
+        if (granted) {
+            cameraCaptureWantsNote = permissionWantsNote
+            showCameraCapture = true
+        }
         permissionWantsNote = false
     }
 
@@ -220,7 +189,8 @@ fun HomeScreen(container: AppContainer) {
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
         ) {
-            launchCamera(withNote = withNote)
+            cameraCaptureWantsNote = withNote
+            showCameraCapture = true
         } else {
             permissionWantsNote = withNote
             cameraPermission.launch(Manifest.permission.CAMERA)
@@ -588,6 +558,25 @@ fun HomeScreen(container: AppContainer) {
                 vm.lookupBarcode(barcode)
             },
             onDismiss = { showBarcodeScanner = false }
+        )
+    }
+
+    if (showCameraCapture) {
+        InAppCameraCaptureDialog(
+            onCapture = { bytes ->
+                val wantsNote = cameraCaptureWantsNote
+                showCameraCapture = false
+                cameraCaptureWantsNote = false
+                if (wantsNote) {
+                    pendingNoteImageBytes = bytes
+                } else {
+                    vm.analyzePhoto(bytes)
+                }
+            },
+            onDismiss = {
+                showCameraCapture = false
+                cameraCaptureWantsNote = false
+            }
         )
     }
 
@@ -1199,7 +1188,7 @@ private fun FoodRow(entry: FoodEntry, isFavorite: Boolean = false) {
     val ctx = LocalContext.current
     val container = (ctx.applicationContext as com.apoorvdarshan.calorietracker.FudAIApp).container
     val bitmap = remember(entry.imageFilename) {
-        entry.imageFilename?.let { container.imageStore.load(it) }
+        entry.imageFilename?.let { container.imageStore.loadThumbnail(it) }
     }
     // iOS layout: large 76dp square thumb · column with (Name + heart on left,
     // time on right) · pink kcal · serving · macro tag pills row.

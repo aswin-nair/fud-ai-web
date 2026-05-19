@@ -561,7 +561,7 @@ private fun SavedMealRow(
 @Composable
 private fun Thumbnail(emoji: String?, imageFilename: String?, imageStore: FoodImageStore) {
     val shape = RoundedCornerShape(12.dp)
-    val bitmap = remember(imageFilename) { imageFilename?.let { imageStore.load(it) } }
+    val bitmap = remember(imageFilename) { imageFilename?.let { imageStore.loadThumbnail(it) } }
 
     Box(
         Modifier

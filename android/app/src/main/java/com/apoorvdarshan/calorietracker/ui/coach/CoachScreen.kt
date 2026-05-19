@@ -9,7 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -95,9 +94,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.apoorvdarshan.calorietracker.AppContainer
 import com.apoorvdarshan.calorietracker.models.ChatMessage
+import com.apoorvdarshan.calorietracker.ui.components.InAppCameraCaptureDialog
 import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.util.Base64
 import kotlinx.coroutines.delay
 
@@ -118,7 +117,7 @@ fun CoachScreen(container: AppContainer) {
     val ui by vm.ui.collectAsState()
     var input by remember { mutableStateOf("") }
     var attachedImageBytes by remember { mutableStateOf<ByteArray?>(null) }
-    var pendingCaptureFile by remember { mutableStateOf<File?>(null) }
+    var showCameraCapture by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     var showResetConfirm by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
@@ -139,34 +138,15 @@ fun CoachScreen(container: AppContainer) {
         }
     }
 
-    val cameraLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { saved ->
-        val file = pendingCaptureFile
-        pendingCaptureFile = null
-        if (saved && file != null && file.exists()) {
-            val bytes = file.readBytes()
-            if (bytes.isNotEmpty()) attachedImageBytes = resizedJpeg(bytes, maxDimension = 1800, quality = 86) ?: bytes
-        }
-    }
-
-    fun launchCamera() {
-        val dir = File(ctx.cacheDir, "capture").apply { mkdirs() }
-        val file = File(dir, "coach-${System.currentTimeMillis()}.jpg")
-        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-        pendingCaptureFile = file
-        cameraLauncher.launch(uri)
-    }
-
     val cameraPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) launchCamera()
+        if (granted) showCameraCapture = true
     }
 
     fun openCamera() {
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            launchCamera()
+            showCameraCapture = true
         } else {
             cameraPermission.launch(Manifest.permission.CAMERA)
         }
@@ -274,6 +254,16 @@ fun CoachScreen(container: AppContainer) {
                 onSend = { sendCurrentDraft() }
             )
         }
+    }
+
+    if (showCameraCapture) {
+        InAppCameraCaptureDialog(
+            onCapture = { bytes ->
+                showCameraCapture = false
+                attachedImageBytes = resizedJpeg(bytes, maxDimension = 1800, quality = 86) ?: bytes
+            },
+            onDismiss = { showCameraCapture = false }
+        )
     }
 
     if (showResetConfirm) {
