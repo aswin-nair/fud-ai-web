@@ -20,6 +20,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -1150,9 +1151,9 @@ private fun SwipeableFoodRow(
 }
 
 @Composable
-private fun SwipeBackground(offsetPx: Float, isFavorite: Boolean) {
+private fun BoxScope.SwipeBackground(offsetPx: Float, isFavorite: Boolean) {
     if (offsetPx == 0f) {
-        Box(Modifier.fillMaxSize())
+        Box(Modifier.matchParentSize())
         return
     }
     val (bg, icon, label) = if (offsetPx < 0f) {
@@ -1174,7 +1175,7 @@ private fun SwipeBackground(offsetPx: Float, isFavorite: Boolean) {
     val widthDp = with(LocalDensity.current) { widthPx.toDp() }
     val alignment = if (offsetPx < 0f) Alignment.CenterEnd else Alignment.CenterStart
 
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.matchParentSize()) {
         Box(
             Modifier
                 .align(alignment)
