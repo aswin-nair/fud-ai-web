@@ -132,7 +132,7 @@ struct WidgetSnapshot: Codable, Equatable {
 
     var homeNutrientsSummary: String {
         displayedHomeNutrients
-            .map { "\($0.shortLabel)\($0.displayValue)" }
+            .map { "\($0.summaryLabel)\($0.displayValue)" }
             .joined(separator: " · ")
     }
 
@@ -179,5 +179,11 @@ struct WidgetSnapshot: Codable, Equatable {
             WidgetNutrientValue(id: "carbs", label: "Carbs", shortLabel: "C", unit: "g", iconName: "leaf", value: Double(carbs), goal: Double(carbsGoal)),
             WidgetNutrientValue(id: "fat", label: "Fat", shortLabel: "F", unit: "g", iconName: "drop.fill", value: Double(fat), goal: Double(fatGoal)),
         ]
+    }
+}
+
+private extension WidgetNutrientValue {
+    var summaryLabel: String {
+        String(label.prefix(1)).uppercased()
     }
 }

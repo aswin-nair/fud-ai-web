@@ -96,6 +96,19 @@ object OpenFoodFactsService {
             cholesterol = milligrams(servingValue("cholesterol")),
             sodium = milligrams(servingValue("sodium")),
             potassium = milligrams(servingValue("potassium")),
+            transFat = rounded(servingValue("trans-fat")),
+            calcium = milligrams(servingValue("calcium")),
+            iron = milligrams(servingValue("iron")),
+            magnesium = milligrams(servingValue("magnesium")),
+            zinc = milligrams(servingValue("zinc")),
+            vitaminA = micrograms(servingValue("vitamin-a")),
+            vitaminC = milligrams(servingValue("vitamin-c")),
+            vitaminD = micrograms(servingValue("vitamin-d")),
+            vitaminB12 = micrograms(servingValue("vitamin-b12")),
+            vitaminE = milligrams(servingValue("vitamin-e")),
+            vitaminK = micrograms(servingValue("vitamin-k")),
+            folate = micrograms(servingValue("folates")),
+            omega3 = rounded(servingValue("omega-3-fat")),
             servingUnitOptions = listOf(servingOption),
             selectedServingUnit = servingOption.unit,
             selectedServingQuantity = 1.0
@@ -127,6 +140,9 @@ object OpenFoodFactsService {
 
     private fun milligrams(grams: Double?): Double? =
         grams?.let { round(it * 1000.0 * 10.0) / 10.0 }
+
+    private fun micrograms(grams: Double?): Double? =
+        grams?.let { round(it * 1_000_000.0 * 10.0) / 10.0 }
 
     private fun gramsFrom(servingSize: String?): Double? {
         var text = servingSize?.lowercase(Locale.US) ?: return null

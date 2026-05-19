@@ -240,6 +240,7 @@ fun FoodResultSheet(
                     SheetPillCard {
                         val gUnit = stringResource(R.string.unit_g)
                         val mgUnit = stringResource(R.string.unit_mg)
+                        val mcgUnit = "mcg"
                         val emDash = stringResource(R.string.nutrition_em_dash)
                         val micros = listOf(
                             Triple(stringResource(R.string.sheet_micro_sugar), scaledD(analysis.sugar), gUnit),
@@ -250,7 +251,20 @@ fun FoodResultSheet(
                             Triple(stringResource(R.string.sheet_micro_poly_fat), scaledD(analysis.polyunsaturatedFat), gUnit),
                             Triple(stringResource(R.string.sheet_micro_cholesterol), scaledD(analysis.cholesterol), mgUnit),
                             Triple(stringResource(R.string.sheet_micro_sodium), scaledD(analysis.sodium), mgUnit),
-                            Triple(stringResource(R.string.sheet_micro_potassium), scaledD(analysis.potassium), mgUnit)
+                            Triple(stringResource(R.string.sheet_micro_potassium), scaledD(analysis.potassium), mgUnit),
+                            Triple("Trans Fat", scaledD(analysis.transFat), gUnit),
+                            Triple("Calcium", scaledD(analysis.calcium), mgUnit),
+                            Triple("Iron", scaledD(analysis.iron), mgUnit),
+                            Triple("Magnesium", scaledD(analysis.magnesium), mgUnit),
+                            Triple("Zinc", scaledD(analysis.zinc), mgUnit),
+                            Triple("Vitamin A", scaledD(analysis.vitaminA), mcgUnit),
+                            Triple("Vitamin C", scaledD(analysis.vitaminC), mgUnit),
+                            Triple("Vitamin D", scaledD(analysis.vitaminD), mcgUnit),
+                            Triple("Vitamin B12", scaledD(analysis.vitaminB12), mcgUnit),
+                            Triple("Vitamin E", scaledD(analysis.vitaminE), mgUnit),
+                            Triple("Vitamin K", scaledD(analysis.vitaminK), mcgUnit),
+                            Triple("Folate", scaledD(analysis.folate), mcgUnit),
+                            Triple("Omega-3", scaledD(analysis.omega3), gUnit)
                         )
                         micros.forEachIndexed { idx, (label, value, unit) ->
                             if (idx > 0) SheetHairline()

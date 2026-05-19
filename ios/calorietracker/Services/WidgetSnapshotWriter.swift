@@ -93,17 +93,6 @@ enum WidgetSnapshotWriter {
     }
 
     private static func shortLabel(for nutrient: HomeTopNutrient) -> String {
-        switch nutrient {
-        case .protein: "P"
-        case .carbs: "C"
-        case .fat: "F"
-        case .fiber: "Fib"
-        case .sugar: "Sug"
-        case .addedSugar: "Add"
-        case .saturatedFat: "Sat"
-        case .cholesterol: "Chol"
-        case .sodium: "Na"
-        case .potassium: "K"
-        }
+        String(nutrient.displayName.prefix(1)).uppercased()
     }
 }

@@ -115,6 +115,8 @@ struct ContentView: View {
     @State private var appUpdateState: AppUpdateState = .idle
     @State private var showFudAIPlusIntro = false
     @State private var showFudAIPlusPaywall = false
+    @State private var requestReviewAfterPlusIntroDismiss = false
+    @State private var suppressPlusIntroReviewRequest = false
 
     var body: some View {
         TabView {
@@ -160,27 +162,25 @@ struct ContentView: View {
             await storeManager.checkEntitlements()
             maybeShowFudAIPlusIntro()
         }
-        .sheet(isPresented: $showFudAIPlusIntro, onDismiss: markFudAIPlusIntroSeen) {
+        .sheet(isPresented: $showFudAIPlusIntro, onDismiss: handleFudAIPlusIntroDismissed) {
             FudAIPlusIntroView(
                 onUpgrade: {
+                    suppressPlusIntroReviewRequest = true
                     markFudAIPlusIntroSeen()
                     AIAccessSettings.mode = .fudAIPlus
                     showFudAIPlusIntro = false
-                    showFudAIPlusPaywall = true
-                },
-                onRateApp: {
-                    markFudAIPlusIntroSeen()
-                    showFudAIPlusIntro = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        requestNativeReview()
+                        showFudAIPlusPaywall = true
                     }
                 },
                 onStarGitHub: {
+                    suppressPlusIntroReviewRequest = true
                     markFudAIPlusIntroSeen()
                     showFudAIPlusIntro = false
                     openGitHubRepo()
                 },
                 onDismiss: {
+                    requestReviewAfterPlusIntroDismiss = true
                     markFudAIPlusIntroSeen()
                     showFudAIPlusIntro = false
                 }
@@ -203,12 +203,34 @@ struct ContentView: View {
 
     @MainActor
     private func maybeShowFudAIPlusIntro() {
-        guard AIAccessSettings.lastSeenPlusUpdateAnnouncementID != AIAccessSettings.currentPlusUpdateAnnouncementID else { return }
+        guard AppUpdateChecker.currentVersion == AIAccessSettings.plusIntroTargetVersion else { return }
+        guard AIAccessSettings.lastSeenPlusIntroVersion != AIAccessSettings.plusIntroTargetVersion else { return }
+        guard !AIAccessSettings.hasActivePlusEntitlement else { return }
+        requestReviewAfterPlusIntroDismiss = false
+        suppressPlusIntroReviewRequest = false
         showFudAIPlusIntro = true
     }
 
     private func markFudAIPlusIntroSeen() {
-        AIAccessSettings.lastSeenPlusUpdateAnnouncementID = AIAccessSettings.currentPlusUpdateAnnouncementID
+        AIAccessSettings.lastSeenPlusIntroVersion = AIAccessSettings.plusIntroTargetVersion
+    }
+
+    private func handleFudAIPlusIntroDismissed() {
+        let wasAlreadySeen = AIAccessSettings.lastSeenPlusIntroVersion == AIAccessSettings.plusIntroTargetVersion
+        markFudAIPlusIntroSeen()
+
+        let shouldRequestReview = !suppressPlusIntroReviewRequest
+            && (requestReviewAfterPlusIntroDismiss || !wasAlreadySeen)
+            && AIAccessSettings.postPlusIntroReviewRequestedVersion != AIAccessSettings.plusIntroTargetVersion
+
+        requestReviewAfterPlusIntroDismiss = false
+        suppressPlusIntroReviewRequest = false
+
+        guard shouldRequestReview else { return }
+        AIAccessSettings.postPlusIntroReviewRequestedVersion = AIAccessSettings.plusIntroTargetVersion
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+            requestNativeReview()
+        }
     }
 
     private func requestNativeReview() {
@@ -227,7 +249,6 @@ struct ContentView: View {
 
 private struct FudAIPlusIntroView: View {
     let onUpgrade: () -> Void
-    let onRateApp: () -> Void
     let onStarGitHub: () -> Void
     let onDismiss: () -> Void
 
@@ -239,7 +260,7 @@ private struct FudAIPlusIntroView: View {
                         Circle()
                             .fill(.ultraThinMaterial)
                             .frame(width: 96, height: 96)
-                        Image(systemName: "barcode.viewfinder")
+                        Image(systemName: "key.slash.fill")
                             .font(.system(size: 40, weight: .semibold))
                             .foregroundStyle(
                                 LinearGradient(colors: AppColors.calorieGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -247,9 +268,9 @@ private struct FudAIPlusIntroView: View {
                     }
 
                     VStack(spacing: 8) {
-                        Text("New in Fud AI")
+                        Text("Upgrade to Fud AI Plus")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                        Text("Barcode logging is here. Fud AI Plus is the no-setup option for non-technical users who do not want to manage API keys.")
+                        Text("No API key setup needed. If Gemini or API keys feel confusing, Fud AI Plus lets scans, voice, barcode, and Coach work through Fud AI.")
                             .font(.system(.callout, design: .rounded))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -257,9 +278,9 @@ private struct FudAIPlusIntroView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
-                        plusIntroRow("Scan a barcode to log packaged foods faster")
-                        plusIntroRow("Fud AI Plus includes food scan, voice, and Coach without setup")
-                        plusIntroRow("Ratings and GitHub stars help keep the app open source and BYOK-friendly")
+                        plusIntroRow("No Gemini/API key setup for non-technical users")
+                        plusIntroRow("Food scan, voice, barcode, and Coach run through Fud AI")
+                        plusIntroRow("BYOK stays available if you prefer using your own keys")
                     }
                     .font(.system(.subheadline, design: .rounded))
                     .padding(.horizontal, 30)
@@ -281,15 +302,6 @@ private struct FudAIPlusIntroView: View {
                             in: RoundedRectangle(cornerRadius: 16, style: .continuous)
                         )
                 }
-
-                Button(action: onRateApp) {
-                    Label("Rate the App", systemImage: "star.fill")
-                        .font(.system(.body, design: .rounded, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                }
-                .buttonStyle(.bordered)
-                .tint(AppColors.calorie)
 
                 Button(action: onStarGitHub) {
                     Label("Star on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
@@ -1180,6 +1192,19 @@ struct HomeView: View {
                             cholesterol: result.cholesterol,
                             sodium: result.sodium,
                             potassium: result.potassium,
+                            transFat: result.transFat,
+                            calcium: result.calcium,
+                            iron: result.iron,
+                            magnesium: result.magnesium,
+                            zinc: result.zinc,
+                            vitaminA: result.vitaminA,
+                            vitaminC: result.vitaminC,
+                            vitaminD: result.vitaminD,
+                            vitaminB12: result.vitaminB12,
+                            vitaminE: result.vitaminE,
+                            vitaminK: result.vitaminK,
+                            folate: result.folate,
+                            omega3: result.omega3,
                             servingUnitOptions: result.servingUnitOptions,
                             selectedServingUnit: result.selectedServingUnit,
                             selectedServingQuantity: result.selectedServingQuantity,
@@ -1221,6 +1246,19 @@ struct HomeView: View {
                         cholesterol: entry.cholesterol,
                         sodium: entry.sodium,
                         potassium: entry.potassium,
+                        transFat: entry.transFat,
+                        calcium: entry.calcium,
+                        iron: entry.iron,
+                        magnesium: entry.magnesium,
+                        zinc: entry.zinc,
+                        vitaminA: entry.vitaminA,
+                        vitaminC: entry.vitaminC,
+                        vitaminD: entry.vitaminD,
+                        vitaminB12: entry.vitaminB12,
+                        vitaminE: entry.vitaminE,
+                        vitaminK: entry.vitaminK,
+                        folate: entry.folate,
+                        omega3: entry.omega3,
                         servingUnitOptions: entry.servingUnitOptions,
                         selectedServingUnit: entry.selectedServingUnit,
                         selectedServingQuantity: entry.selectedServingQuantity
@@ -1608,6 +1646,19 @@ private enum OpenFoodFactsService {
             cholesterol: milligrams(servingValue("cholesterol", in: nutriments, scale: scale)),
             sodium: milligrams(servingValue("sodium", in: nutriments, scale: scale)),
             potassium: milligrams(servingValue("potassium", in: nutriments, scale: scale)),
+            transFat: rounded(servingValue("trans-fat", in: nutriments, scale: scale)),
+            calcium: milligrams(servingValue("calcium", in: nutriments, scale: scale)),
+            iron: milligrams(servingValue("iron", in: nutriments, scale: scale)),
+            magnesium: milligrams(servingValue("magnesium", in: nutriments, scale: scale)),
+            zinc: milligrams(servingValue("zinc", in: nutriments, scale: scale)),
+            vitaminA: micrograms(servingValue("vitamin-a", in: nutriments, scale: scale)),
+            vitaminC: milligrams(servingValue("vitamin-c", in: nutriments, scale: scale)),
+            vitaminD: micrograms(servingValue("vitamin-d", in: nutriments, scale: scale)),
+            vitaminB12: micrograms(servingValue("vitamin-b12", in: nutriments, scale: scale)),
+            vitaminE: milligrams(servingValue("vitamin-e", in: nutriments, scale: scale)),
+            vitaminK: micrograms(servingValue("vitamin-k", in: nutriments, scale: scale)),
+            folate: micrograms(servingValue("folates", in: nutriments, scale: scale)),
+            omega3: rounded(servingValue("omega-3-fat", in: nutriments, scale: scale)),
             servingUnitOptions: [servingOption],
             selectedServingUnit: servingOption.unit,
             selectedServingQuantity: 1
@@ -1649,6 +1700,10 @@ private enum OpenFoodFactsService {
 
     private static func milligrams(_ grams: Double?) -> Double? {
         grams.map { round($0 * 1000 * 10) / 10 }
+    }
+
+    private static func micrograms(_ grams: Double?) -> Double? {
+        grams.map { round($0 * 1_000_000 * 10) / 10 }
     }
 
     private static func grams(from servingSize: String?) -> Double? {
@@ -1821,6 +1876,19 @@ struct NutritionDetailView: View {
                     optionalNutritionRow(.cholesterol, value: foodStore.cholesterol(for: date))
                     optionalNutritionRow(.sodium, value: foodStore.sodium(for: date))
                     optionalNutritionRow(.potassium, value: foodStore.potassium(for: date))
+                    NutritionDetailRow(icon: "circle.lefthalf.filled", label: "Trans Fat", value: formatMicro(foodStore.transFat(for: date)), unit: "g")
+                    NutritionDetailRow(icon: "figure.strengthtraining.traditional", label: "Calcium", value: formatMicro(foodStore.calcium(for: date)), unit: "mg")
+                    NutritionDetailRow(icon: "bolt.heart", label: "Iron", value: formatMicro(foodStore.iron(for: date)), unit: "mg")
+                    NutritionDetailRow(icon: "sparkle", label: "Magnesium", value: formatMicro(foodStore.magnesium(for: date)), unit: "mg")
+                    NutritionDetailRow(icon: "shield.lefthalf.filled", label: "Zinc", value: formatMicro(foodStore.zinc(for: date)), unit: "mg")
+                    NutritionDetailRow(icon: "a.circle.fill", label: "Vitamin A", value: formatMicro(foodStore.vitaminA(for: date)), unit: "mcg")
+                    NutritionDetailRow(icon: "c.circle.fill", label: "Vitamin C", value: formatMicro(foodStore.vitaminC(for: date)), unit: "mg")
+                    NutritionDetailRow(icon: "d.circle.fill", label: "Vitamin D", value: formatMicro(foodStore.vitaminD(for: date)), unit: "mcg")
+                    NutritionDetailRow(icon: "b.circle.fill", label: "Vitamin B12", value: formatMicro(foodStore.vitaminB12(for: date)), unit: "mcg")
+                    NutritionDetailRow(icon: "e.circle.fill", label: "Vitamin E", value: formatMicro(foodStore.vitaminE(for: date)), unit: "mg")
+                    NutritionDetailRow(icon: "k.circle.fill", label: "Vitamin K", value: formatMicro(foodStore.vitaminK(for: date)), unit: "mcg")
+                    NutritionDetailRow(icon: "leaf.fill", label: "Folate", value: formatMicro(foodStore.folate(for: date)), unit: "mcg")
+                    NutritionDetailRow(icon: "drop.triangle.fill", label: "Omega-3", value: formatMicro(foodStore.omega3(for: date)), unit: "g")
                 }
                 .listRowBackground(AppColors.appCard)
             }
@@ -1957,16 +2025,6 @@ struct ContextDescriptionSheet: View {
                         )
                     }
 
-                    Button {
-                        onAnalyze()
-                    } label: {
-                        Text("Analyze")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppColors.calorie)
-                    .controlSize(.large)
                 }
                 .padding()
             }
@@ -1976,6 +2034,11 @@ struct ContextDescriptionSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { onCancel() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Analyze") { onAnalyze() }
+                        .fontWeight(.semibold)
+                        .tint(AppColors.calorie)
                 }
             }
             .onAppear { isFocused = true }

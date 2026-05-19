@@ -94,6 +94,19 @@ fun NutritionDetailSheet(
     val cholesterol = entries.sumOf { it.cholesterol ?: 0.0 }
     val sodium = entries.sumOf { it.sodium ?: 0.0 }
     val potassium = entries.sumOf { it.potassium ?: 0.0 }
+    val transFat = entries.sumOf { it.transFat ?: 0.0 }
+    val calcium = entries.sumOf { it.calcium ?: 0.0 }
+    val iron = entries.sumOf { it.iron ?: 0.0 }
+    val magnesium = entries.sumOf { it.magnesium ?: 0.0 }
+    val zinc = entries.sumOf { it.zinc ?: 0.0 }
+    val vitaminA = entries.sumOf { it.vitaminA ?: 0.0 }
+    val vitaminC = entries.sumOf { it.vitaminC ?: 0.0 }
+    val vitaminD = entries.sumOf { it.vitaminD ?: 0.0 }
+    val vitaminB12 = entries.sumOf { it.vitaminB12 ?: 0.0 }
+    val vitaminE = entries.sumOf { it.vitaminE ?: 0.0 }
+    val vitaminK = entries.sumOf { it.vitaminK ?: 0.0 }
+    val folate = entries.sumOf { it.folate ?: 0.0 }
+    val omega3 = entries.sumOf { it.omega3 ?: 0.0 }
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val sheetSurface = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFAF3EE)
 
@@ -160,6 +173,32 @@ fun NutritionDetailSheet(
                     DetailRow(Icons.Filled.Bolt, "Sodium", fmt(sodium), "mg", goal = "${optionalGoals.sodium}")
                     Hairline()
                     DetailRow(Icons.Filled.Bolt, "Potassium", fmt(potassium), "mg", goal = "${optionalGoals.potassium}")
+                    Hairline()
+                    DetailRow(Icons.Filled.WaterDrop, "Trans Fat", fmt(transFat), "g")
+                    Hairline()
+                    DetailRow(Icons.Filled.Bolt, "Calcium", fmt(calcium), "mg")
+                    Hairline()
+                    DetailRow(Icons.Filled.Bolt, "Iron", fmt(iron), "mg")
+                    Hairline()
+                    DetailRow(Icons.Filled.Bolt, "Magnesium", fmt(magnesium), "mg")
+                    Hairline()
+                    DetailRow(Icons.Filled.Bolt, "Zinc", fmt(zinc), "mg")
+                    Hairline()
+                    DetailRow(null, "Vitamin A", fmt(vitaminA), "mcg", labelGlyph = "A")
+                    Hairline()
+                    DetailRow(null, "Vitamin C", fmt(vitaminC), "mg", labelGlyph = "C")
+                    Hairline()
+                    DetailRow(null, "Vitamin D", fmt(vitaminD), "mcg", labelGlyph = "D")
+                    Hairline()
+                    DetailRow(null, "Vitamin B12", fmt(vitaminB12), "mcg", labelGlyph = "B")
+                    Hairline()
+                    DetailRow(null, "Vitamin E", fmt(vitaminE), "mg", labelGlyph = "E")
+                    Hairline()
+                    DetailRow(null, "Vitamin K", fmt(vitaminK), "mcg", labelGlyph = "K")
+                    Hairline()
+                    DetailRow(Icons.Filled.Spa, "Folate", fmt(folate), "mcg")
+                    Hairline()
+                    DetailRow(Icons.Filled.WaterDrop, "Omega-3", fmt(omega3), "g")
                 }
             }
         }

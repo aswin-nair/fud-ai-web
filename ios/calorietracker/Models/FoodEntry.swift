@@ -118,6 +118,19 @@ struct FoodEntry: Identifiable, Codable {
     var cholesterol: Double?    // milligrams
     var sodium: Double?         // milligrams
     var potassium: Double?      // milligrams
+    var transFat: Double?       // grams
+    var calcium: Double?        // milligrams
+    var iron: Double?           // milligrams
+    var magnesium: Double?      // milligrams
+    var zinc: Double?           // milligrams
+    var vitaminA: Double?       // micrograms
+    var vitaminC: Double?       // milligrams
+    var vitaminD: Double?       // micrograms
+    var vitaminB12: Double?     // micrograms
+    var vitaminE: Double?       // milligrams
+    var vitaminK: Double?       // micrograms
+    var folate: Double?         // micrograms
+    var omega3: Double?         // grams
     var servingSizeGrams: Double? // grams (nil for old entries)
     var servingUnitOptions: [ServingUnitOption]
     var selectedServingUnit: String?
@@ -145,6 +158,19 @@ struct FoodEntry: Identifiable, Codable {
         cholesterol: Double? = nil,
         sodium: Double? = nil,
         potassium: Double? = nil,
+        transFat: Double? = nil,
+        calcium: Double? = nil,
+        iron: Double? = nil,
+        magnesium: Double? = nil,
+        zinc: Double? = nil,
+        vitaminA: Double? = nil,
+        vitaminC: Double? = nil,
+        vitaminD: Double? = nil,
+        vitaminB12: Double? = nil,
+        vitaminE: Double? = nil,
+        vitaminK: Double? = nil,
+        folate: Double? = nil,
+        omega3: Double? = nil,
         servingSizeGrams: Double? = nil,
         servingUnitOptions: [ServingUnitOption] = [],
         selectedServingUnit: String? = nil,
@@ -171,6 +197,19 @@ struct FoodEntry: Identifiable, Codable {
         self.cholesterol = cholesterol
         self.sodium = sodium
         self.potassium = potassium
+        self.transFat = transFat
+        self.calcium = calcium
+        self.iron = iron
+        self.magnesium = magnesium
+        self.zinc = zinc
+        self.vitaminA = vitaminA
+        self.vitaminC = vitaminC
+        self.vitaminD = vitaminD
+        self.vitaminB12 = vitaminB12
+        self.vitaminE = vitaminE
+        self.vitaminK = vitaminK
+        self.folate = folate
+        self.omega3 = omega3
         self.servingSizeGrams = servingSizeGrams
         self.servingUnitOptions = servingUnitOptions
         self.selectedServingUnit = selectedServingUnit
@@ -184,7 +223,10 @@ struct FoodEntry: Identifiable, Codable {
         case emoji, source, mealType
         case sugar, addedSugar, fiber, saturatedFat
         case monounsaturatedFat, polyunsaturatedFat
-        case cholesterol, sodium, potassium, servingSizeGrams
+        case cholesterol, sodium, potassium
+        case transFat, calcium, iron, magnesium, zinc
+        case vitaminA, vitaminC, vitaminD, vitaminB12, vitaminE, vitaminK, folate, omega3
+        case servingSizeGrams
         case servingUnitOptions, selectedServingUnit, selectedServingQuantity
     }
 
@@ -220,6 +262,19 @@ struct FoodEntry: Identifiable, Codable {
         cholesterol = try container.decodeIfPresent(Double.self, forKey: .cholesterol)
         sodium = try container.decodeIfPresent(Double.self, forKey: .sodium)
         potassium = try container.decodeIfPresent(Double.self, forKey: .potassium)
+        transFat = try container.decodeIfPresent(Double.self, forKey: .transFat)
+        calcium = try container.decodeIfPresent(Double.self, forKey: .calcium)
+        iron = try container.decodeIfPresent(Double.self, forKey: .iron)
+        magnesium = try container.decodeIfPresent(Double.self, forKey: .magnesium)
+        zinc = try container.decodeIfPresent(Double.self, forKey: .zinc)
+        vitaminA = try container.decodeIfPresent(Double.self, forKey: .vitaminA)
+        vitaminC = try container.decodeIfPresent(Double.self, forKey: .vitaminC)
+        vitaminD = try container.decodeIfPresent(Double.self, forKey: .vitaminD)
+        vitaminB12 = try container.decodeIfPresent(Double.self, forKey: .vitaminB12)
+        vitaminE = try container.decodeIfPresent(Double.self, forKey: .vitaminE)
+        vitaminK = try container.decodeIfPresent(Double.self, forKey: .vitaminK)
+        folate = try container.decodeIfPresent(Double.self, forKey: .folate)
+        omega3 = try container.decodeIfPresent(Double.self, forKey: .omega3)
         servingSizeGrams = try container.decodeIfPresent(Double.self, forKey: .servingSizeGrams)
         servingUnitOptions = try container.decodeIfPresent([ServingUnitOption].self, forKey: .servingUnitOptions) ?? []
         selectedServingUnit = try container.decodeIfPresent(String.self, forKey: .selectedServingUnit)
@@ -250,6 +305,19 @@ struct FoodEntry: Identifiable, Codable {
         try container.encodeIfPresent(cholesterol, forKey: .cholesterol)
         try container.encodeIfPresent(sodium, forKey: .sodium)
         try container.encodeIfPresent(potassium, forKey: .potassium)
+        try container.encodeIfPresent(transFat, forKey: .transFat)
+        try container.encodeIfPresent(calcium, forKey: .calcium)
+        try container.encodeIfPresent(iron, forKey: .iron)
+        try container.encodeIfPresent(magnesium, forKey: .magnesium)
+        try container.encodeIfPresent(zinc, forKey: .zinc)
+        try container.encodeIfPresent(vitaminA, forKey: .vitaminA)
+        try container.encodeIfPresent(vitaminC, forKey: .vitaminC)
+        try container.encodeIfPresent(vitaminD, forKey: .vitaminD)
+        try container.encodeIfPresent(vitaminB12, forKey: .vitaminB12)
+        try container.encodeIfPresent(vitaminE, forKey: .vitaminE)
+        try container.encodeIfPresent(vitaminK, forKey: .vitaminK)
+        try container.encodeIfPresent(folate, forKey: .folate)
+        try container.encodeIfPresent(omega3, forKey: .omega3)
         try container.encodeIfPresent(servingSizeGrams, forKey: .servingSizeGrams)
         if !servingUnitOptions.isEmpty {
             try container.encode(servingUnitOptions, forKey: .servingUnitOptions)
@@ -294,6 +362,19 @@ struct FoodEntry: Identifiable, Codable {
             cholesterol: cholesterol,
             sodium: sodium,
             potassium: potassium,
+            transFat: transFat,
+            calcium: calcium,
+            iron: iron,
+            magnesium: magnesium,
+            zinc: zinc,
+            vitaminA: vitaminA,
+            vitaminC: vitaminC,
+            vitaminD: vitaminD,
+            vitaminB12: vitaminB12,
+            vitaminE: vitaminE,
+            vitaminK: vitaminK,
+            folate: folate,
+            omega3: omega3,
             servingSizeGrams: servingSizeGrams,
             servingUnitOptions: servingUnitOptions,
             selectedServingUnit: selectedServingUnit,

@@ -24,6 +24,19 @@ struct FoodResultView: View {
     let baseCholesterol: Double?
     let baseSodium: Double?
     let basePotassium: Double?
+    let baseTransFat: Double?
+    let baseCalcium: Double?
+    let baseIron: Double?
+    let baseMagnesium: Double?
+    let baseZinc: Double?
+    let baseVitaminA: Double?
+    let baseVitaminC: Double?
+    let baseVitaminD: Double?
+    let baseVitaminB12: Double?
+    let baseVitaminE: Double?
+    let baseVitaminK: Double?
+    let baseFolate: Double?
+    let baseOmega3: Double?
     let servingUnitOptions: [ServingUnitOption]
 
     @State var name: String
@@ -58,6 +71,19 @@ struct FoodResultView: View {
     private var scaledCholesterol: Double? { baseCholesterol.map { round($0 * scale * 10) / 10 } }
     private var scaledSodium: Double? { baseSodium.map { round($0 * scale * 10) / 10 } }
     private var scaledPotassium: Double? { basePotassium.map { round($0 * scale * 10) / 10 } }
+    private var scaledTransFat: Double? { baseTransFat.map { round($0 * scale * 10) / 10 } }
+    private var scaledCalcium: Double? { baseCalcium.map { round($0 * scale * 10) / 10 } }
+    private var scaledIron: Double? { baseIron.map { round($0 * scale * 10) / 10 } }
+    private var scaledMagnesium: Double? { baseMagnesium.map { round($0 * scale * 10) / 10 } }
+    private var scaledZinc: Double? { baseZinc.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminA: Double? { baseVitaminA.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminC: Double? { baseVitaminC.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminD: Double? { baseVitaminD.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminB12: Double? { baseVitaminB12.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminE: Double? { baseVitaminE.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminK: Double? { baseVitaminK.map { round($0 * scale * 10) / 10 } }
+    private var scaledFolate: Double? { baseFolate.map { round($0 * scale * 10) / 10 } }
+    private var scaledOmega3: Double? { baseOmega3.map { round($0 * scale * 10) / 10 } }
     private var selectedServingOption: ServingUnitOption {
         ServingUnitOption.option(matching: selectedServingUnitID, in: servingUnitOptions)
     }
@@ -84,6 +110,19 @@ struct FoodResultView: View {
         cholesterol: Double? = nil,
         sodium: Double? = nil,
         potassium: Double? = nil,
+        transFat: Double? = nil,
+        calcium: Double? = nil,
+        iron: Double? = nil,
+        magnesium: Double? = nil,
+        zinc: Double? = nil,
+        vitaminA: Double? = nil,
+        vitaminC: Double? = nil,
+        vitaminD: Double? = nil,
+        vitaminB12: Double? = nil,
+        vitaminE: Double? = nil,
+        vitaminK: Double? = nil,
+        folate: Double? = nil,
+        omega3: Double? = nil,
         servingUnitOptions: [ServingUnitOption] = [],
         selectedServingUnit: String? = nil,
         selectedServingQuantity: Double? = nil,
@@ -112,6 +151,19 @@ struct FoodResultView: View {
         self.baseCholesterol = cholesterol
         self.baseSodium = sodium
         self.basePotassium = potassium
+        self.baseTransFat = transFat
+        self.baseCalcium = calcium
+        self.baseIron = iron
+        self.baseMagnesium = magnesium
+        self.baseZinc = zinc
+        self.baseVitaminA = vitaminA
+        self.baseVitaminC = vitaminC
+        self.baseVitaminD = vitaminD
+        self.baseVitaminB12 = vitaminB12
+        self.baseVitaminE = vitaminE
+        self.baseVitaminK = vitaminK
+        self.baseFolate = folate
+        self.baseOmega3 = omega3
         self.servingUnitOptions = normalizedServingUnitOptions
         self._name = State(initialValue: name)
         self._servingSizeGrams = State(initialValue: servingSizeGrams)
@@ -219,6 +271,19 @@ struct FoodResultView: View {
                             OptionalNutritionDisplayRow(label: "Cholesterol", value: scaledCholesterol, unit: "mg")
                             OptionalNutritionDisplayRow(label: "Sodium", value: scaledSodium, unit: "mg")
                             OptionalNutritionDisplayRow(label: "Potassium", value: scaledPotassium, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Trans Fat", value: scaledTransFat, unit: "g")
+                            OptionalNutritionDisplayRow(label: "Calcium", value: scaledCalcium, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Iron", value: scaledIron, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Magnesium", value: scaledMagnesium, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Zinc", value: scaledZinc, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Vitamin A", value: scaledVitaminA, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Vitamin C", value: scaledVitaminC, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Vitamin D", value: scaledVitaminD, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Vitamin B12", value: scaledVitaminB12, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Vitamin E", value: scaledVitaminE, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Vitamin K", value: scaledVitaminK, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Folate", value: scaledFolate, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Omega-3", value: scaledOmega3, unit: "g")
                         }
                         .tint(AppColors.calorie)
                     }
@@ -292,6 +357,19 @@ struct FoodResultView: View {
             cholesterol: scaledCholesterol,
             sodium: scaledSodium,
             potassium: scaledPotassium,
+            transFat: scaledTransFat,
+            calcium: scaledCalcium,
+            iron: scaledIron,
+            magnesium: scaledMagnesium,
+            zinc: scaledZinc,
+            vitaminA: scaledVitaminA,
+            vitaminC: scaledVitaminC,
+            vitaminD: scaledVitaminD,
+            vitaminB12: scaledVitaminB12,
+            vitaminE: scaledVitaminE,
+            vitaminK: scaledVitaminK,
+            folate: scaledFolate,
+            omega3: scaledOmega3,
             servingSizeGrams: servingSizeGrams,
             servingUnitOptions: servingUnitOptions,
             selectedServingUnit: servingUnitOptions.isEmpty ? nil : selectedServingOption.unit,

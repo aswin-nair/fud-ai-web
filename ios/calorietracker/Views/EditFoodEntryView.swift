@@ -24,6 +24,19 @@ struct EditFoodEntryView: View {
     private let baseCholesterol: Double?
     private let baseSodium: Double?
     private let basePotassium: Double?
+    private let baseTransFat: Double?
+    private let baseCalcium: Double?
+    private let baseIron: Double?
+    private let baseMagnesium: Double?
+    private let baseZinc: Double?
+    private let baseVitaminA: Double?
+    private let baseVitaminC: Double?
+    private let baseVitaminD: Double?
+    private let baseVitaminB12: Double?
+    private let baseVitaminE: Double?
+    private let baseVitaminK: Double?
+    private let baseFolate: Double?
+    private let baseOmega3: Double?
     private let servingUnitOptions: [ServingUnitOption]
 
     @State private var name: String
@@ -53,6 +66,19 @@ struct EditFoodEntryView: View {
     private var scaledCholesterol: Double? { baseCholesterol.map { round($0 * scale * 10) / 10 } }
     private var scaledSodium: Double? { baseSodium.map { round($0 * scale * 10) / 10 } }
     private var scaledPotassium: Double? { basePotassium.map { round($0 * scale * 10) / 10 } }
+    private var scaledTransFat: Double? { baseTransFat.map { round($0 * scale * 10) / 10 } }
+    private var scaledCalcium: Double? { baseCalcium.map { round($0 * scale * 10) / 10 } }
+    private var scaledIron: Double? { baseIron.map { round($0 * scale * 10) / 10 } }
+    private var scaledMagnesium: Double? { baseMagnesium.map { round($0 * scale * 10) / 10 } }
+    private var scaledZinc: Double? { baseZinc.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminA: Double? { baseVitaminA.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminC: Double? { baseVitaminC.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminD: Double? { baseVitaminD.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminB12: Double? { baseVitaminB12.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminE: Double? { baseVitaminE.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminK: Double? { baseVitaminK.map { round($0 * scale * 10) / 10 } }
+    private var scaledFolate: Double? { baseFolate.map { round($0 * scale * 10) / 10 } }
+    private var scaledOmega3: Double? { baseOmega3.map { round($0 * scale * 10) / 10 } }
     private var selectedServingOption: ServingUnitOption {
         ServingUnitOption.option(matching: selectedServingUnitID, in: servingUnitOptions)
     }
@@ -82,6 +108,19 @@ struct EditFoodEntryView: View {
         self.baseCholesterol = entry.cholesterol
         self.baseSodium = entry.sodium
         self.basePotassium = entry.potassium
+        self.baseTransFat = entry.transFat
+        self.baseCalcium = entry.calcium
+        self.baseIron = entry.iron
+        self.baseMagnesium = entry.magnesium
+        self.baseZinc = entry.zinc
+        self.baseVitaminA = entry.vitaminA
+        self.baseVitaminC = entry.vitaminC
+        self.baseVitaminD = entry.vitaminD
+        self.baseVitaminB12 = entry.vitaminB12
+        self.baseVitaminE = entry.vitaminE
+        self.baseVitaminK = entry.vitaminK
+        self.baseFolate = entry.folate
+        self.baseOmega3 = entry.omega3
         self.servingUnitOptions = normalizedServingUnitOptions
         self._name = State(initialValue: entry.name)
         self._servingSizeGrams = State(initialValue: serving)
@@ -189,6 +228,19 @@ struct EditFoodEntryView: View {
                             OptionalNutritionDisplayRow(label: "Cholesterol", value: scaledCholesterol, unit: "mg")
                             OptionalNutritionDisplayRow(label: "Sodium", value: scaledSodium, unit: "mg")
                             OptionalNutritionDisplayRow(label: "Potassium", value: scaledPotassium, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Trans Fat", value: scaledTransFat, unit: "g")
+                            OptionalNutritionDisplayRow(label: "Calcium", value: scaledCalcium, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Iron", value: scaledIron, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Magnesium", value: scaledMagnesium, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Zinc", value: scaledZinc, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Vitamin A", value: scaledVitaminA, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Vitamin C", value: scaledVitaminC, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Vitamin D", value: scaledVitaminD, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Vitamin B12", value: scaledVitaminB12, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Vitamin E", value: scaledVitaminE, unit: "mg")
+                            OptionalNutritionDisplayRow(label: "Vitamin K", value: scaledVitaminK, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Folate", value: scaledFolate, unit: "mcg")
+                            OptionalNutritionDisplayRow(label: "Omega-3", value: scaledOmega3, unit: "g")
                         }
                         .tint(AppColors.calorie)
                     }
@@ -270,6 +322,19 @@ struct EditFoodEntryView: View {
             cholesterol: scaledCholesterol,
             sodium: scaledSodium,
             potassium: scaledPotassium,
+            transFat: scaledTransFat,
+            calcium: scaledCalcium,
+            iron: scaledIron,
+            magnesium: scaledMagnesium,
+            zinc: scaledZinc,
+            vitaminA: scaledVitaminA,
+            vitaminC: scaledVitaminC,
+            vitaminD: scaledVitaminD,
+            vitaminB12: scaledVitaminB12,
+            vitaminE: scaledVitaminE,
+            vitaminK: scaledVitaminK,
+            folate: scaledFolate,
+            omega3: scaledOmega3,
             servingSizeGrams: servingSizeGrams,
             servingUnitOptions: servingUnitOptions,
             selectedServingUnit: servingUnitOptions.isEmpty ? nil : selectedServingOption.unit,

@@ -186,6 +186,19 @@ struct CoachTools {
             add("cholesterol_mg", entry.cholesterol)
             add("sodium_mg", entry.sodium)
             add("potassium_mg", entry.potassium)
+            add("trans_fat_g", entry.transFat)
+            add("calcium_mg", entry.calcium)
+            add("iron_mg", entry.iron)
+            add("magnesium_mg", entry.magnesium)
+            add("zinc_mg", entry.zinc)
+            add("vitamin_a_mcg", entry.vitaminA)
+            add("vitamin_c_mg", entry.vitaminC)
+            add("vitamin_d_mcg", entry.vitaminD)
+            add("vitamin_b12_mcg", entry.vitaminB12)
+            add("vitamin_e_mg", entry.vitaminE)
+            add("vitamin_k_mcg", entry.vitaminK)
+            add("folate_mcg", entry.folate)
+            add("omega_3_g", entry.omega3)
             return payload
         }
         return jsonString([

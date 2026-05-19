@@ -148,6 +148,19 @@ fun EditFoodEntrySheet(
         cholesterol = scaledD(entry.cholesterol),
         sodium = scaledD(entry.sodium),
         potassium = scaledD(entry.potassium),
+        transFat = scaledD(entry.transFat),
+        calcium = scaledD(entry.calcium),
+        iron = scaledD(entry.iron),
+        magnesium = scaledD(entry.magnesium),
+        zinc = scaledD(entry.zinc),
+        vitaminA = scaledD(entry.vitaminA),
+        vitaminC = scaledD(entry.vitaminC),
+        vitaminD = scaledD(entry.vitaminD),
+        vitaminB12 = scaledD(entry.vitaminB12),
+        vitaminE = scaledD(entry.vitaminE),
+        vitaminK = scaledD(entry.vitaminK),
+        folate = scaledD(entry.folate),
+        omega3 = scaledD(entry.omega3),
         servingSizeGrams = servingGrams,
         servingUnitOptions = servingUnitOptions,
         selectedServingUnit = if (servingUnitOptions.isEmpty()) null else selectedServingOption.unit,
@@ -172,6 +185,7 @@ fun EditFoodEntrySheet(
         // from inside.
         val gUnit = stringResource(R.string.unit_g)
         val mgUnit = stringResource(R.string.unit_mg)
+        val mcgUnit = "mcg"
         val micros = listOf(
             Triple(stringResource(R.string.sheet_micro_sugar), scaledD(entry.sugar), gUnit),
             Triple(stringResource(R.string.sheet_micro_added_sugar), scaledD(entry.addedSugar), gUnit),
@@ -181,7 +195,20 @@ fun EditFoodEntrySheet(
             Triple(stringResource(R.string.sheet_micro_poly_fat), scaledD(entry.polyunsaturatedFat), gUnit),
             Triple(stringResource(R.string.sheet_micro_cholesterol), scaledD(entry.cholesterol), mgUnit),
             Triple(stringResource(R.string.sheet_micro_sodium), scaledD(entry.sodium), mgUnit),
-            Triple(stringResource(R.string.sheet_micro_potassium), scaledD(entry.potassium), mgUnit)
+            Triple(stringResource(R.string.sheet_micro_potassium), scaledD(entry.potassium), mgUnit),
+            Triple("Trans Fat", scaledD(entry.transFat), gUnit),
+            Triple("Calcium", scaledD(entry.calcium), mgUnit),
+            Triple("Iron", scaledD(entry.iron), mgUnit),
+            Triple("Magnesium", scaledD(entry.magnesium), mgUnit),
+            Triple("Zinc", scaledD(entry.zinc), mgUnit),
+            Triple("Vitamin A", scaledD(entry.vitaminA), mcgUnit),
+            Triple("Vitamin C", scaledD(entry.vitaminC), mgUnit),
+            Triple("Vitamin D", scaledD(entry.vitaminD), mcgUnit),
+            Triple("Vitamin B12", scaledD(entry.vitaminB12), mcgUnit),
+            Triple("Vitamin E", scaledD(entry.vitaminE), mgUnit),
+            Triple("Vitamin K", scaledD(entry.vitaminK), mcgUnit),
+            Triple("Folate", scaledD(entry.folate), mcgUnit),
+            Triple("Omega-3", scaledD(entry.omega3), gUnit)
         )
 
         LazyColumn(

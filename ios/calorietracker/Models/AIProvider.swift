@@ -58,12 +58,12 @@ struct AIAccessSettings {
     static let paidCoachDailyRequestLimit = 25
     static let paidGlobalDailyRequestLimit = 70
     static let defaultProxyEndpoint = "https://fud-ai.app/api/gemini"
-    static let currentPlusUpdateAnnouncementID = "barcode_plus_update_2026_05"
+    static let plusIntroTargetVersion = "3.6"
 
     private static let modeKey = "aiAccessMode"
     private static let plusEntitlementCacheKey = "fudAIPlusEntitlementCached"
-    private static let plusIntroSeenKey = "fudAIPlusIntroSeen_3_4"
-    private static let plusUpdateAnnouncementIDKey = "fudAIPlusUpdateAnnouncementSeenID"
+    private static let plusIntroSeenVersionKey = "fudAIPlusIntroSeenVersion"
+    private static let postPlusIntroReviewVersionKey = "fudAIPostPlusIntroReviewRequestedVersion"
     private static let installIDKey = "fudAIInstallID"
     private static let proxyEndpointKey = "fudAIProxyEndpoint"
 
@@ -94,13 +94,24 @@ struct AIAccessSettings {
     }
 
     static var hasSeenPlusIntro: Bool {
-        get { UserDefaults.standard.bool(forKey: plusIntroSeenKey) }
-        set { UserDefaults.standard.set(newValue, forKey: plusIntroSeenKey) }
+        get { lastSeenPlusIntroVersion == plusIntroTargetVersion }
+        set {
+            if newValue {
+                lastSeenPlusIntroVersion = plusIntroTargetVersion
+            } else {
+                UserDefaults.standard.removeObject(forKey: plusIntroSeenVersionKey)
+            }
+        }
     }
 
-    static var lastSeenPlusUpdateAnnouncementID: String? {
-        get { UserDefaults.standard.string(forKey: plusUpdateAnnouncementIDKey) }
-        set { UserDefaults.standard.set(newValue, forKey: plusUpdateAnnouncementIDKey) }
+    static var lastSeenPlusIntroVersion: String? {
+        get { UserDefaults.standard.string(forKey: plusIntroSeenVersionKey) }
+        set { UserDefaults.standard.set(newValue, forKey: plusIntroSeenVersionKey) }
+    }
+
+    static var postPlusIntroReviewRequestedVersion: String? {
+        get { UserDefaults.standard.string(forKey: postPlusIntroReviewVersionKey) }
+        set { UserDefaults.standard.set(newValue, forKey: postPlusIntroReviewVersionKey) }
     }
 
     static var installID: String {
@@ -120,8 +131,8 @@ struct AIAccessSettings {
     static func resetForDeleteAllData() {
         UserDefaults.standard.removeObject(forKey: modeKey)
         UserDefaults.standard.removeObject(forKey: plusEntitlementCacheKey)
-        UserDefaults.standard.removeObject(forKey: plusIntroSeenKey)
-        UserDefaults.standard.removeObject(forKey: plusUpdateAnnouncementIDKey)
+        UserDefaults.standard.removeObject(forKey: plusIntroSeenVersionKey)
+        UserDefaults.standard.removeObject(forKey: postPlusIntroReviewVersionKey)
         UserDefaults.standard.removeObject(forKey: proxyEndpointKey)
     }
 }

@@ -53,6 +53,19 @@ struct CloudKitService {
         if let v = entry.cholesterol { record["cholesterol"] = v }
         if let v = entry.sodium { record["sodium"] = v }
         if let v = entry.potassium { record["potassium"] = v }
+        if let v = entry.transFat { record["transFat"] = v }
+        if let v = entry.calcium { record["calcium"] = v }
+        if let v = entry.iron { record["iron"] = v }
+        if let v = entry.magnesium { record["magnesium"] = v }
+        if let v = entry.zinc { record["zinc"] = v }
+        if let v = entry.vitaminA { record["vitaminA"] = v }
+        if let v = entry.vitaminC { record["vitaminC"] = v }
+        if let v = entry.vitaminD { record["vitaminD"] = v }
+        if let v = entry.vitaminB12 { record["vitaminB12"] = v }
+        if let v = entry.vitaminE { record["vitaminE"] = v }
+        if let v = entry.vitaminK { record["vitaminK"] = v }
+        if let v = entry.folate { record["folate"] = v }
+        if let v = entry.omega3 { record["omega3"] = v }
         if let v = entry.servingSizeGrams { record["servingSizeGrams"] = v }
         return record
     }
@@ -95,6 +108,19 @@ struct CloudKitService {
             cholesterol: record["cholesterol"] as? Double,
             sodium: record["sodium"] as? Double,
             potassium: record["potassium"] as? Double,
+            transFat: record["transFat"] as? Double,
+            calcium: record["calcium"] as? Double,
+            iron: record["iron"] as? Double,
+            magnesium: record["magnesium"] as? Double,
+            zinc: record["zinc"] as? Double,
+            vitaminA: record["vitaminA"] as? Double,
+            vitaminC: record["vitaminC"] as? Double,
+            vitaminD: record["vitaminD"] as? Double,
+            vitaminB12: record["vitaminB12"] as? Double,
+            vitaminE: record["vitaminE"] as? Double,
+            vitaminK: record["vitaminK"] as? Double,
+            folate: record["folate"] as? Double,
+            omega3: record["omega3"] as? Double,
             servingSizeGrams: record["servingSizeGrams"] as? Double
         )
     }
