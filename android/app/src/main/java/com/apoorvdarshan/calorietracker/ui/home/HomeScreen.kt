@@ -999,7 +999,7 @@ private fun MealSectionHeader(
                     containerColor = Color(0xF2141416),
                     shadowElevation = 22.dp,
                     modifier = Modifier
-                        .width(310.dp)
+                        .width(258.dp)
                         .background(
                             Brush.verticalGradient(
                                 listOf(
@@ -1021,7 +1021,7 @@ private fun MealSectionHeader(
                             ),
                             RoundedCornerShape(26.dp)
                         )
-                        .padding(vertical = 10.dp)
+                        .padding(vertical = 6.dp)
                 ) {
                     for (order in FoodLogSortOrder.values()) {
                         SortMenuRow(
@@ -1041,29 +1041,29 @@ private fun SortMenuRow(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 2.dp)
+            .padding(horizontal = 9.dp, vertical = 1.dp)
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .padding(horizontal = 11.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
             if (selected) {
                 Icon(
                     Icons.Filled.Check,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
         Text(
             label,
-            fontSize = 19.sp,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
             color = Color.White.copy(alpha = 0.94f),
-            lineHeight = 23.sp
+            lineHeight = 20.sp
         )
     }
 }
