@@ -598,20 +598,20 @@ private fun SavedMealRow(
     val rowFill = if (isDark) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.50f)
     } else {
-        Color(0xFFF7EEE8).copy(alpha = 0.96f)
+        Color(0xFFF0E1DB).copy(alpha = 0.98f)
     }
     val rowSheen = Brush.verticalGradient(
         listOf(
-            Color.White.copy(alpha = if (isDark) 0.13f else 0.42f),
-            Color.White.copy(alpha = if (isDark) 0.035f else 0.10f),
-            AppColors.Calorie.copy(alpha = if (isDark) 0.06f else 0.045f)
+            Color.White.copy(alpha = if (isDark) 0.13f else 0.18f),
+            Color.White.copy(alpha = if (isDark) 0.035f else 0.04f),
+            AppColors.Calorie.copy(alpha = if (isDark) 0.06f else 0.060f)
         )
     )
     val rowBorder = Brush.linearGradient(
         listOf(
-            Color.White.copy(alpha = if (isDark) 0.13f else 0.72f),
-            Color.White.copy(alpha = if (isDark) 0.035f else 0.24f),
-            AppColors.Calorie.copy(alpha = if (isDark) 0.06f else 0.12f)
+            Color.White.copy(alpha = if (isDark) 0.13f else 0.46f),
+            Color.White.copy(alpha = if (isDark) 0.035f else 0.12f),
+            AppColors.Calorie.copy(alpha = if (isDark) 0.06f else 0.18f)
         )
     )
     Row(
