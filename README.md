@@ -134,7 +134,7 @@ For the Coach chat, every turn builds a slim system prompt from your live profil
 
 ## Screenshots
 
-A ten-screen walkthrough of the current app flow — from opening the dashboard to custom nutrient cards and settings.
+An eight-screen walkthrough of the current app flow — from opening the dashboard to detailed nutrition and progress.
 
 <table>
   <tr>
@@ -197,22 +197,6 @@ A ten-screen walkthrough of the current app flow — from opening the dashboard 
       <b>08 · View More · Nutrients</b>
       <br>
       <sub>Detailed nutrition shows macro totals plus optional nutrients such as fiber, sugar, sodium, minerals, vitamins, and fats.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="web/assets/screenshots/custom.png" width="230" alt="Custom Home nutrient cards">
-      <br><br>
-      <b>09 · Custom · Home Cards</b>
-      <br>
-      <sub>Choose the three nutrients that matter most on Home without changing calorie/protein/carbs/fat calculations.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%" colspan="3">
-      <img src="web/assets/screenshots/setting.png" width="230" alt="Settings">
-      <br><br>
-      <b>10 · Settings · Control</b>
-      <br>
-      <sub>Adjust AI access, goals, Health sync, notifications, theme, optional nutrients, and local data controls from one place.</sub>
     </td>
   </tr>
 </table>
