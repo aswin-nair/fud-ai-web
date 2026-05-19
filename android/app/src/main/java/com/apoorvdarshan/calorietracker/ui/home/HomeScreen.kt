@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -321,21 +320,21 @@ fun HomeScreen(container: AppContainer) {
                                 pressed.value = false
                             }
                         }
-                        val glassMenuShape = RoundedCornerShape(28.dp)
+                        val glassMenuShape = RoundedCornerShape(26.dp)
                         DropdownMenu(
                             expanded = showAddMenu,
                             onDismissRequest = { showAddMenu = false },
                             shape = glassMenuShape,
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.90f),
-                            shadowElevation = 28.dp,
+                            containerColor = Color(0xF2141416),
+                            shadowElevation = 22.dp,
                             modifier = Modifier
-                                .widthIn(min = 292.dp)
+                                .width(276.dp)
                                 .background(
                                     Brush.verticalGradient(
                                         listOf(
-                                            Color.White.copy(alpha = 0.11f),
-                                            Color.White.copy(alpha = 0.035f),
-                                            AppColors.Calorie.copy(alpha = 0.05f)
+                                            Color.White.copy(alpha = 0.045f),
+                                            Color.White.copy(alpha = 0.015f),
+                                            AppColors.Calorie.copy(alpha = 0.025f)
                                         )
                                     ),
                                     glassMenuShape
@@ -344,14 +343,14 @@ fun HomeScreen(container: AppContainer) {
                                     0.8.dp,
                                     Brush.linearGradient(
                                         listOf(
-                                            Color.White.copy(alpha = 0.28f),
-                                            Color.White.copy(alpha = 0.07f),
-                                            AppColors.Calorie.copy(alpha = 0.18f)
+                                            Color.White.copy(alpha = 0.18f),
+                                            Color.White.copy(alpha = 0.055f),
+                                            AppColors.Calorie.copy(alpha = 0.08f)
                                         )
                                     ),
                                     glassMenuShape
                                 )
-                                .padding(vertical = 8.dp)
+                                .padding(vertical = 7.dp)
                         ) {
                             // Mirrors iOS HomeView toolbar Menu, in the same order:
                             // Camera, Camera + Note, Nutrition Label, From Photos,
@@ -879,43 +878,26 @@ private fun MenuRow(label: String, icon: ImageVector, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 2.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .padding(horizontal = 12.dp, vertical = 1.dp)
+            .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            AppColors.Calorie.copy(alpha = 0.24f),
-                            Color.White.copy(alpha = 0.08f)
-                        )
-                    )
-                )
-                .border(0.6.dp, Color.White.copy(alpha = 0.18f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = AppColors.Calorie,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(
-                label,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f)
-            )
-        }
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = AppColors.Calorie,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            label,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.92f),
+            maxLines = 1
+        )
     }
 }
 
