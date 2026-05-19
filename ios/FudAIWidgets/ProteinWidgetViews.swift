@@ -21,14 +21,15 @@ struct ProteinWidgetView: View {
 
 private struct SmallProteinView: View {
     let snapshot: WidgetSnapshot
+    private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Image(systemName: "bolt.fill")
+                Image(systemName: nutrient.iconName)
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(WidgetPalette.calorieGradient)
-                Text("Protein")
+                Text(nutrient.label)
                     .font(.system(.caption, design: .rounded, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -38,22 +39,22 @@ private struct SmallProteinView: View {
                 Circle()
                     .stroke(WidgetPalette.calorie.opacity(0.15), lineWidth: 10)
                 Circle()
-                    .trim(from: 0, to: snapshot.proteinProgress)
+                    .trim(from: 0, to: nutrient.progress)
                     .stroke(WidgetPalette.calorieGradient, style: StrokeStyle(lineWidth: 10, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 VStack(spacing: 0) {
-                    Text("\(snapshot.protein)g")
+                    Text(nutrient.displayCurrentWithUnit)
                         .font(.system(.title3, design: .rounded, weight: .bold))
                         .minimumScaleFactor(0.7)
                         .lineLimit(1)
-                    Text("/ \(snapshot.proteinGoal)g")
+                    Text("/ \(nutrient.displayGoalWithUnit)")
                         .font(.system(.caption2, design: .rounded))
                         .foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Text("\(snapshot.proteinRemaining)g left")
+            Text(nutrient.displayRemaining)
                 .font(.system(.caption2, design: .rounded, weight: .medium))
                 .foregroundStyle(.secondary)
         }
@@ -62,6 +63,7 @@ private struct SmallProteinView: View {
 
 private struct MediumProteinView: View {
     let snapshot: WidgetSnapshot
+    private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -69,18 +71,18 @@ private struct MediumProteinView: View {
                 Circle()
                     .stroke(WidgetPalette.calorie.opacity(0.15), lineWidth: 9)
                 Circle()
-                    .trim(from: 0, to: snapshot.proteinProgress)
+                    .trim(from: 0, to: nutrient.progress)
                     .stroke(WidgetPalette.calorieGradient, style: StrokeStyle(lineWidth: 9, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 VStack(spacing: 0) {
-                    Text("\(snapshot.protein)")
+                    Text(nutrient.displayValue)
                         .font(.system(.title2, design: .rounded, weight: .bold))
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)
-                    Text("/ \(snapshot.proteinGoal)")
+                    Text("/ \(nutrient.displayGoal)")
                         .font(.system(.caption2, design: .rounded))
                         .foregroundStyle(.secondary)
-                    Text("protein g")
+                    Text("\(nutrient.label.lowercased()) \(nutrient.unit)")
                         .font(.system(.caption2, design: .rounded, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
@@ -88,9 +90,9 @@ private struct MediumProteinView: View {
             .frame(width: 92, height: 92)
 
             VStack(alignment: .leading, spacing: 8) {
-                ProteinMacroBar(label: "Calories", value: snapshot.calories, goal: snapshot.calorieGoal, progress: snapshot.calorieProgress, unit: "")
-                ProteinMacroBar(label: "Carbs",    value: snapshot.carbs,    goal: snapshot.carbsGoal,   progress: snapshot.carbsProgress, unit: "g")
-                ProteinMacroBar(label: "Fat",      value: snapshot.fat,      goal: snapshot.fatGoal,     progress: snapshot.fatProgress,   unit: "g")
+                ForEach(snapshot.displayedHomeNutrients) { nutrient in
+                    ProteinMacroBar(nutrient: nutrient)
+                }
             }
             .frame(maxWidth: .infinity)
         }
@@ -98,20 +100,16 @@ private struct MediumProteinView: View {
 }
 
 private struct ProteinMacroBar: View {
-    let label: String
-    let value: Int
-    let goal: Int
-    let progress: Double
-    let unit: String
+    let nutrient: WidgetNutrientValue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
-                Text(label)
+                Text(nutrient.label)
                     .font(.system(.caption2, design: .rounded, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(value)\(unit) / \(goal)\(unit)")
+                Text(nutrient.displayPair)
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.primary)
             }
@@ -121,7 +119,7 @@ private struct ProteinMacroBar: View {
                         .fill(WidgetPalette.calorie.opacity(0.15))
                     Capsule()
                         .fill(WidgetPalette.calorieGradient)
-                        .frame(width: max(4, geo.size.width * progress))
+                        .frame(width: max(4, geo.size.width * nutrient.progress))
                 }
             }
             .frame(height: 6)
@@ -133,21 +131,22 @@ private struct ProteinMacroBar: View {
 
 private struct CircularProteinView: View {
     let snapshot: WidgetSnapshot
+    private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
         ZStack {
             AccessoryWidgetBackground()
             Circle()
-                .trim(from: 0, to: snapshot.proteinProgress)
+                .trim(from: 0, to: nutrient.progress)
                 .stroke(style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .padding(3)
             VStack(spacing: 0) {
-                Text("\(snapshot.protein)")
+                Text(nutrient.displayValue)
                     .font(.system(.caption, design: .rounded, weight: .bold))
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
-                Text("prot")
+                Text(nutrient.shortLabel)
                     .font(.system(size: 8, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -158,6 +157,7 @@ private struct CircularProteinView: View {
 
 private struct RectangularProteinView: View {
     let snapshot: WidgetSnapshot
+    private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
@@ -165,26 +165,26 @@ private struct RectangularProteinView: View {
                 Circle()
                     .stroke(.secondary.opacity(0.3), lineWidth: 3)
                 Circle()
-                    .trim(from: 0, to: snapshot.proteinProgress)
+                    .trim(from: 0, to: nutrient.progress)
                     .stroke(style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Image(systemName: "bolt.fill")
+                Image(systemName: nutrient.iconName)
                     .font(.system(size: 13, weight: .bold))
             }
             .frame(width: 42, height: 42)
             .widgetAccentable()
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(snapshot.protein)g")
+                Text(nutrient.displayCurrentWithUnit)
                     .font(.system(.title3, design: .rounded, weight: .bold))
                     .widgetAccentable()
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                Text("of \(snapshot.proteinGoal)g protein")
+                Text("of \(nutrient.displayGoalWithUnit) \(nutrient.label.lowercased())")
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                Text("\(snapshot.calories) kcal · C\(snapshot.carbs) · F\(snapshot.fat)")
+                Text(snapshot.homeNutrientsSummary)
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -197,8 +197,9 @@ private struct RectangularProteinView: View {
 
 private struct InlineProteinView: View {
     let snapshot: WidgetSnapshot
+    private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
-        Text("\(snapshot.protein)g / \(snapshot.proteinGoal)g protein · \(snapshot.proteinRemaining)g left")
+        Text("\(nutrient.displayPair) \(nutrient.label.lowercased()) · \(nutrient.displayRemaining)")
     }
 }

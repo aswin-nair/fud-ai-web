@@ -1831,6 +1831,12 @@ struct NutritionDetailView: View {
             .sheet(isPresented: $showHomeNutrientPicker) {
                 HomeNutrientPickerSheet(selectionRawValue: $homeTopNutrientsRaw)
             }
+            .onChange(of: homeTopNutrientsRaw) { _, _ in
+                refreshWidgetSnapshot()
+            }
+            .onChange(of: optionalNutrientGoalsData) { _, _ in
+                refreshWidgetSnapshot()
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -1838,6 +1844,10 @@ struct NutritionDetailView: View {
                 }
             }
         }
+    }
+
+    private func refreshWidgetSnapshot() {
+        WidgetSnapshotWriter.publish(foods: foodStore.entries, profile: userProfile)
     }
 
     private func formatMicro(_ value: Double) -> String {

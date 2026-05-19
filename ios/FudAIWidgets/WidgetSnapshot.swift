@@ -3,6 +3,47 @@ import Foundation
 // NOTE: This file is a **duplicate** of calorietracker/Services/WidgetSnapshot.swift.
 // The widget extension is a separate target and can't see the main app's sources,
 // so we maintain two copies. Keep the struct layout identical or decoding breaks.
+struct WidgetNutrientValue: Codable, Equatable, Identifiable {
+    let id: String
+    let label: String
+    let shortLabel: String
+    let unit: String
+    let iconName: String
+    let value: Double
+    let goal: Double
+
+    var progress: Double {
+        guard goal > 0 else { return 0 }
+        return min(1.0, value / goal)
+    }
+
+    var displayValue: String { Self.format(value) }
+    var displayGoal: String { Self.format(goal) }
+    var displayCurrentWithUnit: String { "\(displayValue)\(unit)" }
+    var displayGoalWithUnit: String { "\(displayGoal)\(unit)" }
+    var displayPair: String { "\(displayCurrentWithUnit) / \(displayGoalWithUnit)" }
+    var displayRemaining: String { "\(Self.format(max(0, goal - value)))\(unit) left" }
+
+    func zeroedForToday() -> WidgetNutrientValue {
+        WidgetNutrientValue(
+            id: id,
+            label: label,
+            shortLabel: shortLabel,
+            unit: unit,
+            iconName: iconName,
+            value: 0,
+            goal: goal
+        )
+    }
+
+    private static func format(_ value: Double) -> String {
+        if abs(value.rounded() - value) < 0.05 {
+            return "\(Int(value.rounded()))"
+        }
+        return String(format: "%.1f", value)
+    }
+}
+
 struct WidgetSnapshot: Codable, Equatable {
     let date: Date
     let dayStart: Date
@@ -14,6 +55,7 @@ struct WidgetSnapshot: Codable, Equatable {
     let carbsGoal: Int
     let fat: Int
     let fatGoal: Int
+    let homeNutrients: [WidgetNutrientValue]?
 
     static var appGroupID: String {
         Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String
@@ -29,13 +71,12 @@ struct WidgetSnapshot: Codable, Equatable {
         guard let data = sharedDefaults?.data(forKey: key),
               let snapshot = try? JSONDecoder().decode(WidgetSnapshot.self, from: data)
         else { return nil }
-        // If the snapshot's dayStart is not today, treat it as stale. The main app
-        // will refresh on its next scene-active, but until then we should show an
-        // empty today rather than yesterday's totals. Returning nil lets the timeline
-        // provider substitute `.empty` (zeroed today).
+        // If the snapshot's dayStart is not today, zero today's totals but preserve
+        // the user's saved goals and selected home nutrients. This avoids falling
+        // back to static placeholder goals before the main app opens after midnight.
         let today = Calendar.current.startOfDay(for: Date())
         guard Calendar.current.isDate(snapshot.dayStart, inSameDayAs: today) else {
-            return nil
+            return snapshot.emptyForToday()
         }
         return snapshot
     }
@@ -48,7 +89,12 @@ struct WidgetSnapshot: Codable, Equatable {
             calories: 1247, calorieGoal: 2000,
             protein: 84, proteinGoal: 150,
             carbs: 132, carbsGoal: 220,
-            fat: 42, fatGoal: 70
+            fat: 42, fatGoal: 70,
+            homeNutrients: [
+                WidgetNutrientValue(id: "protein", label: "Protein", shortLabel: "P", unit: "g", iconName: "fork.knife", value: 84, goal: 150),
+                WidgetNutrientValue(id: "carbs", label: "Carbs", shortLabel: "C", unit: "g", iconName: "leaf", value: 132, goal: 220),
+                WidgetNutrientValue(id: "fat", label: "Fat", shortLabel: "F", unit: "g", iconName: "drop.fill", value: 42, goal: 70),
+            ]
         )
     }
 
@@ -60,7 +106,49 @@ struct WidgetSnapshot: Codable, Equatable {
             calories: 0, calorieGoal: 2000,
             protein: 0, proteinGoal: 150,
             carbs: 0, carbsGoal: 220,
-            fat: 0, fatGoal: 70
+            fat: 0, fatGoal: 70,
+            homeNutrients: [
+                WidgetNutrientValue(id: "protein", label: "Protein", shortLabel: "P", unit: "g", iconName: "fork.knife", value: 0, goal: 150),
+                WidgetNutrientValue(id: "carbs", label: "Carbs", shortLabel: "C", unit: "g", iconName: "leaf", value: 0, goal: 220),
+                WidgetNutrientValue(id: "fat", label: "Fat", shortLabel: "F", unit: "g", iconName: "drop.fill", value: 0, goal: 70),
+            ]
+        )
+    }
+
+    var displayedHomeNutrients: [WidgetNutrientValue] {
+        let selected = homeNutrients?.filter { !$0.id.isEmpty } ?? []
+        var merged: [WidgetNutrientValue] = []
+        for nutrient in selected + defaultHomeNutrients {
+            guard !merged.contains(where: { $0.id == nutrient.id }) else { continue }
+            merged.append(nutrient)
+            if merged.count == 3 { break }
+        }
+        return merged
+    }
+
+    var primaryHomeNutrient: WidgetNutrientValue {
+        displayedHomeNutrients.first ?? defaultHomeNutrients[0]
+    }
+
+    var homeNutrientsSummary: String {
+        displayedHomeNutrients
+            .map { "\($0.shortLabel)\($0.displayValue)" }
+            .joined(separator: " · ")
+    }
+
+    func emptyForToday(_ now: Date = Date()) -> WidgetSnapshot {
+        WidgetSnapshot(
+            date: now,
+            dayStart: Calendar.current.startOfDay(for: now),
+            calories: 0,
+            calorieGoal: calorieGoal,
+            protein: 0,
+            proteinGoal: proteinGoal,
+            carbs: 0,
+            carbsGoal: carbsGoal,
+            fat: 0,
+            fatGoal: fatGoal,
+            homeNutrients: displayedHomeNutrients.map { $0.zeroedForToday() }
         )
     }
 
@@ -83,5 +171,13 @@ struct WidgetSnapshot: Codable, Equatable {
     var fatProgress: Double {
         guard fatGoal > 0 else { return 0 }
         return min(1.0, Double(fat) / Double(fatGoal))
+    }
+
+    private var defaultHomeNutrients: [WidgetNutrientValue] {
+        [
+            WidgetNutrientValue(id: "protein", label: "Protein", shortLabel: "P", unit: "g", iconName: "fork.knife", value: Double(protein), goal: Double(proteinGoal)),
+            WidgetNutrientValue(id: "carbs", label: "Carbs", shortLabel: "C", unit: "g", iconName: "leaf", value: Double(carbs), goal: Double(carbsGoal)),
+            WidgetNutrientValue(id: "fat", label: "Fat", shortLabel: "F", unit: "g", iconName: "drop.fill", value: Double(fat), goal: Double(fatGoal)),
+        ]
     }
 }

@@ -18,6 +18,11 @@ enum WidgetSnapshotWriter {
         let p = today.reduce(0) { $0 + $1.protein }
         let c = today.reduce(0) { $0 + $1.carbs }
         let f = today.reduce(0) { $0 + $1.fat }
+        let selectedHomeNutrients = HomeTopNutrient.selection(
+            from: UserDefaults.standard.string(forKey: HomeTopNutrient.storageKey)
+                ?? HomeTopNutrient.storageValue(for: HomeTopNutrient.defaultSelection)
+        )
+        let optionalGoals = OptionalNutrientGoals.current
 
         let snapshot = WidgetSnapshot(
             date: Date(),
@@ -29,12 +34,76 @@ enum WidgetSnapshotWriter {
             carbs: c,
             carbsGoal: profile.effectiveCarbs,
             fat: f,
-            fatGoal: profile.effectiveFat
+            fatGoal: profile.effectiveFat,
+            homeNutrients: selectedHomeNutrients.map {
+                homeNutrientValue(for: $0, foods: today, profile: profile, optionalGoals: optionalGoals)
+            }
         )
 
         let previous = WidgetSnapshot.read()
         guard previous != snapshot else { return }
         WidgetSnapshot.write(snapshot)
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    private static func homeNutrientValue(
+        for nutrient: HomeTopNutrient,
+        foods: [FoodEntry],
+        profile: UserProfile,
+        optionalGoals: OptionalNutrientGoals
+    ) -> WidgetNutrientValue {
+        WidgetNutrientValue(
+            id: nutrient.rawValue,
+            label: nutrient.displayName,
+            shortLabel: shortLabel(for: nutrient),
+            unit: nutrient.unit,
+            iconName: nutrient.iconName,
+            value: currentValue(for: nutrient, foods: foods),
+            goal: nutrient.goal(for: profile, optionalGoals: optionalGoals)
+        )
+    }
+
+    private static func currentValue(for nutrient: HomeTopNutrient, foods: [FoodEntry]) -> Double {
+        switch nutrient {
+        case .protein:
+            return Double(foods.reduce(0) { $0 + $1.protein })
+        case .carbs:
+            return Double(foods.reduce(0) { $0 + $1.carbs })
+        case .fat:
+            return Double(foods.reduce(0) { $0 + $1.fat })
+        case .fiber:
+            return sum(foods, \.fiber)
+        case .sugar:
+            return sum(foods, \.sugar)
+        case .addedSugar:
+            return sum(foods, \.addedSugar)
+        case .saturatedFat:
+            return sum(foods, \.saturatedFat)
+        case .cholesterol:
+            return sum(foods, \.cholesterol)
+        case .sodium:
+            return sum(foods, \.sodium)
+        case .potassium:
+            return sum(foods, \.potassium)
+        }
+    }
+
+    private static func sum(_ foods: [FoodEntry], _ keyPath: KeyPath<FoodEntry, Double?>) -> Double {
+        foods.reduce(0) { $0 + ($1[keyPath: keyPath] ?? 0) }
+    }
+
+    private static func shortLabel(for nutrient: HomeTopNutrient) -> String {
+        switch nutrient {
+        case .protein: "P"
+        case .carbs: "C"
+        case .fat: "F"
+        case .fiber: "Fib"
+        case .sugar: "Sug"
+        case .addedSugar: "Add"
+        case .saturatedFat: "Sat"
+        case .cholesterol: "Chol"
+        case .sodium: "Na"
+        case .potassium: "K"
+        }
     }
 }

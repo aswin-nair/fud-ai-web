@@ -39,7 +39,7 @@ private struct SmallCalorieView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Image(systemName: "flame.fill")
+                Image(systemName: "leaf.fill")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(WidgetPalette.calorieGradient)
                 Text("Today")
@@ -102,9 +102,9 @@ private struct MediumCalorieView: View {
             .frame(width: 92, height: 92)
 
             VStack(alignment: .leading, spacing: 8) {
-                MacroBar(label: "Protein", value: snapshot.protein, goal: snapshot.proteinGoal, progress: snapshot.proteinProgress)
-                MacroBar(label: "Carbs",   value: snapshot.carbs,   goal: snapshot.carbsGoal,   progress: snapshot.carbsProgress)
-                MacroBar(label: "Fat",     value: snapshot.fat,     goal: snapshot.fatGoal,     progress: snapshot.fatProgress)
+                ForEach(snapshot.displayedHomeNutrients) { nutrient in
+                    MacroBar(nutrient: nutrient)
+                }
             }
             .frame(maxWidth: .infinity)
         }
@@ -112,19 +112,16 @@ private struct MediumCalorieView: View {
 }
 
 private struct MacroBar: View {
-    let label: String
-    let value: Int
-    let goal: Int
-    let progress: Double
+    let nutrient: WidgetNutrientValue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
-                Text(label)
+                Text(nutrient.label)
                     .font(.system(.caption2, design: .rounded, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(value)g / \(goal)g")
+                Text(nutrient.displayPair)
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.primary)
             }
@@ -134,7 +131,7 @@ private struct MacroBar: View {
                         .fill(WidgetPalette.calorie.opacity(0.15))
                     Capsule()
                         .fill(WidgetPalette.calorieGradient)
-                        .frame(width: max(4, geo.size.width * progress))
+                        .frame(width: max(4, geo.size.width * nutrient.progress))
                 }
             }
             .frame(height: 6)
@@ -182,7 +179,7 @@ private struct RectangularCalorieView: View {
                     .trim(from: 0, to: snapshot.calorieProgress)
                     .stroke(style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Image(systemName: "flame.fill")
+                Image(systemName: "leaf.fill")
                     .font(.system(size: 13, weight: .bold))
             }
             .frame(width: 42, height: 42)
@@ -198,7 +195,7 @@ private struct RectangularCalorieView: View {
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                Text("P\(snapshot.protein) · C\(snapshot.carbs) · F\(snapshot.fat)")
+                Text(snapshot.homeNutrientsSummary)
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
