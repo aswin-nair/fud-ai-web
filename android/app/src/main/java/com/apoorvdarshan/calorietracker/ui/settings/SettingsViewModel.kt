@@ -12,6 +12,7 @@ import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.models.WeightEntry
 import com.apoorvdarshan.calorietracker.models.WeightGoal
 import com.apoorvdarshan.calorietracker.services.AndroidAppIconManager
+import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import com.apoorvdarshan.calorietracker.ui.theme.AppThemeColor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,7 +78,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val weightReminder = container.prefs.weightReminderEnabled.first()
             val bodyFatReminder = container.prefs.bodyFatReminderEnabled.first()
             val goalReachedNotifications = container.prefs.goalReachedNotificationsEnabled.first()
-            val hc = container.prefs.healthConnectEnabled.first()
+            val hc = reconcileHealthConnectState()
             val masked = maskKey(container.keyStore.apiKey(provider))
             val speechMasked = maskKey(container.keyStore.speechApiKey(speech))
             val appearance = container.prefs.appearanceMode.first()
@@ -369,8 +370,54 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
 
     fun setHealthConnectEnabled(v: Boolean) {
         viewModelScope.launch {
-            container.prefs.setHealthConnectEnabled(v)
-            _ui.value = _ui.value.copy(healthConnectEnabled = v)
+            if (!v) {
+                container.prefs.setHealthConnectEnabled(false)
+                _ui.value = _ui.value.copy(healthConnectEnabled = false)
+                return@launch
+            }
+
+            val enabled = container.health.isAvailable() && container.health.hasAllPermissions()
+            container.prefs.setHealthConnectEnabled(enabled)
+            if (enabled) {
+                backfillHealthConnect()
+                container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
+            }
+            _ui.value = _ui.value.copy(healthConnectEnabled = enabled)
+        }
+    }
+
+    private suspend fun reconcileHealthConnectState(): Boolean {
+        if (!container.health.isAvailable()) {
+            container.prefs.setHealthConnectEnabled(false)
+            return false
+        }
+
+        val granted = container.health.hasAllPermissions()
+        val stored = container.prefs.healthConnectEnabled.first()
+        val version = container.prefs.healthPermissionsVersion.first()
+        container.prefs.setHealthConnectEnabled(granted)
+
+        if (granted && (!stored || version < HealthConnectManager.CURRENT_TYPES_VERSION)) {
+            backfillHealthConnect()
+            container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
+        }
+
+        return granted
+    }
+
+    private suspend fun backfillHealthConnect() {
+        if (!container.health.hasAllPermissions()) return
+
+        container.foodRepository.entries.first().forEach { entry ->
+            container.health.updateNutrition(entry)
+        }
+        container.weightRepository.entries.first().forEach { entry ->
+            container.health.deleteWeight(entry.id)
+            container.health.writeWeight(entry)
+        }
+        container.bodyFatRepository.entries.first().forEach { entry ->
+            container.health.deleteBodyFat(entry.id)
+            container.health.writeBodyFat(entry)
         }
     }
 

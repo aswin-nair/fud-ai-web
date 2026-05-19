@@ -1,6 +1,7 @@
 package com.apoorvdarshan.calorietracker.data
 
 import com.apoorvdarshan.calorietracker.models.BodyFatEntry
+import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -20,7 +21,8 @@ import kotlin.math.abs
  */
 class BodyFatRepository(
     private val prefs: PreferencesStore,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val health: HealthConnectManager? = null
 ) {
     val entries: Flow<List<BodyFatEntry>> = prefs.bodyFatEntries.map { it.sortedBy { e -> e.date } }
 
@@ -39,12 +41,18 @@ class BodyFatRepository(
         val current = prefs.bodyFatEntries.first()
         prefs.setBodyFatEntries(current + entry)
         syncProfileBodyFatToLatest()
+        if (shouldSyncHealth()) {
+            health?.writeBodyFat(entry)
+        }
     }
 
     suspend fun deleteEntry(id: UUID) {
         val current = prefs.bodyFatEntries.first()
         prefs.setBodyFatEntries(current.filter { it.id != id })
         syncProfileBodyFatToLatest()
+        if (shouldSyncHealth()) {
+            health?.deleteBodyFat(id)
+        }
     }
 
     suspend fun replaceAll(entries: List<BodyFatEntry>) {
@@ -82,5 +90,10 @@ class BodyFatRepository(
         if (abs((profile.bodyFatPercentage ?: -1.0) - newest.bodyFatFraction) > 0.0001) {
             profileRepository.save(profile.copy(bodyFatPercentage = newest.bodyFatFraction))
         }
+    }
+
+    private suspend fun shouldSyncHealth(): Boolean {
+        val manager = health ?: return false
+        return prefs.healthConnectEnabled.first() && manager.hasAllPermissions()
     }
 }

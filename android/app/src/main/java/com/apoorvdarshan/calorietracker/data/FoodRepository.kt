@@ -2,6 +2,7 @@ package com.apoorvdarshan.calorietracker.data
 
 import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.MealType
+import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -14,7 +15,10 @@ import java.util.UUID
  * CRUD + reactive reads for food entries. Port of iOS FoodStore.
  * Backed by [PreferencesStore] (entries + favorites serialized as JSON).
  */
-class FoodRepository(private val prefs: PreferencesStore) {
+class FoodRepository(
+    private val prefs: PreferencesStore,
+    private val health: HealthConnectManager? = null
+) {
     val entries: Flow<List<FoodEntry>> = prefs.foodEntries
 
     /**
@@ -61,6 +65,9 @@ class FoodRepository(private val prefs: PreferencesStore) {
     suspend fun addEntry(entry: FoodEntry) {
         val current = prefs.foodEntries.first()
         prefs.setFoodEntries(current + entry)
+        if (shouldSyncHealth()) {
+            health?.writeNutrition(entry)
+        }
     }
 
     suspend fun updateEntry(entry: FoodEntry) {
@@ -69,11 +76,17 @@ class FoodRepository(private val prefs: PreferencesStore) {
         if (index < 0) return
         val updated = current.toMutableList().also { it[index] = entry }
         prefs.setFoodEntries(updated)
+        if (shouldSyncHealth()) {
+            health?.updateNutrition(entry)
+        }
     }
 
     suspend fun deleteEntry(entryId: UUID) {
         val current = prefs.foodEntries.first()
         prefs.setFoodEntries(current.filter { it.id != entryId })
+        if (shouldSyncHealth()) {
+            health?.deleteNutrition(entryId)
+        }
     }
 
     suspend fun replaceAll(entries: List<FoodEntry>) {
@@ -142,6 +155,11 @@ class FoodRepository(private val prefs: PreferencesStore) {
         val all = prefs.foodEntries.first()
         val seeded = legacy.mapNotNull { key -> all.firstOrNull { it.favoriteKey == key } }
         if (seeded.isNotEmpty()) prefs.setFavoriteFoodEntries(seeded)
+    }
+
+    private suspend fun shouldSyncHealth(): Boolean {
+        val manager = health ?: return false
+        return prefs.healthConnectEnabled.first() && manager.hasAllPermissions()
     }
 
     // -- Recents / Frequent ---------------------------------------------

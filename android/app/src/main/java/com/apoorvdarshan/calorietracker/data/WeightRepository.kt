@@ -1,6 +1,7 @@
 package com.apoorvdarshan.calorietracker.data
 
 import com.apoorvdarshan.calorietracker.models.WeightEntry
+import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -22,7 +23,8 @@ data class WeightGoalReachedEvent(val reachedEntry: WeightEntry)
  */
 class WeightRepository(
     private val prefs: PreferencesStore,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val health: HealthConnectManager? = null
 ) {
     val entries: Flow<List<WeightEntry>> = prefs.weightEntries.map { it.sortedBy { e -> e.date } }
 
@@ -42,6 +44,9 @@ class WeightRepository(
         prefs.setWeightEntries(current + entry)
 
         syncProfileWeightToLatest()
+        if (shouldSyncHealth()) {
+            health?.writeWeight(entry)
+        }
 
         val profile = profileRepository.current()
         val goal = profile?.goalWeightKg
@@ -62,6 +67,9 @@ class WeightRepository(
         val current = prefs.weightEntries.first()
         prefs.setWeightEntries(current.filter { it.id != id })
         syncProfileWeightToLatest()
+        if (shouldSyncHealth()) {
+            health?.deleteWeight(id)
+        }
     }
 
     suspend fun replaceAll(entries: List<WeightEntry>) {
@@ -84,5 +92,10 @@ class WeightRepository(
         if (abs(profile.weightKg - newest.weightKg) > 0.01) {
             profileRepository.save(profile.copy(weightKg = newest.weightKg))
         }
+    }
+
+    private suspend fun shouldSyncHealth(): Boolean {
+        val manager = health ?: return false
+        return prefs.healthConnectEnabled.first() && manager.hasAllPermissions()
     }
 }

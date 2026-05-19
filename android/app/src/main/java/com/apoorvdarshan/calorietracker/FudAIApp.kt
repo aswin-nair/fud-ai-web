@@ -91,9 +91,9 @@ class AppContainer(app: FudAIApp) {
     val health = HealthConnectManager(app)
 
     val profileRepository = ProfileRepository(prefs)
-    val foodRepository = FoodRepository(prefs)
-    val weightRepository = WeightRepository(prefs, profileRepository)
-    val bodyFatRepository = BodyFatRepository(prefs, profileRepository)
+    val foodRepository = FoodRepository(prefs, health)
+    val weightRepository = WeightRepository(prefs, profileRepository, health)
+    val bodyFatRepository = BodyFatRepository(prefs, profileRepository, health)
     val chatRepository = ChatRepository(prefs)
 
     val foodAnalysis = FoodAnalysisService(prefs, keyStore)
