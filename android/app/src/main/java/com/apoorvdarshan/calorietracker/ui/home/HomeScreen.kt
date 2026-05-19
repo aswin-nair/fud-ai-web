@@ -423,7 +423,7 @@ fun HomeScreen(container: AppContainer) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 32.dp)
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 132.dp)
         ) {
             // Week strip — verbatim port of WeekEnergyStrip in HomeComponents.swift,
             // with horizontal pagination across 53 weeks of history.
