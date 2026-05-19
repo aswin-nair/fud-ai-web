@@ -83,6 +83,8 @@ private val PillCorner = 26.dp
 private val PillInsetH = 8.dp
 private val PillInsetV = 6.dp
 
+val BottomNavScrollPadding = 132.dp
+
 /**
  * Floating Liquid Glass tab bar — capsule with translucent backdrop, glassy
  * sheen, hairline border, soft shadow, and a spring-animated bright pill

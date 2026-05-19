@@ -152,6 +152,7 @@ import com.apoorvdarshan.calorietracker.ui.components.FeetInchesWheelPicker
 import com.apoorvdarshan.calorietracker.ui.components.NumericWheelPicker
 import com.apoorvdarshan.calorietracker.ui.components.SplitDecimalWheelPicker
 import com.apoorvdarshan.calorietracker.ui.components.UnitToggle
+import com.apoorvdarshan.calorietracker.ui.navigation.BottomNavScrollPadding
 import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 import com.apoorvdarshan.calorietracker.ui.theme.AppThemeColor
 import com.apoorvdarshan.calorietracker.ui.navigation.FudAIRoutes
@@ -602,7 +603,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 }
             }
 
-            Spacer(Modifier.height(112.dp))
+            Spacer(Modifier.height(BottomNavScrollPadding))
         }
     }
 
@@ -786,7 +787,11 @@ fun OptionalNutrientGoalsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                top = 14.dp,
+                bottom = BottomNavScrollPadding
+            ),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
