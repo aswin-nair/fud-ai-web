@@ -31,7 +31,16 @@ struct WidgetSnapshot: Codable, Equatable {
 
         let today = Calendar.current.startOfDay(for: Date())
         guard Calendar.current.isDate(snapshot.dayStart, inSameDayAs: today) else {
-            return nil
+            // New day: reset progress to zero but keep the user's goals so
+            // the Watch app doesn't fall back to hard-coded defaults.
+            return WidgetSnapshot(
+                date: Date(),
+                dayStart: today,
+                calories: 0, calorieGoal: snapshot.calorieGoal,
+                protein: 0, proteinGoal: snapshot.proteinGoal,
+                carbs: 0, carbsGoal: snapshot.carbsGoal,
+                fat: 0, fatGoal: snapshot.fatGoal
+            )
         }
         return snapshot
     }
