@@ -5,8 +5,6 @@ import RevenueCat
 enum RevenueCatConfig {
     static let appleAPIKeyInfoKey = "RevenueCatAppleAPIKey"
     static let entitlementID = "plus"
-    static let appleRefundHandlingPreferenceAttribute = "$appleRefundHandlingPreference"
-    static let declineRefundPreference = "DECLINE_REFUND"
 
     private static var didConfigure = false
 
@@ -27,10 +25,6 @@ enum RevenueCatConfig {
         Purchases.logLevel = .debug
         #endif
         Purchases.configure(withAPIKey: apiKey, appUserID: AIAccessSettings.installID)
-        // Applied by RevenueCat when refund handling is enabled in the dashboard.
-        Purchases.shared.attribution.setAttributes([
-            appleRefundHandlingPreferenceAttribute: declineRefundPreference
-        ])
         didConfigure = true
     }
 }
