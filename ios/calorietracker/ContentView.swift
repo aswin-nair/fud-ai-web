@@ -674,6 +674,7 @@ struct ActivityShareSheet: UIViewControllerRepresentable {
 // MARK: - Home View (Main Dashboard)
 struct HomeView: View {
     @Environment(FoodStore.self) private var foodStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showCamera = false
     @State private var showBarcodeScanner = false
     @State private var capturedImage: UIImage?
@@ -1152,8 +1153,14 @@ struct HomeView: View {
                         let image = pendingContextImage
                         showContextSheet = false
                         pendingContextImage = nil
+                        
                         if let image {
-                            startAnalysis(image: image, mode: .snapFoodWithContext, description: desc)
+                            // Delay presenting the next sheet until the current one fully dismisses.
+                            // This prevents SwiftUI from silently ignoring the new activeSheet presentation.
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                currentImage = image // Ensure currentImage is set so AnalyzingView/FoodResultView shows the image
+                                startAnalysis(image: image, mode: .snapFoodWithContext, description: desc)
+                            }
                         }
                     },
                     onCancel: {
@@ -1315,15 +1322,62 @@ struct HomeView: View {
                     onAllow: {
                         aiConsentGiven = true
                         showAIConsent = false
+                        if let image = currentImage, activeSheet == nil {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                pendingContextImage = image
+                                contextDescription = ""
+                                showContextSheet = true
+                            }
+                        }
                     },
                     onCancel: {
                         showAIConsent = false
                     }
                 )
             }
+            .onOpenURL { url in
+                guard url.scheme == "fudai" else { return }
+                
+                if url.host == "import-share-image" {
+                    checkAndConsumeSharedImage()
+                }
+            }
+            .onAppear {
+                checkAndConsumeSharedImage()
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    checkAndConsumeSharedImage()
+                }
+            }
         }
     }
-
+    
+    private func checkAndConsumeSharedImage() {
+        guard let image = ShareImportManager.consumeSharedImage() else { return }
+        
+        // Force dismiss any currently open sheets to prevent SwiftUI from swallowing the new presentation
+        activeSheet = nil
+        
+        currentImage = image
+        currentEmoji = nil
+        currentFoodSource = .snapFood
+        
+        guard aiConsentGiven else {
+            // A slight delay ensures the view hierarchy is clear before presenting
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                showAIConsent = true
+            }
+            return
+        }
+        
+        // A slight delay ensures the view hierarchy is clear before presenting
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            pendingContextImage = image
+            contextDescription = ""
+            showContextSheet = true
+        }
+    }
 
     private func requireAIConsent(_ action: () -> Void) {
         guard aiConsentGiven else {
@@ -1979,6 +2033,8 @@ struct ContextDescriptionSheet: View {
     let onCancel: () -> Void
 
     @FocusState private var isFocused: Bool
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     var body: some View {
         NavigationStack {
@@ -2036,12 +2092,19 @@ struct ContextDescriptionSheet: View {
                     Button("Cancel") { onCancel() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Analyze") { onAnalyze() }
-                        .fontWeight(.semibold)
-                        .tint(AppColors.calorie)
+                    Button("Analyze") {
+                        onAnalyze()
+                    }
+                    .fontWeight(.semibold)
+                    .tint(AppColors.calorie)
                 }
             }
             .onAppear { isFocused = true }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { }
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
 }

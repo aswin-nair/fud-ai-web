@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 			BA8E0E2D2F33F198007DD537 /* FudAIWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BA8E0E272F33F198007DD537 /* FudAIWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+			BA8E0E382F33F198007DD537 /* calorietrackerShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BA8E0E372F33F198007DD537 /* calorietrackerShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 			F00DCA700000000000000001 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = F00DCA700000000000000003 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,13 @@
 			remoteGlobalIDString = BA8E0E282F33F198007DD537;
 			remoteInfo = FudAIWidgetsExtension;
 		};
+		BA8E0E3C2F33F198007DD537 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BA8E0DEB2F33F197007DD537 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BA8E0E392F33F198007DD537;
+			remoteInfo = calorietrackerShare;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,6 +51,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				BA8E0E2D2F33F198007DD537 /* FudAIWidgetsExtension.appex in Embed Foundation Extensions */,
+				BA8E0E382F33F198007DD537 /* calorietrackerShare.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -54,6 +63,7 @@
 		BA8E0E072F33F198007DD537 /* calorietrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = calorietrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BA8E0E112F33F198007DD537 /* calorietrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = calorietrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BA8E0E272F33F198007DD537 /* FudAIWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FudAIWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA8E0E372F33F198007DD537 /* calorietrackerShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = calorietrackerShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -70,6 +80,13 @@
 				Info.plist,
 			);
 			target = BA8E0E282F33F198007DD537 /* FudAIWidgetsExtension */;
+		};
+		BA8E0E3B2F33F198007DD537 /* Exceptions for "calorietrackerShare" folder in "calorietrackerShare" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BA8E0E392F33F198007DD537 /* calorietrackerShare */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -98,6 +115,14 @@
 				BA8E0E262F33F198007DD537 /* Exceptions for "FudAIWidgets" folder in "FudAIWidgetsExtension" target */,
 			);
 			path = FudAIWidgets;
+			sourceTree = "<group>";
+		};
+		BA8E0E3A2F33F198007DD537 /* calorietrackerShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BA8E0E3B2F33F198007DD537 /* Exceptions for "calorietrackerShare" folder in "calorietrackerShare" target */,
+			);
+			path = calorietrackerShare;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -132,6 +157,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BA8E0E422F33F198007DD537 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -140,6 +172,7 @@
 			children = (
 				BA8E0DF52F33F197007DD537 /* calorietracker */,
 				BA8E0E252F33F198007DD537 /* FudAIWidgets */,
+				BA8E0E3A2F33F198007DD537 /* calorietrackerShare */,
 				BA8E0E0A2F33F198007DD537 /* calorietrackerTests */,
 				BA8E0E142F33F198007DD537 /* calorietrackerUITests */,
 				BA8E0DF42F33F197007DD537 /* Products */,
@@ -153,6 +186,7 @@
 				BA8E0E072F33F198007DD537 /* calorietrackerTests.xctest */,
 				BA8E0E112F33F198007DD537 /* calorietrackerUITests.xctest */,
 				BA8E0E272F33F198007DD537 /* FudAIWidgetsExtension.appex */,
+				BA8E0E372F33F198007DD537 /* calorietrackerShare.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -173,6 +207,7 @@
 			);
 			dependencies = (
 				BA8E0E2E2F33F198007DD537 /* PBXTargetDependency */,
+				BA8E0E3D2F33F198007DD537 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				BA8E0DF52F33F197007DD537 /* calorietracker */,
@@ -253,6 +288,26 @@
 			productReference = BA8E0E272F33F198007DD537 /* FudAIWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		BA8E0E392F33F198007DD537 /* calorietrackerShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BA8E0E3E2F33F198007DD537 /* Build configuration list for PBXNativeTarget "calorietrackerShare" */;
+			buildPhases = (
+				BA8E0E412F33F198007DD537 /* Sources */,
+				BA8E0E422F33F198007DD537 /* Frameworks */,
+				BA8E0E432F33F198007DD537 /* Resources */,
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BA8E0E3A2F33F198007DD537 /* calorietrackerShare */,
+			);
+			name = calorietrackerShare;
+			packageProductDependencies = (
+			);
+			productName = calorietrackerShare;
+			productReference = BA8E0E372F33F198007DD537 /* calorietrackerShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -275,6 +330,9 @@
 						TestTargetID = BA8E0DF22F33F197007DD537;
 					};
 					BA8E0E282F33F198007DD537 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					BA8E0E392F33F198007DD537 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -312,6 +370,7 @@
 			targets = (
 				BA8E0DF22F33F197007DD537 /* calorietracker */,
 				BA8E0E282F33F198007DD537 /* FudAIWidgetsExtension */,
+				BA8E0E392F33F198007DD537 /* calorietrackerShare */,
 				BA8E0E062F33F198007DD537 /* calorietrackerTests */,
 				BA8E0E102F33F198007DD537 /* calorietrackerUITests */,
 			);
@@ -341,6 +400,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		BA8E0E2B2F33F198007DD537 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA8E0E432F33F198007DD537 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -378,6 +444,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BA8E0E412F33F198007DD537 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -395,6 +468,11 @@
 			isa = PBXTargetDependency;
 			target = BA8E0E282F33F198007DD537 /* FudAIWidgetsExtension */;
 			targetProxy = BA8E0E2F2F33F198007DD537 /* PBXContainerItemProxy */;
+		};
+		BA8E0E3D2F33F198007DD537 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BA8E0E392F33F198007DD537 /* calorietrackerShare */;
+			targetProxy = BA8E0E3C2F33F198007DD537 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -790,6 +868,82 @@
 			};
 			name = Release;
 		};
+		BA8E0E3F2F33F198007DD537 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APP_DISPLAY_NAME = "Fud AI Debug";
+				APP_GROUP_IDENTIFIER = group.com.apoorvdarshan.calorietracker.debug;
+				CODE_SIGN_ENTITLEMENTS = calorietrackerShare/calorietrackerShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 15;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = calorietrackerShare/Info.plist;
+				INFOPLIST_KEY_AppGroupIdentifier = "$(APP_GROUP_IDENTIFIER)";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apoorvdarshan.calorietracker.debug.calorietrackerShare;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		BA8E0E402F33F198007DD537 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APP_DISPLAY_NAME = "Fud AI";
+				APP_GROUP_IDENTIFIER = group.com.apoorvdarshan.calorietracker;
+				CODE_SIGN_ENTITLEMENTS = calorietrackerShare/calorietrackerShare.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 15;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = calorietrackerShare/Info.plist;
+				INFOPLIST_KEY_AppGroupIdentifier = "$(APP_GROUP_IDENTIFIER)";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apoorvdarshan.calorietracker.calorietrackerShare;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -834,6 +988,15 @@
 			buildConfigurations = (
 				BA8E0E302F33F198007DD537 /* Debug */,
 				BA8E0E312F33F198007DD537 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BA8E0E3E2F33F198007DD537 /* Build configuration list for PBXNativeTarget "calorietrackerShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA8E0E3F2F33F198007DD537 /* Debug */,
+				BA8E0E402F33F198007DD537 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
