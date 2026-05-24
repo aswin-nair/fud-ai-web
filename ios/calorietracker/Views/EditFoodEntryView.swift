@@ -83,7 +83,7 @@ struct EditFoodEntryView: View {
         ServingUnitOption.option(matching: selectedServingUnitID, in: servingUnitOptions)
     }
     private var selectedServingQuantity: Double? {
-        Double(servingSizeText)
+        ServingUnitEditor.parseDecimal(servingSizeText)
     }
 
     init(entry: FoodEntry) {
