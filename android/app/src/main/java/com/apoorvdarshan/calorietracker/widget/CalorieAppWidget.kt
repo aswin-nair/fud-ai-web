@@ -38,6 +38,7 @@ import androidx.glance.text.TextStyle
 import com.apoorvdarshan.calorietracker.MainActivity
 import com.apoorvdarshan.calorietracker.R
 import com.apoorvdarshan.calorietracker.data.PreferencesStore
+import com.apoorvdarshan.calorietracker.models.MacroValueFormatter
 import com.apoorvdarshan.calorietracker.models.WidgetSnapshot
 import kotlinx.coroutines.flow.first
 
@@ -181,6 +182,8 @@ internal fun RingWithCenter(
     val sizePx = (ringSizeDp * density).toInt().coerceAtLeast(1)
     val strokePx = strokeDp * density
     val bitmap = ringBitmap(sizePx = sizePx, progress = progress, strokeWidthPx = strokePx)
+    val centerLargeFontSize = if (centerLarge.length > 5) 17.sp else 20.sp
+
     Box(
         modifier = GlanceModifier.size(ringSizeDp.dp),
         contentAlignment = Alignment.Center
@@ -196,7 +199,7 @@ internal fun RingWithCenter(
                 style = TextStyle(
                     color = WidgetTheme.primaryTextProvider,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
+                    fontSize = centerLargeFontSize
                 )
             )
             Text(
@@ -221,7 +224,10 @@ internal fun RingWithCenter(
 }
 
 @Composable
-internal fun CapsuleMacroRow(label: String, value: Int, goal: Int, progress: Float, unit: String) {
+internal fun CapsuleMacroRow(label: String, value: Double, goal: Int, progress: Float, unit: String) {
+    val valueText = "${MacroValueFormatter.string(value)}${unit} / ${goal}${unit}"
+    val valueFontSize = if (valueText.length > 12) 10.sp else 11.sp
+
     Column(modifier = GlanceModifier.fillMaxWidth()) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -234,11 +240,11 @@ internal fun CapsuleMacroRow(label: String, value: Int, goal: Int, progress: Flo
                 modifier = GlanceModifier.defaultWeight()
             )
             Text(
-                text = "${value}${unit} / ${goal}${unit}",
+                text = valueText,
                 style = TextStyle(
                     color = WidgetTheme.primaryTextProvider,
                     fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp
+                    fontSize = valueFontSize
                 )
             )
         }

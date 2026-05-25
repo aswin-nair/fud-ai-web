@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,9 +22,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.apoorvdarshan.calorietracker.models.MacroValueFormatter
 import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 
 /**
@@ -62,7 +67,7 @@ import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 @Composable
 fun MacroCard(
     label: String,
-    current: Int,
+    current: Double,
     goal: Int,
     unit: String = "g",
     modifier: Modifier = Modifier,
@@ -75,33 +80,55 @@ fun MacroCard(
         label = "macroProgress"
     )
     val firstColor = gradientColors.firstOrNull() ?: AppColors.Calorie
-    val left = maxOf(0, goal - current)
+    val left = maxOf(0.0, goal.toDouble() - current)
+    val currentText = MacroValueFormatter.string(current)
+    val goalText = "/$goal$unit"
+    val lineLength = currentText.length + goalText.length
+    val currentFontSize = when {
+        lineLength >= 14 -> 18.sp
+        lineLength >= 12 -> 20.sp
+        lineLength >= 10 -> 22.sp
+        lineLength >= 8 -> 24.sp
+        else -> 28.sp
+    }
+    val goalFontSize = when {
+        lineLength >= 14 -> 10.sp
+        lineLength >= 12 -> 11.sp
+        else -> 12.sp
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // HStack(alignment: .lastTextBaseline, spacing: 2)
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            // Text("\(current)") .font(.system(.title, design: .rounded, weight: .bold))
-            Text(
-                "$current",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = firstColor
-            )
-            // Text("/\(goal)g") .font(.system(.subheadline, design: .rounded, weight: .medium))
-            Text(
-                "/$goal$unit",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-        }
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = firstColor,
+                        fontSize = currentFontSize,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append(currentText)
+                }
+                withStyle(
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontSize = goalFontSize,
+                        fontWeight = FontWeight.Medium
+                    )
+                ) {
+                    append(goalText)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            softWrap = false
+        )
 
         // GeometryReader { ZStack(alignment: .leading) { ... } }.frame(height: 6)
         BoxWithConstraints(
@@ -146,7 +173,7 @@ fun MacroCard(
 
         // Text("\(left)g left") .font(.system(.caption2, design: .rounded)) .foregroundStyle(.tertiary)
         Text(
-            "$left$unit left",
+            "${MacroValueFormatter.string(left)}$unit left",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         )

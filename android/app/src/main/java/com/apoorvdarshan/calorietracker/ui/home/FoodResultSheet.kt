@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apoorvdarshan.calorietracker.R
+import com.apoorvdarshan.calorietracker.models.MacroValueFormatter
 import com.apoorvdarshan.calorietracker.models.MealType
 import com.apoorvdarshan.calorietracker.models.ServingUnitOption
 import com.apoorvdarshan.calorietracker.services.ai.FoodAnalysis
@@ -57,6 +58,7 @@ import kotlin.math.roundToInt
 fun FoodResultSheet(
     analysis: FoodAnalysis,
     imageBytes: ByteArray? = null,
+    preferGramsByDefault: Boolean = false,
     onSave: (
         name: String,
         servingGrams: Double,
@@ -78,11 +80,16 @@ fun FoodResultSheet(
     val servingUnitOptions = remember(analysis.servingUnitOptions, analysis.servingSizeGrams) {
         ServingUnitOption.normalizedOptions(analysis.servingUnitOptions, analysis.servingSizeGrams)
     }
-    var selectedServingUnitId by remember {
-        mutableStateOf(ServingUnitOption.initialUnitId(analysis.selectedServingUnit, servingUnitOptions))
+    val initialServingUnit = if (preferGramsByDefault) {
+        ServingUnitOption.grams.unit
+    } else {
+        analysis.selectedServingUnit
     }
-    var servingGrams by remember { mutableStateOf(analysis.servingSizeGrams) }
-    var servingQuantityText by remember {
+    var selectedServingUnitId by remember(analysis, servingUnitOptions, preferGramsByDefault) {
+        mutableStateOf(ServingUnitOption.initialUnitId(initialServingUnit, servingUnitOptions))
+    }
+    var servingGrams by remember(analysis) { mutableStateOf(analysis.servingSizeGrams) }
+    var servingQuantityText by remember(analysis, servingUnitOptions, preferGramsByDefault) {
         mutableStateOf(
             ServingUnitOption.initialQuantityText(
                 totalGrams = analysis.servingSizeGrams,
@@ -93,7 +100,7 @@ fun FoodResultSheet(
         )
     }
     val selectedServingOption = ServingUnitOption.optionMatching(selectedServingUnitId, servingUnitOptions)
-    val selectedServingQuantity = servingQuantityText.toDoubleOrNull()?.takeIf { it > 0 }
+    val selectedServingQuantity = ServingUnitOption.parseQuantity(servingQuantityText)?.takeIf { it > 0 }
     val scale = if (analysis.servingSizeGrams > 0) servingGrams / analysis.servingSizeGrams else 1.0
     var mealType by remember { mutableStateOf(MealType.currentMeal) }
     var moreNutritionExpanded by remember { mutableStateOf(false) }
@@ -109,6 +116,7 @@ fun FoodResultSheet(
     }
 
     fun scaledInt(v: Int) = (v * scale).roundToInt()
+    fun scaledMacro(v: Double) = v * scale
     fun scaledD(v: Double?) = v?.let { ((it * scale) * 10).roundToInt() / 10.0 }
 
     ModalBottomSheet(
@@ -190,7 +198,7 @@ fun FoodResultSheet(
                     quantityText = servingQuantityText,
                     onQuantityChange = { newValue ->
                         servingQuantityText = newValue
-                        newValue.toDoubleOrNull()?.takeIf { it > 0 }?.let {
+                        ServingUnitOption.parseQuantity(newValue)?.takeIf { it > 0 }?.let {
                             servingGrams = it * selectedServingOption.gramsPerUnit
                         }
                     },
@@ -214,11 +222,11 @@ fun FoodResultSheet(
                 SheetPillCard {
                     SheetNutritionRow(stringResource(R.string.nutrition_label_calories), "${scaledInt(analysis.calories)}", stringResource(R.string.unit_kcal))
                     SheetHairline()
-                    SheetNutritionRow(stringResource(R.string.nutrition_label_protein), "${scaledInt(analysis.protein)}", stringResource(R.string.unit_g))
+                    SheetNutritionRow(stringResource(R.string.nutrition_label_protein), MacroValueFormatter.string(scaledMacro(analysis.protein)), stringResource(R.string.unit_g))
                     SheetHairline()
-                    SheetNutritionRow(stringResource(R.string.nutrition_label_carbs), "${scaledInt(analysis.carbs)}", stringResource(R.string.unit_g))
+                    SheetNutritionRow(stringResource(R.string.nutrition_label_carbs), MacroValueFormatter.string(scaledMacro(analysis.carbs)), stringResource(R.string.unit_g))
                     SheetHairline()
-                    SheetNutritionRow(stringResource(R.string.nutrition_label_fat), "${scaledInt(analysis.fat)}", stringResource(R.string.unit_g))
+                    SheetNutritionRow(stringResource(R.string.nutrition_label_fat), MacroValueFormatter.string(scaledMacro(analysis.fat)), stringResource(R.string.unit_g))
                 }
             }
 

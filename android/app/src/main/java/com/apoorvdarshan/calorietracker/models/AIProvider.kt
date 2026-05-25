@@ -57,6 +57,7 @@ enum class AIProvider {
     /** Only models that are currently in service AND accept image input + return structured text. */
     val models: List<String> get() = when (this) {
         GEMINI -> listOf(
+            "gemini-3.5-flash",
             "gemini-3.1-flash-lite",
             "gemini-3.1-pro-preview",
             "gemini-3-flash-preview",

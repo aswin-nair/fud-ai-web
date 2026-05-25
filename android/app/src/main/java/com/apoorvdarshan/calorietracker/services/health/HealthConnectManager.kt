@@ -6,11 +6,14 @@ import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.changes.DeletionChange
 import androidx.health.connect.client.changes.UpsertionChange
 import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.BodyFatRecord
 import androidx.health.connect.client.records.MealType as HCMealType
 import androidx.health.connect.client.records.NutritionRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.Metadata
+import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
@@ -20,8 +23,11 @@ import com.apoorvdarshan.calorietracker.models.BodyFatEntry
 import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.WeightEntry
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.UUID
+import kotlin.math.roundToInt
 
 /**
  * Single boundary for Health Connect I/O. Port of iOS HealthKitManager.
@@ -29,9 +35,8 @@ import java.util.UUID
  * Conventions:
  * - Each sample carries [Metadata.clientRecordId] = "fudai_<uuid>" so we can
  *   dedup in-app vs external writes and delete our own records cleanly.
- * - Nutrition records include macros + 9 micronutrients (fiber, sugar, sat fat,
- *   cholesterol, sodium, potassium — plus monounsaturated/polyunsaturated when
- *   the AI provides them).
+ * - Nutrition records include macros plus every optional nutrient Health Connect
+ *   can represent from Fud AI's food model.
  * - The "typesVersion" integer bumps when we add new record types so existing
  *   users get a re-authorization prompt.
  */
@@ -47,10 +52,11 @@ class HealthConnectManager(private val context: Context) {
     val permissions: Set<String> = setOf(
         HealthPermission.getReadPermission(WeightRecord::class),
         HealthPermission.getWritePermission(WeightRecord::class),
-        HealthPermission.getReadPermission(NutritionRecord::class),
         HealthPermission.getWritePermission(NutritionRecord::class),
         HealthPermission.getReadPermission(BodyFatRecord::class),
-        HealthPermission.getWritePermission(BodyFatRecord::class)
+        HealthPermission.getWritePermission(BodyFatRecord::class),
+        HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
+        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class)
     )
 
     suspend fun hasAllPermissions(): Boolean {
@@ -155,30 +161,45 @@ class HealthConnectManager(private val context: Context) {
     suspend fun writeNutrition(entry: FoodEntry): Boolean {
         val c = client ?: return false
         val start = entry.timestamp
+        if (start.isAfter(Instant.now())) return false
         // Nutrition records need a non-zero duration or Health Connect rejects them; use 1 minute.
         val end = start.plusSeconds(60)
-        val record = NutritionRecord(
-            startTime = start,
-            endTime = end,
-            startZoneOffset = null,
-            endZoneOffset = null,
-            name = entry.name,
-            mealType = mealTypeFor(entry.mealType),
-            energy = Energy.kilocalories(entry.calories.toDouble()),
-            protein = Mass.grams(entry.protein.toDouble()),
-            totalCarbohydrate = Mass.grams(entry.carbs.toDouble()),
-            totalFat = Mass.grams(entry.fat.toDouble()),
-            dietaryFiber = entry.fiber?.let { Mass.grams(it) },
-            sugar = entry.sugar?.let { Mass.grams(it) },
-            saturatedFat = entry.saturatedFat?.let { Mass.grams(it) },
-            monounsaturatedFat = entry.monounsaturatedFat?.let { Mass.grams(it) },
-            polyunsaturatedFat = entry.polyunsaturatedFat?.let { Mass.grams(it) },
-            cholesterol = entry.cholesterol?.let { Mass.milligrams(it) },
-            sodium = entry.sodium?.let { Mass.milligrams(it) },
-            potassium = entry.potassium?.let { Mass.milligrams(it) },
-            metadata = Metadata.manualEntry(clientRecordId = tag(entry.id))
-        )
-        return runCatching { c.insertRecords(listOf(record)) }.isSuccess
+        return runCatching {
+            val record = NutritionRecord(
+                startTime = start,
+                endTime = end,
+                startZoneOffset = null,
+                endZoneOffset = null,
+                name = entry.name,
+                mealType = mealTypeFor(entry.mealType),
+                energy = Energy.kilocalories(entry.calories.toDouble()),
+                protein = Mass.grams(entry.protein),
+                totalCarbohydrate = Mass.grams(entry.carbs),
+                totalFat = Mass.grams(entry.fat),
+                dietaryFiber = entry.fiber?.let { Mass.grams(it) },
+                sugar = entry.sugar?.let { Mass.grams(it) },
+                saturatedFat = entry.saturatedFat?.let { Mass.grams(it) },
+                monounsaturatedFat = entry.monounsaturatedFat?.let { Mass.grams(it) },
+                polyunsaturatedFat = entry.polyunsaturatedFat?.let { Mass.grams(it) },
+                transFat = entry.transFat?.let { Mass.grams(it) },
+                cholesterol = entry.cholesterol?.let { Mass.milligrams(it) },
+                sodium = entry.sodium?.let { Mass.milligrams(it) },
+                potassium = entry.potassium?.let { Mass.milligrams(it) },
+                calcium = entry.calcium?.let { Mass.milligrams(it) },
+                iron = entry.iron?.let { Mass.milligrams(it) },
+                magnesium = entry.magnesium?.let { Mass.milligrams(it) },
+                zinc = entry.zinc?.let { Mass.milligrams(it) },
+                vitaminA = entry.vitaminA?.let { Mass.micrograms(it) },
+                vitaminC = entry.vitaminC?.let { Mass.milligrams(it) },
+                vitaminD = entry.vitaminD?.let { Mass.micrograms(it) },
+                vitaminB12 = entry.vitaminB12?.let { Mass.micrograms(it) },
+                vitaminE = entry.vitaminE?.let { Mass.milligrams(it) },
+                vitaminK = entry.vitaminK?.let { Mass.micrograms(it) },
+                folate = entry.folate?.let { Mass.micrograms(it) },
+                metadata = Metadata.manualEntry(clientRecordId = tag(entry.id))
+            )
+            c.insertRecords(listOf(record))
+        }.isSuccess
     }
 
     suspend fun updateNutrition(entry: FoodEntry): Boolean {
@@ -197,6 +218,52 @@ class HealthConnectManager(private val context: Context) {
                 clientRecordIdsList = listOf(tag(entryId))
             )
         }.isSuccess
+    }
+
+    // -- Energy burn summary --------------------------------------------
+
+    suspend fun readRecentEnergySummary(days: Int = 14): HealthEnergySummary? {
+        val c = client ?: return null
+        val requestedDays = maxOf(3, days)
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        val daily = mutableListOf<DailyEnergy>()
+
+        for (offset in requestedDays downTo 1) {
+            val date = today.minusDays(offset.toLong())
+            val start = date.atStartOfDay(zone).toInstant()
+            val end = date.plusDays(1).atStartOfDay(zone).toInstant()
+            val result = runCatching {
+                c.aggregate(
+                    AggregateRequest(
+                        metrics = setOf(
+                            ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
+                            TotalCaloriesBurnedRecord.ENERGY_TOTAL
+                        ),
+                        timeRangeFilter = TimeRangeFilter.between(start, end)
+                    )
+                )
+            }.getOrNull() ?: continue
+
+            val active = result[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories ?: 0.0
+            val total = result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.takeIf { it > 0.0 }
+            if (active + (total ?: 0.0) <= 0.0) continue
+            daily.add(DailyEnergy(active = active, total = total))
+        }
+
+        if (daily.size < 3) return null
+
+        val activeAverage = daily.sumOf { it.active } / daily.size
+        val totalValues = daily.mapNotNull { it.total }
+        val totalAverage = totalValues.takeIf { it.isNotEmpty() }?.let { values -> values.sum() / values.size }
+        val basalAverage = totalAverage?.let { maxOf(0.0, it - activeAverage) }
+        return HealthEnergySummary(
+            activeAverageCalories = activeAverage.roundToInt(),
+            basalAverageCalories = basalAverage?.roundToInt(),
+            totalAverageCalories = totalAverage?.roundToInt(),
+            daysUsed = daily.size,
+            requestedDays = requestedDays
+        )
     }
 
     // -- Change observation (external weight imports) --------------------
@@ -271,10 +338,16 @@ class HealthConnectManager(private val context: Context) {
         private const val CLIENT_PREFIX = "fudai_"
 
         /** Bump this when we add a new record type so users re-auth.
-         *  v2 = added BodyFatRecord read+write permissions. */
-        const val CURRENT_TYPES_VERSION = 2
+         *  v2 = added BodyFatRecord read+write permissions.
+         *  v3 = added energy burn read permissions. */
+        const val CURRENT_TYPES_VERSION = 3
     }
 }
+
+private data class DailyEnergy(
+    val active: Double,
+    val total: Double?
+)
 
 data class ExternalWeight(
     val time: Instant,
@@ -290,4 +363,12 @@ data class ExternalBodyFat(
     /** 0–1 fraction, matching UserProfile.bodyFatPercentage convention. */
     val bodyFatFraction: Double,
     val clientRecordId: String?
+)
+
+data class HealthEnergySummary(
+    val activeAverageCalories: Int,
+    val basalAverageCalories: Int?,
+    val totalAverageCalories: Int?,
+    val daysUsed: Int,
+    val requestedDays: Int
 )

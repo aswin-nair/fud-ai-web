@@ -13,9 +13,9 @@ import kotlin.math.roundToInt
 data class FoodAnalysis(
     val name: String,
     val calories: Int,
-    val protein: Int,
-    val carbs: Int,
-    val fat: Int,
+    val protein: Double,
+    val carbs: Double,
+    val fat: Double,
     val servingSizeGrams: Double,
     val emoji: String? = null,
     val sugar: Double? = null,
@@ -84,9 +84,9 @@ data class NutritionLabelAnalysis(
         return FoodAnalysis(
             name = name,
             calories = (caloriesPer100g * scale).toInt(),
-            protein = (proteinPer100g * scale).toInt(),
-            carbs = (carbsPer100g * scale).toInt(),
-            fat = (fatPer100g * scale).toInt(),
+            protein = proteinPer100g * scale,
+            carbs = carbsPer100g * scale,
+            fat = fatPer100g * scale,
             servingSizeGrams = toGrams,
             sugar = s(sugarPer100g),
             addedSugar = s(addedSugarPer100g),
@@ -116,6 +116,11 @@ data class NutritionLabelAnalysis(
         )
     }
 }
+
+data class HealthEnergyGoalSuggestion(
+    val calories: Int,
+    val reason: String? = null
+)
 
 internal object FoodJsonParser {
 
@@ -166,9 +171,9 @@ internal object FoodJsonParser {
         return FoodAnalysis(
             name = name,
             calories = json.optInt("calories"),
-            protein = json.optInt("protein"),
-            carbs = json.optInt("carbs"),
-            fat = json.optInt("fat"),
+            protein = optDouble("protein") ?: 0.0,
+            carbs = optDouble("carbs") ?: 0.0,
+            fat = optDouble("fat") ?: 0.0,
             servingSizeGrams = servingSizeGrams,
             emoji = json.optString("emoji").takeIf { it.isNotEmpty() },
             sugar = optDouble("sugar"),
@@ -278,6 +283,20 @@ internal object FoodJsonParser {
             vitaminK = optInt("vitamin_k", "vitaminK", "vitamin_k_mcg", fallback = OptionalNutrientGoals.Default.vitaminK),
             folate = optInt("folate", "folate_mcg", fallback = OptionalNutrientGoals.Default.folate),
             omega3 = optInt("omega_3", "omega3", "omega_3_g", fallback = OptionalNutrientGoals.Default.omega3)
+        )
+    }
+
+    fun parseHealthEnergyGoalSuggestion(text: String): HealthEnergyGoalSuggestion {
+        val json = runCatching { JSONObject(extractJson(text)) }.getOrNull()
+            ?: throw AiError.InvalidResponse
+        val calories = when (val value = json.opt("calories")) {
+            is Number -> value.toDouble().roundToInt()
+            is String -> value.toDoubleOrNull()?.roundToInt()
+            else -> null
+        } ?: throw AiError.InvalidResponse
+        return HealthEnergyGoalSuggestion(
+            calories = calories.coerceIn(800, 6000),
+            reason = json.optString("reason").takeIf { it.isNotBlank() }
         )
     }
 

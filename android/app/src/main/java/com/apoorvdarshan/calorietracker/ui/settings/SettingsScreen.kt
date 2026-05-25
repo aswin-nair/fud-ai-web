@@ -61,6 +61,7 @@ import androidx.compose.material.icons.outlined.Equalizer
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Height
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Link
@@ -92,6 +93,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -168,6 +170,10 @@ private enum class SettingsSheet {
     APPEARANCE, THEME_COLOR, WEEK_START
 }
 
+private enum class HealthConnectPermissionAction {
+    SYNC, ENERGY_GOALS
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(container: AppContainer, nav: NavHostController) {
@@ -182,6 +188,9 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
     var invalidGoalWeightMessage by remember { mutableStateOf<String?>(null) }
     var showMaxPinnedAlert by remember { mutableStateOf(false) }
     var permissionDeniedMessage by remember { mutableStateOf<String?>(null) }
+    var showDefaultGramsInfo by remember { mutableStateOf(false) }
+    var showHealthEnergyGoalsInfo by remember { mutableStateOf(false) }
+    var pendingHealthPermissionAction by remember { mutableStateOf<HealthConnectPermissionAction?>(null) }
     val activityContext = LocalContext.current
 
     // Notifications: API 33+ requires runtime POST_NOTIFICATIONS. We only flip the
@@ -198,14 +207,21 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
         else permissionDeniedMessage = notifDeniedMsg
     }
 
-    // Health Connect: launches the standard HC permissions screen for the read +
-    // write × (Weight + Nutrition) bundle. Same idea — only flip the pref true
-    // if the user grants the full set.
+    // Health Connect: only flip app prefs true if the user grants the full
+    // sync + energy-goal permission set.
     val healthConnectLauncher = rememberLauncherForActivityResult(
         contract = container.health.permissionRequestContract()
     ) { granted ->
-        if (granted.containsAll(container.health.permissions)) vm.setHealthConnectEnabled(true)
-        else permissionDeniedMessage = healthDeniedMsg
+        val action = pendingHealthPermissionAction ?: HealthConnectPermissionAction.SYNC
+        pendingHealthPermissionAction = null
+        if (granted.containsAll(container.health.permissions)) {
+            when (action) {
+                HealthConnectPermissionAction.SYNC -> vm.setHealthConnectEnabled(true)
+                HealthConnectPermissionAction.ENERGY_GOALS -> vm.setHealthEnergyGoalsEnabled(true)
+            }
+        } else {
+            permissionDeniedMessage = healthDeniedMsg
+        }
     }
 
     fun onNotificationsToggle(enabled: Boolean) {
@@ -235,6 +251,20 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
         }
         // Don't pre-check granted state — Health Connect's contract handles the
         // already-granted case by returning the full set immediately.
+        pendingHealthPermissionAction = HealthConnectPermissionAction.SYNC
+        healthConnectLauncher.launch(container.health.permissions)
+    }
+
+    fun onHealthEnergyGoalsToggle(enabled: Boolean) {
+        if (!enabled) {
+            vm.setHealthEnergyGoalsEnabled(false)
+            return
+        }
+        if (!container.health.isAvailable()) {
+            permissionDeniedMessage = healthUnavailableMsg
+            return
+        }
+        pendingHealthPermissionAction = HealthConnectPermissionAction.ENERGY_GOALS
         healthConnectLauncher.launch(container.health.permissions)
     }
 
@@ -359,6 +389,36 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         ) { sheet = SettingsSheet.GOAL_WEIGHT }
                     }
                     HorizontalDivider()
+                    EnergyBurnGoalsRow(
+                        checked = ui.healthEnergyGoalsEnabled,
+                        applying = ui.applyingHealthEnergyGoals,
+                        onInfo = { showHealthEnergyGoalsInfo = true },
+                        onChange = ::onHealthEnergyGoalsToggle
+                    )
+                    if (ui.healthEnergyGoalsEnabled) {
+                        HorizontalDivider()
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable(enabled = !ui.applyingHealthEnergyGoals) { vm.refreshHealthEnergyGoals() }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            FudIconBubble(icon = Icons.Outlined.Refresh, size = 22.dp, iconSize = 14.dp)
+                            Spacer(Modifier.width(14.dp))
+                            Text(
+                                stringResource(R.string.settings_refresh_energy_goals),
+                                color = if (ui.applyingHealthEnergyGoals) {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f)
+                                } else {
+                                    AppColors.Calorie
+                                },
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                    HorizontalDivider()
                     // iOS shows "2452 kcal" with no chevron suffix on the Calories row.
                     SettingRow(stringResource(R.string.settings_calories), stringResource(R.string.kcal_value_format, p.effectiveCalories), icon = Icons.Outlined.LocalFireDepartment) { sheet = SettingsSheet.CALORIES }
                     HorizontalDivider()
@@ -436,6 +496,14 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 ) { sheet = SettingsSheet.THEME_COLOR }
                 HorizontalDivider()
                 ToggleRow(stringResource(R.string.settings_metric_units), ui.useMetric, icon = Icons.Outlined.Straighten, onChange = vm::setUseMetric)
+                HorizontalDivider()
+                ToggleRowWithInfo(
+                    label = stringResource(R.string.settings_default_to_grams),
+                    checked = ui.preferGramsByDefault,
+                    icon = Icons.Outlined.LocalDining,
+                    onInfo = { showDefaultGramsInfo = true },
+                    onChange = vm::setPreferGramsByDefault
+                )
                 HorizontalDivider()
                 SettingRow(
                     stringResource(R.string.settings_week_starts),
@@ -689,6 +757,50 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 },
                 dismissText = stringResource(R.string.action_cancel),
                 onDismiss = { showRecalcDialog = false }
+            )
+        }
+    }
+
+    if (showDefaultGramsInfo) {
+        FudGlassDialog(onDismissRequest = { showDefaultGramsInfo = false }) {
+            Text(stringResource(R.string.settings_default_to_grams), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.settings_default_to_grams_info),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { showDefaultGramsInfo = false }
+            )
+        }
+    }
+
+    if (showHealthEnergyGoalsInfo) {
+        FudGlassDialog(onDismissRequest = { showHealthEnergyGoalsInfo = false }) {
+            Text(stringResource(R.string.settings_energy_goals), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.settings_energy_goals_info),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { showHealthEnergyGoalsInfo = false }
+            )
+        }
+    }
+
+    val energyAlertTitle = ui.healthEnergyGoalAlertTitle
+    val energyAlertMessage = ui.healthEnergyGoalAlertMessage
+    if (energyAlertTitle != null && energyAlertMessage != null) {
+        FudGlassDialog(onDismissRequest = { vm.dismissHealthEnergyGoalAlert() }) {
+            Text(energyAlertTitle, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                energyAlertMessage,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { vm.dismissHealthEnergyGoalAlert() }
             )
         }
     }
@@ -2081,6 +2193,80 @@ private fun ToggleRow(
             fontWeight = FontWeight.Medium
         )
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun ToggleRowWithInfo(
+    label: String,
+    checked: Boolean,
+    icon: ImageVector? = null,
+    onInfo: () -> Unit,
+    onChange: (Boolean) -> Unit,
+    enabled: Boolean = true
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) {
+            FudIconBubble(icon = icon, size = 22.dp, iconSize = 14.dp)
+            Spacer(Modifier.width(14.dp))
+        }
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium
+        )
+        IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = stringResource(R.string.action_info),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
+    }
+}
+
+@Composable
+private fun EnergyBurnGoalsRow(
+    checked: Boolean,
+    applying: Boolean,
+    onInfo: () -> Unit,
+    onChange: (Boolean) -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        FudIconBubble(icon = Icons.Outlined.LocalFireDepartment, size = 22.dp, iconSize = 14.dp)
+        Spacer(Modifier.width(14.dp))
+        Text(
+            stringResource(R.string.settings_energy_goals),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium
+        )
+        if (applying) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                strokeWidth = 2.dp,
+                color = AppColors.Calorie
+            )
+            Spacer(Modifier.width(14.dp))
+        }
+        IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = stringResource(R.string.action_info),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Switch(checked = checked, onCheckedChange = onChange, enabled = !applying)
     }
 }
 

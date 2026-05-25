@@ -19,7 +19,7 @@ struct ServingUnitEditor: View {
     }
 
     private var selectedQuantity: Double? {
-        Double(quantityText)
+        Self.parseDecimal(quantityText)
     }
 
     private var selectedUnitLabel: String {
@@ -35,7 +35,7 @@ struct ServingUnitEditor: View {
             )
             .frame(width: 72)
             .onChange(of: quantityText) { _, newValue in
-                guard let parsed = Double(newValue), parsed > 0 else { return }
+                guard let parsed = Self.parseDecimal(newValue), parsed > 0 else { return }
                 servingSizeGrams = parsed * selectedOption.gramsPerUnit
             }
             .onChange(of: selectedUnitID) { _, _ in
@@ -97,6 +97,27 @@ struct ServingUnitEditor: View {
         }
         return String(format: "%.1f", value).trimmingTrailingZeros()
     }
+
+    /// Parse a decimal string — accepts both "." (C locale) and "," (user locale).
+    /// Tries C-locale parsing first, then locale-aware as fallback.
+    static func parseDecimal(_ string: String, locale: Locale = .current) -> Double? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if let value = Double(trimmed) {
+            return value
+        }
+        guard let decimalSeparator = locale.decimalSeparator,
+              decimalSeparator != ".",
+              trimmed.contains(decimalSeparator)
+        else { return nil }
+
+        var normalized = trimmed
+        if let groupingSeparator = locale.groupingSeparator, groupingSeparator != decimalSeparator {
+            normalized = normalized.replacingOccurrences(of: groupingSeparator, with: "")
+        }
+        normalized = normalized.replacingOccurrences(of: decimalSeparator, with: ".")
+        return Double(normalized)
+    }
 }
 
 private extension String {
@@ -144,7 +165,8 @@ extension ServingUnitOption {
 
     static func initialUnitID(
         preferredUnit: String?,
-        options: [ServingUnitOption]
+        options: [ServingUnitOption],
+        defaultToGrams: Bool = false
     ) -> String {
         let pickerOptions = pickerOptions(for: options)
         if let preferredUnit {
@@ -152,6 +174,9 @@ extension ServingUnitOption {
             if pickerOptions.contains(where: { $0.id == preferredID }) {
                 return preferredID
             }
+        }
+        if defaultToGrams {
+            return ServingUnitOption.grams.id
         }
         return options.first?.id ?? ServingUnitOption.grams.id
     }
