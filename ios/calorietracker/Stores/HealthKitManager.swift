@@ -27,7 +27,7 @@ class HealthKitManager {
     /// Bump this when adding new HealthKit types so we can re-request authorization
     /// for users who already authorized the old set. Just an integer schema marker,
     /// not credentials — named to avoid CodeQL's "auth"-keyword heuristic false positive.
-    private let typesVersion = 2
+    private let typesVersion = 3
     private let typesVersionKey = "healthKitTypesVersion"
 
     private var dietaryShareTypes: Set<HKSampleType> {
@@ -77,15 +77,10 @@ class HealthKitManager {
             HKQuantityType(.bodyMass),
             HKQuantityType(.height),
             HKQuantityType(.bodyFatPercentage),
-            HKCharacteristicType(.dateOfBirth),
-            HKCharacteristicType(.biologicalSex),
-        ]
-    }
-
-    private var energyReadTypes: Set<HKObjectType> {
-        [
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.basalEnergyBurned),
+            HKCharacteristicType(.dateOfBirth),
+            HKCharacteristicType(.biologicalSex),
         ]
     }
 
@@ -111,16 +106,6 @@ class HealthKitManager {
             if dietaryShareTypes.allSatisfy({ healthStore.authorizationStatus(for: $0) == .sharingAuthorized }) {
                 persistCurrentTypesVersion()
             }
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    func requestEnergyAuthorization() async -> Bool {
-        guard HKHealthStore.isHealthDataAvailable() else { return false }
-        do {
-            try await healthStore.requestAuthorization(toShare: [], read: energyReadTypes)
             return true
         } catch {
             return false
