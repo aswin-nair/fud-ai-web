@@ -113,13 +113,13 @@ fun AboutScreen(container: AppContainer) {
     fun refreshUpdateState() {
         scope.launch {
             updateState = AndroidUpdateState.Checking
-            updateState = AndroidUpdateChecker.check(currentVersion)
+            updateState = AndroidUpdateChecker.check(ctx, currentVersion)
         }
     }
 
     LaunchedEffect(currentVersion) {
         updateState = AndroidUpdateState.Checking
-        updateState = AndroidUpdateChecker.check(currentVersion)
+        updateState = AndroidUpdateChecker.check(ctx, currentVersion)
     }
 
     fun share() {
