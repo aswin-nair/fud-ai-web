@@ -19,7 +19,7 @@ struct ServingUnitEditor: View {
     }
 
     private var selectedQuantity: Double? {
-        Double(quantityText)
+        Self.parseDecimal(quantityText)
     }
 
     private var selectedUnitLabel: String {
@@ -35,7 +35,7 @@ struct ServingUnitEditor: View {
             )
             .frame(width: 72)
             .onChange(of: quantityText) { _, newValue in
-                guard let parsed = Double(newValue), parsed > 0 else { return }
+                guard let parsed = Self.parseDecimal(newValue), parsed > 0 else { return }
                 servingSizeGrams = parsed * selectedOption.gramsPerUnit
             }
             .onChange(of: selectedUnitID) { _, _ in
@@ -96,6 +96,18 @@ struct ServingUnitEditor: View {
             return String(format: "%.2f", value).trimmingTrailingZeros()
         }
         return String(format: "%.1f", value).trimmingTrailingZeros()
+    }
+
+    /// Parse a decimal string — accepts both "." (C locale) and "," (user locale).
+    /// Tries C-locale parsing first, then locale-aware as fallback.
+    static func parseDecimal(_ string: String, locale: Locale = .current) -> Double? {
+        if let value = Double(string) {
+            return value
+        }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = locale
+        return formatter.number(from: string)?.doubleValue
     }
 }
 
