@@ -262,6 +262,14 @@ struct GeminiService {
         }
     }
 
+    struct HealthEnergyGoalSuggestion {
+        var calories: Int
+        var protein: Int
+        var carbs: Int
+        var fat: Int
+        var reason: String?
+    }
+
     enum AnalysisError: LocalizedError {
         case noAPIKey
         case imageConversionFailed
@@ -451,6 +459,63 @@ struct GeminiService {
 
         let text = try await callAI(prompt: prompt, image: nil)
         return try parseOptionalNutrientGoals(from: text, fallback: currentGoals)
+    }
+
+    static func suggestHealthEnergyGoals(
+        profile: UserProfile,
+        energy: HealthEnergySummary,
+        useMetric: Bool
+    ) async throws -> HealthEnergyGoalSuggestion {
+        let weight = useMetric
+            ? String(format: "%.1f kg", profile.weightKg)
+            : String(format: "%.1f lb", profile.weightKg * 2.20462)
+        let height = useMetric
+            ? String(format: "%.0f cm", profile.heightCm)
+            : String(format: "%.1f in", profile.heightCm / 2.54)
+        let bodyFat = profile.bodyFatPercentage.map { "\(Int(($0 * 100).rounded()))%" } ?? "not set"
+        let goalWeight = profile.goalWeightKg.map { kg in
+            useMetric ? String(format: "%.1f kg", kg) : String(format: "%.1f lb", kg * 2.20462)
+        } ?? "not set"
+        let healthTotalLine = energy.totalAverageCalories
+            .map { "\($0) kcal/day from active + basal energy" }
+            ?? "basal energy unavailable; estimate total burn from app BMR + Apple Health active energy"
+
+        let prompt = """
+        You are setting daily calorie and macro targets for a food tracking app.
+        Return ONLY valid JSON with these exact keys:
+        {"calories":2000,"protein":140,"carbs":220,"fat":65,"reason":"Short reason under 100 characters"}
+
+        Use Apple Health energy as the primary activity signal, but keep the app's existing formula as a sanity check.
+        If Apple Health basal energy is unavailable, estimate total daily burn from app BMR plus Apple Health active energy.
+        Apply the user's weight goal and weekly change preference to choose the calorie target.
+        Keep values practical for a consumer food tracker: calories 800-6000 kcal; protein 10-500 g; carbs 0-800 g; fat 10-300 g.
+        Use integers only for calories, protein, carbs, and fat. Do not include any other keys.
+
+        User profile:
+        - Gender: \(profile.gender.displayName)
+        - Age: \(profile.age)
+        - Height: \(height)
+        - Weight: \(weight)
+        - Activity level setting: \(profile.activityLevel.displayName)
+        - Weight goal: \(profile.goal.displayName)
+        - Weekly change preference: \(profile.weeklyChangeKg.map { String(format: "%.2f kg/week", $0) } ?? "maintain")
+        - Goal weight: \(goalWeight)
+        - Body fat: \(bodyFat)
+
+        Existing app formula:
+        - BMR: \(Int(profile.bmr.rounded())) kcal/day
+        - TDEE: \(Int(profile.tdee.rounded())) kcal/day
+        - Formula calorie target: \(profile.dailyCalories) kcal/day
+        - Formula macro targets: \(profile.proteinGoal)g protein, \(profile.carbsGoal)g carbs, \(profile.fatGoal)g fat
+
+        Apple Health energy from \(energy.daysUsed) of the last \(energy.requestedDays) completed days:
+        - Active energy average: \(energy.activeAverageCalories) kcal/day
+        - Basal energy average: \(energy.basalAverageCalories.map { "\($0) kcal/day" } ?? "not available")
+        - Health total: \(healthTotalLine)
+        """
+
+        let text = try await callAI(prompt: prompt, image: nil)
+        return try parseHealthEnergyGoalSuggestion(from: text)
     }
 
     // MARK: - Weight Forecast Insight
@@ -1015,6 +1080,25 @@ struct GeminiService {
 
         guard parsedAnyValue else { throw AnalysisError.invalidResponse }
         return goals.mergedWithDefaults()
+    }
+
+    private static func parseHealthEnergyGoalSuggestion(from text: String) throws -> HealthEnergyGoalSuggestion {
+        let jsonString = extractJSON(from: text)
+        guard let data = jsonString.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let calories = (json["calories"] as? NSNumber)?.intValue,
+              let protein = (json["protein"] as? NSNumber)?.intValue,
+              let carbs = (json["carbs"] as? NSNumber)?.intValue,
+              let fat = (json["fat"] as? NSNumber)?.intValue
+        else { throw AnalysisError.invalidResponse }
+
+        return HealthEnergyGoalSuggestion(
+            calories: min(max(calories, 800), 6_000),
+            protein: min(max(protein, 10), 500),
+            carbs: min(max(carbs, 0), 800),
+            fat: min(max(fat, 10), 300),
+            reason: json["reason"] as? String
+        )
     }
 
     private static func addingFallbackServingUnits(

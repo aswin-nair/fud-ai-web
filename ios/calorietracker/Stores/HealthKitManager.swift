@@ -1,6 +1,14 @@
 import Foundation
 import HealthKit
 
+struct HealthEnergySummary {
+    var activeAverageCalories: Int
+    var basalAverageCalories: Int?
+    var totalAverageCalories: Int?
+    var daysUsed: Int
+    var requestedDays: Int
+}
+
 @Observable
 class HealthKitManager {
     var authorizationStatus: HKAuthorizationStatus = .notDetermined
@@ -74,6 +82,13 @@ class HealthKitManager {
         ]
     }
 
+    private var energyReadTypes: Set<HKObjectType> {
+        [
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.basalEnergyBurned),
+        ]
+    }
+
     /// True if user previously authorized but new types were added since.
     var needsReauthorization: Bool {
         // Accept either the new key or the legacy "healthKitAuthVersion" key so existing
@@ -96,6 +111,16 @@ class HealthKitManager {
             if dietaryShareTypes.allSatisfy({ healthStore.authorizationStatus(for: $0) == .sharingAuthorized }) {
                 persistCurrentTypesVersion()
             }
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func requestEnergyAuthorization() async -> Bool {
+        guard HKHealthStore.isHealthDataAvailable() else { return false }
+        do {
+            try await healthStore.requestAuthorization(toShare: [], read: energyReadTypes)
             return true
         } catch {
             return false
@@ -414,6 +439,37 @@ class HealthKitManager {
         return (w?.value, w?.date, w?.fudaiID, h?.value, b?.value, b?.date, b?.fudaiID, dob, sex)
     }
 
+    func fetchRecentEnergySummary(days requestedDays: Int = 14) async -> HealthEnergySummary? {
+        let days = max(3, requestedDays)
+        async let activeByDay = fetchDailyEnergy(.activeEnergyBurned, days: days)
+        async let basalByDay = fetchDailyEnergy(.basalEnergyBurned, days: days)
+
+        let active = await activeByDay
+        let basal = await basalByDay
+        let allDates = Set(active.keys).union(basal.keys).sorted()
+        let validDays = allDates.compactMap { date -> (active: Double, basal: Double)? in
+            let activeValue = active[date] ?? 0
+            let basalValue = basal[date] ?? 0
+            guard activeValue + basalValue > 0 else { return nil }
+            return (activeValue, basalValue)
+        }
+
+        guard validDays.count >= 3 else { return nil }
+
+        let activeAverage = validDays.reduce(0) { $0 + $1.active } / Double(validDays.count)
+        let basalValues = validDays.map(\.basal).filter { $0 > 0 }
+        let basalAverage = basalValues.isEmpty ? nil : basalValues.reduce(0, +) / Double(basalValues.count)
+        let totalAverage = basalAverage.map { activeAverage + $0 }
+
+        return HealthEnergySummary(
+            activeAverageCalories: Int(activeAverage.rounded()),
+            basalAverageCalories: basalAverage.map { Int($0.rounded()) },
+            totalAverageCalories: totalAverage.map { Int($0.rounded()) },
+            daysUsed: validDays.count,
+            requestedDays: days
+        )
+    }
+
     /// Pulls every sample of `identifier` ever written to HealthKit (limit 10k
     /// — well above any realistic personal scale history). Used for the one-shot
     /// weight + body-fat backfill that runs the first time the user enables
@@ -459,6 +515,37 @@ class HealthKitManager {
                 } else {
                     continuation.resume(returning: nil)
                 }
+            }
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchDailyEnergy(_ identifier: HKQuantityTypeIdentifier, days: Int) async -> [Date: Double] {
+        let type = HKQuantityType(identifier)
+        let calendar = Calendar.current
+        let end = calendar.startOfDay(for: Date())
+        guard let start = calendar.date(byAdding: .day, value: -days, to: end) else { return [:] }
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        var interval = DateComponents()
+        interval.day = 1
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: type,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: start,
+                intervalComponents: interval
+            )
+            query.initialResultsHandler = { _, collection, _ in
+                var values: [Date: Double] = [:]
+                collection?.enumerateStatistics(from: start, to: end) { statistics, _ in
+                    let value = statistics.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
+                    if value > 0 {
+                        values[calendar.startOfDay(for: statistics.startDate)] = value
+                    }
+                }
+                continuation.resume(returning: values)
             }
             healthStore.execute(query)
         }
