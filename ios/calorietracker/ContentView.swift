@@ -3846,7 +3846,7 @@ struct ProfileView: View {
             .alert("Energy Burn Goals", isPresented: $showHealthEnergyGoalsInfo) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("When enabled, Fud AI asks Apple Health for Active Energy and Basal Energy, then uses your AI provider to estimate calories and macros. You can still edit the targets, and turning this off restores your previous targets.")
+                Text("When enabled, Fud AI asks Apple Health for Active Energy and Basal Energy, then uses your AI provider to estimate calories. Protein, carbs, and fat stay unlocked on auto-balance unless you lock them manually. Turning this off restores your previous targets.")
             }
             .alert(healthEnergyGoalAlertTitle, isPresented: $showHealthEnergyGoalAlert) {
                 Button("OK", role: .cancel) { }
@@ -4076,16 +4076,16 @@ struct ProfileView: View {
                 useMetric: useMetric
             )
             profile.customCalories = suggestion.calories
-            profile.customProtein = suggestion.protein
-            profile.customCarbs = suggestion.carbs
-            profile.customFat = suggestion.fat
+            profile.customProtein = nil
+            profile.customCarbs = nil
+            profile.customFat = nil
             profile.autoBalanceMacro = nil
             saveProfile()
 
             let reason = suggestion.reason.map { "\n\n\($0)" } ?? ""
             showHealthEnergyGoalsAlert(
                 title: "Goals Updated",
-                message: "Updated to \(suggestion.calories) kcal, \(suggestion.protein)g protein, \(suggestion.carbs)g carbs, and \(suggestion.fat)g fat using \(summary.daysUsed) days of Apple Health energy.\(reason)"
+                message: "Updated to \(suggestion.calories) kcal using \(summary.daysUsed) days of Apple Health energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.\(reason)"
             )
         } catch {
             healthEnergyGoalsEnabled = false

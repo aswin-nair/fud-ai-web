@@ -264,9 +264,6 @@ struct GeminiService {
 
     struct HealthEnergyGoalSuggestion {
         var calories: Int
-        var protein: Int
-        var carbs: Int
-        var fat: Int
         var reason: String?
     }
 
@@ -481,15 +478,16 @@ struct GeminiService {
             ?? "basal energy unavailable; estimate total burn from app BMR + Apple Health active energy"
 
         let prompt = """
-        You are setting daily calorie and macro targets for a food tracking app.
+        You are setting a daily calorie target for a food tracking app.
         Return ONLY valid JSON with these exact keys:
-        {"calories":2000,"protein":140,"carbs":220,"fat":65,"reason":"Short reason under 100 characters"}
+        {"calories":2000,"reason":"Short reason under 100 characters"}
 
         Use Apple Health energy as the primary activity signal, but keep the app's existing formula as a sanity check.
         If Apple Health basal energy is unavailable, estimate total daily burn from app BMR plus Apple Health active energy.
         Apply the user's weight goal and weekly change preference to choose the calorie target.
-        Keep values practical for a consumer food tracker: calories 800-6000 kcal; protein 10-500 g; carbs 0-800 g; fat 10-300 g.
-        Use integers only for calories, protein, carbs, and fat. Do not include any other keys.
+        Keep calories practical for a consumer food tracker: 800-6000 kcal.
+        Do not set protein, carbs, or fat; the app keeps macros unlocked on auto-balance unless the user manually locks them.
+        Use integers only for calories. Do not include any other keys.
 
         User profile:
         - Gender: \(profile.gender.displayName)
@@ -506,7 +504,6 @@ struct GeminiService {
         - BMR: \(Int(profile.bmr.rounded())) kcal/day
         - TDEE: \(Int(profile.tdee.rounded())) kcal/day
         - Formula calorie target: \(profile.dailyCalories) kcal/day
-        - Formula macro targets: \(profile.proteinGoal)g protein, \(profile.carbsGoal)g carbs, \(profile.fatGoal)g fat
 
         Apple Health energy from \(energy.daysUsed) of the last \(energy.requestedDays) completed days:
         - Active energy average: \(energy.activeAverageCalories) kcal/day
@@ -1086,17 +1083,11 @@ struct GeminiService {
         let jsonString = extractJSON(from: text)
         guard let data = jsonString.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let calories = (json["calories"] as? NSNumber)?.intValue,
-              let protein = (json["protein"] as? NSNumber)?.intValue,
-              let carbs = (json["carbs"] as? NSNumber)?.intValue,
-              let fat = (json["fat"] as? NSNumber)?.intValue
+              let calories = (json["calories"] as? NSNumber)?.intValue
         else { throw AnalysisError.invalidResponse }
 
         return HealthEnergyGoalSuggestion(
             calories: min(max(calories, 800), 6_000),
-            protein: min(max(protein, 10), 500),
-            carbs: min(max(carbs, 0), 800),
-            fat: min(max(fat, 10), 300),
             reason: json["reason"] as? String
         )
     }
