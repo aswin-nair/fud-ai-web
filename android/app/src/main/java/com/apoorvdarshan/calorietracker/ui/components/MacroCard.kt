@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apoorvdarshan.calorietracker.models.MacroValueFormatter
@@ -77,30 +79,58 @@ fun MacroCard(
     )
     val firstColor = gradientColors.firstOrNull() ?: AppColors.Calorie
     val left = maxOf(0.0, goal.toDouble() - current)
+    val currentText = MacroValueFormatter.string(current)
+    val currentFontSize = when {
+        currentText.length >= 7 -> 20.sp
+        currentText.length >= 6 -> 22.sp
+        currentText.length >= 5 -> 24.sp
+        else -> 28.sp
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // HStack(alignment: .lastTextBaseline, spacing: 2)
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                currentText,
+                modifier = Modifier.weight(1f, fill = false),
+                fontSize = currentFontSize,
+                fontWeight = FontWeight.Bold,
+                color = firstColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false
+            )
+            Text(
+                unit,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                maxLines = 1
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // Text("\(current)") .font(.system(.title, design: .rounded, weight: .bold))
-            Text(
-                MacroValueFormatter.string(current),
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = firstColor
-            )
-            // Text("/\(goal)g") .font(.system(.subheadline, design: .rounded, weight: .medium))
             Text(
                 "/$goal$unit",
-                fontSize = 15.sp,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false
             )
         }
 
