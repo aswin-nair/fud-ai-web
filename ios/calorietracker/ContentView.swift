@@ -691,6 +691,7 @@ struct HomeView: View {
     @State private var showRecentSheet = false
     @State private var showCopyFromDaySheet = false
     @State private var pendingContextImage: UIImage?
+    @State private var pendingSharedImportImage: UIImage?
     @State private var pendingSecondCameraImage: UIImage?
     @State private var contextDescription: String = ""
     @State private var showContextSheet = false
@@ -1322,7 +1323,8 @@ struct HomeView: View {
                     onAllow: {
                         aiConsentGiven = true
                         showAIConsent = false
-                        if let image = currentImage, activeSheet == nil {
+                        if let image = pendingSharedImportImage, activeSheet == nil {
+                            pendingSharedImportImage = nil
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                 pendingContextImage = image
                                 contextDescription = ""
@@ -1331,6 +1333,7 @@ struct HomeView: View {
                         }
                     },
                     onCancel: {
+                        pendingSharedImportImage = nil
                         showAIConsent = false
                     }
                 )
@@ -1364,6 +1367,7 @@ struct HomeView: View {
         currentFoodSource = .snapFood
         
         guard aiConsentGiven else {
+            pendingSharedImportImage = image
             // A slight delay ensures the view hierarchy is clear before presenting
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 showAIConsent = true
@@ -1371,6 +1375,7 @@ struct HomeView: View {
             return
         }
         
+        pendingSharedImportImage = nil
         // A slight delay ensures the view hierarchy is clear before presenting
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             pendingContextImage = image
