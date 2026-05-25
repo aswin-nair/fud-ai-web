@@ -459,6 +459,8 @@
     <string name="progress_log_weight">Log Weight</string>
     <string name="progress_stat_current">Current</string>
     <string name="progress_stat_goal">Goal</string>
+    <string name="progress_stat_net_change">Net Change</string>
+    <string name="progress_stat_average">Average</string>
     <string name="progress_log_first_weight">Log your first weight to see trends</string>
 
     <string name="progress_weight_history">Weight History</string>

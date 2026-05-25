@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.AddCircle
@@ -58,6 +59,8 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.apoorvdarshan.calorietracker.ui.components.DecimalWheelPicker
 import com.apoorvdarshan.calorietracker.ui.components.FudGlassDialog
 import com.apoorvdarshan.calorietracker.ui.components.FudGlassDialogActions
@@ -91,7 +94,7 @@ import java.util.Locale
  * Layout (top -> bottom):
  *   1. Segmented TimeRange picker — 1W / 1M / 3M / 6M / 1Y / All
  *   2. WeightChartSection — Weight title + Log Weight pill + StatBadges
- *      (Current, Goal) + line chart with green dashed goal rule
+ *      (Current, Goal, Net Change, Average) + line chart with green dashed goal rule
  *   3. WeightHistoryLink — only shown if any weight entries exist; shows
  *      count + chevron, opens AllWeightHistorySheet
  *   4. CalorieChartSection — Calories title + Avg badge + bar chart of
@@ -414,20 +417,73 @@ private fun WeightSection(
                 )
             }
         } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                latest?.let { StatBadge(stringResource(R.string.progress_stat_current), formatWeight(it.weightKg, useMetric)) }
-                goalKg?.let { StatBadge(stringResource(R.string.progress_stat_goal), formatWeight(it, useMetric)) }
-            }
+            val sortedEntries = entries.sortedBy { it.date }
+            val netChangeKg = sortedEntries.last().weightKg - sortedEntries.first().weightKg
+            val averageKg = sortedEntries.map { it.weightKg }.average()
+            val currentLabel = stringResource(R.string.progress_stat_current)
+            val goalLabel = stringResource(R.string.progress_stat_goal)
+            val netChangeLabel = stringResource(R.string.progress_stat_net_change)
+            val averageLabel = stringResource(R.string.progress_stat_average)
+            StatBadgeRow(
+                buildList {
+                    latest?.let {
+                        add(currentLabel to formatWeight(it.weightKg, useMetric))
+                    }
+                    goalKg?.let {
+                        add(goalLabel to formatWeight(it, useMetric))
+                    }
+                    add(netChangeLabel to formatWeightChange(netChangeKg, useMetric))
+                    add(averageLabel to formatWeight(averageKg, useMetric))
+                }
+            )
             WeightChartCanvas(entries = entries, goalKg = goalKg, useMetric = useMetric)
         }
     }
 }
 
 @Composable
-private fun StatBadge(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(value, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+private fun StatBadgeRow(items: List<Pair<String, String>>) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items.forEach { (label, value) ->
+            StatBadge(
+                label = label,
+                value = value,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatBadge(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            value,
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 15.sp, stepSize = 0.5.sp)
+        )
+        Text(
+            label,
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            autoSize = TextAutoSize.StepBased(minFontSize = 7.sp, maxFontSize = 11.sp, stepSize = 0.5.sp)
+        )
     }
 }
 
@@ -923,6 +979,14 @@ private fun formatWeight(kg: Double, useMetric: Boolean): String =
     if (useMetric) String.format(Locale.US, "%.1f kg", kg)
     else String.format(Locale.US, "%.1f lbs", kg * 2.20462)
 
+private fun formatWeightChange(deltaKg: Double, useMetric: Boolean): String {
+    val displayValue = if (useMetric) deltaKg else deltaKg * 2.20462
+    val roundedValue = if (Math.abs(displayValue) < 0.05) 0.0 else displayValue
+    val sign = if (roundedValue > 0) "+" else ""
+    val unit = if (useMetric) "kg" else "lbs"
+    return String.format(Locale.US, "%s%.1f %s", sign, roundedValue, unit)
+}
+
 // MARK: - Body Fat surfaces ----------------------------------------------
 
 enum class BodyMetric { WEIGHT, BODY_FAT }
@@ -1026,10 +1090,27 @@ private fun BodyFatSection(
                 )
             }
         } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                latest?.let { StatBadge(stringResource(R.string.progress_stat_current), formatPercent(it)) }
-                goalFraction?.let { StatBadge(stringResource(R.string.progress_stat_goal), formatPercent(it)) }
-            }
+            val currentLabel = stringResource(R.string.progress_stat_current)
+            val goalLabel = stringResource(R.string.progress_stat_goal)
+            val netChangeLabel = stringResource(R.string.progress_stat_net_change)
+            val averageLabel = stringResource(R.string.progress_stat_average)
+            StatBadgeRow(
+                buildList {
+                    latest?.let {
+                        add(currentLabel to formatPercent(it))
+                    }
+                    goalFraction?.let {
+                        add(goalLabel to formatPercent(it))
+                    }
+                    if (entries.isNotEmpty()) {
+                        val sortedEntries = entries.sortedBy { it.date }
+                        val netChange = sortedEntries.last().bodyFatPercent - sortedEntries.first().bodyFatPercent
+                        val average = sortedEntries.map { it.bodyFatPercent }.average()
+                        add(netChangeLabel to formatPercentChange(netChange))
+                        add(averageLabel to formatPercentValue(average))
+                    }
+                }
+            )
             if (entries.isNotEmpty()) {
                 BodyFatChartCanvas(entries = entries, goalFraction = goalFraction)
             }
@@ -1186,3 +1267,12 @@ private fun AddBodyFatDialog(
 
 private fun formatPercent(fraction: Double): String =
     String.format(Locale.US, "%.1f%%", fraction * 100)
+
+private fun formatPercentValue(percent: Double): String =
+    String.format(Locale.US, "%.1f%%", percent)
+
+private fun formatPercentChange(deltaPercent: Double): String {
+    val roundedValue = if (Math.abs(deltaPercent) < 0.05) 0.0 else deltaPercent
+    val sign = if (roundedValue > 0) "+" else ""
+    return String.format(Locale.US, "%s%.1f%%", sign, roundedValue)
+}

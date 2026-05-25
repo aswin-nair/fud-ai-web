@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.1.0: Health Connect can estimate calorie goals from energy burn while keeping macros editable, macro nutrition now preserves decimal grams across logs/Home/widgets, quantity input supports comma decimals with cleaner editing, and update checks now ask Google Play directly.
+NEW in v2.1.0: Health Connect can estimate calorie goals from energy burn while keeping macros editable, macro nutrition preserves decimal grams across logs/Home/widgets, Progress shows net change and average for weight/body fat, quantity input supports comma decimals with cleaner editing, and update checks ask Google Play directly.
 
 Free, open source, privacy-first. Bring your own API key. All data stays on your device.
 
@@ -81,7 +81,7 @@ OPTIONAL NUTRIENT GOALS
 Set expanded nutrient goals separately from the macro calculator: fiber, sugar, fats, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins, folate, omega-3, and more when available. Use AI Estimate from your profile, or set goals manually. Home cards can show macros or selected detailed nutrients.
 
 PROGRESS
-Unified Weight / Body Fat chart with trend lines + goal overlays. Calorie trend vs goal. Macro averages over 1W, 1M, 3M, 6M, 1Y, All Time.
+Unified Weight / Body Fat chart with current, goal, net change, average, trend lines, and goal overlays. Calorie trend vs goal. Macro averages over 1W, 1M, 3M, 6M, 1Y, All Time.
 
 WIDGETS
 Calorie and nutrient widgets refresh when you log a meal.
@@ -116,6 +116,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <en-US>
 • Health Connect can estimate calorie goals from energy burn; macros stay editable.
 • Decimal macro grams are preserved in logs, Home, nutrition details, and widgets.
+• Progress shows current, goal, net change, and average for weight/body fat.
 • Quantity fields support comma decimals, clearer cursor/clear behavior, and tap-out keyboard dismiss.
 • About adds What's New, and update checks now ask Google Play directly.
 </en-US>
@@ -123,6 +124,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <ar>
 • Health Connect يقدر هدف السعرات من الطاقة المحروقة، والماكروز تبقى قابلة للتعديل.
 • حفظ غرامات الماكروز العشرية في السجل وHome والتفاصيل والويدجت.
+• Progress يعرض الحالي والهدف وصافي التغيير والمتوسط للوزن ودهون الجسم.
 • الكمية تدعم الفاصلة العشرية مع تحرير أوضح وإغلاق لوحة المفاتيح عند النقر خارجها.
 • أضفنا What's New، والتحديثات عبر Google Play.
 </ar>
@@ -130,6 +132,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <az-AZ>
 • Health Connect yandırılan enerjidən kalori hədəfini təxmin edə bilər; makrolar redaktə edilə qalır.
 • Ondalıq makro qramları loglarda, Home-da, detallarda və vidjetlərdə saxlanır.
+• Progress çəki və bədən yağı üçün cari, hədəf, net dəyişiklik və ortalamanı göstərir.
 • Miqdar sahələri vergül ondalığını, daha aydın kursor/təmizləmə davranışını və kənara toxunanda klaviaturanın bağlanmasını dəstəkləyir.
 • What's New əlavə edildi; yeniləmə yoxlaması indi birbaşa Google Play-dən edilir.
 </az-AZ>
@@ -137,6 +140,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <de-DE>
 • Health Connect kann Kalorienziele aus verbrannter Energie schätzen; Makros bleiben editierbar.
 • Dezimale Makro-Grammwerte bleiben in Logs, Home, Details und Widgets erhalten.
+• Progress zeigt Aktuell, Ziel, Nettoänderung und Durchschnitt für Gewicht/Körperfett.
 • Mengenfelder unterstützen Komma-Dezimalwerte, besseres Cursor-/Löschverhalten und Tastatur-Ausblenden per Tippen außerhalb.
 • About zeigt What's New; Update-Checks fragen jetzt direkt Google Play.
 </de-DE>
@@ -144,6 +148,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <es-ES>
 • Health Connect puede estimar el objetivo de calorías desde la energía quemada; los macros siguen editables.
 • Los gramos decimales de macros se conservan en registros, Home, detalles y widgets.
+• Progress muestra actual, objetivo, cambio neto y promedio para peso/grasa corporal.
 • Los campos de cantidad admiten coma decimal, mejor cursor/borrado y cerrar teclado al tocar fuera.
 • About añade What's New y las actualizaciones se consultan directamente en Google Play.
 </es-ES>
@@ -151,6 +156,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <fr-FR>
 • Health Connect peut estimer l'objectif calorique depuis l'énergie brûlée; les macros restent modifiables.
 • Les grammes décimaux des macros sont conservés dans le journal, Home, les détails et les widgets.
+• Progress affiche actuel, objectif, net et moyenne poids/masse grasse.
 • Les champs quantité acceptent la virgule décimale, avec meilleur curseur/effacement et fermeture du clavier en tapant ailleurs.
 • About ajoute What's New; les mises à jour passent directement par Google Play.
 </fr-FR>
@@ -158,6 +164,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <hi-IN>
 • Health Connect energy burn से calorie goal estimate कर सकता है; macros editable रहते हैं.
 • Decimal macro grams logs, Home, nutrition details और widgets में preserve होते हैं.
+• Progress में weight/body fat के लिए current, goal, net change और average दिखता है.
 • Quantity fields comma decimals, clear button और बाहर tap पर keyboard dismiss support करते हैं.
 • About में What's New जोड़ा गया; update check अब सीधे Google Play से होता है.
 </hi-IN>
@@ -165,6 +172,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <it-IT>
 • Health Connect può stimare l'obiettivo calorie dall'energia bruciata; i macro restano modificabili.
 • I grammi decimali dei macro restano in log, Home, dettagli nutrizionali e widget.
+• Progress mostra attuale, obiettivo, cambio netto e media per peso/grasso corporeo.
 • I campi quantità supportano decimali con virgola, cursore/cancellazione migliori e chiusura tastiera toccando fuori.
 • About aggiunge What's New; i controlli update chiedono direttamente a Google Play.
 </it-IT>
@@ -172,6 +180,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <ja-JP>
 • Health Connectの消費エネルギーからカロリー目標を推定可能に。マクロは編集可能です。
 • マクロの小数グラムを記録、Home、栄養詳細、ウィジェットで保持します。
+• Progressで体重/体脂肪の現在、目標、差分、平均を表示します。
 • 数量入力でカンマ小数、カーソル/クリア改善、外側タップでキーボードを閉じる動作に対応。
 • AboutにWhat's Newを追加し、更新確認はGoogle Playへ直接問い合わせます。
 </ja-JP>
@@ -179,6 +188,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <ko-KR>
 • Health Connect가 에너지 소모량으로 칼로리 목표를 추정할 수 있으며 매크로는 계속 수정 가능합니다.
 • 소수점 매크로 g 값이 기록, Home, 영양 상세, 위젯에 유지됩니다.
+• Progress에 체중/체지방의 현재, 목표, 순변화, 평균이 표시됩니다.
 • 수량 입력에서 쉼표 소수점, 더 나은 커서/지우기, 바깥 탭 키보드 닫기를 지원합니다.
 • About에 What's New가 추가되고 업데이트 확인은 Google Play에 직접 요청합니다.
 </ko-KR>
@@ -186,6 +196,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <nl-NL>
 • Health Connect kan caloriedoelen schatten uit verbrande energie; macro's blijven bewerkbaar.
 • Decimale macrogrammen blijven behouden in logs, Home, details en widgets.
+• Progress toont huidig, doel, netto verandering en gemiddelde voor gewicht/vetpercentage.
 • Hoeveelheidsvelden ondersteunen kommadecimalen, betere cursor/wissen en toetsenbord sluiten door buiten te tikken.
 • About krijgt What's New; updatechecks vragen nu direct Google Play.
 </nl-NL>
@@ -193,6 +204,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <pt-BR>
 • Health Connect pode estimar a meta de calorias pela energia queimada; macros continuam editáveis.
 • Gramas decimais de macros são preservados em registros, Home, detalhes e widgets.
+• Progress mostra atual, meta, mudança líquida e média de peso/gordura corporal.
 • Campos de quantidade aceitam vírgula decimal, melhor cursor/limpar e fecham teclado ao tocar fora.
 • About adiciona What's New; checagem de atualização consulta direto o Google Play.
 </pt-BR>
@@ -200,6 +212,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <ro>
 • Health Connect poate estima ținta de calorii din energia arsă; macro-urile rămân editabile.
 • Gramele zecimale pentru macro-uri se păstrează în jurnal, Home, detalii și widgeturi.
+• Progress arată curent, țintă, schimbare netă și medie pentru greutate/grăsime corporală.
 • Câmpurile de cantitate acceptă virgulă zecimală, cursor/ștergere mai clare și închid tastatura la tap în afară.
 • About adaugă What's New; verificarea update-urilor întreabă direct Google Play.
 </ro>
@@ -207,6 +220,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <ru-RU>
 • Health Connect оценивает цель калорий по сожженной энергии; макро можно редактировать.
 • Десятичные граммы макро сохраняются в журнале, Home, деталях и виджетах.
+• Progress показывает текущее, цель, изменение и среднее для веса/жира.
 • Количество поддерживает запятую, очистку и закрытие клавиатуры тапом вне поля.
 • В About добавлено What's New; обновления проверяются через Google Play.
 </ru-RU>
@@ -214,6 +228,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 <zh-CN>
 • Health Connect 可根据能量消耗估算热量目标，宏量营养仍可编辑。
 • 宏量营养的小数克数会保留在日志、Home、营养详情和小组件中。
+• Progress 显示体重/体脂的当前、目标、净变化和平均值。
 • 数量输入支持逗号小数，光标/清除更顺手，点按输入框外可收起键盘。
 • About 新增 What's New，更新检查现在直接询问 Google Play。
 </zh-CN>
