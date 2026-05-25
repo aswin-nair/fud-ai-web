@@ -52,7 +52,6 @@ class HealthConnectManager(private val context: Context) {
     val permissions: Set<String> = setOf(
         HealthPermission.getReadPermission(WeightRecord::class),
         HealthPermission.getWritePermission(WeightRecord::class),
-        HealthPermission.getReadPermission(NutritionRecord::class),
         HealthPermission.getWritePermission(NutritionRecord::class),
         HealthPermission.getReadPermission(BodyFatRecord::class),
         HealthPermission.getWritePermission(BodyFatRecord::class),

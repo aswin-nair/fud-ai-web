@@ -586,7 +586,7 @@
     <string name="notif_weight_log_text">Log today\'s weight to keep your progress chart accurate.</string>
     <string name="notif_body_fat_log_title">Body fat check-in</string>
     <string name="notif_body_fat_log_text">Log today\'s body fat % to track your composition trend.</string>
-    <string name="settings_health_denied">Health Connect needs Weight, Nutrition, Body Fat, Active Calories, and Total Calories permissions. Re-tap the toggle and grant all requested permissions to sync and estimate energy goals.</string>
+    <string name="settings_health_denied">Health Connect needs Weight, Body Fat, Active Calories, Total Calories, and permission to write Nutrition. Re-tap the toggle and grant all requested permissions to sync and estimate energy goals.</string>
     <string name="settings_health_unavailable">Health Connect isn\'t available on this device. Install it from the Play Store, then re-tap the toggle.</string>
 
     <!-- Settings sheets / pickers -->
@@ -659,6 +659,7 @@
     <string name="about_whats_new_item_comma_quantity">Comma decimal input works like dot input, so 1,5 is treated as 1.5.</string>
     <string name="about_whats_new_item_quantity_editing">Review and edit quantity fields keep the cursor at the end, include a clear button, and dismiss the keyboard when tapping outside the input.</string>
     <string name="about_whats_new_item_future_day_health">Future-day food logging no longer crashes when Health Connect is enabled.</string>
+    <string name="about_whats_new_item_health_permissions">Health Connect no longer asks to read nutrition data; Fud AI only writes meals you log.</string>
     <string name="about_whats_new_item_widgets">Android widgets use compact decimal macro text to avoid overflow.</string>
     <string name="about_rate">Rate the App</string>
     <string name="about_share">Share the App</string>
