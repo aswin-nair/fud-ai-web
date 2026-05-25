@@ -117,6 +117,11 @@ data class NutritionLabelAnalysis(
     }
 }
 
+data class HealthEnergyGoalSuggestion(
+    val calories: Int,
+    val reason: String? = null
+)
+
 internal object FoodJsonParser {
 
     fun extractJson(text: String): String {
@@ -278,6 +283,20 @@ internal object FoodJsonParser {
             vitaminK = optInt("vitamin_k", "vitaminK", "vitamin_k_mcg", fallback = OptionalNutrientGoals.Default.vitaminK),
             folate = optInt("folate", "folate_mcg", fallback = OptionalNutrientGoals.Default.folate),
             omega3 = optInt("omega_3", "omega3", "omega_3_g", fallback = OptionalNutrientGoals.Default.omega3)
+        )
+    }
+
+    fun parseHealthEnergyGoalSuggestion(text: String): HealthEnergyGoalSuggestion {
+        val json = runCatching { JSONObject(extractJson(text)) }.getOrNull()
+            ?: throw AiError.InvalidResponse
+        val calories = when (val value = json.opt("calories")) {
+            is Number -> value.toDouble().roundToInt()
+            is String -> value.toDoubleOrNull()?.roundToInt()
+            else -> null
+        } ?: throw AiError.InvalidResponse
+        return HealthEnergyGoalSuggestion(
+            calories = calories.coerceIn(800, 6000),
+            reason = json.optString("reason").takeIf { it.isNotBlank() }
         )
     }
 

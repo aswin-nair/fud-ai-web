@@ -5,6 +5,7 @@ import com.apoorvdarshan.calorietracker.data.PreferencesStore
 import com.apoorvdarshan.calorietracker.models.AIProvider
 import com.apoorvdarshan.calorietracker.models.OptionalNutrientGoals
 import com.apoorvdarshan.calorietracker.models.UserProfile
+import com.apoorvdarshan.calorietracker.services.health.HealthEnergySummary
 import kotlinx.coroutines.flow.first
 import okhttp3.OkHttpClient
 
@@ -56,6 +57,68 @@ class FoodAnalysisService(
             - Use integers only.
         """.trimIndent()
         return FoodJsonParser.parseOptionalNutrientGoals(callAi(prompt, imageBytes = null))
+    }
+
+    suspend fun suggestHealthEnergyGoals(
+        profile: UserProfile,
+        energy: HealthEnergySummary,
+        useMetric: Boolean
+    ): HealthEnergyGoalSuggestion {
+        val weight = if (useMetric) {
+            String.format(java.util.Locale.US, "%.1f kg", profile.weightKg)
+        } else {
+            String.format(java.util.Locale.US, "%.1f lb", profile.weightKg * 2.20462)
+        }
+        val height = if (useMetric) {
+            String.format(java.util.Locale.US, "%.0f cm", profile.heightCm)
+        } else {
+            String.format(java.util.Locale.US, "%.1f in", profile.heightCm / 2.54)
+        }
+        val bodyFat = profile.bodyFatPercentage
+            ?.let { "${(it * 100).toInt()}%" }
+            ?: "not set"
+        val goalWeight = profile.goalWeightKg?.let { kg ->
+            if (useMetric) String.format(java.util.Locale.US, "%.1f kg", kg)
+            else String.format(java.util.Locale.US, "%.1f lb", kg * 2.20462)
+        } ?: "not set"
+        val healthTotalLine = energy.totalAverageCalories
+            ?.let { "$it kcal/day from active + basal energy" }
+            ?: "total energy unavailable; estimate total burn from app BMR + Health Connect active energy"
+
+        val prompt = """
+            You are setting a daily calorie target for a food tracking app.
+            Return ONLY valid JSON with these exact keys:
+            {"calories":2000,"reason":"Short reason under 100 characters"}
+
+            Use Health Connect energy as the primary activity signal, but keep the app's existing formula as a sanity check.
+            If Health Connect total energy is unavailable, estimate total daily burn from app BMR plus Health Connect active energy.
+            Apply the user's weight goal and weekly change preference to choose the calorie target.
+            Keep calories practical for a consumer food tracker: 800-6000 kcal.
+            Do not set protein, carbs, or fat; the app keeps macros unlocked on auto-balance unless the user manually locks them.
+            Use integers only for calories. Do not include any other keys.
+
+            User profile:
+            - Gender: ${profile.gender.name.lowercase()}
+            - Age: ${profile.age}
+            - Height: $height
+            - Weight: $weight
+            - Activity level setting: ${profile.activityLevel.name.lowercase()}
+            - Weight goal: ${profile.goal.name.lowercase()}
+            - Weekly change preference: ${profile.weeklyChangeKg?.let { String.format(java.util.Locale.US, "%.2f kg/week", it) } ?: "maintain"}
+            - Goal weight: $goalWeight
+            - Body fat: $bodyFat
+
+            Existing app formula:
+            - BMR: ${profile.bmr.toInt()} kcal/day
+            - TDEE: ${profile.tdee.toInt()} kcal/day
+            - Formula calorie target: ${profile.dailyCalories} kcal/day
+
+            Health Connect energy from ${energy.daysUsed} of the last ${energy.requestedDays} completed days:
+            - Active energy average: ${energy.activeAverageCalories} kcal/day
+            - Basal energy average: ${energy.basalAverageCalories?.let { "$it kcal/day" } ?: "not available"}
+            - Health total: $healthTotalLine
+        """.trimIndent()
+        return FoodJsonParser.parseHealthEnergyGoalSuggestion(callAi(prompt, imageBytes = null))
     }
 
     suspend fun analyzeText(description: String): FoodAnalysis {

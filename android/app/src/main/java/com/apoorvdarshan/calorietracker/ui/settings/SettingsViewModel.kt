@@ -28,6 +28,7 @@ data class SettingsUiState(
     val selectedSpeech: SpeechProvider = SpeechProvider.NATIVE,
     val selectedSpeechLanguage: SpeechLanguage = SpeechLanguage.defaultFor(SpeechProvider.NATIVE),
     val useMetric: Boolean = true,
+    val preferGramsByDefault: Boolean = false,
     val profile: UserProfile? = null,
     val notificationsEnabled: Boolean = false,
     val streakReminderEnabled: Boolean = false,
@@ -36,6 +37,10 @@ data class SettingsUiState(
     val bodyFatReminderEnabled: Boolean = true,
     val goalReachedNotificationsEnabled: Boolean = true,
     val healthConnectEnabled: Boolean = false,
+    val healthEnergyGoalsEnabled: Boolean = false,
+    val applyingHealthEnergyGoals: Boolean = false,
+    val healthEnergyGoalAlertTitle: String? = null,
+    val healthEnergyGoalAlertMessage: String? = null,
     val apiKeyMasked: String = "",
     val speechApiKeyMasked: String = "",
     val appearanceMode: String = "system",
@@ -71,7 +76,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val speech = container.prefs.selectedSpeechProvider.first()
             val speechLanguage = container.prefs.selectedSpeechLanguage(speech).first()
             val useMetric = container.prefs.useMetric.first()
-            val profile = container.profileRepository.current()
+            val preferGramsByDefault = container.prefs.preferGramsByDefault.first()
             val notif = container.prefs.notificationsEnabled.first()
             val streakReminder = container.prefs.streakReminderEnabled.first()
             val dailySummary = container.prefs.dailySummaryEnabled.first()
@@ -79,6 +84,8 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val bodyFatReminder = container.prefs.bodyFatReminderEnabled.first()
             val goalReachedNotifications = container.prefs.goalReachedNotificationsEnabled.first()
             val hc = reconcileHealthConnectState()
+            val profile = container.profileRepository.current()
+            val energyGoals = container.prefs.healthEnergyGoalsEnabled.first() && hc
             val masked = maskKey(container.keyStore.apiKey(provider))
             val speechMasked = maskKey(container.keyStore.speechApiKey(speech))
             val appearance = container.prefs.appearanceMode.first()
@@ -96,6 +103,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 selectedSpeech = speech,
                 selectedSpeechLanguage = speechLanguage,
                 useMetric = useMetric,
+                preferGramsByDefault = preferGramsByDefault,
                 profile = profile,
                 notificationsEnabled = notif,
                 streakReminderEnabled = streakReminder,
@@ -104,6 +112,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 bodyFatReminderEnabled = bodyFatReminder,
                 goalReachedNotificationsEnabled = goalReachedNotifications,
                 healthConnectEnabled = hc,
+                healthEnergyGoalsEnabled = energyGoals,
                 apiKeyMasked = masked,
                 speechApiKeyMasked = speechMasked,
                 appearanceMode = appearance,
@@ -279,6 +288,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         }
     }
 
+    fun setPreferGramsByDefault(v: Boolean) {
+        viewModelScope.launch {
+            container.prefs.setPreferGramsByDefault(v)
+            _ui.value = _ui.value.copy(preferGramsByDefault = v)
+        }
+    }
+
     fun setNotificationsEnabled(v: Boolean) {
         viewModelScope.launch {
             container.prefs.setNotificationsEnabled(v)
@@ -371,8 +387,23 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
     fun setHealthConnectEnabled(v: Boolean) {
         viewModelScope.launch {
             if (!v) {
+                val restored = if (container.prefs.healthEnergyGoalsEnabled.first()) {
+                    container.profileRepository.current()
+                        ?.let { container.prefs.restoreHealthEnergyGoalPreviousTargets(it) }
+                } else {
+                    null
+                }
+                if (restored != null) {
+                    container.profileRepository.save(restored)
+                    container.prefs.clearHealthEnergyGoalPreviousTargets()
+                }
                 container.prefs.setHealthConnectEnabled(false)
-                _ui.value = _ui.value.copy(healthConnectEnabled = false)
+                container.prefs.setHealthEnergyGoalsEnabled(false)
+                _ui.value = _ui.value.copy(
+                    profile = restored ?: _ui.value.profile,
+                    healthConnectEnabled = false,
+                    healthEnergyGoalsEnabled = false
+                )
                 return@launch
             }
 
@@ -382,7 +413,11 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 backfillHealthConnect()
                 container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
             }
-            _ui.value = _ui.value.copy(healthConnectEnabled = enabled)
+            if (!enabled) container.prefs.setHealthEnergyGoalsEnabled(false)
+            _ui.value = _ui.value.copy(
+                healthConnectEnabled = enabled,
+                healthEnergyGoalsEnabled = if (enabled) _ui.value.healthEnergyGoalsEnabled else false
+            )
         }
     }
 
@@ -396,6 +431,16 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         val stored = container.prefs.healthConnectEnabled.first()
         val version = container.prefs.healthPermissionsVersion.first()
         container.prefs.setHealthConnectEnabled(granted)
+        if (!granted) {
+            if (container.prefs.healthEnergyGoalsEnabled.first()) {
+                container.profileRepository.current()?.let { current ->
+                    val restored = container.prefs.restoreHealthEnergyGoalPreviousTargets(current)
+                    container.profileRepository.save(restored)
+                }
+                container.prefs.clearHealthEnergyGoalPreviousTargets()
+            }
+            container.prefs.setHealthEnergyGoalsEnabled(false)
+        }
 
         if (granted && (!stored || version < HealthConnectManager.CURRENT_TYPES_VERSION)) {
             backfillHealthConnect()
@@ -403,6 +448,121 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         }
 
         return granted
+    }
+
+    fun setHealthEnergyGoalsEnabled(v: Boolean) {
+        viewModelScope.launch {
+            if (!v) {
+                val current = container.profileRepository.current()
+                val restored = current?.let { container.prefs.restoreHealthEnergyGoalPreviousTargets(it) }
+                if (restored != null) {
+                    container.profileRepository.save(restored)
+                }
+                container.prefs.clearHealthEnergyGoalPreviousTargets()
+                container.prefs.setHealthEnergyGoalsEnabled(false)
+                _ui.value = _ui.value.copy(
+                    profile = restored ?: _ui.value.profile,
+                    healthEnergyGoalsEnabled = false,
+                    applyingHealthEnergyGoals = false
+                )
+                return@launch
+            }
+            applyHealthEnergyGoals(saveExistingTargets = !_ui.value.healthEnergyGoalsEnabled)
+        }
+    }
+
+    fun refreshHealthEnergyGoals() {
+        viewModelScope.launch {
+            applyHealthEnergyGoals(saveExistingTargets = false)
+        }
+    }
+
+    fun dismissHealthEnergyGoalAlert() {
+        _ui.value = _ui.value.copy(
+            healthEnergyGoalAlertTitle = null,
+            healthEnergyGoalAlertMessage = null
+        )
+    }
+
+    private suspend fun applyHealthEnergyGoals(saveExistingTargets: Boolean) {
+        if (_ui.value.applyingHealthEnergyGoals) return
+        _ui.value = _ui.value.copy(applyingHealthEnergyGoals = true)
+        try {
+            val profile = container.profileRepository.current()
+            if (profile == null) {
+                container.prefs.setHealthEnergyGoalsEnabled(false)
+                showHealthEnergyGoalAlert(
+                    title = "Profile Needed",
+                    message = "Finish your profile before using Health Connect energy goals."
+                )
+                return
+            }
+
+            val granted = container.health.isAvailable() && container.health.hasAllPermissions()
+            if (!granted) {
+                container.prefs.setHealthEnergyGoalsEnabled(false)
+                showHealthEnergyGoalAlert(
+                    title = "Health Connect Needed",
+                    message = "Allow Fud AI to read Active Calories and Total Calories in Health Connect, then try again."
+                )
+                return
+            }
+
+            if (saveExistingTargets) {
+                container.prefs.saveHealthEnergyGoalPreviousTargetsIfNeeded(profile)
+            }
+
+            container.prefs.setHealthConnectEnabled(true)
+            container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
+            val summary = container.health.readRecentEnergySummary(days = 14)
+            if (summary == null) {
+                container.prefs.setHealthEnergyGoalsEnabled(false)
+                showHealthEnergyGoalAlert(
+                    title = "Not Enough Energy Data",
+                    message = "Fud AI needs at least 3 recent days of Health Connect energy data to estimate goals."
+                )
+                return
+            }
+
+            val suggestion = container.foodAnalysis.suggestHealthEnergyGoals(
+                profile = profile,
+                energy = summary,
+                useMetric = container.prefs.useMetric.first()
+            )
+            val next = profile.copy(
+                customCalories = suggestion.calories,
+                customProtein = null,
+                customCarbs = null,
+                customFat = null,
+                autoBalanceMacro = null
+            )
+            container.profileRepository.save(next)
+            container.prefs.setHealthEnergyGoalsEnabled(true)
+            val reason = suggestion.reason?.takeIf { it.isNotBlank() }?.let { "\n\n$it" }.orEmpty()
+            _ui.value = _ui.value.copy(
+                profile = next,
+                healthConnectEnabled = true,
+                healthEnergyGoalsEnabled = true,
+                healthEnergyGoalAlertTitle = "Goals Updated",
+                healthEnergyGoalAlertMessage = "Updated to ${suggestion.calories} kcal using ${summary.daysUsed} days of Health Connect energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.$reason"
+            )
+        } catch (e: Throwable) {
+            container.prefs.setHealthEnergyGoalsEnabled(false)
+            showHealthEnergyGoalAlert(
+                title = "AI Estimate Failed",
+                message = e.localizedMessage ?: "AI estimate failed. Please try again."
+            )
+        } finally {
+            _ui.value = _ui.value.copy(applyingHealthEnergyGoals = false)
+        }
+    }
+
+    private fun showHealthEnergyGoalAlert(title: String, message: String) {
+        _ui.value = _ui.value.copy(
+            healthEnergyGoalsEnabled = false,
+            healthEnergyGoalAlertTitle = title,
+            healthEnergyGoalAlertMessage = message
+        )
     }
 
     private suspend fun backfillHealthConnect() {
@@ -440,8 +600,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
     fun recalculateGoals() {
         viewModelScope.launch {
             val current = container.profileRepository.current() ?: return@launch
-            container.profileRepository.save(current.recalculatedFromFormulas())
-            _ui.value = _ui.value.copy(profile = current.recalculatedFromFormulas())
+            if (container.prefs.healthEnergyGoalsEnabled.first()) {
+                applyHealthEnergyGoals(saveExistingTargets = false)
+            } else {
+                val next = current.recalculatedFromFormulas()
+                container.profileRepository.save(next)
+                _ui.value = _ui.value.copy(profile = next)
+            }
         }
     }
 

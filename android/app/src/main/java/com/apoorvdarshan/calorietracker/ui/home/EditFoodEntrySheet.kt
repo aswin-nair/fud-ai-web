@@ -78,6 +78,7 @@ import kotlin.math.roundToInt
 @Composable
 fun EditFoodEntrySheet(
     entry: FoodEntry,
+    preferGramsByDefault: Boolean = false,
     onSave: (FoodEntry) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -90,11 +91,16 @@ fun EditFoodEntrySheet(
         ServingUnitOption.normalizedOptions(entry.servingUnitOptions, baseServing)
     }
     var name by remember { mutableStateOf(entry.name) }
-    var selectedServingUnitId by remember {
-        mutableStateOf(ServingUnitOption.initialUnitId(entry.selectedServingUnit, servingUnitOptions))
+    val initialServingUnit = if (preferGramsByDefault) {
+        ServingUnitOption.grams.unit
+    } else {
+        entry.selectedServingUnit
     }
-    var servingGrams by remember { mutableStateOf(baseServing) }
-    var servingQuantityText by remember {
+    var selectedServingUnitId by remember(entry, servingUnitOptions, preferGramsByDefault) {
+        mutableStateOf(ServingUnitOption.initialUnitId(initialServingUnit, servingUnitOptions))
+    }
+    var servingGrams by remember(entry, baseServing) { mutableStateOf(baseServing) }
+    var servingQuantityText by remember(entry, servingUnitOptions, preferGramsByDefault) {
         mutableStateOf(
             ServingUnitOption.initialQuantityText(
                 totalGrams = baseServing,

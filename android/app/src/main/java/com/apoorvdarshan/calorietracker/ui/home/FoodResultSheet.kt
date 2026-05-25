@@ -57,6 +57,7 @@ import kotlin.math.roundToInt
 fun FoodResultSheet(
     analysis: FoodAnalysis,
     imageBytes: ByteArray? = null,
+    preferGramsByDefault: Boolean = false,
     onSave: (
         name: String,
         servingGrams: Double,
@@ -78,11 +79,16 @@ fun FoodResultSheet(
     val servingUnitOptions = remember(analysis.servingUnitOptions, analysis.servingSizeGrams) {
         ServingUnitOption.normalizedOptions(analysis.servingUnitOptions, analysis.servingSizeGrams)
     }
-    var selectedServingUnitId by remember {
-        mutableStateOf(ServingUnitOption.initialUnitId(analysis.selectedServingUnit, servingUnitOptions))
+    val initialServingUnit = if (preferGramsByDefault) {
+        ServingUnitOption.grams.unit
+    } else {
+        analysis.selectedServingUnit
     }
-    var servingGrams by remember { mutableStateOf(analysis.servingSizeGrams) }
-    var servingQuantityText by remember {
+    var selectedServingUnitId by remember(analysis, servingUnitOptions, preferGramsByDefault) {
+        mutableStateOf(ServingUnitOption.initialUnitId(initialServingUnit, servingUnitOptions))
+    }
+    var servingGrams by remember(analysis) { mutableStateOf(analysis.servingSizeGrams) }
+    var servingQuantityText by remember(analysis, servingUnitOptions, preferGramsByDefault) {
         mutableStateOf(
             ServingUnitOption.initialQuantityText(
                 totalGrams = analysis.servingSizeGrams,

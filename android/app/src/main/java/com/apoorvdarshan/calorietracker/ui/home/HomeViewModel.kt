@@ -44,6 +44,7 @@ data class HomeUiState(
     val homeTopNutrients: List<HomeTopNutrient> = HomeTopNutrient.DefaultSelection,
     val optionalNutrientGoals: OptionalNutrientGoals = OptionalNutrientGoals.Default,
     val foodLogSortOrder: FoodLogSortOrder = FoodLogSortOrder.STANDARD,
+    val preferGramsByDefault: Boolean = false,
     val favoriteKeys: Set<String> = emptySet(),
     val pendingAnalysis: FoodAnalysis? = null,
     val pendingImageBytes: ByteArray? = null,
@@ -103,6 +104,12 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         container.prefs.optionalNutrientGoals
             .onEach { goals ->
                 _ui.value = _ui.value.copy(optionalNutrientGoals = goals)
+            }
+            .launchIn(viewModelScope)
+
+        container.prefs.preferGramsByDefault
+            .onEach { preferGrams ->
+                _ui.value = _ui.value.copy(preferGramsByDefault = preferGrams)
             }
             .launchIn(viewModelScope)
 

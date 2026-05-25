@@ -667,6 +667,7 @@ fun HomeScreen(container: AppContainer) {
     editingEntry?.let { entry ->
         EditFoodEntrySheet(
             entry = entry,
+            preferGramsByDefault = ui.preferGramsByDefault,
             onSave = { updated ->
                 vm.updateEntry(updated)
                 editingEntry = null
@@ -705,6 +706,7 @@ fun HomeScreen(container: AppContainer) {
         FoodResultSheet(
             analysis = analysis,
             imageBytes = ui.pendingImageBytes,
+            preferGramsByDefault = ui.preferGramsByDefault,
             onSave = { name, grams, scale, mealType, selectedServingUnit, selectedServingQuantity ->
                 vm.saveAnalysis(
                     name = name,
