@@ -61,8 +61,7 @@ struct WeightChartSection: View {
             if weightEntries.isEmpty {
                 emptyState("Log your first weight to see trends")
             } else {
-                // Current / Goal row
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                HStack(spacing: 8) {
                     if let current = currentWeightKg {
                         StatBadge(label: "Current", value: String(format: "%.1f %@", displayWeight(current), unit))
                     }
@@ -343,10 +342,15 @@ struct StatBadge: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(label)
                 .font(.system(.caption2, design: .rounded))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -683,13 +687,15 @@ struct BodyFatChartSection: View {
             if entries.isEmpty {
                 emptyState("Log your first body fat % to see trends")
             } else {
-                HStack(spacing: 16) {
+                HStack(spacing: 8) {
                     if let current = currentBodyFatFraction {
                         StatBadge(label: "Current", value: String(format: "%.1f%%", displayPercent(current)))
                     }
                     if let goal = goalBodyFatFraction {
                         StatBadge(label: "Goal", value: String(format: "%.1f%%", displayPercent(goal)))
                     }
+                    StatBadge(label: "Net Change", value: formattedBodyFatChange)
+                    StatBadge(label: "Average", value: formattedAverageBodyFat)
                 }
 
                 Chart {
@@ -747,6 +753,31 @@ struct BodyFatChartSection: View {
         guard let minV = values.min(), let maxV = values.max() else { return 0...60 }
         let padding = max((maxV - minV) * 0.15, 1)
         return max(0, minV - padding)...(maxV + padding)
+    }
+
+    private var sortedEntries: [BodyFatEntry] {
+        entries.sorted { $0.date < $1.date }
+    }
+
+    private var netBodyFatChange: Double {
+        guard let first = sortedEntries.first,
+              let last = sortedEntries.last else { return 0 }
+        return displayPercent(last.bodyFatFraction) - displayPercent(first.bodyFatFraction)
+    }
+
+    private var averageBodyFat: Double {
+        let values = sortedEntries.map { displayPercent($0.bodyFatFraction) }
+        guard !values.isEmpty else { return 0 }
+        return values.reduce(0, +) / Double(values.count)
+    }
+
+    private var formattedBodyFatChange: String {
+        let sign = netBodyFatChange > 0 ? "+" : ""
+        return String(format: "%@%.1f%%", sign, netBodyFatChange)
+    }
+
+    private var formattedAverageBodyFat: String {
+        String(format: "%.1f%%", averageBodyFat)
     }
 }
 
