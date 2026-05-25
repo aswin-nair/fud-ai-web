@@ -1,6 +1,6 @@
 # Play Store Listing
 
-Google Play Console listing copy for Fud AI Android (current: v2.0.0 / versionCode 19). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
+Google Play Console listing copy for Fud AI Android (current: v2.1.0 / versionCode 20). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
 
 **Where to paste each field in Play Console:**
 - App name / Short description / Full description → Grow → Store presence → **Main store listing** (default English) and Grow → Store presence → **Custom store listings** → Manage translations (per-language overrides)
@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.0.0: A major Android UI refresh, Camera + Camera logging, in-app camera capture, Barcode, expanded nutrient goals, Coach image attachments, better Health Connect sync, safer swipes, cached thumbnails, and onboarding layout fixes.
+NEW in v2.1.0: Health Connect can estimate calorie goals from energy burn while keeping macros editable, macro nutrition now preserves decimal grams across logs/Home/widgets, quantity input supports comma decimals with cleaner editing, and update checks now ask Google Play directly.
 
 Free, open source, privacy-first. Bring your own API key. All data stays on your device.
 
@@ -108,114 +108,114 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 
 ---
 
-## 4. What's New (v2.0.0)
+## 4. What's New (v2.1.0)
 
 **500 char hard cap per language.** Paste the entire block below into Play Console's "Release notes" field — it auto-routes each `<lang-tag>` block to the matching locale.
 
 ```
 <en-US>
-• Major Android UI refresh with cleaner menus, sheets, dialogs, and light mode.
-• Added Barcode, Camera + Camera, and in-app camera capture.
-• Expanded optional nutrients, goals, and Home cards.
-• Improved Health Connect sync, safer swipes, saved meals, drafts, thumbnails, and onboarding.
+• Health Connect can estimate calorie goals from energy burn; macros stay editable.
+• Decimal macro grams are preserved in logs, Home, nutrition details, and widgets.
+• Quantity fields support comma decimals, clearer cursor/clear behavior, and tap-out keyboard dismiss.
+• About adds What's New, and update checks now ask Google Play directly.
 </en-US>
 
 <ar>
-• تحديث كبير لواجهة Android مع قوائم ونوافذ أوضح.
-• إضافة الباركود وCamera + Camera والكاميرا داخل التطبيق.
-• توسيع المغذيات الاختيارية والأهداف وبطاقات Home.
-• تحسين Health Connect والسحب الآمن والوجبات المحفوظة والمسودات والصور المصغرة.
+• Health Connect يقدر هدف السعرات من الطاقة المحروقة، والماكروز تبقى قابلة للتعديل.
+• حفظ غرامات الماكروز العشرية في السجل وHome والتفاصيل والويدجت.
+• الكمية تدعم الفاصلة العشرية مع تحرير أوضح وإغلاق لوحة المفاتيح عند النقر خارجها.
+• أضفنا What's New، والتحديثات عبر Google Play.
 </ar>
 
 <az-AZ>
-• Daha təmiz menyular, pəncərələr və işıq rejimi ilə böyük Android UI yeniləməsi.
-• Barkod, Camera + Camera və tətbiqdaxili kamera əlavə edildi.
-• Əlavə qida hədəfləri və Home kartları genişləndirildi.
-• Health Connect, swipe təhlükəsizliyi, saxlanmış yeməklər, qaralamalar və miniatürlər yaxşılaşdırıldı.
+• Health Connect yandırılan enerjidən kalori hədəfini təxmin edə bilər; makrolar redaktə edilə qalır.
+• Ondalıq makro qramları loglarda, Home-da, detallarda və vidjetlərdə saxlanır.
+• Miqdar sahələri vergül ondalığını, daha aydın kursor/təmizləmə davranışını və kənara toxunanda klaviaturanın bağlanmasını dəstəkləyir.
+• What's New əlavə edildi; yeniləmə yoxlaması indi birbaşa Google Play-dən edilir.
 </az-AZ>
 
 <de-DE>
-• Großes Android-UI-Update mit saubereren Menüs, Sheets, Dialogen und Light Mode.
-• Barcode, Camera + Camera und In-App-Kamera hinzugefügt.
-• Erweiterte Nährstoffe, Ziele und Home-Karten.
-• Health Connect, sichereres Wischen, gespeicherte Mahlzeiten, Entwürfe und Thumbnails verbessert.
+• Health Connect kann Kalorienziele aus verbrannter Energie schätzen; Makros bleiben editierbar.
+• Dezimale Makro-Grammwerte bleiben in Logs, Home, Details und Widgets erhalten.
+• Mengenfelder unterstützen Komma-Dezimalwerte, besseres Cursor-/Löschverhalten und Tastatur-Ausblenden per Tippen außerhalb.
+• About zeigt What's New; Update-Checks fragen jetzt direkt Google Play.
 </de-DE>
 
 <es-ES>
-• Gran renovación de Android con menús, hojas, diálogos y modo claro más limpios.
-• Añadidos Barcode, Camera + Camera y cámara integrada.
-• Nutrientes, objetivos y tarjetas de Home ampliados.
-• Mejoras en Health Connect, gestos, comidas guardadas, borradores y miniaturas.
+• Health Connect puede estimar el objetivo de calorías desde la energía quemada; los macros siguen editables.
+• Los gramos decimales de macros se conservan en registros, Home, detalles y widgets.
+• Los campos de cantidad admiten coma decimal, mejor cursor/borrado y cerrar teclado al tocar fuera.
+• About añade What's New y las actualizaciones se consultan directamente en Google Play.
 </es-ES>
 
 <fr-FR>
-• Grande refonte Android avec menus, feuilles, dialogues et mode clair plus propres.
-• Ajout de Barcode, Camera + Camera et caméra intégrée.
-• Nutriments, objectifs et cartes Home élargis.
-• Health Connect, gestes, repas enregistrés, brouillons et miniatures améliorés.
+• Health Connect peut estimer l'objectif calorique depuis l'énergie brûlée; les macros restent modifiables.
+• Les grammes décimaux des macros sont conservés dans le journal, Home, les détails et les widgets.
+• Les champs quantité acceptent la virgule décimale, avec meilleur curseur/effacement et fermeture du clavier en tapant ailleurs.
+• About ajoute What's New; les mises à jour passent directement par Google Play.
 </fr-FR>
 
 <hi-IN>
-• Android UI refresh: cleaner menus, sheets, dialogs और light mode.
-• Barcode, Camera + Camera और in-app camera जोड़ा गया.
-• Optional nutrients, goals और Home cards बढ़ाए गए.
-• Health Connect, safer swipes, saved meals, drafts, thumbnails और onboarding बेहतर.
+• Health Connect energy burn से calorie goal estimate कर सकता है; macros editable रहते हैं.
+• Decimal macro grams logs, Home, nutrition details और widgets में preserve होते हैं.
+• Quantity fields comma decimals, clear button और बाहर tap पर keyboard dismiss support करते हैं.
+• About में What's New जोड़ा गया; update check अब सीधे Google Play से होता है.
 </hi-IN>
 
 <it-IT>
-• Grande refresh Android con menu, sheet, dialoghi e modalità chiara più puliti.
-• Aggiunti Barcode, Camera + Camera e fotocamera in-app.
-• Nutrienti opzionali, obiettivi e carte Home ampliati.
-• Migliorati Health Connect, swipe, pasti salvati, bozze e miniature.
+• Health Connect può stimare l'obiettivo calorie dall'energia bruciata; i macro restano modificabili.
+• I grammi decimali dei macro restano in log, Home, dettagli nutrizionali e widget.
+• I campi quantità supportano decimali con virgola, cursore/cancellazione migliori e chiusura tastiera toccando fuori.
+• About aggiunge What's New; i controlli update chiedono direttamente a Google Play.
 </it-IT>
 
 <ja-JP>
-• Android UIを大幅刷新。メニュー、シート、ダイアログ、ライトモードを改善。
-• Barcode、Camera + Camera、アプリ内カメラを追加。
-• 任意栄養素、目標、Homeカードを拡張。
-• Health Connect、スワイプ、保存済み食事、下書き、サムネイルを改善。
+• Health Connectの消費エネルギーからカロリー目標を推定可能に。マクロは編集可能です。
+• マクロの小数グラムを記録、Home、栄養詳細、ウィジェットで保持します。
+• 数量入力でカンマ小数、カーソル/クリア改善、外側タップでキーボードを閉じる動作に対応。
+• AboutにWhat's Newを追加し、更新確認はGoogle Playへ直接問い合わせます。
 </ja-JP>
 
 <ko-KR>
-• Android UI 대폭 개선: 메뉴, 시트, 대화상자, 라이트 모드 정리.
-• Barcode, Camera + Camera, 앱 내 카메라 추가.
-• 선택 영양소, 목표, Home 카드 확장.
-• Health Connect, 스와이프, 저장된 식사, 초안, 썸네일 개선.
+• Health Connect가 에너지 소모량으로 칼로리 목표를 추정할 수 있으며 매크로는 계속 수정 가능합니다.
+• 소수점 매크로 g 값이 기록, Home, 영양 상세, 위젯에 유지됩니다.
+• 수량 입력에서 쉼표 소수점, 더 나은 커서/지우기, 바깥 탭 키보드 닫기를 지원합니다.
+• About에 What's New가 추가되고 업데이트 확인은 Google Play에 직접 요청합니다.
 </ko-KR>
 
 <nl-NL>
-• Grote Android UI-refresh met schonere menu's, sheets, dialogen en lichte modus.
-• Barcode, Camera + Camera en in-app camera toegevoegd.
-• Uitgebreide nutriënten, doelen en Home-kaarten.
-• Health Connect, swipes, opgeslagen maaltijden, concepten en thumbnails verbeterd.
+• Health Connect kan caloriedoelen schatten uit verbrande energie; macro's blijven bewerkbaar.
+• Decimale macrogrammen blijven behouden in logs, Home, details en widgets.
+• Hoeveelheidsvelden ondersteunen kommadecimalen, betere cursor/wissen en toetsenbord sluiten door buiten te tikken.
+• About krijgt What's New; updatechecks vragen nu direct Google Play.
 </nl-NL>
 
 <pt-BR>
-• Grande atualização visual no Android com menus, folhas, diálogos e modo claro melhores.
-• Adicionados Barcode, Camera + Camera e câmera no app.
-• Nutrientes, metas e cartões Home expandidos.
-• Health Connect, gestos, refeições salvas, rascunhos e miniaturas melhorados.
+• Health Connect pode estimar a meta de calorias pela energia queimada; macros continuam editáveis.
+• Gramas decimais de macros são preservados em registros, Home, detalhes e widgets.
+• Campos de quantidade aceitam vírgula decimal, melhor cursor/limpar e fecham teclado ao tocar fora.
+• About adiciona What's New; checagem de atualização consulta direto o Google Play.
 </pt-BR>
 
 <ro>
-• Refresh major Android cu meniuri, panouri, dialoguri și mod luminos mai curate.
-• Adăugate Barcode, Camera + Camera și cameră în aplicație.
-• Nutrienți opționali, obiective și carduri Home extinse.
-• Health Connect, swipe-uri, mese salvate, ciorne și miniaturi îmbunătățite.
+• Health Connect poate estima ținta de calorii din energia arsă; macro-urile rămân editabile.
+• Gramele zecimale pentru macro-uri se păstrează în jurnal, Home, detalii și widgeturi.
+• Câmpurile de cantitate acceptă virgulă zecimală, cursor/ștergere mai clare și închid tastatura la tap în afară.
+• About adaugă What's New; verificarea update-urilor întreabă direct Google Play.
 </ro>
 
 <ru-RU>
-• Большое обновление Android UI: чище меню, панели, диалоги и светлая тема.
-• Добавлены Barcode, Camera + Camera и камера внутри приложения.
-• Расширены нутриенты, цели и Home-карточки.
-• Улучшены Health Connect, свайпы, сохраненные блюда, черновики и миниатюры.
+• Health Connect оценивает цель калорий по сожженной энергии; макро можно редактировать.
+• Десятичные граммы макро сохраняются в журнале, Home, деталях и виджетах.
+• Количество поддерживает запятую, очистку и закрытие клавиатуры тапом вне поля.
+• В About добавлено What's New; обновления проверяются через Google Play.
 </ru-RU>
 
 <zh-CN>
-• Android 界面大更新：菜单、弹窗、对话框和浅色模式更清爽。
-• 新增 Barcode、Camera + Camera 和应用内相机。
-• 扩展可选营养素、目标和 Home 卡片。
-• 改进 Health Connect、滑动、保存餐食、草稿、缩略图和引导流程。
+• Health Connect 可根据能量消耗估算热量目标，宏量营养仍可编辑。
+• 宏量营养的小数克数会保留在日志、Home、营养详情和小组件中。
+• 数量输入支持逗号小数，光标/清除更顺手，点按输入框外可收起键盘。
+• About 新增 What's New，更新检查现在直接询问 Google Play。
 </zh-CN>
 ```
 
