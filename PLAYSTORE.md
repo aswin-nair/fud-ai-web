@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.1.0: Health Connect can estimate calorie goals from energy burn while keeping macros editable, macro nutrition preserves decimal grams across logs/Home/widgets, Progress shows net change and average for weight/body fat, quantity input supports comma decimals with cleaner editing, and update checks ask Google Play directly.
+NEW in v2.1.0: Health Connect can estimate calorie goals from energy burn while keeping macros editable, macro nutrition preserves decimal grams across logs/Home/widgets, Progress shows net change and average for weight/body fat, quantity input supports comma decimals with cleaner editing, About > What's New shows the in-app changelog, and update checks ask Google Play directly.
 
 Free, open source, privacy-first. Bring your own API key. All data stays on your device.
 
@@ -118,7 +118,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Decimal macro grams are preserved in logs, Home, nutrition details, and widgets.
 • Progress shows current, goal, net change, and average for weight/body fat.
 • Quantity fields support comma decimals, clearer cursor/clear behavior, and tap-out keyboard dismiss.
-• About adds What's New, and update checks now ask Google Play directly.
+• About > What's New shows this changelog in-app; update checks ask Google Play directly.
 </en-US>
 
 <ar>

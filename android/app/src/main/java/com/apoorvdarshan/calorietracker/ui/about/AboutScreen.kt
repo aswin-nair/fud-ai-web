@@ -288,6 +288,7 @@ private fun WhatsNewRow(
                 )
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_decimal_macros))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_home_cards))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_progress_summaries))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_comma_quantity))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_quantity_editing))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_widgets))
