@@ -61,14 +61,15 @@ struct WeightChartSection: View {
             if weightEntries.isEmpty {
                 emptyState("Log your first weight to see trends")
             } else {
-                // Current / Goal row
-                HStack(spacing: 16) {
+                HStack(spacing: 8) {
                     if let current = currentWeightKg {
                         StatBadge(label: "Current", value: String(format: "%.1f %@", displayWeight(current), unit))
                     }
                     if let goal = goalWeightKg {
                         StatBadge(label: "Goal", value: String(format: "%.1f %@", displayWeight(goal), unit))
                     }
+                    StatBadge(label: "Net Change", value: formattedWeightChange)
+                    StatBadge(label: "Average", value: formattedAverageWeight)
                 }
 
                 Chart {
@@ -126,6 +127,31 @@ struct WeightChartSection: View {
         guard let minW = weights.min(), let maxW = weights.max() else { return 0...200 }
         let padding = max((maxW - minW) * 0.15, 2)
         return (minW - padding)...(maxW + padding)
+    }
+
+    private var sortedWeightEntries: [WeightEntry] {
+        weightEntries.sorted { $0.date < $1.date }
+    }
+
+    private var netWeightChange: Double {
+        guard let first = sortedWeightEntries.first,
+              let last = sortedWeightEntries.last else { return 0 }
+        return displayWeight(last.weightKg) - displayWeight(first.weightKg)
+    }
+
+    private var averageWeight: Double {
+        let values = sortedWeightEntries.map { displayWeight($0.weightKg) }
+        guard !values.isEmpty else { return 0 }
+        return values.reduce(0, +) / Double(values.count)
+    }
+
+    private var formattedWeightChange: String {
+        let sign = netWeightChange > 0 ? "+" : ""
+        return String(format: "%@%.1f %@", sign, netWeightChange, unit)
+    }
+
+    private var formattedAverageWeight: String {
+        String(format: "%.1f %@", averageWeight, unit)
     }
 }
 
@@ -195,9 +221,9 @@ struct CalorieChartSection: View {
 // MARK: - Macro Averages Section
 
 struct MacroAveragesSection: View {
-    let avgProtein: Int
-    let avgCarbs: Int
-    let avgFat: Int
+    let avgProtein: Double
+    let avgCarbs: Double
+    let avgFat: Double
     let proteinGoal: Int
     let carbsGoal: Int
     let fatGoal: Int
@@ -219,13 +245,13 @@ struct MacroAveragesSection: View {
 
 struct MacroProgressRow: View {
     let label: String
-    let current: Int
+    let current: Double
     let goal: Int
     let color: Color
     let gradientColors: [Color]
 
     private var progress: Double {
-        goal > 0 ? min(Double(current) / Double(goal), 1.0) : 0
+        goal > 0 ? min(current / Double(goal), 1.0) : 0
     }
 
     var body: some View {
@@ -234,7 +260,7 @@ struct MacroProgressRow: View {
                 Text(label)
                     .font(.system(.subheadline, design: .rounded, weight: .medium))
                 Spacer()
-                Text("\(current)g / \(goal)g")
+                Text("\(MacroValueFormatter.withUnit(current)) / \(goal)g")
                     .font(.system(.subheadline, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -316,10 +342,15 @@ struct StatBadge: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(label)
                 .font(.system(.caption2, design: .rounded))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -656,13 +687,15 @@ struct BodyFatChartSection: View {
             if entries.isEmpty {
                 emptyState("Log your first body fat % to see trends")
             } else {
-                HStack(spacing: 16) {
+                HStack(spacing: 8) {
                     if let current = currentBodyFatFraction {
                         StatBadge(label: "Current", value: String(format: "%.1f%%", displayPercent(current)))
                     }
                     if let goal = goalBodyFatFraction {
                         StatBadge(label: "Goal", value: String(format: "%.1f%%", displayPercent(goal)))
                     }
+                    StatBadge(label: "Net Change", value: formattedBodyFatChange)
+                    StatBadge(label: "Average", value: formattedAverageBodyFat)
                 }
 
                 Chart {
@@ -720,6 +753,31 @@ struct BodyFatChartSection: View {
         guard let minV = values.min(), let maxV = values.max() else { return 0...60 }
         let padding = max((maxV - minV) * 0.15, 1)
         return max(0, minV - padding)...(maxV + padding)
+    }
+
+    private var sortedEntries: [BodyFatEntry] {
+        entries.sorted { $0.date < $1.date }
+    }
+
+    private var netBodyFatChange: Double {
+        guard let first = sortedEntries.first,
+              let last = sortedEntries.last else { return 0 }
+        return displayPercent(last.bodyFatFraction) - displayPercent(first.bodyFatFraction)
+    }
+
+    private var averageBodyFat: Double {
+        let values = sortedEntries.map { displayPercent($0.bodyFatFraction) }
+        guard !values.isEmpty else { return 0 }
+        return values.reduce(0, +) / Double(values.count)
+    }
+
+    private var formattedBodyFatChange: String {
+        let sign = netBodyFatChange > 0 ? "+" : ""
+        return String(format: "%@%.1f%%", sign, netBodyFatChange)
+    }
+
+    private var formattedAverageBodyFat: String {
+        String(format: "%.1f%%", averageBodyFat)
     }
 }
 

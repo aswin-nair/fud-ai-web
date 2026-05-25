@@ -25,6 +25,7 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_done">Done</string>
     <string name="action_ok">OK</string>
+    <string name="action_info">Info</string>
     <string name="action_clear">Clear</string>
     <string name="action_delete">Delete</string>
     <string name="action_continue">Continue</string>
@@ -458,6 +459,8 @@
     <string name="progress_log_weight">Log Weight</string>
     <string name="progress_stat_current">Current</string>
     <string name="progress_stat_goal">Goal</string>
+    <string name="progress_stat_net_change">Net Change</string>
+    <string name="progress_stat_average">Average</string>
     <string name="progress_log_first_weight">Log your first weight to see trends</string>
 
     <string name="progress_weight_history">Weight History</string>
@@ -522,6 +525,8 @@
     <string name="theme_color_blue">Blue</string>
     <string name="theme_color_purple">Purple</string>
     <string name="settings_metric_units">Metric Units</string>
+    <string name="settings_default_to_grams">Default to Grams</string>
+    <string name="settings_default_to_grams_info">New food review sheets open with grams selected first. You can still switch to serving, slice, cup, or any other detected unit before logging.</string>
     <string name="settings_week_starts">Week Starts On</string>
     <string name="settings_week_monday">Monday</string>
     <string name="settings_week_sunday">Sunday</string>
@@ -553,6 +558,9 @@
     <string name="settings_fallback_footer">If your primary provider fails (overload, rate limit, network error), the app retries automatically with this fallback. Same provider as primary is allowed — just pick a different model.</string>
 
     <string name="settings_health_connect">Health Connect</string>
+    <string name="settings_energy_goals">Energy Burn Goals</string>
+    <string name="settings_energy_goals_info">Uses recent Health Connect Active Calories and Total Calories with your selected AI provider to estimate your calorie target. Protein, carbs, and fat stay unlocked on auto-balance so you can edit or lock them later.</string>
+    <string name="settings_refresh_energy_goals">Refresh Energy Burn Goals</string>
     <string name="settings_clear_food_log">Clear Food Log</string>
     <string name="settings_delete_all_data">Delete All Data</string>
 
@@ -578,7 +586,7 @@
     <string name="notif_weight_log_text">Log today\'s weight to keep your progress chart accurate.</string>
     <string name="notif_body_fat_log_title">Body fat check-in</string>
     <string name="notif_body_fat_log_text">Log today\'s body fat % to track your composition trend.</string>
-    <string name="settings_health_denied">Health Connect needs read + write for Weight and Nutrition. Re-tap the toggle and grant all four permissions to sync.</string>
+    <string name="settings_health_denied">Health Connect needs Weight, Body Fat, Active Calories, Total Calories, and permission to write Nutrition. Re-tap the toggle and grant all requested permissions to sync and estimate energy goals.</string>
     <string name="settings_health_unavailable">Health Connect isn\'t available on this device. Install it from the Play Store, then re-tap the toggle.</string>
 
     <!-- Settings sheets / pickers -->
@@ -642,6 +650,17 @@
     <string name="about_check_updates">Check for Updates</string>
     <string name="about_app_version">App Version</string>
     <string name="about_version_format">Version %1$s</string>
+    <string name="about_whats_new">What\'s New</string>
+    <string name="about_whats_new_version_format">Version %1$s</string>
+    <string name="about_whats_new_android_summary">Android changes in this update:</string>
+    <string name="about_whats_new_item_decimal_macros">Protein, carbs, and fat now preserve decimal grams instead of rounding to whole numbers.</string>
+    <string name="about_whats_new_item_home_cards">Home nutrition cards show decimal macro totals in one compact line.</string>
+    <string name="about_whats_new_item_progress_summaries">Progress shows current, goal, net change, and average for weight and body fat.</string>
+    <string name="about_whats_new_item_comma_quantity">Comma decimal input works like dot input, so 1,5 is treated as 1.5.</string>
+    <string name="about_whats_new_item_quantity_editing">Review and edit quantity fields keep the cursor at the end, include a clear button, and dismiss the keyboard when tapping outside the input.</string>
+    <string name="about_whats_new_item_future_day_health">Future-day food logging no longer crashes when Health Connect is enabled.</string>
+    <string name="about_whats_new_item_health_permissions">Health Connect no longer asks to read nutrition data; Fud AI only writes meals you log.</string>
+    <string name="about_whats_new_item_widgets">Android widgets use compact decimal macro text to avoid overflow.</string>
     <string name="about_rate">Rate the App</string>
     <string name="about_share">Share the App</string>
     <string name="about_open_source">Open Source (MIT)</string>

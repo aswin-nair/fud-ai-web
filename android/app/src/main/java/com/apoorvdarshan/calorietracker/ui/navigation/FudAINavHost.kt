@@ -46,7 +46,7 @@ fun FudAINavHost(
     var updateAvailable by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentVersion) {
-        updateAvailable = AndroidUpdateChecker.check(currentVersion) is AndroidUpdateState.Available
+        updateAvailable = AndroidUpdateChecker.check(context, currentVersion) is AndroidUpdateState.Available
     }
 
     Scaffold(

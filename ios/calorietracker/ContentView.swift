@@ -674,6 +674,7 @@ struct ActivityShareSheet: UIViewControllerRepresentable {
 // MARK: - Home View (Main Dashboard)
 struct HomeView: View {
     @Environment(FoodStore.self) private var foodStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showCamera = false
     @State private var showBarcodeScanner = false
     @State private var capturedImage: UIImage?
@@ -690,6 +691,7 @@ struct HomeView: View {
     @State private var showRecentSheet = false
     @State private var showCopyFromDaySheet = false
     @State private var pendingContextImage: UIImage?
+    @State private var pendingSharedImportImage: UIImage?
     @State private var pendingSecondCameraImage: UIImage?
     @State private var contextDescription: String = ""
     @State private var showContextSheet = false
@@ -1152,8 +1154,14 @@ struct HomeView: View {
                         let image = pendingContextImage
                         showContextSheet = false
                         pendingContextImage = nil
+                        
                         if let image {
-                            startAnalysis(image: image, mode: .snapFoodWithContext, description: desc)
+                            // Delay presenting the next sheet until the current one fully dismisses.
+                            // This prevents SwiftUI from silently ignoring the new activeSheet presentation.
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                currentImage = image // Ensure currentImage is set so AnalyzingView/FoodResultView shows the image
+                                startAnalysis(image: image, mode: .snapFoodWithContext, description: desc)
+                            }
                         }
                     },
                     onCancel: {
@@ -1315,15 +1323,66 @@ struct HomeView: View {
                     onAllow: {
                         aiConsentGiven = true
                         showAIConsent = false
+                        if let image = pendingSharedImportImage, activeSheet == nil {
+                            pendingSharedImportImage = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                pendingContextImage = image
+                                contextDescription = ""
+                                showContextSheet = true
+                            }
+                        }
                     },
                     onCancel: {
+                        pendingSharedImportImage = nil
                         showAIConsent = false
                     }
                 )
             }
+            .onOpenURL { url in
+                guard url.scheme == "fudai" else { return }
+                
+                if url.host == "import-share-image" {
+                    checkAndConsumeSharedImage()
+                }
+            }
+            .onAppear {
+                checkAndConsumeSharedImage()
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    checkAndConsumeSharedImage()
+                }
+            }
         }
     }
-
+    
+    private func checkAndConsumeSharedImage() {
+        guard let image = ShareImportManager.consumeSharedImage() else { return }
+        
+        // Force dismiss any currently open sheets to prevent SwiftUI from swallowing the new presentation
+        activeSheet = nil
+        
+        currentImage = image
+        currentEmoji = nil
+        currentFoodSource = .snapFood
+        
+        guard aiConsentGiven else {
+            pendingSharedImportImage = image
+            // A slight delay ensures the view hierarchy is clear before presenting
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                showAIConsent = true
+            }
+            return
+        }
+        
+        pendingSharedImportImage = nil
+        // A slight delay ensures the view hierarchy is clear before presenting
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            pendingContextImage = image
+            contextDescription = ""
+            showContextSheet = true
+        }
+    }
 
     private func requireAIConsent(_ action: () -> Void) {
         guard aiConsentGiven else {
@@ -1632,9 +1691,9 @@ private enum OpenFoodFactsService {
         return GeminiService.FoodAnalysis(
             name: name,
             calories: Int(round(calories ?? 0)),
-            protein: Int(round(protein ?? 0)),
-            carbs: Int(round(carbs ?? 0)),
-            fat: Int(round(fat ?? 0)),
+            protein: protein ?? 0,
+            carbs: carbs ?? 0,
+            fat: fat ?? 0,
             servingSizeGrams: servingGrams,
             emoji: "🏷️",
             sugar: rounded(servingValue("sugars", in: nutriments, scale: scale)),
@@ -1860,9 +1919,9 @@ struct NutritionDetailView: View {
 
                 Section("Macros") {
                     NutritionDetailRow(icon: "flame.fill", label: "Calories", value: "\(foodStore.calories(for: date))", unit: "kcal", goal: "\(userProfile.effectiveCalories)")
-                    NutritionDetailRow(icon: "p.circle.fill", label: "Protein", value: "\(foodStore.protein(for: date))", unit: "g", goal: "\(userProfile.effectiveProtein)")
-                    NutritionDetailRow(icon: "c.circle.fill", label: "Carbs", value: "\(foodStore.carbs(for: date))", unit: "g", goal: "\(userProfile.effectiveCarbs)")
-                    NutritionDetailRow(icon: "f.circle.fill", label: "Fat", value: "\(foodStore.fat(for: date))", unit: "g", goal: "\(userProfile.effectiveFat)")
+                    NutritionDetailRow(icon: "p.circle.fill", label: "Protein", value: MacroValueFormatter.string(foodStore.protein(for: date)), unit: "g", goal: "\(userProfile.effectiveProtein)")
+                    NutritionDetailRow(icon: "c.circle.fill", label: "Carbs", value: MacroValueFormatter.string(foodStore.carbs(for: date)), unit: "g", goal: "\(userProfile.effectiveCarbs)")
+                    NutritionDetailRow(icon: "f.circle.fill", label: "Fat", value: MacroValueFormatter.string(foodStore.fat(for: date)), unit: "g", goal: "\(userProfile.effectiveFat)")
                 }
                 .listRowBackground(AppColors.appCard)
 
@@ -1979,6 +2038,8 @@ struct ContextDescriptionSheet: View {
     let onCancel: () -> Void
 
     @FocusState private var isFocused: Bool
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     var body: some View {
         NavigationStack {
@@ -2036,12 +2097,19 @@ struct ContextDescriptionSheet: View {
                     Button("Cancel") { onCancel() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Analyze") { onAnalyze() }
-                        .fontWeight(.semibold)
-                        .tint(AppColors.calorie)
+                    Button("Analyze") {
+                        onAnalyze()
+                    }
+                    .fontWeight(.semibold)
+                    .tint(AppColors.calorie)
                 }
             }
             .onAppear { isFocused = true }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { }
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
 }
@@ -2501,10 +2569,10 @@ struct FoodRow: View {
 
 struct MacroPill: View {
     let label: String
-    let value: Int
+    let value: Double
 
     var body: some View {
-        Text("\(label) \(value)g")
+        Text("\(label) \(MacroValueFormatter.withUnit(value))")
             .font(.system(.caption2, design: .rounded, weight: .medium))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 6)
@@ -2561,11 +2629,12 @@ struct ProgressTabView: View {
         }.reversed()
     }
 
-    private var macroAverages: (protein: Int, carbs: Int, fat: Int) {
+    private var macroAverages: (protein: Double, carbs: Double, fat: Double) {
         let calendar = Calendar.current
         let days = timeRange.days
         let today = calendar.startOfDay(for: .now)
-        var totalP = 0, totalC = 0, totalF = 0, count = 0
+        var totalP = 0.0, totalC = 0.0, totalF = 0.0
+        var count = 0
         for offset in 0..<days {
             guard let date = calendar.date(byAdding: .day, value: -offset, to: today) else { continue }
             let dayEntries = foodStore.entries(for: date)
@@ -2576,7 +2645,7 @@ struct ProgressTabView: View {
             count += 1
         }
         guard count > 0 else { return (0, 0, 0) }
-        return (totalP / count, totalC / count, totalF / count)
+        return (totalP / Double(count), totalC / Double(count), totalF / Double(count))
     }
 
     var body: some View {
@@ -2700,7 +2769,9 @@ struct ProfileView: View {
     @AppStorage("useMetric") private var useMetric = false
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("healthKitEnabled") private var healthKitEnabled = false
+    @AppStorage(HealthEnergyGoalSettings.enabledKey) private var healthEnergyGoalsEnabled = false
     @AppStorage("weekStartsOnMonday") private var weekStartsOnMonday = false
+    @AppStorage(FoodMeasurementSettings.preferGramsByDefaultKey) private var preferGramsByDefault = false
     @AppStorage(AppThemeColor.storageKey) private var appThemeColorRaw = AppThemeColor.defaultColor.rawValue
 
     enum ActiveSheet: String, Identifiable {
@@ -2715,6 +2786,12 @@ struct ProfileView: View {
     @State private var showAutoMacroEditAlert = false
     @State private var showMaxPinnedAlert = false
     @State private var showInvalidGoalWeightAlert = false
+    @State private var showDefaultGramsInfo = false
+    @State private var showHealthEnergyGoalsInfo = false
+    @State private var isApplyingHealthEnergyGoals = false
+    @State private var showHealthEnergyGoalAlert = false
+    @State private var healthEnergyGoalAlertTitle = ""
+    @State private var healthEnergyGoalAlertMessage = ""
     @State private var invalidGoalWeightMessage = ""
     @State private var selectedProvider: AIProvider = AIProviderSettings.selectedProvider
     @State private var selectedModel: String = AIProviderSettings.selectedModel
@@ -2949,6 +3026,50 @@ struct ProfileView: View {
                         }
                     }
 
+                    HStack {
+                        Label {
+                            Text("Energy Burn Goals")
+                        } icon: {
+                            Image(systemName: "flame.fill")
+                                .foregroundStyle(AppColors.calorie)
+                        }
+                        Spacer()
+                        if isApplyingHealthEnergyGoals {
+                            ProgressView()
+                        }
+                        Button {
+                            showHealthEnergyGoalsInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("About Energy Burn Goals")
+
+                        Toggle("", isOn: $healthEnergyGoalsEnabled)
+                            .labelsHidden()
+                            .tint(AppColors.calorie)
+                            .disabled(isApplyingHealthEnergyGoals)
+                            .onChange(of: healthEnergyGoalsEnabled) { oldValue, enabled in
+                                handleHealthEnergyGoalsToggle(enabled, wasEnabled: oldValue)
+                            }
+                    }
+
+                    if healthEnergyGoalsEnabled {
+                        Button {
+                            Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
+                        } label: {
+                            Label {
+                                Text("Refresh Energy Burn Goals")
+                            } icon: {
+                                Image(systemName: "arrow.clockwise")
+                                    .foregroundStyle(AppColors.calorie)
+                            }
+                        }
+                        .disabled(isApplyingHealthEnergyGoals)
+                        .tint(.primary)
+                    }
+
                     ProfileInfoRow(icon: "flame", label: "Calories", value: "\(profile.effectiveCalories) kcal") {
                         activeSheet = .editCalories
                     }
@@ -3044,6 +3165,29 @@ struct ProfileView: View {
                         }
                     }
                     .tint(AppColors.calorie)
+
+                    HStack {
+                        Label {
+                            HStack(spacing: 6) {
+                                Text("Default to Grams")
+                                Button {
+                                    showDefaultGramsInfo = true
+                                } label: {
+                                    Image(systemName: "info.circle")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel("About Default to Grams")
+                            }
+                        } icon: {
+                            Image(systemName: "scalemass")
+                                .foregroundStyle(AppColors.calorie)
+                        }
+                        Spacer()
+                        Toggle("Default to Grams", isOn: $preferGramsByDefault)
+                            .labelsHidden()
+                            .tint(AppColors.calorie)
+                    }
 
                     Picker(selection: $weekStartsOnMonday) {
                         Text("Sunday").tag(false)
@@ -3763,6 +3907,21 @@ struct ProfileView: View {
             } message: {
                 Text("Recompute calories, protein, carbs, and fat from your current weight, activity, and goal? Your custom values will be replaced and Auto-balance will reset to Carbs.")
             }
+            .alert("Default to Grams", isPresented: $showDefaultGramsInfo) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("When enabled, new food results open with grams selected even if the AI detects cups, portions, or servings. You can still switch units for each food.")
+            }
+            .alert("Energy Burn Goals", isPresented: $showHealthEnergyGoalsInfo) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("When enabled, Fud AI asks Apple Health for Active Energy and Basal Energy, then uses your AI provider to estimate calories. Protein, carbs, and fat stay unlocked on auto-balance unless you lock them manually. Turning this off restores your previous targets.")
+            }
+            .alert(healthEnergyGoalAlertTitle, isPresented: $showHealthEnergyGoalAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(healthEnergyGoalAlertMessage)
+            }
             .sheet(isPresented: $showCalculationMethods) {
                 CalculationMethodsView()
             }
@@ -3831,6 +3990,11 @@ struct ProfileView: View {
     /// weight / activity / goal formulas. Triggered automatically when those underlying
     /// inputs change (gender, activity, weight, etc.) and via the Recalculate button.
     private func resetCustomGoalsAndSave() {
+        if healthEnergyGoalsEnabled {
+            saveProfile()
+            Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
+            return
+        }
         profile.recalculateGoalsFromFormulas()
         saveProfile()
     }
@@ -3877,6 +4041,10 @@ struct ProfileView: View {
     }
 
     private func recalculateGoalsNow() {
+        if healthEnergyGoalsEnabled {
+            Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
+            return
+        }
         profile.recalculateGoalsFromFormulas()
         saveProfile()
     }
@@ -3922,8 +4090,85 @@ struct ProfileView: View {
                 }
             }
         } else {
+            if healthEnergyGoalsEnabled {
+                healthEnergyGoalsEnabled = false
+            }
             healthKitManager.stopObserver()
         }
+    }
+
+    private func handleHealthEnergyGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
+        if enabled {
+            Task { await applyHealthEnergyGoals(saveExistingTargets: !wasEnabled) }
+        } else {
+            HealthEnergyGoalSettings.restorePreviousTargets(to: &profile)
+            HealthEnergyGoalSettings.clearPreviousTargets()
+            saveProfile()
+        }
+    }
+
+    private func applyHealthEnergyGoals(saveExistingTargets: Bool) async {
+        guard !isApplyingHealthEnergyGoals else { return }
+        isApplyingHealthEnergyGoals = true
+        defer { isApplyingHealthEnergyGoals = false }
+
+        if saveExistingTargets {
+            HealthEnergyGoalSettings.savePreviousTargetsIfNeeded(from: profile)
+        }
+
+        let authorized = await healthKitManager.requestAuthorization()
+        guard authorized else {
+            healthEnergyGoalsEnabled = false
+            showHealthEnergyGoalsAlert(
+                title: "Apple Health Needed",
+                message: "Allow Fud AI to read Active Energy and Basal Energy in Apple Health, then try again."
+            )
+            return
+        }
+        if !healthKitEnabled {
+            healthKitEnabled = true
+        }
+
+        guard let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) else {
+            healthEnergyGoalsEnabled = false
+            showHealthEnergyGoalsAlert(
+                title: "Not Enough Energy Data",
+                message: "Fud AI needs at least 3 recent days of Apple Health energy data to estimate goals."
+            )
+            return
+        }
+
+        do {
+            let suggestion = try await GeminiService.suggestHealthEnergyGoals(
+                profile: profile,
+                energy: summary,
+                useMetric: useMetric
+            )
+            profile.customCalories = suggestion.calories
+            profile.customProtein = nil
+            profile.customCarbs = nil
+            profile.customFat = nil
+            profile.autoBalanceMacro = nil
+            saveProfile()
+
+            let reason = suggestion.reason.map { "\n\n\($0)" } ?? ""
+            showHealthEnergyGoalsAlert(
+                title: "Goals Updated",
+                message: "Updated to \(suggestion.calories) kcal using \(summary.daysUsed) days of Apple Health energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.\(reason)"
+            )
+        } catch {
+            healthEnergyGoalsEnabled = false
+            showHealthEnergyGoalsAlert(
+                title: "AI Estimate Failed",
+                message: (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            )
+        }
+    }
+
+    private func showHealthEnergyGoalsAlert(title: String, message: String) {
+        healthEnergyGoalAlertTitle = title
+        healthEnergyGoalAlertMessage = message
+        showHealthEnergyGoalAlert = true
     }
 
 }

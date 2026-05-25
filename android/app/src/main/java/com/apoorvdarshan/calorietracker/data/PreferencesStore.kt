@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.apoorvdarshan.calorietracker.models.AIProvider
+import com.apoorvdarshan.calorietracker.models.AutoBalanceMacro
 import com.apoorvdarshan.calorietracker.models.BodyFatEntry
 import com.apoorvdarshan.calorietracker.models.ChatMessage
 import com.apoorvdarshan.calorietracker.models.FoodEntry
@@ -21,13 +22,24 @@ import com.apoorvdarshan.calorietracker.models.WeightEntry
 import com.apoorvdarshan.calorietracker.models.WidgetSnapshot
 import com.apoorvdarshan.calorietracker.ui.theme.AppThemeColor
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
 val Context.fudaiDataStore by preferencesDataStore(name = "fudai_prefs")
+
+@Serializable
+private data class HealthEnergyGoalTargetSnapshot(
+    val customCalories: Int? = null,
+    val customProtein: Int? = null,
+    val customFat: Int? = null,
+    val customCarbs: Int? = null,
+    val autoBalanceMacro: AutoBalanceMacro? = null
+)
 
 /**
  * Thin wrapper over DataStore Preferences for all app state except API keys
@@ -93,9 +105,56 @@ class PreferencesStore(private val context: Context) {
     val healthPermissionsVersion: Flow<Int> = ds.data.map { it[Keys.HEALTH_TYPES_VERSION] ?: 0 }
     suspend fun setHealthPermissionsVersion(v: Int) { ds.edit { it[Keys.HEALTH_TYPES_VERSION] = v } }
 
+    val healthEnergyGoalsEnabled: Flow<Boolean> = ds.data.map { it[Keys.HEALTH_ENERGY_GOALS_ENABLED] ?: false }
+    suspend fun setHealthEnergyGoalsEnabled(v: Boolean) { ds.edit { it[Keys.HEALTH_ENERGY_GOALS_ENABLED] = v } }
+
+    suspend fun saveHealthEnergyGoalPreviousTargetsIfNeeded(profile: UserProfile) {
+        ds.edit { prefs ->
+            if (prefs[Keys.HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS] != null) return@edit
+            val snapshot = HealthEnergyGoalTargetSnapshot(
+                customCalories = profile.customCalories,
+                customProtein = profile.customProtein,
+                customFat = profile.customFat,
+                customCarbs = profile.customCarbs,
+                autoBalanceMacro = profile.autoBalanceMacro
+            )
+            prefs[Keys.HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS] =
+                json.encodeToString(HealthEnergyGoalTargetSnapshot.serializer(), snapshot)
+        }
+    }
+
+    suspend fun restoreHealthEnergyGoalPreviousTargets(profile: UserProfile): UserProfile {
+        val snapshot = ds.data.first()[Keys.HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS]
+            ?.let { runCatching { json.decodeFromString<HealthEnergyGoalTargetSnapshot>(it) }.getOrNull() }
+        return if (snapshot == null) {
+            profile.copy(
+                customCalories = null,
+                customProtein = null,
+                customFat = null,
+                customCarbs = null,
+                autoBalanceMacro = null
+            )
+        } else {
+            profile.copy(
+                customCalories = snapshot.customCalories,
+                customProtein = snapshot.customProtein,
+                customFat = snapshot.customFat,
+                customCarbs = snapshot.customCarbs,
+                autoBalanceMacro = snapshot.autoBalanceMacro
+            )
+        }
+    }
+
+    suspend fun clearHealthEnergyGoalPreviousTargets() {
+        ds.edit { it.remove(Keys.HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS) }
+    }
+
     // -- Units ------------------------------------------------------------
     val useMetric: Flow<Boolean> = ds.data.map { it[Keys.USE_METRIC] ?: true }
     suspend fun setUseMetric(v: Boolean) { ds.edit { it[Keys.USE_METRIC] = v } }
+
+    val preferGramsByDefault: Flow<Boolean> = ds.data.map { it[Keys.PREFER_GRAMS_BY_DEFAULT] ?: false }
+    suspend fun setPreferGramsByDefault(v: Boolean) { ds.edit { it[Keys.PREFER_GRAMS_BY_DEFAULT] = v } }
 
     /** "system" | "light" | "dark". Mirrors iOS @AppStorage("appearanceMode"). */
     val appearanceMode: Flow<String> = ds.data.map { it[Keys.APPEARANCE_MODE] ?: "system" }
@@ -340,7 +399,10 @@ class PreferencesStore(private val context: Context) {
         val GOAL_REACHED_NOTIFICATIONS_ENABLED = booleanPreferencesKey("goalReachedNotificationsEnabled")
         val HEALTH_CONNECT_ENABLED = booleanPreferencesKey("healthConnectEnabled")
         val HEALTH_TYPES_VERSION = intPreferencesKey("healthTypesVersion")
+        val HEALTH_ENERGY_GOALS_ENABLED = booleanPreferencesKey("healthEnergyGoalsEnabled")
+        val HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS = stringPreferencesKey("healthEnergyGoalsPreviousTargets")
         val USE_METRIC = booleanPreferencesKey("useMetric")
+        val PREFER_GRAMS_BY_DEFAULT = booleanPreferencesKey("foodMeasurementPreferGramsByDefault")
         val APPEARANCE_MODE = stringPreferencesKey("appearanceMode")
         val APP_THEME_COLOR = stringPreferencesKey("appThemeColor")
         val WEEK_STARTS_MONDAY = booleanPreferencesKey("weekStartsOnMonday")

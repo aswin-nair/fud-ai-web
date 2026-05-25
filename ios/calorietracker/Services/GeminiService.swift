@@ -160,9 +160,9 @@ struct GeminiService {
     struct FoodAnalysis {
         var name: String
         var calories: Int
-        var protein: Int
-        var carbs: Int
-        var fat: Int
+        var protein: Double
+        var carbs: Double
+        var fat: Double
         var servingSizeGrams: Double
         var emoji: String?
         var sugar: Double?
@@ -229,9 +229,9 @@ struct GeminiService {
             return FoodAnalysis(
                 name: name,
                 calories: Int(round(caloriesPer100g * scale)),
-                protein: Int(round(proteinPer100g * scale)),
-                carbs: Int(round(carbsPer100g * scale)),
-                fat: Int(round(fatPer100g * scale)),
+                protein: proteinPer100g * scale,
+                carbs: carbsPer100g * scale,
+                fat: fatPer100g * scale,
                 servingSizeGrams: grams,
                 sugar: sugarPer100g.map { round($0 * scale * 10) / 10 },
                 addedSugar: addedSugarPer100g.map { round($0 * scale * 10) / 10 },
@@ -262,6 +262,11 @@ struct GeminiService {
         }
     }
 
+    struct HealthEnergyGoalSuggestion {
+        var calories: Int
+        var reason: String?
+    }
+
     enum AnalysisError: LocalizedError {
         case noAPIKey
         case imageConversionFailed
@@ -289,18 +294,18 @@ struct GeminiService {
     }
 
     private static let foodAnalysisJSONShape = """
-    {"name":"...","calories":0,"protein":0,"carbs":0,"fat":0,"serving_size_grams":0.0,"emoji":"🍽️","sugar":0.0,"added_sugar":0.0,"fiber":0.0,"saturated_fat":0.0,"monounsaturated_fat":0.0,"polyunsaturated_fat":0.0,"trans_fat":0.0,"cholesterol":0.0,"sodium":0.0,"potassium":0.0,"calcium":0.0,"iron":0.0,"magnesium":0.0,"zinc":0.0,"vitamin_a":0.0,"vitamin_c":0.0,"vitamin_d":0.0,"vitamin_b12":0.0,"vitamin_e":0.0,"vitamin_k":0.0,"folate":0.0,"omega_3":0.0,"unit_options":[]}
+    {"name":"...","calories":0,"protein":0.0,"carbs":0.0,"fat":0.0,"serving_size_grams":0.0,"emoji":"🍽️","sugar":0.0,"added_sugar":0.0,"fiber":0.0,"saturated_fat":0.0,"monounsaturated_fat":0.0,"polyunsaturated_fat":0.0,"trans_fat":0.0,"cholesterol":0.0,"sodium":0.0,"potassium":0.0,"calcium":0.0,"iron":0.0,"magnesium":0.0,"zinc":0.0,"vitamin_a":0.0,"vitamin_c":0.0,"vitamin_d":0.0,"vitamin_b12":0.0,"vitamin_e":0.0,"vitamin_k":0.0,"folate":0.0,"omega_3":0.0,"unit_options":[]}
     """
 
     private static let foodAnalysisJSONShapeWithoutEmoji = """
-    {"name":"...","calories":0,"protein":0,"carbs":0,"fat":0,"serving_size_grams":0.0,"sugar":0.0,"added_sugar":0.0,"fiber":0.0,"saturated_fat":0.0,"monounsaturated_fat":0.0,"polyunsaturated_fat":0.0,"trans_fat":0.0,"cholesterol":0.0,"sodium":0.0,"potassium":0.0,"calcium":0.0,"iron":0.0,"magnesium":0.0,"zinc":0.0,"vitamin_a":0.0,"vitamin_c":0.0,"vitamin_d":0.0,"vitamin_b12":0.0,"vitamin_e":0.0,"vitamin_k":0.0,"folate":0.0,"omega_3":0.0,"unit_options":[]}
+    {"name":"...","calories":0,"protein":0.0,"carbs":0.0,"fat":0.0,"serving_size_grams":0.0,"sugar":0.0,"added_sugar":0.0,"fiber":0.0,"saturated_fat":0.0,"monounsaturated_fat":0.0,"polyunsaturated_fat":0.0,"trans_fat":0.0,"cholesterol":0.0,"sodium":0.0,"potassium":0.0,"calcium":0.0,"iron":0.0,"magnesium":0.0,"zinc":0.0,"vitamin_a":0.0,"vitamin_c":0.0,"vitamin_d":0.0,"vitamin_b12":0.0,"vitamin_e":0.0,"vitamin_k":0.0,"folate":0.0,"omega_3":0.0,"unit_options":[]}
     """
 
     private static let nutritionLabelJSONShape = """
     {"name":"Product Name","calories_per_100g":0.0,"protein_per_100g":0.0,"carbs_per_100g":0.0,"fat_per_100g":0.0,"serving_size_grams":0.0,"sugar_per_100g":0.0,"added_sugar_per_100g":0.0,"fiber_per_100g":0.0,"saturated_fat_per_100g":0.0,"monounsaturated_fat_per_100g":0.0,"polyunsaturated_fat_per_100g":0.0,"trans_fat_per_100g":0.0,"cholesterol_per_100g":0.0,"sodium_per_100g":0.0,"potassium_per_100g":0.0,"calcium_per_100g":0.0,"iron_per_100g":0.0,"magnesium_per_100g":0.0,"zinc_per_100g":0.0,"vitamin_a_per_100g":0.0,"vitamin_c_per_100g":0.0,"vitamin_d_per_100g":0.0,"vitamin_b12_per_100g":0.0,"vitamin_e_per_100g":0.0,"vitamin_k_per_100g":0.0,"folate_per_100g":0.0,"omega_3_per_100g":0.0,"unit_options":[]}
     """
 
-    private static let nutrientUnitsInstruction = "Calories/protein/carbs/fat are integers. serving_size_grams is the estimated weight in grams. Nutrients are numbers: sugar/fiber/fats/omega_3 in grams; cholesterol/sodium/potassium/calcium/iron/magnesium/zinc/vitamin_c/vitamin_e in milligrams; vitamin_a/vitamin_d/vitamin_b12/vitamin_k/folate in micrograms."
+    private static let nutrientUnitsInstruction = "Calories are integers. Protein/carbs/fat are decimal gram values when needed. serving_size_grams is the estimated weight in grams. Nutrients are numbers: sugar/fiber/fats/omega_3 in grams; cholesterol/sodium/potassium/calcium/iron/magnesium/zinc/vitamin_c/vitamin_e in milligrams; vitamin_a/vitamin_d/vitamin_b12/vitamin_k/folate in micrograms."
 
     // MARK: - Public API (unchanged interface)
 
@@ -451,6 +456,63 @@ struct GeminiService {
 
         let text = try await callAI(prompt: prompt, image: nil)
         return try parseOptionalNutrientGoals(from: text, fallback: currentGoals)
+    }
+
+    static func suggestHealthEnergyGoals(
+        profile: UserProfile,
+        energy: HealthEnergySummary,
+        useMetric: Bool
+    ) async throws -> HealthEnergyGoalSuggestion {
+        let weight = useMetric
+            ? String(format: "%.1f kg", profile.weightKg)
+            : String(format: "%.1f lb", profile.weightKg * 2.20462)
+        let height = useMetric
+            ? String(format: "%.0f cm", profile.heightCm)
+            : String(format: "%.1f in", profile.heightCm / 2.54)
+        let bodyFat = profile.bodyFatPercentage.map { "\(Int(($0 * 100).rounded()))%" } ?? "not set"
+        let goalWeight = profile.goalWeightKg.map { kg in
+            useMetric ? String(format: "%.1f kg", kg) : String(format: "%.1f lb", kg * 2.20462)
+        } ?? "not set"
+        let healthTotalLine = energy.totalAverageCalories
+            .map { "\($0) kcal/day from active + basal energy" }
+            ?? "basal energy unavailable; estimate total burn from app BMR + Apple Health active energy"
+
+        let prompt = """
+        You are setting a daily calorie target for a food tracking app.
+        Return ONLY valid JSON with these exact keys:
+        {"calories":2000,"reason":"Short reason under 100 characters"}
+
+        Use Apple Health energy as the primary activity signal, but keep the app's existing formula as a sanity check.
+        If Apple Health basal energy is unavailable, estimate total daily burn from app BMR plus Apple Health active energy.
+        Apply the user's weight goal and weekly change preference to choose the calorie target.
+        Keep calories practical for a consumer food tracker: 800-6000 kcal.
+        Do not set protein, carbs, or fat; the app keeps macros unlocked on auto-balance unless the user manually locks them.
+        Use integers only for calories. Do not include any other keys.
+
+        User profile:
+        - Gender: \(profile.gender.displayName)
+        - Age: \(profile.age)
+        - Height: \(height)
+        - Weight: \(weight)
+        - Activity level setting: \(profile.activityLevel.displayName)
+        - Weight goal: \(profile.goal.displayName)
+        - Weekly change preference: \(profile.weeklyChangeKg.map { String(format: "%.2f kg/week", $0) } ?? "maintain")
+        - Goal weight: \(goalWeight)
+        - Body fat: \(bodyFat)
+
+        Existing app formula:
+        - BMR: \(Int(profile.bmr.rounded())) kcal/day
+        - TDEE: \(Int(profile.tdee.rounded())) kcal/day
+        - Formula calorie target: \(profile.dailyCalories) kcal/day
+
+        Apple Health energy from \(energy.daysUsed) of the last \(energy.requestedDays) completed days:
+        - Active energy average: \(energy.activeAverageCalories) kcal/day
+        - Basal energy average: \(energy.basalAverageCalories.map { "\($0) kcal/day" } ?? "not available")
+        - Health total: \(healthTotalLine)
+        """
+
+        let text = try await callAI(prompt: prompt, image: nil)
+        return try parseHealthEnergyGoalSuggestion(from: text)
     }
 
     // MARK: - Weight Forecast Insight
@@ -908,9 +970,9 @@ struct GeminiService {
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let name = json["name"] as? String,
               let calories = (json["calories"] as? NSNumber)?.intValue,
-              let protein = (json["protein"] as? NSNumber)?.intValue,
-              let carbs = (json["carbs"] as? NSNumber)?.intValue,
-              let fat = (json["fat"] as? NSNumber)?.intValue
+              let protein = (json["protein"] as? NSNumber)?.doubleValue,
+              let carbs = (json["carbs"] as? NSNumber)?.doubleValue,
+              let fat = (json["fat"] as? NSNumber)?.doubleValue
         else { throw AnalysisError.invalidResponse }
         let servingSizeGrams = (json["serving_size_grams"] as? NSNumber)?.doubleValue ?? 100
         let unitOptions = parseServingUnitOptions(from: json, servingSizeGrams: servingSizeGrams)
@@ -1015,6 +1077,19 @@ struct GeminiService {
 
         guard parsedAnyValue else { throw AnalysisError.invalidResponse }
         return goals.mergedWithDefaults()
+    }
+
+    private static func parseHealthEnergyGoalSuggestion(from text: String) throws -> HealthEnergyGoalSuggestion {
+        let jsonString = extractJSON(from: text)
+        guard let data = jsonString.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let calories = (json["calories"] as? NSNumber)?.intValue
+        else { throw AnalysisError.invalidResponse }
+
+        return HealthEnergyGoalSuggestion(
+            calories: min(max(calories, 800), 6_000),
+            reason: json["reason"] as? String
+        )
     }
 
     private static func addingFallbackServingUnits(

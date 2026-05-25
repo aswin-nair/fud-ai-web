@@ -124,6 +124,8 @@ private struct MacroBar: View {
                 Text(nutrient.displayPair)
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
@@ -199,7 +201,8 @@ private struct RectangularCalorieView: View {
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.55)
+                    .allowsTightening(true)
             }
             Spacer(minLength: 0)
         }
