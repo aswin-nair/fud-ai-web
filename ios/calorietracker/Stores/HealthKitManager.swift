@@ -27,26 +27,54 @@ class HealthKitManager {
     /// Bump this when adding new HealthKit types so we can re-request authorization
     /// for users who already authorized the old set. Just an integer schema marker,
     /// not credentials — named to avoid CodeQL's "auth"-keyword heuristic false positive.
-    private let typesVersion = 3
+    private let typesVersion = 4
     private let typesVersionKey = "healthKitTypesVersion"
 
+    private let nutritionTypeIdentifiers: [HKQuantityTypeIdentifier] = [
+        // Calories + macronutrients
+        .dietaryEnergyConsumed,
+        .dietaryProtein,
+        .dietaryCarbohydrates,
+        .dietaryFatTotal,
+        // Existing detailed nutrition sync
+        .dietarySugar,
+        .dietaryFiber,
+        .dietaryFatSaturated,
+        .dietaryFatMonounsaturated,
+        .dietaryFatPolyunsaturated,
+        .dietaryCholesterol,
+        .dietarySodium,
+        .dietaryPotassium,
+        // Expanded HealthKit nutrition sync for downstream apps such as Bevel
+        .dietaryCalcium,
+        .dietaryIron,
+        .dietaryMagnesium,
+        .dietaryZinc,
+        .dietaryVitaminA,
+        .dietaryVitaminC,
+        .dietaryVitaminD,
+        .dietaryVitaminB12,
+        .dietaryVitaminE,
+        .dietaryVitaminK,
+        .dietaryFolate,
+    ]
+
+    private let expandedNutritionTypeIdentifiers: Set<HKQuantityTypeIdentifier> = [
+        .dietaryCalcium,
+        .dietaryIron,
+        .dietaryMagnesium,
+        .dietaryZinc,
+        .dietaryVitaminA,
+        .dietaryVitaminC,
+        .dietaryVitaminD,
+        .dietaryVitaminB12,
+        .dietaryVitaminE,
+        .dietaryVitaminK,
+        .dietaryFolate,
+    ]
+
     private var dietaryShareTypes: Set<HKSampleType> {
-        [
-            // Macronutrients
-            HKQuantityType(.dietaryEnergyConsumed),
-            HKQuantityType(.dietaryProtein),
-            HKQuantityType(.dietaryCarbohydrates),
-            HKQuantityType(.dietaryFatTotal),
-            // Micronutrients
-            HKQuantityType(.dietarySugar),
-            HKQuantityType(.dietaryFiber),
-            HKQuantityType(.dietaryFatSaturated),
-            HKQuantityType(.dietaryFatMonounsaturated),
-            HKQuantityType(.dietaryFatPolyunsaturated),
-            HKQuantityType(.dietaryCholesterol),
-            HKQuantityType(.dietarySodium),
-            HKQuantityType(.dietaryPotassium),
-        ]
+        Set(nutritionTypeIdentifiers.map { HKQuantityType($0) })
     }
 
     private var shareTypes: Set<HKSampleType> {
@@ -71,6 +99,12 @@ class HealthKitManager {
     private let bodyFatBackfillVersionKey = "healthKitBodyFatBackfillVersion"
     private var isBackfillingWeight = false
     private var isBackfillingBodyFat = false
+
+    private struct NutritionQuantity {
+        var identifier: HKQuantityTypeIdentifier
+        var value: Double
+        var unit: HKUnit
+    }
 
     private var readTypes: Set<HKObjectType> {
         [
@@ -103,9 +137,7 @@ class HealthKitManager {
         do {
             try await healthStore.requestAuthorization(toShare: shareTypes, read: readTypes)
             authorizationStatus = healthStore.authorizationStatus(for: HKQuantityType(.bodyMass))
-            if dietaryShareTypes.allSatisfy({ healthStore.authorizationStatus(for: $0) == .sharingAuthorized }) {
-                persistCurrentTypesVersion()
-            }
+            persistCurrentTypesVersion()
             return true
         } catch {
             return false
@@ -119,9 +151,9 @@ class HealthKitManager {
         UserDefaults.standard.set(typesVersion, forKey: typesVersionKey)
     }
 
-    /// Whether HealthKit currently has write permission for nutrition samples.
+    /// Whether HealthKit currently has write permission for at least one nutrition sample.
     var hasNutritionWriteAccess: Bool {
-        dietaryShareTypes.allSatisfy { healthStore.authorizationStatus(for: $0) == .sharingAuthorized }
+        dietaryShareTypes.contains { healthStore.authorizationStatus(for: $0) == .sharingAuthorized }
     }
 
     // MARK: - Write Body Measurements
@@ -219,24 +251,12 @@ class HealthKitManager {
             HKMetadataKeyFoodType: entry.name,
         ]
 
-        var samples: [HKQuantitySample] = []
+        let samples = nutritionQuantities(for: entry).compactMap { quantity -> HKQuantitySample? in
+            guard isSharingAuthorized(quantity.identifier) else { return nil }
+            return makeSample(quantity.identifier, value: quantity.value, unit: quantity.unit, date: entry.timestamp, metadata: metadata)
+        }
 
-        // Macros (always present)
-        samples.append(makeSample(.dietaryEnergyConsumed, value: Double(entry.calories), unit: .kilocalorie(), date: entry.timestamp, metadata: metadata))
-        samples.append(makeSample(.dietaryProtein, value: Double(entry.protein), unit: .gram(), date: entry.timestamp, metadata: metadata))
-        samples.append(makeSample(.dietaryCarbohydrates, value: Double(entry.carbs), unit: .gram(), date: entry.timestamp, metadata: metadata))
-        samples.append(makeSample(.dietaryFatTotal, value: Double(entry.fat), unit: .gram(), date: entry.timestamp, metadata: metadata))
-
-        // Micronutrients (optional)
-        if let v = entry.sugar { samples.append(makeSample(.dietarySugar, value: v, unit: .gram(), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.fiber { samples.append(makeSample(.dietaryFiber, value: v, unit: .gram(), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.saturatedFat { samples.append(makeSample(.dietaryFatSaturated, value: v, unit: .gram(), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.monounsaturatedFat { samples.append(makeSample(.dietaryFatMonounsaturated, value: v, unit: .gram(), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.polyunsaturatedFat { samples.append(makeSample(.dietaryFatPolyunsaturated, value: v, unit: .gram(), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.cholesterol { samples.append(makeSample(.dietaryCholesterol, value: v, unit: .gramUnit(with: .milli), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.sodium { samples.append(makeSample(.dietarySodium, value: v, unit: .gramUnit(with: .milli), date: entry.timestamp, metadata: metadata)) }
-        if let v = entry.potassium { samples.append(makeSample(.dietaryPotassium, value: v, unit: .gramUnit(with: .milli), date: entry.timestamp, metadata: metadata)) }
-
+        guard !samples.isEmpty else { return }
         healthStore.save(samples) { _, _ in }
     }
 
@@ -278,8 +298,10 @@ class HealthKitManager {
             defer { isBackfillingNutrition = false }
             for entry in entries {
                 guard currentEntryIDs().contains(entry.id) else { continue }
-                if await !nutritionSampleExists(forEntryID: entry.id) {
+                if await !nutritionSampleExists(forEntryID: entry.id, identifier: .dietaryEnergyConsumed) {
                     writeNutrition(for: entry)
+                } else {
+                    await writeMissingNutritionSamples(for: entry, limitedTo: expandedNutritionTypeIdentifiers)
                 }
             }
             UserDefaults.standard.set(typesVersion, forKey: nutritionBackfillVersionKey)
@@ -364,9 +386,9 @@ class HealthKitManager {
         }
     }
 
-    private func nutritionSampleExists(forEntryID entryID: UUID) async -> Bool {
+    private func nutritionSampleExists(forEntryID entryID: UUID, identifier: HKQuantityTypeIdentifier) async -> Bool {
         let predicate = HKQuery.predicateForObjects(withMetadataKey: "fudai_entry_id", operatorType: .equalTo, value: entryID.uuidString)
-        let type = HKQuantityType(.dietaryEnergyConsumed)
+        let type = HKQuantityType(identifier)
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: 1, sortDescriptors: nil) { _, results, _ in
                 continuation.resume(returning: !(results?.isEmpty ?? true))
@@ -377,13 +399,8 @@ class HealthKitManager {
 
     private func deleteNutritionSamples(entryID: UUID) async {
         let predicate = HKQuery.predicateForObjects(withMetadataKey: "fudai_entry_id", operatorType: .equalTo, value: entryID.uuidString)
-        let nutritionTypes: [HKQuantityTypeIdentifier] = [
-            .dietaryEnergyConsumed, .dietaryProtein, .dietaryCarbohydrates, .dietaryFatTotal,
-            .dietarySugar, .dietaryFiber, .dietaryFatSaturated, .dietaryFatMonounsaturated,
-            .dietaryFatPolyunsaturated, .dietaryCholesterol, .dietarySodium, .dietaryPotassium,
-        ]
         await withTaskGroup(of: Void.self) { group in
-            for identifier in nutritionTypes {
+            for identifier in nutritionTypeIdentifiers {
                 group.addTask { [healthStore] in
                     await withCheckedContinuation { continuation in
                         healthStore.deleteObjects(of: HKQuantityType(identifier), predicate: predicate) { _, _, _ in
@@ -393,6 +410,66 @@ class HealthKitManager {
                 }
             }
         }
+    }
+
+    private func writeMissingNutritionSamples(for entry: FoodEntry, limitedTo identifiers: Set<HKQuantityTypeIdentifier>) async {
+        let metadata: [String: Any] = [
+            "fudai_entry_id": entry.id.uuidString,
+            HKMetadataKeyFoodType: entry.name,
+        ]
+        var samples: [HKQuantitySample] = []
+        for quantity in nutritionQuantities(for: entry) where identifiers.contains(quantity.identifier) {
+            guard isSharingAuthorized(quantity.identifier) else { continue }
+            let exists = await nutritionSampleExists(forEntryID: entry.id, identifier: quantity.identifier)
+            guard !exists else { continue }
+            samples.append(makeSample(quantity.identifier, value: quantity.value, unit: quantity.unit, date: entry.timestamp, metadata: metadata))
+        }
+        guard !samples.isEmpty else { return }
+        await withCheckedContinuation { continuation in
+            healthStore.save(samples) { _, _ in
+                continuation.resume()
+            }
+        }
+    }
+
+    private func nutritionQuantities(for entry: FoodEntry) -> [NutritionQuantity] {
+        var quantities: [NutritionQuantity] = [
+            NutritionQuantity(identifier: .dietaryEnergyConsumed, value: Double(entry.calories), unit: .kilocalorie()),
+            NutritionQuantity(identifier: .dietaryProtein, value: Double(entry.protein), unit: .gram()),
+            NutritionQuantity(identifier: .dietaryCarbohydrates, value: Double(entry.carbs), unit: .gram()),
+            NutritionQuantity(identifier: .dietaryFatTotal, value: Double(entry.fat), unit: .gram()),
+        ]
+
+        func append(_ identifier: HKQuantityTypeIdentifier, value: Double?, unit: HKUnit) {
+            guard let value else { return }
+            quantities.append(NutritionQuantity(identifier: identifier, value: value, unit: unit))
+        }
+
+        append(.dietarySugar, value: entry.sugar, unit: .gram())
+        append(.dietaryFiber, value: entry.fiber, unit: .gram())
+        append(.dietaryFatSaturated, value: entry.saturatedFat, unit: .gram())
+        append(.dietaryFatMonounsaturated, value: entry.monounsaturatedFat, unit: .gram())
+        append(.dietaryFatPolyunsaturated, value: entry.polyunsaturatedFat, unit: .gram())
+        append(.dietaryCholesterol, value: entry.cholesterol, unit: .gramUnit(with: .milli))
+        append(.dietarySodium, value: entry.sodium, unit: .gramUnit(with: .milli))
+        append(.dietaryPotassium, value: entry.potassium, unit: .gramUnit(with: .milli))
+        append(.dietaryCalcium, value: entry.calcium, unit: .gramUnit(with: .milli))
+        append(.dietaryIron, value: entry.iron, unit: .gramUnit(with: .milli))
+        append(.dietaryMagnesium, value: entry.magnesium, unit: .gramUnit(with: .milli))
+        append(.dietaryZinc, value: entry.zinc, unit: .gramUnit(with: .milli))
+        append(.dietaryVitaminA, value: entry.vitaminA, unit: .gramUnit(with: .micro))
+        append(.dietaryVitaminC, value: entry.vitaminC, unit: .gramUnit(with: .milli))
+        append(.dietaryVitaminD, value: entry.vitaminD, unit: .gramUnit(with: .micro))
+        append(.dietaryVitaminB12, value: entry.vitaminB12, unit: .gramUnit(with: .micro))
+        append(.dietaryVitaminE, value: entry.vitaminE, unit: .gramUnit(with: .milli))
+        append(.dietaryVitaminK, value: entry.vitaminK, unit: .gramUnit(with: .micro))
+        append(.dietaryFolate, value: entry.folate, unit: .gramUnit(with: .micro))
+
+        return quantities
+    }
+
+    private func isSharingAuthorized(_ identifier: HKQuantityTypeIdentifier) -> Bool {
+        healthStore.authorizationStatus(for: HKQuantityType(identifier)) == .sharingAuthorized
     }
 
     private func makeSample(_ identifier: HKQuantityTypeIdentifier, value: Double, unit: HKUnit, date: Date, metadata: [String: Any]) -> HKQuantitySample {
