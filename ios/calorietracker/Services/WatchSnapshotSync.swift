@@ -8,7 +8,7 @@ final class WatchSnapshotSync: NSObject, WCSessionDelegate {
     static let shared = WatchSnapshotSync()
 
     private var pendingSnapshot: WidgetSnapshot?
-    private var lastQueuedPayload: Data?
+    private var lastQueuedContent: QueuedSnapshotContent?
 
     private override init() {
         super.init()
@@ -21,7 +21,7 @@ final class WatchSnapshotSync: NSObject, WCSessionDelegate {
               let session = activatedSession()
         else { return }
 
-        deliver(payload, through: session)
+        deliver(snapshot, payload: payload, through: session)
     }
 
     private func activatedSession() -> WCSession? {
@@ -47,7 +47,7 @@ final class WatchSnapshotSync: NSObject, WCSessionDelegate {
         return session
     }
 
-    private func deliver(_ payload: Data, through session: WCSession) {
+    private func deliver(_ snapshot: WidgetSnapshot, payload: Data, through session: WCSession) {
         let context = [WidgetSnapshot.watchPayloadKey: payload]
 
         // 1. Always update the application context (last-write-wins, survives app kills).
@@ -62,8 +62,9 @@ final class WatchSnapshotSync: NSObject, WCSessionDelegate {
 
         // 3. When not reachable (Watch app in background / not running), queue a
         //    reliable transferUserInfo so the Watch gets it when it next wakes up.
-        guard lastQueuedPayload != payload else { return }
-        lastQueuedPayload = payload
+        let content = QueuedSnapshotContent(snapshot)
+        guard lastQueuedContent != content else { return }
+        lastQueuedContent = content
         session.transferUserInfo(context)
         if session.isComplicationEnabled {
             session.transferCurrentComplicationUserInfo(context)
@@ -83,5 +84,31 @@ final class WatchSnapshotSync: NSObject, WCSessionDelegate {
 
     func sessionDidDeactivate(_ session: WCSession) {
         session.activate()
+    }
+
+    private struct QueuedSnapshotContent: Equatable {
+        let dayStart: Date
+        let calories: Int
+        let calorieGoal: Int
+        let protein: Double
+        let proteinGoal: Int
+        let carbs: Double
+        let carbsGoal: Int
+        let fat: Double
+        let fatGoal: Int
+        let homeNutrients: [WidgetNutrientValue]?
+
+        init(_ snapshot: WidgetSnapshot) {
+            dayStart = snapshot.dayStart
+            calories = snapshot.calories
+            calorieGoal = snapshot.calorieGoal
+            protein = snapshot.protein
+            proteinGoal = snapshot.proteinGoal
+            carbs = snapshot.carbs
+            carbsGoal = snapshot.carbsGoal
+            fat = snapshot.fat
+            fatGoal = snapshot.fatGoal
+            homeNutrients = snapshot.homeNutrients
+        }
     }
 }

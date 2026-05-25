@@ -29,20 +29,29 @@ struct WidgetSnapshot: Codable, Equatable {
               let snapshot = try? JSONDecoder().decode(WidgetSnapshot.self, from: data)
         else { return nil }
 
-        let today = Calendar.current.startOfDay(for: Date())
-        guard Calendar.current.isDate(snapshot.dayStart, inSameDayAs: today) else {
-            // New day: reset progress to zero but keep the user's goals so
-            // the Watch app doesn't fall back to hard-coded defaults.
-            return WidgetSnapshot(
-                date: Date(),
-                dayStart: today,
-                calories: 0, calorieGoal: snapshot.calorieGoal,
-                protein: 0, proteinGoal: snapshot.proteinGoal,
-                carbs: 0, carbsGoal: snapshot.carbsGoal,
-                fat: 0, fatGoal: snapshot.fatGoal
-            )
+        return snapshot.normalizedForToday()
+    }
+
+    func normalizedForToday(_ now: Date = Date()) -> WidgetSnapshot {
+        let today = Calendar.current.startOfDay(for: now)
+        guard Calendar.current.isDate(dayStart, inSameDayAs: today) else {
+            return zeroedForToday(now)
         }
-        return snapshot
+        return self
+    }
+
+    private func zeroedForToday(_ now: Date) -> WidgetSnapshot {
+        let today = Calendar.current.startOfDay(for: now)
+        // New day: reset progress to zero but keep the user's goals so
+        // the Watch app doesn't fall back to hard-coded defaults.
+        return WidgetSnapshot(
+            date: now,
+            dayStart: today,
+            calories: 0, calorieGoal: calorieGoal,
+            protein: 0, proteinGoal: proteinGoal,
+            carbs: 0, carbsGoal: carbsGoal,
+            fat: 0, fatGoal: fatGoal
+        )
     }
 
     static func write(_ snapshot: WidgetSnapshot) {

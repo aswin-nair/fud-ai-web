@@ -49,9 +49,11 @@ final class WatchSnapshotReceiver: NSObject, ObservableObject, WCSessionDelegate
               let incomingSnapshot = WidgetSnapshot.decodePayload(data)
         else { return }
 
+        let normalizedSnapshot = incomingSnapshot.normalizedForToday()
+
         DispatchQueue.main.async {
-            WidgetSnapshot.write(incomingSnapshot)
-            self.snapshot = incomingSnapshot
+            WidgetSnapshot.write(normalizedSnapshot)
+            self.snapshot = normalizedSnapshot
             WidgetCenter.shared.reloadAllTimelines()
         }
     }
