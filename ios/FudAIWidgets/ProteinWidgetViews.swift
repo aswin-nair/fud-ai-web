@@ -193,7 +193,8 @@ private struct RectangularProteinView: View {
                     .font(.system(.caption2, design: .rounded, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.55)
+                    .allowsTightening(true)
             }
             Spacer(minLength: 0)
         }

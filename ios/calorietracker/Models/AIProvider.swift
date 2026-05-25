@@ -135,6 +135,8 @@ struct AIAccessSettings {
         UserDefaults.standard.removeObject(forKey: postPlusIntroReviewVersionKey)
         UserDefaults.standard.removeObject(forKey: proxyEndpointKey)
     }
+
+
 }
 
 enum AIProvider: String, CaseIterable, Codable, Identifiable {
