@@ -5,11 +5,11 @@ struct WidgetSnapshot: Codable, Equatable {
     let dayStart: Date
     let calories: Int
     let calorieGoal: Int
-    let protein: Int
+    let protein: Double
     let proteinGoal: Int
-    let carbs: Int
+    let carbs: Double
     let carbsGoal: Int
-    let fat: Int
+    let fat: Double
     let fatGoal: Int
 
     static var appGroupID: String {
@@ -79,12 +79,12 @@ struct WidgetSnapshot: Codable, Equatable {
     }
 
     var caloriesRemaining: Int { max(0, calorieGoal - calories) }
-    var proteinRemaining: Int { max(0, proteinGoal - protein) }
-    var carbsRemaining: Int { max(0, carbsGoal - carbs) }
-    var fatRemaining: Int { max(0, fatGoal - fat) }
+    var proteinRemaining: Double { max(0, Double(proteinGoal) - protein) }
+    var carbsRemaining: Double { max(0, Double(carbsGoal) - carbs) }
+    var fatRemaining: Double { max(0, Double(fatGoal) - fat) }
 
     var calorieProgress: Double {
-        progress(value: calories, goal: calorieGoal)
+        progress(value: Double(calories), goal: calorieGoal)
     }
 
     var proteinProgress: Double {
@@ -99,8 +99,8 @@ struct WidgetSnapshot: Codable, Equatable {
         progress(value: fat, goal: fatGoal)
     }
 
-    private func progress(value: Int, goal: Int) -> Double {
+    private func progress(value: Double, goal: Int) -> Double {
         guard goal > 0 else { return 0 }
-        return min(1.0, Double(value) / Double(goal))
+        return min(1.0, value / Double(goal))
     }
 }

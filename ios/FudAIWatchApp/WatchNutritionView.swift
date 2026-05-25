@@ -95,7 +95,7 @@ private struct CalorieSummary: View {
 
 private struct NutrientProgressRow: View {
     let title: String
-    let value: Int
+    let value: Double
     let goal: Int
     let unit: String
     let progress: Double
@@ -107,7 +107,7 @@ private struct NutrientProgressRow: View {
                 Text(title)
                     .font(.caption.weight(.semibold))
                 Spacer(minLength: 4)
-                Text("\(value)\(unit) / \(goal)\(unit)")
+                Text("\(Self.format(value))\(unit) / \(goal)\(unit)")
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -127,6 +127,13 @@ private struct NutrientProgressRow: View {
         }
         .padding(8)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private static func format(_ value: Double) -> String {
+        if abs(value.rounded() - value) < 0.0001 {
+            return "\(Int(value.rounded()))"
+        }
+        return String(format: "%.1f", value)
     }
 }
 

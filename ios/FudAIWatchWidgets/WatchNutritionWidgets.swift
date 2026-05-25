@@ -8,6 +8,15 @@ private enum WatchWidgetPalette {
     static let fat = Color.orange
 }
 
+private enum WatchWidgetFormat {
+    static func macro(_ value: Double) -> String {
+        if abs(value.rounded() - value) < 0.0001 {
+            return "\(Int(value.rounded()))"
+        }
+        return String(format: "%.1f", value)
+    }
+}
+
 struct WatchNutritionEntry: TimelineEntry {
     let date: Date
     let snapshot: WidgetSnapshot
@@ -80,7 +89,7 @@ private struct WatchCaloriesWidgetView: View {
         switch family {
         case .accessoryCircular:
             NutrientCircularView(
-                value: snapshot.calories,
+                value: "\(snapshot.calories)",
                 label: "kcal",
                 progress: snapshot.calorieProgress,
                 color: WatchWidgetPalette.calories,
@@ -92,14 +101,14 @@ private struct WatchCaloriesWidgetView: View {
             Text("\(snapshot.calories) / \(snapshot.calorieGoal) kcal")
         case .accessoryCorner:
             CornerValueView(
-                value: snapshot.calories,
+                value: "\(snapshot.calories)",
                 unit: "kcal",
                 progress: snapshot.calorieProgress,
                 color: WatchWidgetPalette.calories
             )
         default:
             NutrientCircularView(
-                value: snapshot.calories,
+                value: "\(snapshot.calories)",
                 label: "kcal",
                 progress: snapshot.calorieProgress,
                 color: WatchWidgetPalette.calories,
@@ -117,7 +126,7 @@ private struct WatchProteinWidgetView: View {
         switch family {
         case .accessoryCircular:
             NutrientCircularView(
-                value: snapshot.protein,
+                value: WatchWidgetFormat.macro(snapshot.protein),
                 label: "prot",
                 progress: snapshot.proteinProgress,
                 color: WatchWidgetPalette.protein,
@@ -126,25 +135,25 @@ private struct WatchProteinWidgetView: View {
         case .accessoryRectangular:
             NutrientRectangularView(
                 title: "Protein",
-                value: "\(snapshot.protein)g",
+                value: "\(WatchWidgetFormat.macro(snapshot.protein))g",
                 subtitle: "of \(snapshot.proteinGoal)g",
-                footer: "\(snapshot.proteinRemaining)g left",
+                footer: "\(WatchWidgetFormat.macro(snapshot.proteinRemaining))g left",
                 progress: snapshot.proteinProgress,
                 color: WatchWidgetPalette.protein,
                 icon: "bolt.fill"
             )
         case .accessoryInline:
-            Text("\(snapshot.protein)g / \(snapshot.proteinGoal)g protein")
+            Text("\(WatchWidgetFormat.macro(snapshot.protein))g / \(snapshot.proteinGoal)g protein")
         case .accessoryCorner:
             CornerValueView(
-                value: snapshot.protein,
+                value: WatchWidgetFormat.macro(snapshot.protein),
                 unit: "g",
                 progress: snapshot.proteinProgress,
                 color: WatchWidgetPalette.protein
             )
         default:
             NutrientCircularView(
-                value: snapshot.protein,
+                value: WatchWidgetFormat.macro(snapshot.protein),
                 label: "prot",
                 progress: snapshot.proteinProgress,
                 color: WatchWidgetPalette.protein,
@@ -165,7 +174,7 @@ private struct WatchMacrosWidgetView: View {
         case .accessoryRectangular:
             MacrosRectangularView(snapshot: snapshot)
         case .accessoryInline:
-            Text("P\(snapshot.protein) C\(snapshot.carbs) F\(snapshot.fat)")
+            Text("P\(WatchWidgetFormat.macro(snapshot.protein)) C\(WatchWidgetFormat.macro(snapshot.carbs)) F\(WatchWidgetFormat.macro(snapshot.fat))")
         default:
             MacrosCircularView(snapshot: snapshot)
         }
@@ -180,7 +189,7 @@ private struct CaloriesRectangularView: View {
             title: "Calories",
             value: "\(snapshot.calories)",
             subtitle: "of \(snapshot.calorieGoal) kcal",
-            footer: "P\(snapshot.protein) C\(snapshot.carbs) F\(snapshot.fat)",
+            footer: "P\(WatchWidgetFormat.macro(snapshot.protein)) C\(WatchWidgetFormat.macro(snapshot.carbs)) F\(WatchWidgetFormat.macro(snapshot.fat))",
             progress: snapshot.calorieProgress,
             color: WatchWidgetPalette.calories,
             icon: "flame.fill"
@@ -189,7 +198,7 @@ private struct CaloriesRectangularView: View {
 }
 
 private struct NutrientCircularView: View {
-    let value: Int
+    let value: String
     let label: String
     let progress: Double
     let color: Color
@@ -209,7 +218,7 @@ private struct NutrientCircularView: View {
             VStack(spacing: 0) {
                 Image(systemName: icon)
                     .font(.system(size: 9, weight: .bold))
-                Text("\(value)")
+                Text(value)
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.55)
                     .lineLimit(1)
@@ -270,7 +279,7 @@ private struct NutrientRectangularView: View {
 }
 
 private struct CornerValueView: View {
-    let value: Int
+    let value: String
     let unit: String
     let progress: Double
     let color: Color
@@ -283,7 +292,7 @@ private struct CornerValueView: View {
                 .rotationEffect(.degrees(-90))
                 .widgetAccentable()
             VStack(spacing: 0) {
-                Text("\(value)")
+                Text(value)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.55)
                     .lineLimit(1)
@@ -328,7 +337,7 @@ private struct MacrosRectangularView: View {
 
 private struct MacroMiniLine: View {
     let label: String
-    let value: Int
+    let value: Double
     let progress: Double
     let color: Color
 
@@ -347,7 +356,7 @@ private struct MacroMiniLine: View {
                     }
             }
             .frame(height: 4)
-            Text("\(value)")
+            Text(WatchWidgetFormat.macro(value))
                 .font(.system(size: 8, weight: .semibold, design: .rounded))
                 .minimumScaleFactor(0.6)
                 .frame(width: 16, alignment: .trailing)
@@ -357,7 +366,7 @@ private struct MacroMiniLine: View {
 
 private struct MacroBar: View {
     let label: String
-    let value: Int
+    let value: Double
     let goal: Int
     let progress: Double
     let color: Color
@@ -377,7 +386,7 @@ private struct MacroBar: View {
                     }
             }
             .frame(height: 5)
-            Text("\(value)/\(goal)")
+            Text("\(WatchWidgetFormat.macro(value))/\(goal)")
                 .font(.caption2.monospacedDigit())
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
