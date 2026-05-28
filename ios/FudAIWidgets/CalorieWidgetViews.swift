@@ -177,14 +177,14 @@ private struct RectangularCalorieView: View {
             AccessoryMetricRow(
                 iconName: "leaf.fill",
                 label: "Calories",
-                value: "\(snapshot.calories)"
+                value: "\(snapshot.calories) / \(snapshot.calorieGoal)"
             )
 
             ForEach(snapshot.displayedHomeNutrients) { nutrient in
                 AccessoryMetricRow(
                     iconName: nutrient.iconName,
                     label: nutrient.label,
-                    value: nutrient.displayCurrentWithUnit
+                    value: nutrient.displayPair
                 )
             }
         }
@@ -235,9 +235,10 @@ struct AccessoryMetricRow: View {
             Spacer(minLength: 4)
 
             Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .monospacedDigit()
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.65)
                 .widgetAccentable()
         }
     }

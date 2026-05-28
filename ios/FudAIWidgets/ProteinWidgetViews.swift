@@ -168,7 +168,7 @@ private struct RectangularProteinView: View {
                 AccessoryMetricRow(
                     iconName: nutrient.iconName,
                     label: nutrient.label,
-                    value: nutrient.displayCurrentWithUnit
+                    value: nutrient.displayPair
                 )
             }
         }

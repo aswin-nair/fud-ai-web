@@ -552,7 +552,7 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
-        "Lock Screen rectangular widgets now use clean metric rows with aligned values.",
+        "Lock Screen rectangular widgets now show current / goal values in clean metric rows.",
         "The calorie rectangular widget shows calories plus all three selected Home nutrients.",
         "The nutrient rectangular widget shows three selected nutrients as readable rows."
     ]
