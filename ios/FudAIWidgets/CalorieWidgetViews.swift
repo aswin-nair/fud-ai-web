@@ -180,7 +180,7 @@ private struct RectangularCalorieView: View {
                 value: "\(snapshot.calories)"
             )
 
-            ForEach(Array(snapshot.displayedHomeNutrients.prefix(2))) { nutrient in
+            ForEach(snapshot.displayedHomeNutrients) { nutrient in
                 AccessoryMetricRow(
                     iconName: nutrient.iconName,
                     label: nutrient.label,
@@ -208,7 +208,7 @@ struct AccessoryMetricList<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: 0) {
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -223,19 +223,19 @@ struct AccessoryMetricRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Image(systemName: iconName)
-                .font(.system(size: 12, weight: .semibold))
-                .frame(width: 16)
+                .font(.system(size: 11, weight: .semibold))
+                .frame(width: 15)
                 .widgetAccentable()
 
             Text(label)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
             Spacer(minLength: 4)
 
             Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .widgetAccentable()

@@ -34,7 +34,7 @@ Fud AI 4.1 — clearer Lock Screen widgets.
 
 NEW
 • Lock Screen rectangular widgets now use clean metric rows with aligned values.
-• The calorie rectangular widget shows calories plus your top Home nutrients more clearly.
+• The calorie rectangular widget shows calories plus all three selected Home nutrients.
 • The nutrient rectangular widget shows three selected nutrients as readable rows.
 
 No data migration is required. Existing logs, goals, widgets, BYOK settings, and Fud AI Plus status are preserved.
