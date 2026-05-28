@@ -39,7 +39,6 @@ struct ProteinWidget: Widget {
             .systemSmall,
             .systemMedium,
             .accessoryCircular,
-            .accessoryRectangular,
             .accessoryInline,
         ])
     }

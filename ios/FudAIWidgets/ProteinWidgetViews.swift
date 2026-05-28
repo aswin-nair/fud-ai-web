@@ -138,24 +138,11 @@ private struct CircularProteinView: View {
     private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
-        ZStack {
-            AccessoryWidgetBackground()
-            Circle()
-                .trim(from: 0, to: nutrient.progress)
-                .stroke(style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .padding(3)
-            VStack(spacing: 0) {
-                Text(nutrient.displayValue)
-                    .font(.system(.caption, design: .rounded, weight: .bold))
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
-                Text(nutrient.shortLabel)
-                    .font(.system(size: 8, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .widgetAccentable()
+        AccessoryCircularMetricView(
+            iconName: nutrient.iconName,
+            value: nutrient.displayValue,
+            label: nutrient.shortLabel
+        )
     }
 }
 

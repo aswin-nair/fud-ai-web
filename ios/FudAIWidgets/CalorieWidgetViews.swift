@@ -143,29 +143,16 @@ private struct MacroBar: View {
 
 // MARK: - Lock Screen
 
-/// Above-the-clock circular — ring showing today's calorie progress.
+/// Above-the-clock circular — compact value-first display for quick scanning.
 private struct CircularCalorieView: View {
     let snapshot: WidgetSnapshot
 
     var body: some View {
-        ZStack {
-            AccessoryWidgetBackground()
-            Circle()
-                .trim(from: 0, to: snapshot.calorieProgress)
-                .stroke(style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .padding(3)
-            VStack(spacing: 0) {
-                Text("\(snapshot.calories)")
-                    .font(.system(.caption, design: .rounded, weight: .bold))
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
-                Text("kcal")
-                    .font(.system(size: 8, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .widgetAccentable()
+        AccessoryCircularMetricView(
+            iconName: "leaf.fill",
+            value: "\(snapshot.calories)",
+            label: "kcal"
+        )
     }
 }
 
@@ -241,5 +228,41 @@ struct AccessoryMetricRow: View {
                 .minimumScaleFactor(0.65)
                 .widgetAccentable()
         }
+    }
+}
+
+struct AccessoryCircularMetricView: View {
+    let iconName: String
+    let value: String
+    let label: String
+
+    private var valueFontSize: CGFloat {
+        value.count <= 3 ? 20 : 17
+    }
+
+    var body: some View {
+        ZStack {
+            AccessoryWidgetBackground()
+
+            VStack(spacing: 0) {
+                Image(systemName: iconName)
+                    .font(.system(size: 10, weight: .semibold))
+                    .frame(height: 12)
+
+                Text(value)
+                    .font(.system(size: valueFontSize, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
+
+                Text(label)
+                    .font(.system(size: 8, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 3)
+        }
+        .widgetAccentable()
     }
 }

@@ -34,8 +34,9 @@ Fud AI 4.1 — clearer Lock Screen widgets.
 
 NEW
 • Lock Screen rectangular widgets now show current / goal values in clean metric rows.
+• Lock Screen circular widgets now use larger value-first previews for faster reading.
 • The calorie rectangular widget shows calories plus all three selected Home nutrients.
-• The nutrient rectangular widget shows three selected nutrients as readable rows.
+• The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.
 
 No data migration is required. Existing logs, goals, widgets, BYOK settings, and Fud AI Plus status are preserved.
 ```
@@ -44,7 +45,7 @@ No data migration is required. Existing logs, goals, widgets, BYOK settings, and
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Lock Screen rectangular widgets now show readable current / goal rows for calories and selected nutrients.
+NEW in v4.1: Lock Screen widgets now show readable current / goal rows in the rectangular calorie widget, larger circular values, and no duplicate nutrient rectangular option.
 
 Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Plus if you do not want to set up APIs.
 
