@@ -39,7 +39,7 @@ private struct SmallCalorieView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Image(systemName: "leaf.fill")
+                Image(systemName: "flame.fill")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(WidgetPalette.calorieGradient)
                 Text("Today")
@@ -149,7 +149,7 @@ private struct CircularCalorieView: View {
 
     var body: some View {
         AccessoryCircularMetricView(
-            iconName: "leaf.fill",
+            iconName: "flame.fill",
             value: "\(snapshot.calories)",
             label: "kcal"
         )
@@ -162,14 +162,14 @@ private struct RectangularCalorieView: View {
     var body: some View {
         AccessoryMetricList {
             AccessoryMetricRow(
-                iconName: "leaf.fill",
+                iconName: "flame.fill",
                 label: "Calories",
                 value: "\(snapshot.calories) / \(snapshot.calorieGoal)"
             )
 
             ForEach(snapshot.displayedHomeNutrients) { nutrient in
                 AccessoryMetricRow(
-                    iconName: nutrient.iconName,
+                    iconName: nutrient.lockScreenIconName,
                     label: nutrient.label,
                     value: nutrient.displayPair
                 )

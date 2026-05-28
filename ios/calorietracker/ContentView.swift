@@ -554,6 +554,7 @@ private struct AboutView: View {
     private static let whatsNewItems = [
         "Lock Screen rectangular widgets now show current / goal values in clean metric rows.",
         "Lock Screen circular widgets now use larger value-first previews for faster reading.",
+        "Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.",
         "The calorie rectangular widget shows calories plus all three selected Home nutrients.",
         "The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option."
     ]

@@ -139,7 +139,7 @@ private struct CircularProteinView: View {
 
     var body: some View {
         AccessoryCircularMetricView(
-            iconName: nutrient.iconName,
+            iconName: nutrient.lockScreenIconName,
             value: nutrient.displayValue,
             label: nutrient.shortLabel
         )

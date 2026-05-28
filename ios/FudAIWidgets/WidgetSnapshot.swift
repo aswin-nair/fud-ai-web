@@ -179,7 +179,22 @@ struct WidgetSnapshot: Codable, Equatable {
     }
 }
 
-private extension WidgetNutrientValue {
+extension WidgetNutrientValue {
+    var lockScreenIconName: String {
+        switch id {
+        case "protein": return "fork.knife"
+        case "carbs": return "bolt.fill"
+        case "fat": return "drop.fill"
+        case "fiber": return "circle.grid.2x2.fill"
+        case "folate": return "f.circle.fill"
+        default:
+            if iconName == "leaf" || iconName == "leaf.fill" {
+                return "circle.grid.2x2.fill"
+            }
+            return iconName
+        }
+    }
+
     var summaryLabel: String {
         String(label.prefix(1)).uppercased()
     }
