@@ -161,42 +161,16 @@ private struct CircularProteinView: View {
 
 private struct RectangularProteinView: View {
     let snapshot: WidgetSnapshot
-    private var nutrient: WidgetNutrientValue { snapshot.primaryHomeNutrient }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                Circle()
-                    .stroke(.secondary.opacity(0.3), lineWidth: 3)
-                Circle()
-                    .trim(from: 0, to: nutrient.progress)
-                    .stroke(style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                Image(systemName: nutrient.iconName)
-                    .font(.system(size: 13, weight: .bold))
+        AccessoryMetricList {
+            ForEach(snapshot.displayedHomeNutrients) { nutrient in
+                AccessoryMetricRow(
+                    iconName: nutrient.iconName,
+                    label: nutrient.label,
+                    value: nutrient.displayCurrentWithUnit
+                )
             }
-            .frame(width: 42, height: 42)
-            .widgetAccentable()
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(nutrient.displayCurrentWithUnit)
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                    .widgetAccentable()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text("of \(nutrient.displayGoalWithUnit) \(nutrient.label.lowercased())")
-                    .font(.system(.caption2, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                Text(snapshot.homeNutrientsSummary)
-                    .font(.system(.caption2, design: .rounded, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.55)
-                    .allowsTightening(true)
-            }
-            Spacer(minLength: 0)
         }
     }
 }

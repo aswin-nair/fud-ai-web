@@ -173,38 +173,20 @@ private struct RectangularCalorieView: View {
     let snapshot: WidgetSnapshot
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                Circle()
-                    .stroke(.secondary.opacity(0.3), lineWidth: 3)
-                Circle()
-                    .trim(from: 0, to: snapshot.calorieProgress)
-                    .stroke(style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                Image(systemName: "leaf.fill")
-                    .font(.system(size: 13, weight: .bold))
-            }
-            .frame(width: 42, height: 42)
-            .widgetAccentable()
+        AccessoryMetricList {
+            AccessoryMetricRow(
+                iconName: "leaf.fill",
+                label: "Calories",
+                value: "\(snapshot.calories)"
+            )
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(snapshot.calories)")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                    .widgetAccentable()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text("of \(snapshot.calorieGoal) kcal")
-                    .font(.system(.caption2, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Text(snapshot.homeNutrientsSummary)
-                    .font(.system(.caption2, design: .rounded, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.55)
-                    .allowsTightening(true)
+            ForEach(Array(snapshot.displayedHomeNutrients.prefix(2))) { nutrient in
+                AccessoryMetricRow(
+                    iconName: nutrient.iconName,
+                    label: nutrient.label,
+                    value: nutrient.displayCurrentWithUnit
+                )
             }
-            Spacer(minLength: 0)
         }
     }
 }
@@ -215,5 +197,48 @@ private struct InlineCalorieView: View {
     var body: some View {
         // Inline widgets get exactly one line of text; iOS ignores colors.
         Text("\(snapshot.calories) / \(snapshot.calorieGoal) kcal · \(snapshot.caloriesRemaining) left")
+    }
+}
+
+struct AccessoryMetricList<Content: View>: View {
+    private let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            content
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+}
+
+struct AccessoryMetricRow: View {
+    let iconName: String
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: iconName)
+                .font(.system(size: 12, weight: .semibold))
+                .frame(width: 16)
+                .widgetAccentable()
+
+            Text(label)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+
+            Spacer(minLength: 4)
+
+            Text(value)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .widgetAccentable()
+        }
     }
 }

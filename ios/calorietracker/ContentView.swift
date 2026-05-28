@@ -552,18 +552,15 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
-        "Apple Watch app and complications for calories and macros at a glance.",
-        "Share Extension support for sending food photos into Fud AI from Photos and other apps.",
-        "Apple Health energy-burn goals that can estimate calorie targets while keeping macros editable.",
-        "Decimal nutrition totals on logs, Home, widgets, and nutrition detail views.",
-        "Weight and body-fat progress now show average and net change summaries.",
-        "Gemini 3.5 Flash and the default grams setting are available in Settings."
+        "Lock Screen rectangular widgets now use clean metric rows with aligned values.",
+        "The calorie rectangular widget shows calories plus your top Home nutrients more clearly.",
+        "The nutrient rectangular widget shows three selected nutrients as readable rows."
     ]
 
     private var whatsNewRow: some View {
         DisclosureGroup(isExpanded: $showWhatsNew) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Fud AI 4.0")
+                Text("Fud AI 4.1")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
 

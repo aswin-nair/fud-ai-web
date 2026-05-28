@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Fud AI v4.0. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Fud AI v4.1. Each field is in a code block for easy copy-paste.
 
 ## App Name
 ```
@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Apple Watch, Share Extension, Health energy goals, decimal macros, progress summaries, and Gemini 3.5 Flash.
+Cleaner Lock Screen widgets with readable calorie and nutrient rows.
 ```
 
 ## Keywords (100 chars max)
@@ -28,26 +28,23 @@ Primary: Health & Fitness
 Secondary: Food & Drink
 ```
 
-## What's New (v4.0)
+## What's New (v4.1)
 ```
-Fud AI 4.0 — Apple Watch, faster sharing, and clearer nutrition totals.
+Fud AI 4.1 — clearer Lock Screen widgets.
 
 NEW
-• Added Apple Watch app and complications for calories and macros at a glance.
-• Added iOS Share Extension support so food photos can be sent into Fud AI from Photos and other apps.
-• Added optional Apple Health energy-burn goals in Goal Settings.
-• Macro and nutrient totals now keep decimal precision across logs, Home, widgets, and View More.
-• Weight and body-fat progress now show average and net change summaries.
-• Added Gemini 3.5 Flash and a default grams setting with an in-app explanation.
+• Lock Screen rectangular widgets now use clean metric rows with aligned values.
+• The calorie rectangular widget shows calories plus your top Home nutrients more clearly.
+• The nutrient rectangular widget shows three selected nutrients as readable rows.
 
-Macros remain editable after energy-burn goal estimates, BYOK mode remains available, and existing logged data is preserved on update.
+No data migration is required. Existing logs, goals, widgets, BYOK settings, and Fud AI Plus status are preserved.
 ```
 
 ## Description
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.0: Apple Watch app + complications, iOS Share Extension food-photo import, Apple Health energy-burn goals, decimal macro totals, progress average/net-change summaries, Gemini 3.5 Flash, and default grams controls.
+NEW in v4.1: Lock Screen rectangular widgets now use readable metric rows with aligned values for calories and selected nutrients.
 
 Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Plus if you do not want to set up APIs.
 
