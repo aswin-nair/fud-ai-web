@@ -1,0 +1,53 @@
+name: Report an issue
+description: Report a bug, crash, incorrect behavior, or platform-specific problem.
+title: "[Issue]: "
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Which platform are you using?
+      description: Select where you see the issue.
+      options:
+        - iOS
+        - Android
+        - Both iOS and Android
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version/build
+      description: Add the version and build number shown in the app, if available.
+      placeholder: "Example: iOS 4.1 (21) or Android 2.1 (34)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the issue clearly.
+      placeholder: "Tell us what you expected and what actually happened."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps that trigger the issue.
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. See ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or screen recording
+      description: Drag screenshots or videos here if they help explain the issue.
+    validations:
+      required: false
