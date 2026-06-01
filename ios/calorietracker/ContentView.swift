@@ -584,6 +584,7 @@ struct HomeView: View {
     @State private var currentEmoji: String?
     @State private var currentFoodSource: FoodSource = .snapFood
     @State private var showNutritionDetail = false
+    @AppStorage("useMetric") private var useMetric = false
     @AppStorage(FoodLogSortOrder.storageKey) private var foodLogSortOrderRaw = FoodLogSortOrder.defaultOrder.rawValue
     @AppStorage(HomeTopNutrient.storageKey) private var homeTopNutrientsRaw = HomeTopNutrient.storageValue(for: HomeTopNutrient.defaultSelection)
     @AppStorage(OptionalNutrientGoals.storageKey) private var optionalNutrientGoalsData = Data()
@@ -1065,6 +1066,9 @@ struct HomeView: View {
                             selectedServingUnit: result.selectedServingUnit,
                             selectedServingQuantity: result.selectedServingQuantity,
                             logDate: logDateForSelectedDay,
+                            profile: userProfile,
+                            dayEntries: foodStore.entries(for: logDateForSelectedDay),
+                            useMetric: useMetric,
                             onLog: { entry in
                                 foodStore.addEntry(entry)
                             }

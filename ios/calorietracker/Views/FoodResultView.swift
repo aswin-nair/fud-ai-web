@@ -45,9 +45,13 @@ struct FoodResultView: View {
     @State private var selectedServingUnitID: String
     @State private var quantityFocusRequest = 0
     @State private var isQuantityEditing = false
+    @State private var showWhatIfSheet = false
     @State var mealType: MealType = .currentMeal
 
     let logDate: Date
+    let profile: UserProfile
+    let dayEntries: [FoodEntry]
+    let useMetric: Bool
     var onLog: (FoodEntry) -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -127,6 +131,9 @@ struct FoodResultView: View {
         selectedServingUnit: String? = nil,
         selectedServingQuantity: Double? = nil,
         logDate: Date = .now,
+        profile: UserProfile,
+        dayEntries: [FoodEntry],
+        useMetric: Bool,
         onLog: @escaping (FoodEntry) -> Void
     ) {
         let normalizedServingUnitOptions = ServingUnitOption.normalizedOptions(servingUnitOptions, totalGrams: servingSizeGrams)
@@ -177,6 +184,9 @@ struct FoodResultView: View {
         ))
         self._selectedServingUnitID = State(initialValue: initialServingUnitID)
         self.logDate = logDate
+        self.profile = profile
+        self.dayEntries = dayEntries
+        self.useMetric = useMetric
         self.onLog = onLog
     }
 
@@ -320,11 +330,23 @@ struct FoodResultView: View {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") { dismiss() }
                     }
-                    ToolbarItem(placement: .confirmationAction) {
+                    ToolbarItemGroup(placement: .confirmationAction) {
+                        Button("What if?") { showWhatIfSheet = true }
+                            .font(.system(.body, design: .rounded, weight: .semibold))
+                            .tint(AppColors.protein)
+
                         Button("Log", action: logFood)
                             .font(.system(.body, design: .rounded, weight: .semibold))
                             .tint(AppColors.calorie)
                     }
+                }
+                .sheet(isPresented: $showWhatIfSheet) {
+                    WhatIfMealImpactSheet(
+                        entry: makeFoodEntry(includeImage: false),
+                        dayEntries: dayEntries,
+                        profile: profile,
+                        useMetric: useMetric
+                    )
                 }
             }
         }
@@ -339,14 +361,20 @@ struct FoodResultView: View {
     }
 
     private func logFood() {
-        let entry = FoodEntry(
+        let entry = makeFoodEntry(includeImage: true)
+        onLog(entry)
+        dismiss()
+    }
+
+    private func makeFoodEntry(includeImage: Bool) -> FoodEntry {
+        FoodEntry(
             name: name,
             calories: scaledCalories,
             protein: scaledProtein,
             carbs: scaledCarbs,
             fat: scaledFat,
             timestamp: logDate,
-            imageData: image?.jpegData(compressionQuality: 0.5),
+            imageData: includeImage ? image?.jpegData(compressionQuality: 0.5) : nil,
             emoji: emoji,
             source: source,
             mealType: mealType,
@@ -377,10 +405,259 @@ struct FoodResultView: View {
             selectedServingUnit: servingUnitOptions.isEmpty ? nil : selectedServingOption.unit,
             selectedServingQuantity: servingUnitOptions.isEmpty ? nil : selectedServingQuantity
         )
-        onLog(entry)
-        dismiss()
     }
 
+}
+
+private struct WhatIfMealImpactSheet: View {
+    let entry: FoodEntry
+    let dayEntries: [FoodEntry]
+    let profile: UserProfile
+    let useMetric: Bool
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var isLoadingSuggestion = true
+    @State private var suggestion: String?
+    @State private var suggestionError: String?
+
+    private var currentTotals: WhatIfMacroTotals {
+        WhatIfMacroTotals(entries: dayEntries)
+    }
+
+    private var mealTotals: WhatIfMacroTotals {
+        WhatIfMacroTotals(entry: entry)
+    }
+
+    private var afterTotals: WhatIfMacroTotals {
+        currentTotals + mealTotals
+    }
+
+    private var goals: WhatIfMacroTotals {
+        WhatIfMacroTotals(
+            calories: profile.effectiveCalories,
+            protein: Double(profile.effectiveProtein),
+            carbs: Double(profile.effectiveCarbs),
+            fat: Double(profile.effectiveFat)
+        )
+    }
+
+    private var suggestionTaskID: String {
+        [
+            entry.name,
+            "\(entry.calories)",
+            MacroValueFormatter.string(entry.protein),
+            MacroValueFormatter.string(entry.carbs),
+            MacroValueFormatter.string(entry.fat),
+            "\(dayEntries.count)",
+            "\(profile.effectiveCalories)",
+            "\(profile.effectiveProtein)",
+            "\(profile.effectiveCarbs)",
+            "\(profile.effectiveFat)"
+        ].joined(separator: "|")
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    WhatIfImpactRow(
+                        label: "Calories",
+                        added: "+\(entry.calories) kcal",
+                        after: "\(afterTotals.calories) / \(goals.calories) kcal",
+                        remaining: remainingCaloriesText,
+                        isOver: afterTotals.calories > goals.calories,
+                        tint: AppColors.calorie
+                    )
+                    WhatIfImpactRow(
+                        label: "Protein",
+                        added: "+\(MacroValueFormatter.withUnit(entry.protein))",
+                        after: "\(MacroValueFormatter.string(afterTotals.protein)) / \(profile.effectiveProtein)g",
+                        remaining: remainingMacroText(afterTotals.protein, goal: Double(profile.effectiveProtein)),
+                        isOver: false,
+                        tint: AppColors.protein
+                    )
+                    WhatIfImpactRow(
+                        label: "Carbs",
+                        added: "+\(MacroValueFormatter.withUnit(entry.carbs))",
+                        after: "\(MacroValueFormatter.string(afterTotals.carbs)) / \(profile.effectiveCarbs)g",
+                        remaining: remainingMacroText(afterTotals.carbs, goal: Double(profile.effectiveCarbs)),
+                        isOver: afterTotals.carbs > Double(profile.effectiveCarbs),
+                        tint: AppColors.carbs
+                    )
+                    WhatIfImpactRow(
+                        label: "Fat",
+                        added: "+\(MacroValueFormatter.withUnit(entry.fat))",
+                        after: "\(MacroValueFormatter.string(afterTotals.fat)) / \(profile.effectiveFat)g",
+                        remaining: remainingMacroText(afterTotals.fat, goal: Double(profile.effectiveFat)),
+                        isOver: afterTotals.fat > Double(profile.effectiveFat),
+                        tint: AppColors.fat
+                    )
+                } header: {
+                    Text("Impact on Today")
+                } footer: {
+                    Text("This does not log the meal. It shows what today would look like if you logged \(entry.name).")
+                }
+
+                Section("AI Suggestion") {
+                    if isLoadingSuggestion {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                            Text("Checking fit with your goals...")
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                    } else if let suggestion {
+                        Text(suggestion)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .textSelection(.enabled)
+                    } else if let suggestionError {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(suggestionError)
+                                .foregroundStyle(.secondary)
+                            Button("Retry") {
+                                Task { await loadSuggestion() }
+                            }
+                            .font(.system(.body, design: .rounded, weight: .semibold))
+                            .tint(AppColors.calorie)
+                        }
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(AppColors.appBackground)
+            .navigationTitle("What if?")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .font(.system(.body, design: .rounded, weight: .semibold))
+                        .tint(AppColors.calorie)
+                }
+            }
+            .task(id: suggestionTaskID) {
+                await loadSuggestion()
+            }
+        }
+    }
+
+    private var remainingCaloriesText: String {
+        let remaining = goals.calories - afterTotals.calories
+        if remaining >= 0 {
+            return "\(remaining) kcal left"
+        }
+        return "\(abs(remaining)) kcal over"
+    }
+
+    private func remainingMacroText(_ value: Double, goal: Double) -> String {
+        let remaining = goal - value
+        if remaining >= 0 {
+            return "\(MacroValueFormatter.string(remaining))g left"
+        }
+        return "\(MacroValueFormatter.string(abs(remaining)))g over"
+    }
+
+    @MainActor
+    private func loadSuggestion() async {
+        isLoadingSuggestion = true
+        suggestion = nil
+        suggestionError = nil
+
+        do {
+            let text = try await GeminiService.suggestMealWhatIf(
+                entry: entry,
+                dayEntries: dayEntries,
+                profile: profile,
+                useMetric: useMetric
+            )
+            suggestion = text.isEmpty ? "No suggestion returned. You can still review the numbers above before logging." : text
+        } catch {
+            suggestionError = error.localizedDescription
+        }
+
+        isLoadingSuggestion = false
+    }
+}
+
+private struct WhatIfImpactRow: View {
+    let label: String
+    let added: String
+    let after: String
+    let remaining: String
+    let isOver: Bool
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(tint.opacity(0.18))
+                .frame(width: 30, height: 30)
+                .overlay {
+                    Circle()
+                        .fill(tint)
+                        .frame(width: 10, height: 10)
+                }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(label)
+                    .font(.system(.body, design: .rounded, weight: .semibold))
+                Text(after)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 3) {
+                Text(added)
+                    .font(.system(.body, design: .rounded, weight: .semibold))
+                Text(remaining)
+                    .font(.caption)
+                    .foregroundStyle(isOver ? Color.red : .secondary)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+}
+
+private struct WhatIfMacroTotals {
+    var calories: Int
+    var protein: Double
+    var carbs: Double
+    var fat: Double
+
+    static let zero = WhatIfMacroTotals(calories: 0, protein: 0, carbs: 0, fat: 0)
+
+    init(calories: Int, protein: Double, carbs: Double, fat: Double) {
+        self.calories = calories
+        self.protein = protein
+        self.carbs = carbs
+        self.fat = fat
+    }
+
+    init(entry: FoodEntry) {
+        self.init(
+            calories: entry.calories,
+            protein: entry.protein,
+            carbs: entry.carbs,
+            fat: entry.fat
+        )
+    }
+
+    init(entries: [FoodEntry]) {
+        self = entries.reduce(.zero) { totals, entry in
+            totals + WhatIfMacroTotals(entry: entry)
+        }
+    }
+
+    static func + (lhs: WhatIfMacroTotals, rhs: WhatIfMacroTotals) -> WhatIfMacroTotals {
+        WhatIfMacroTotals(
+            calories: lhs.calories + rhs.calories,
+            protein: lhs.protein + rhs.protein,
+            carbs: lhs.carbs + rhs.carbs,
+            fat: lhs.fat + rhs.fat
+        )
+    }
 }
 
 struct KeyboardDismissTapInstaller: UIViewRepresentable {

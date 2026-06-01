@@ -112,6 +112,24 @@ struct GeminiService {
         var reason: String?
     }
 
+    private struct MacroTotals {
+        var calories: Int
+        var protein: Double
+        var carbs: Double
+        var fat: Double
+
+        static let zero = MacroTotals(calories: 0, protein: 0, carbs: 0, fat: 0)
+
+        static func + (lhs: MacroTotals, rhs: MacroTotals) -> MacroTotals {
+            MacroTotals(
+                calories: lhs.calories + rhs.calories,
+                protein: lhs.protein + rhs.protein,
+                carbs: lhs.carbs + rhs.carbs,
+                fat: lhs.fat + rhs.fat
+            )
+        }
+    }
+
     enum AnalysisError: LocalizedError {
         case noAPIKey
         case imageConversionFailed
@@ -150,6 +168,74 @@ struct GeminiService {
     private static let nutrientUnitsInstruction = "Calories are integers. Protein/carbs/fat are decimal gram values when needed. serving_size_grams is the estimated weight in grams. Nutrients are numbers: sugar/fiber/fats/omega_3 in grams; cholesterol/sodium/potassium/calcium/iron/magnesium/zinc/vitamin_c/vitamin_e in milligrams; vitamin_a/vitamin_d/vitamin_b12/vitamin_k/folate in micrograms."
 
     // MARK: - Public API (unchanged interface)
+
+    static func suggestMealWhatIf(
+        entry: FoodEntry,
+        dayEntries: [FoodEntry],
+        profile: UserProfile,
+        useMetric: Bool
+    ) async throws -> String {
+        let current = macroTotals(for: dayEntries)
+        let meal = macroTotals(for: entry)
+        let after = current + meal
+        let goals = MacroTotals(
+            calories: profile.effectiveCalories,
+            protein: Double(profile.effectiveProtein),
+            carbs: Double(profile.effectiveCarbs),
+            fat: Double(profile.effectiveFat)
+        )
+        let remaining = MacroTotals(
+            calories: goals.calories - after.calories,
+            protein: goals.protein - after.protein,
+            carbs: goals.carbs - after.carbs,
+            fat: goals.fat - after.fat
+        )
+        let existingMeals = dayEntries.isEmpty
+            ? "No meals logged yet for this day."
+            : dayEntries
+                .prefix(12)
+                .map { "- \($0.name): \($0.calories) kcal, \(formatGrams($0.protein))g protein, \(formatGrams($0.carbs))g carbs, \(formatGrams($0.fat))g fat" }
+                .joined(separator: "\n")
+        let weight = useMetric
+            ? String(format: "%.1f kg", profile.weightKg)
+            : String(format: "%.1f lb", profile.weightKg * 2.20462)
+        let bodyFat = profile.bodyFatPercentage.map { "\(Int(($0 * 100).rounded()))%" } ?? "not set"
+
+        let prompt = """
+        You are a concise nutrition coach inside Fud AI. The user is reviewing a meal before logging it.
+        Analyze this what-if scenario only. Do not say the meal has already been logged. Do not change the user's goals.
+
+        Return 2-4 short plain-English sentences, no markdown and no bullets.
+        Say whether logging this meal as-is fits the remaining daily targets. If it does not fit well, suggest one practical action: reduce quantity, replace an item, add a protein/fiber source, or balance the next meal. Be specific with calories/macros from the data below.
+
+        User:
+        - Goal: \(profile.goal.displayName)
+        - Activity: \(profile.activityLevel.displayName)
+        - Weight: \(weight)
+        - Body fat: \(bodyFat)
+
+        Daily targets:
+        \(macroLine(goals))
+
+        Already logged today:
+        \(macroLine(current))
+
+        Meal being reviewed:
+        - \(entry.name): \(macroLine(meal))
+
+        If logged, daily total becomes:
+        \(macroLine(after))
+
+        Remaining after logging (negative means over target):
+        \(macroLine(remaining))
+
+        Existing meals today:
+        \(existingMeals)
+        """
+
+        let text = try await callAI(prompt: prompt, image: nil)
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     static func analyzeTextInput(description: String) async throws -> FoodAnalysis {
         let prompt = """
@@ -423,6 +509,32 @@ struct GeminiService {
         \(lines.joined(separator: "\n"))
         """
         return try await callAI(prompt: prompt, image: nil)
+    }
+
+    private static func macroTotals(for entries: [FoodEntry]) -> MacroTotals {
+        entries.reduce(.zero) { totals, entry in
+            totals + macroTotals(for: entry)
+        }
+    }
+
+    private static func macroTotals(for entry: FoodEntry) -> MacroTotals {
+        MacroTotals(
+            calories: entry.calories,
+            protein: entry.protein,
+            carbs: entry.carbs,
+            fat: entry.fat
+        )
+    }
+
+    private static func macroLine(_ totals: MacroTotals) -> String {
+        "\(totals.calories) kcal, \(formatGrams(totals.protein))g protein, \(formatGrams(totals.carbs))g carbs, \(formatGrams(totals.fat))g fat"
+    }
+
+    private static func formatGrams(_ value: Double) -> String {
+        if abs(value.rounded() - value) < 0.0001 {
+            return String(Int(value.rounded()))
+        }
+        return String(format: "%.1f", value)
     }
 
     // MARK: - Unified AI Call Router
