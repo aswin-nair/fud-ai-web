@@ -387,7 +387,7 @@ private struct AboutView: View {
         "Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.",
         "The calorie rectangular widget shows calories plus all three selected Home nutrients.",
         "The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.",
-        "iOS AI access is BYOK-only again; legacy hosted AI access and purchase checks have been removed."
+        "iOS AI access is BYOK-only again; legacy hosted AI access has been removed."
     ]
 
     private var whatsNewRow: some View {
