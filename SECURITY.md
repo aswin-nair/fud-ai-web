@@ -32,7 +32,6 @@ Only the latest released version on each store (App Store for iOS, Play Store fo
 - The iOS app source in `ios/` (SwiftUI codebase, widget extension, tests targets)
 - API-key handling and iOS Keychain storage (`KeychainHelper`, `AIProviderSettings`, `SpeechSettings`)
 - Network requests to AI and speech-to-text providers (`GeminiService`, `ChatService`, `SpeechService`), including multi-image food analysis and expanded nutrient payloads
-- Fud AI Plus proxy request handling (`web/api/gemini.js`), including Gemini food/Coach routing, Deepgram voice routing, anonymous install IDs, and quota enforcement
 - Barcode lookup behavior against Open Food Facts, including the "missing product / missing nutrition" fallback path
 - HealthKit read/write paths (`HealthKitManager`) and UUID-tagged sample conventions
 - Widget App Group container (`group.com.apoorvdarshan.calorietracker`) and the snapshot written into it
@@ -52,7 +51,6 @@ Only the latest released version on each store (App Store for iOS, Play Store fo
 **In scope (web):**
 
 - The marketing site source in `web/` (static HTML/CSS, no JS framework, no backend)
-- The Fud AI Plus serverless API route in `web/api/gemini.js`, including required secret handling for `GEMINI_API_KEY`, `DEEPGRAM_API_KEY`, and optional KV quota storage
 - Privacy policy + terms pages (`web/privacy.html`, `web/terms.html`) — accuracy of disclosures
 
 **Out of scope:**

@@ -13,8 +13,7 @@ local.properties
 *.jks
 .cxx/
 
-# Secrets
-ios/calorietracker/Resources/Secrets.plist
+# Local configuration
 ios/Local.xcconfig
 .DS_Store
 

@@ -15,7 +15,7 @@ PRs, bug reports, and feature ideas for any of these are welcome.
 3. Open `ios/calorietracker.xcodeproj` in Xcode (16+)
 4. Build and run on a simulator or device running iOS 17.6 or later
 
-Uses Swift Package Manager for RevenueCat purchases. For normal feature work, just Xcode and a valid Apple developer account are enough.
+For normal feature work, just Xcode and a valid Apple developer account are enough.
 
 ## Getting Started (Android)
 
@@ -49,9 +49,7 @@ Marketing screenshots live in `web/assets/screenshots/` and are also used by the
 
 ## First-Run Setup (both platforms)
 
-Go to **Settings → AI Provider** in the running app and paste an API key for any of the 13 supported providers (Gemini, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama for local, or any custom OpenAI-compatible endpoint). A free Gemini key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) is the fastest way to get started. Keys are stored in iOS Keychain (iOS) or EncryptedSharedPreferences/AES-256 (Android) — never transmitted to us.
-
-iOS can also use **Fud AI Plus** instead of BYOK. Local StoreKit testing uses `ios/calorietracker/Products.storekit` with weekly, monthly, and yearly products. The production Plus proxy needs `GEMINI_API_KEY` for food/Coach and `DEEPGRAM_API_KEY` for voice; default Plus limits are 30 food analyses, 20 speech transcriptions, 25 Coach messages, and 70 total successful Plus calls per day.
+Go to **Settings → AI Provider** in the running app and paste an API key for any of the 13 supported providers (Gemini, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama for local, or any custom OpenAI-compatible endpoint). A free Gemini key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) is the fastest way to get started. Keys are stored in iOS Keychain (iOS) or EncryptedSharedPreferences/AES-256 (Android) — never transmitted to us. There is no hosted proxy, entitlement check, or server-side AI/STT environment key path to configure.
 
 Barcode logging on iOS and Android uses Open Food Facts directly from the device and does not require an API key. If a packaged food is missing or incomplete there, the app should guide the user back to Nutrition Label scan instead of inventing values. Camera + Camera logging should preserve the same review/edit path as other AI food inputs.
 
@@ -113,7 +111,7 @@ Include vision-capable model IDs since the app needs vision for food photo analy
 
 ## Adding a Speech-to-Text Provider
 
-**iOS:** extend `SpeechProvider` in `ios/calorietracker/Models/SpeechProvider.swift`, add the handler in `SpeechService.transcribe`, and keep Fud AI Plus routed through Deepgram unless the Plus proxy contract changes. **Android:** extend `models/SpeechProvider.kt` and add a client in `services/speech/`. Follow the pattern from the existing providers (OpenAI, Groq, Deepgram, AssemblyAI).
+**iOS:** extend `SpeechProvider` in `ios/calorietracker/Models/SpeechProvider.swift` and add the handler in `SpeechService.transcribe`. **Android:** extend `models/SpeechProvider.kt` and add a client in `services/speech/`. Follow the pattern from the existing providers (OpenAI, Groq, Deepgram, AssemblyAI).
 
 ## Localization
 

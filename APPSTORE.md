@@ -38,7 +38,7 @@ NEW
 • Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.
 • The calorie rectangular widget shows calories plus all three selected Home nutrients.
 • The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.
-• iOS AI access is BYOK-only again; Fud AI Plus subscriptions and RevenueCat purchase checks have been removed.
+• iOS AI access is BYOK-only again; legacy hosted AI access and purchase checks have been removed.
 
 No data migration is required. Existing logs, goals, widgets, and BYOK settings are preserved.
 ```
@@ -64,7 +64,7 @@ Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From 
 Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Add Custom AI Instructions and an optional Fallback Provider.
 
 AI ACCESS
-Bring Your Own Key is the iOS access model for full provider control. No Fud AI account, subscription, RevenueCat purchase check, or Fud AI Plus proxy is required.
+Bring Your Own Key is the iOS access model for full provider control. No Fud AI account, subscription, purchase check, or hosted proxy is required.
 
 6 SPEECH-TO-TEXT OPTIONS
 Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use iPhone Language, or a specific language per provider where supported.
