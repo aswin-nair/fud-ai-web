@@ -74,7 +74,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support; Experimental Energy Burn Goals can use recent energy data for calorie targets
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
 - **Widgets** — Home Screen and Lock Screen widgets on iOS follow your selected Home nutrient cards instead of fixed macros; Android Glance widgets update when you log
-- **Android 2.2 updates** — Energy Burn Goals auto-refresh, Experimental Adaptive Goals, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
+- **Android 2.2 updates** — Energy Burn Goals auto-refresh, Experimental Adaptive Goals, body-fat-aware Activity Level protein targets, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 15 languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
@@ -214,7 +214,7 @@ The app calculates personalized daily targets using established nutrition scienc
 | **BMR** | Mifflin-St Jeor | `10w + 6.25h − 5a ± 5` — fallback when body fat is unknown |
 | **TDEE** | BMR × activity | Multiplier ranges from 1.2 (sedentary) to 2.0 (extra active) |
 | **Daily Calories** | TDEE + adjustment | Adjustment = `weeklyChangeKg × 7700 / 7` (deficit or surplus) |
-| **Protein** | Activity + goal | `0.8 – 2.2 g/kg` by activity, plus +0.2 g/kg during cutting phase (Helms et al 2014) |
+| **Protein** | Activity + goal | `0.8 – 2.2 g/kg` body weight by activity, plus +0.2 g/kg during cutting phase (Helms et al 2014); when body fat % is known, Activity Level also shows the equivalent g/kg lean-mass multiplier |
 | **Fat** | Fixed ratio | `0.6 g/kg` body weight |
 | **Carbs** | Auto-balanced | Remainder from calories − protein − fat (any macro can be pinned; max 2 pinned) |
 
@@ -238,7 +238,7 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 ```
 fud-ai/
 ├── ios/          # SwiftUI iOS app (shipping on App Store, v4.1)
-├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.1.0)
+├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2)
 ├── web/          # Marketing site — https://fud-ai.app (static HTML/CSS, Vercel)
 ├── APPSTORE.md   # App Store Connect listing copy (iOS)
 ├── PLAYSTORE.md  # Google Play Console listing copy (Android)
@@ -318,7 +318,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.apoorvdarshan.calorietracker/.MainActivity
 ```
 
-First launch walks you through onboarding (gender, birthday, height/weight with metric/imperial toggle, body fat %, activity, goal, goal speed, notifications, Apple Health / Health Connect, AI provider setup, review). A free Gemini key is available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). You can switch providers anytime in **Settings → AI Provider**.
+First launch walks you through onboarding (gender, birthday, height/weight with metric/imperial toggle, body fat %, activity with protein target preview, goal, goal speed, notifications, Apple Health / Health Connect, AI provider setup, review). A free Gemini key is available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). You can switch providers anytime in **Settings → AI Provider**.
 
 ## Contributing
 

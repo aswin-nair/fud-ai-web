@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.2: Energy Burn Goals now refresh automatically once per day, and Adaptive Goals (Experimental) can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
+NEW in v2.2: Energy Burn Goals now refresh automatically once per day, Adaptive Goals (Experimental) can make a small weekly calorie correction, and Activity Level shows clearer protein targets including lean-mass equivalents when body fat is set.
 
 Free, open source, privacy-first. Bring your own API key. All data stays on your device.
 
@@ -75,7 +75,7 @@ COACH
 Multi-turn chat that sees your profile, weight, body fat, and food log. Ask "what was my weight in March?" or "how's my protein this week?" — Coach pulls the date range it needs via on-demand tools. You can also attach a camera photo or photo-library image to a Coach message.
 
 PERSONALIZED GOALS
-BMR via Katch-McArdle or Mifflin-St Jeor. TDEE with 6 activity levels. Auto-calculated calorie + protein + carbs + fat targets — fully customizable.
+BMR via Katch-McArdle or Mifflin-St Jeor. TDEE with 6 activity levels. Auto-calculated calorie + protein + carbs + fat targets — fully customizable. Activity Level shows protein in g/kg body weight, or the equivalent lean-mass multiplier when body fat is set.
 
 OPTIONAL NUTRIENT GOALS
 Set expanded nutrient goals separately from the macro calculator: fiber, sugar, fats, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins, folate, omega-3, and more when available. Use AI Estimate from your profile, or set goals manually. Home cards can show macros or selected detailed nutrients.
@@ -114,109 +114,123 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 
 ```
 <en-US>
-• Energy Burn Goals now refresh automatically once per day when you open Fud AI.
-• Uses recent completed Health Connect energy burn data from the last 14 days.
-• Adaptive Goals (Experimental) can make a small weekly weight-trend correction.
-• Manual refresh remains available, and calories update without resetting logs.
-• Protein, carbs, and fat stay editable/auto-balanced.
+• Energy Burn Goals auto-refresh once per day on open.
+• Uses recent completed Health Connect burn data from 14 days.
+• Adaptive Goals (Experimental) can add a weekly trend correction.
+• Activity Level shows protein g/kg; body-fat entries switch it to lean-mass equivalent.
+• Calories and macros stay editable without resetting logs.
 </en-US>
 
 <ar>
-• Energy Burn Goals يتم تحديثها تلقائيًا مرة يوميًا عند فتح Fud AI.
-• يستخدم بيانات Health Connect المكتملة لحرق الطاقة من آخر 14 يومًا.
-• يظل التحديث اليدوي متاحًا، وتتحدث السعرات دون حذف السجلات.
-• البروتين والكارب والدهون تبقى قابلة للتعديل/الموازنة التلقائية.
+• يتم تحديث Energy Burn Goals تلقائيًا مرة يوميًا عند فتح Fud AI.
+• يستخدم بيانات حرق الطاقة المكتملة من Health Connect لآخر 14 يومًا.
+• يمكن لـ Adaptive Goals (تجريبي) إضافة تصحيح أسبوعي للاتجاه.
+• يعرض Activity Level البروتين g/kg؛ ومع دهون الجسم يتحول لمكافئ الكتلة الخالية من الدهون.
+• تبقى السعرات والماكروز قابلة للتعديل دون تصفير السجلات.
 </ar>
 
 <az-AZ>
 • Energy Burn Goals Fud AI açıldıqda gündə bir dəfə avtomatik yenilənir.
-• Son 14 gündə tamamlanmış Health Connect enerji sərfiyyatı məlumatından istifadə edir.
-• Manual yeniləmə qalır; kalorilər logları sıfırlamadan yenilənir.
-• Protein, karbohidrat və yağ redaktə/avto-balans edilə qalır.
+• Son 14 günün tamamlanmış Health Connect enerji sərfiyyatı məlumatından istifadə edir.
+• Adaptive Goals (Eksperimental) həftəlik trend düzəlişi əlavə edə bilər.
+• Activity Level protein g/kg göstərir; bədən yağı varsa yağsız kütlə ekvivalentinə keçir.
+• Kalorilər və makrolar logları sıfırlamadan redaktə qalır.
 </az-AZ>
 
 <de-DE>
-• Energy Burn Goals aktualisiert sich einmal täglich automatisch beim Öffnen von Fud AI.
+• Energy Burn Goals aktualisiert sich einmal täglich beim Öffnen.
 • Nutzt abgeschlossene Health-Connect-Energiedaten der letzten 14 Tage.
-• Manuelles Aktualisieren bleibt möglich; Kalorien ändern sich ohne Log-Reset.
-• Protein, Kohlenhydrate und Fett bleiben editierbar/auto-balanciert.
+• Adaptive Goals (Experimental) kann eine wöchentliche Trendkorrektur hinzufügen.
+• Aktivitätslevel zeigt Protein g/kg; mit Körperfett als Magermasse-Äquivalent.
+• Kalorien und Makros bleiben ohne Log-Reset editierbar.
 </de-DE>
 
 <es-ES>
-• Energy Burn Goals se actualiza automáticamente una vez al día al abrir Fud AI.
-• Usa datos completados de energía quemada de Health Connect de los últimos 14 días.
-• La actualización manual sigue disponible; las calorías cambian sin borrar registros.
-• Proteína, carbohidratos y grasa siguen editables/con auto-balance.
+• Energy Burn Goals se actualiza una vez al día al abrir Fud AI.
+• Usa datos completados de energía de Health Connect de los últimos 14 días.
+• Adaptive Goals (Experimental) puede añadir una corrección semanal de tendencia.
+• Nivel de actividad muestra proteína g/kg; con grasa corporal pasa a equivalente de masa magra.
+• Calorías y macros siguen editables sin borrar registros.
 </es-ES>
 
 <fr-FR>
-• Energy Burn Goals s'actualise automatiquement une fois par jour à l'ouverture de Fud AI.
-• Utilise les données Health Connect terminées des 14 derniers jours.
-• L'actualisation manuelle reste disponible; les calories changent sans réinitialiser les journaux.
-• Protéines, glucides et lipides restent modifiables/auto-équilibrés.
+• Energy Burn Goals s'actualise une fois par jour à l'ouverture.
+• Utilise les données d'énergie Health Connect terminées des 14 derniers jours.
+• Adaptive Goals (Experimental) peut ajouter une correction hebdomadaire de tendance.
+• Niveau d'activité affiche les protéines g/kg; avec graisse corporelle, équivalent masse maigre.
+• Calories et macros restent modifiables sans réinitialiser les journaux.
 </fr-FR>
 
 <hi-IN>
-• Energy Burn Goals अब Fud AI खोलने पर दिन में एक बार auto-refresh होता है.
-• पिछले 14 दिनों के completed Health Connect energy burn data का उपयोग करता है.
-• Manual refresh अभी भी उपलब्ध है; calories update होती हैं, logs reset नहीं होते.
-• Protein, carbs और fat editable/auto-balanced रहते हैं.
+• Energy Burn Goals Fud AI खोलने पर दिन में एक बार auto-refresh होता है.
+• पिछले 14 दिनों के completed Health Connect burn data का उपयोग करता है.
+• Adaptive Goals (Experimental) weekly trend correction जोड़ सकता है.
+• Activity Level protein g/kg दिखाता है; body fat होने पर lean-mass equivalent दिखता है.
+• Calories और macros editable रहते हैं, logs reset नहीं होते.
 </hi-IN>
 
 <it-IT>
-• Energy Burn Goals si aggiorna automaticamente una volta al giorno quando apri Fud AI.
+• Energy Burn Goals si aggiorna una volta al giorno all'apertura.
 • Usa i dati Health Connect completati degli ultimi 14 giorni.
-• Il refresh manuale resta disponibile; le calorie cambiano senza azzerare i log.
-• Proteine, carboidrati e grassi restano modificabili/auto-bilanciati.
+• Adaptive Goals (Experimental) può aggiungere una correzione settimanale del trend.
+• Livello attività mostra proteine g/kg; con grasso corporeo passa all'equivalente massa magra.
+• Calorie e macro restano modificabili senza azzerare i log.
 </it-IT>
 
 <ja-JP>
-• Energy Burn GoalsはFud AIを開くと1日1回自動更新されます。
-• 過去14日間の完了済みHealth Connect消費エネルギーデータを使用します。
-• 手動更新も可能で、ログを消さずにカロリー目標を更新します。
-• たんぱく質、炭水化物、脂質は編集/自動調整できます。
+• Energy Burn Goalsは起動時に1日1回自動更新されます。
+• 過去14日間の完了済みHealth Connect消費データを使用します。
+• Adaptive Goals（Experimental）は週次トレンド補正を追加できます。
+• Activity Levelにたんぱく質g/kgを表示。体脂肪がある場合は除脂肪量換算に切替。
+• カロリーとマクロはログをリセットせず編集できます。
 </ja-JP>
 
 <ko-KR>
-• Energy Burn Goals는 Fud AI를 열 때 하루 한 번 자동 새로고침됩니다.
+• Energy Burn Goals는 열 때 하루 한 번 자동 새로고침됩니다.
 • 최근 14일의 완료된 Health Connect 에너지 소모 데이터를 사용합니다.
-• 수동 새로고침도 가능하며 로그를 초기화하지 않고 칼로리만 업데이트합니다.
-• 단백질, 탄수화물, 지방은 계속 편집/자동 균형 조정됩니다.
+• Adaptive Goals(Experimental)는 주간 추세 보정을 추가할 수 있습니다.
+• Activity Level에 단백질 g/kg 표시; 체지방 입력 시 제지방량 환산으로 전환.
+• 칼로리와 매크로는 로그 초기화 없이 편집 가능합니다.
 </ko-KR>
 
 <nl-NL>
-• Energy Burn Goals vernieuwt automatisch een keer per dag wanneer je Fud AI opent.
+• Energy Burn Goals vernieuwt een keer per dag bij openen.
 • Gebruikt voltooide Health Connect-energiegegevens van de laatste 14 dagen.
-• Handmatig vernieuwen blijft beschikbaar; calorieën wijzigen zonder logs te resetten.
-• Eiwit, koolhydraten en vet blijven bewerkbaar/auto-gebalanceerd.
+• Adaptive Goals (Experimental) kan een wekelijkse trendcorrectie toevoegen.
+• Activiteitsniveau toont eiwit g/kg; met lichaamsvet als vetvrije-massa-equivalent.
+• Calorieën en macro's blijven bewerkbaar zonder logs te resetten.
 </nl-NL>
 
 <pt-BR>
-• Energy Burn Goals atualiza automaticamente uma vez por dia ao abrir o Fud AI.
+• Energy Burn Goals atualiza uma vez por dia ao abrir.
 • Usa dados concluídos de energia do Health Connect dos últimos 14 dias.
-• A atualização manual continua disponível; calorias mudam sem zerar registros.
-• Proteína, carboidratos e gordura continuam editáveis/auto-balanceados.
+• Adaptive Goals (Experimental) pode adicionar correção semanal de tendência.
+• Nível de atividade mostra proteína g/kg; com gordura corporal vira equivalente de massa magra.
+• Calorias e macros continuam editáveis sem zerar registros.
 </pt-BR>
 
 <ro>
-• Energy Burn Goals se actualizează automat o dată pe zi când deschizi Fud AI.
+• Energy Burn Goals se actualizează o dată pe zi la deschidere.
 • Folosește date Health Connect finalizate din ultimele 14 zile.
-• Actualizarea manuală rămâne disponibilă; caloriile se schimbă fără resetarea jurnalelor.
-• Proteinele, carbohidrații și grăsimile rămân editabile/auto-echilibrate.
+• Adaptive Goals (Experimental) poate adăuga o corecție săptămânală de trend.
+• Nivelul de activitate arată proteine g/kg; cu grăsime corporală trece la echivalent masă slabă.
+• Caloriile și macrourile rămân editabile fără resetarea jurnalelor.
 </ro>
 
 <ru-RU>
-• Energy Burn Goals обновляется раз в день при открытии Fud AI.
+• Energy Burn Goals обновляется раз в день при открытии.
 • Берет завершенные данные Health Connect за последние 14 дней.
-• Ручное обновление остается; журналы не сбрасываются.
-• Белки, углеводы и жиры остаются редактируемыми/авто-балансом.
+• Adaptive Goals (Experimental) может добавить недельную коррекцию тренда.
+• Activity Level показывает белок g/kg; при % жира — эквивалент по сухой массе.
+• Калории и макросы редактируются без сброса журналов.
 </ru-RU>
 
 <zh-CN>
-• Energy Burn Goals 现在会在打开 Fud AI 时每天自动刷新一次。
+• Energy Burn Goals 打开时每天自动刷新一次。
 • 使用最近 14 天已完成的 Health Connect 能量消耗数据。
-• 仍可手动刷新；热量目标更新不会重置日志。
-• 蛋白质、碳水和脂肪仍可编辑/自动平衡。
+• Adaptive Goals（Experimental）可加入每周趋势校正。
+• Activity Level 显示蛋白质 g/kg；有体脂时切换为瘦体重等效值。
+• 热量和宏量营养可编辑，不会重置日志。
 </zh-CN>
 ```
 

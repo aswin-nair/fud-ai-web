@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Cleaner Lock Screen widgets, plus Experimental goal tools for energy burn and weight-trend adjustments.
+Cleaner Lock Screen widgets, Experimental goal tools, and clearer activity-based protein targets.
 ```
 
 ## Keywords (100 chars max)
@@ -35,6 +35,7 @@ Fud AI 4.1 — clearer widgets and Experimental goal tools.
 NEW
 • Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.
 • Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
+• Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.
 • Lock Screen rectangular widgets now show current / goal values in clean metric rows.
 • Lock Screen circular widgets now use larger value-first previews for faster reading.
 • Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.
@@ -49,7 +50,7 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Lock Screen widgets now show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, and BYOK-only AI access is restored on iOS.
+NEW in v4.1: Lock Screen widgets now show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
@@ -81,7 +82,7 @@ EXPANDED NUTRIENTS
 Calories, protein, carbs, fat, sugar, added sugar, fiber, saturated fat, trans fat, mono/polyunsaturated fat, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3, and more when available.
 
 PERSONALIZED GOALS
-BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calorie + protein + carbs + fat targets, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly weight-trend corrections while pinned macros stay pinned.
+BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calorie + protein + carbs + fat targets, Activity Level protein targets in g/kg body weight or equivalent lean-mass multipliers when body fat is set, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly weight-trend corrections while pinned macros stay pinned.
 
 PROGRESS
 Weight / Body Fat chart, average and net change summaries, goal lines, calorie trend vs goal, and macro averages over 1W, 1M, 3M, 6M, 1Y, All Time.

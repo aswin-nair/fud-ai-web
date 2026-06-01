@@ -384,6 +384,7 @@ private struct AboutView: View {
     private static let whatsNewItems = [
         "Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.",
         "Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.",
+        "Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.",
         "Lock Screen rectangular widgets now show current / goal values in clean metric rows.",
         "Lock Screen circular widgets now use larger value-first previews for faster reading.",
         "Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.",
