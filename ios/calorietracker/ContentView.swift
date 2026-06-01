@@ -565,7 +565,6 @@ struct HomeView: View {
     @State private var showRecentSheet = false
     @State private var showCopyFromDaySheet = false
     @State private var pendingContextImage: UIImage?
-    @State private var pendingSharedImportImage: UIImage?
     @State private var pendingSecondCameraImage: UIImage?
     @State private var contextDescription: String = ""
     @State private var showContextSheet = false
@@ -582,11 +581,9 @@ struct HomeView: View {
     @State private var currentEmoji: String?
     @State private var currentFoodSource: FoodSource = .snapFood
     @State private var showNutritionDetail = false
-    @AppStorage("aiAnalysisConsentGiven") private var aiConsentGiven: Bool = false
     @AppStorage(FoodLogSortOrder.storageKey) private var foodLogSortOrderRaw = FoodLogSortOrder.defaultOrder.rawValue
     @AppStorage(HomeTopNutrient.storageKey) private var homeTopNutrientsRaw = HomeTopNutrient.storageValue(for: HomeTopNutrient.defaultSelection)
     @AppStorage(OptionalNutrientGoals.storageKey) private var optionalNutrientGoalsData = Data()
-    @State private var showAIConsent = false
     @Environment(ProfileStore.self) private var profileStore
 
     /// Force a body re-evaluation whenever profileStore.profile changes by reading it
@@ -791,42 +788,30 @@ struct HomeView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                             Button(action: {
-
-                                requireAIConsent {
-                                    cameraMode = .snapFood
-                                    pendingSecondCameraImage = nil
-                                    showCamera = true
-                                }
+                                cameraMode = .snapFood
+                                pendingSecondCameraImage = nil
+                                showCamera = true
                             }) {
                                 Label("Camera", systemImage: "camera.fill")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    cameraMode = .snapFoodWithContext
-                                    pendingSecondCameraImage = nil
-                                    showCamera = true
-                                }
+                                cameraMode = .snapFoodWithContext
+                                pendingSecondCameraImage = nil
+                                showCamera = true
                             }) {
                                 Label("Camera + Note", systemImage: "camera.badge.ellipsis")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    cameraMode = .snapFoodWithSecondPhoto
-                                    pendingSecondCameraImage = nil
-                                    showCamera = true
-                                }
+                                cameraMode = .snapFoodWithSecondPhoto
+                                pendingSecondCameraImage = nil
+                                showCamera = true
                             }) {
                                 Label("Camera + Camera", systemImage: "camera.badge.clock")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    cameraMode = .nutritionLabel
-                                    pendingSecondCameraImage = nil
-                                    showCamera = true
-                                }
+                                cameraMode = .nutritionLabel
+                                pendingSecondCameraImage = nil
+                                showCamera = true
                             }) {
                                 Label("Nutrition Label", systemImage: "text.viewfinder")
                             }
@@ -837,40 +822,28 @@ struct HomeView: View {
                                 Label("Barcode", systemImage: "barcode.viewfinder")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    cameraMode = .snapFood
-                                    photoPickerMode = .snapFood
-                                    pendingSecondCameraImage = nil
-                                    showPhotoPicker = true
-                                }
+                                cameraMode = .snapFood
+                                photoPickerMode = .snapFood
+                                pendingSecondCameraImage = nil
+                                showPhotoPicker = true
                             }) {
                                 Label("From Photos", systemImage: "photo.on.rectangle")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    cameraMode = .snapFoodWithContext
-                                    photoPickerMode = .snapFoodWithContext
-                                    pendingSecondCameraImage = nil
-                                    showPhotoPicker = true
-                                }
+                                cameraMode = .snapFoodWithContext
+                                photoPickerMode = .snapFoodWithContext
+                                pendingSecondCameraImage = nil
+                                showPhotoPicker = true
                             }) {
                                 Label("From Photos + Note", systemImage: "photo.badge.plus")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    showTextPopover = true
-                                }
+                                showTextPopover = true
                             }) {
                                 Label("Text Input", systemImage: "character.cursor.ibeam")
                             }
                             Button(action: {
-
-                                requireAIConsent {
-                                    showVoicePopover = true
-                                }
+                                showVoicePopover = true
                             }) {
                                 Label("Voice", systemImage: "mic.fill")
                             }
@@ -905,7 +878,6 @@ struct HomeView: View {
                                     currentImage = nil
                                     currentEmoji = nil
                                     currentFoodSource = .textInput
-                                    guard aiConsentGiven else { showAIConsent = true; return }
                                     Task {
                                         try? await Task.sleep(for: .milliseconds(300))
                                         activeSheet = .analyzingText
@@ -935,7 +907,6 @@ struct HomeView: View {
                                     currentImage = nil
                                     currentEmoji = nil
                                     currentFoodSource = .textInput
-                                    guard aiConsentGiven else { showAIConsent = true; return }
                                     Task {
                                         try? await Task.sleep(for: .milliseconds(300))
                                         activeSheet = .analyzingText
@@ -1156,7 +1127,6 @@ struct HomeView: View {
             .onChange(of: selectedPhotoItem) { oldValue, newValue in
                 guard let item = newValue else { return }
                 selectedPhotoItem = nil
-                guard aiConsentGiven else { showAIConsent = true; return }
                 Task {
                     if let data = try? await item.loadTransferable(type: Data.self),
                        let image = UIImage(data: data) {
@@ -1192,26 +1162,6 @@ struct HomeView: View {
             .sheet(isPresented: $showNutritionDetail) {
                 NutritionDetailView(date: selectedDate, homeTopNutrientsRaw: $homeTopNutrientsRaw)
             }
-            .sheet(isPresented: $showAIConsent) {
-                AIConsentSheetView(
-                    onAllow: {
-                        aiConsentGiven = true
-                        showAIConsent = false
-                        if let image = pendingSharedImportImage, activeSheet == nil {
-                            pendingSharedImportImage = nil
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                pendingContextImage = image
-                                contextDescription = ""
-                                showContextSheet = true
-                            }
-                        }
-                    },
-                    onCancel: {
-                        pendingSharedImportImage = nil
-                        showAIConsent = false
-                    }
-                )
-            }
             .onOpenURL { url in
                 guard url.scheme == "fudai" else { return }
                 
@@ -1239,17 +1189,7 @@ struct HomeView: View {
         currentImage = image
         currentEmoji = nil
         currentFoodSource = .snapFood
-        
-        guard aiConsentGiven else {
-            pendingSharedImportImage = image
-            // A slight delay ensures the view hierarchy is clear before presenting
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                showAIConsent = true
-            }
-            return
-        }
-        
-        pendingSharedImportImage = nil
+
         // A slight delay ensures the view hierarchy is clear before presenting
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             pendingContextImage = image
@@ -1258,20 +1198,11 @@ struct HomeView: View {
         }
     }
 
-    private func requireAIConsent(_ action: () -> Void) {
-        guard aiConsentGiven else {
-            showAIConsent = true
-            return
-        }
-        action()
-    }
-
     private func startAnalysis(image: UIImage, mode: CameraMode, description: String? = nil) {
         startAnalysis(images: [image], mode: mode, description: description)
     }
 
     private func startAnalysis(images: [UIImage], mode: CameraMode, description: String? = nil) {
-        guard aiConsentGiven else { showAIConsent = true; return }
         activeSheet = .analyzing
 
         Task {
@@ -4084,117 +4015,6 @@ private struct ThemeColorSwatch: View {
                     .strokeBorder(Color.white.opacity(0.35), lineWidth: 1)
             )
             .shadow(color: themeColor.color.opacity(0.28), radius: 4, y: 2)
-    }
-}
-
-// MARK: - AI Consent Sheet (Apple Guideline 5.1.1(i) + 5.1.2(i))
-/// Disclosed-and-explicit consent before any user data is sent to a third-party
-/// AI provider. Apple App Review (April 2026) rejected v3.2 (5) for not having
-/// in-app consent — privacy policy alone is not sufficient. The sheet names the
-/// currently selected provider, lists what data gets sent, and requires an
-/// explicit Allow tap before any food analysis call can fire.
-struct AIConsentSheetView: View {
-    let onAllow: () -> Void
-    let onCancel: () -> Void
-
-    private var providerName: String {
-        AIProviderSettings.selectedProvider.rawValue
-    }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 22) {
-                    ZStack {
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .frame(width: 88, height: 88)
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 36))
-                            .foregroundStyle(
-                                LinearGradient(colors: AppColors.calorieGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-                            )
-                    }
-                    .padding(.top, 28)
-
-                    VStack(spacing: 8) {
-                        Text("AI Analysis Notice")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .multilineTextAlignment(.center)
-                        Text("Before Fud AI sends data to a third-party AI provider, we need your permission.")
-                            .font(.system(.callout, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
-                    }
-
-                    VStack(alignment: .leading, spacing: 14) {
-                        consentRow(icon: "photo.fill", title: "What is sent",
-                                   text: "When you log a meal, the photo, voice audio or transcript, or text description is sent to your selected AI provider. Profile data (age, weight, goals) is sent only for Coach chat.")
-                        consentRow(icon: "network", title: "Who receives it",
-                                   text: "Your current AI provider: \(providerName). You can change this anytime in Settings → AI Provider. Requests go directly from your device to that provider.")
-                        consentRow(icon: "lock.shield.fill", title: "What stays local",
-                                   text: "Your API key, weight history, body fat history, and food log all stay on this device. Requests go directly from your device to the provider.")
-                    }
-                    .padding(.horizontal, 20)
-
-                    Text("Tap Allow to enable AI food analysis. Manual entry is always available without sending data anywhere. You can revoke consent later by deleting the app or via Settings → Delete All Data.")
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 4)
-
-                    Link("View privacy policy", destination: URL(string: "https://fud-ai.app/privacy.html")!)
-                        .font(.system(.footnote, design: .rounded, weight: .medium))
-                        .foregroundStyle(AppColors.calorie)
-                }
-                .padding(.bottom, 24)
-            }
-
-            VStack(spacing: 10) {
-                Button(action: onAllow) {
-                    Text("Allow")
-                        .font(.system(.body, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(
-                            LinearGradient(colors: AppColors.calorieGradient, startPoint: .leading, endPoint: .trailing),
-                            in: RoundedRectangle(cornerRadius: 14)
-                        )
-                }
-                Button(action: onCancel) {
-                    Text("Not Now")
-                        .font(.system(.body, design: .rounded, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 18)
-            .background(.ultraThinMaterial)
-        }
-        .presentationDetents([.large])
-        .interactiveDismissDisabled()
-    }
-
-    private func consentRow(icon: String, title: String, text: String) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundStyle(AppColors.calorie)
-                .frame(width: 28, height: 28)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                Text(text)
-                    .font(.system(.footnote, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
     }
 }
 

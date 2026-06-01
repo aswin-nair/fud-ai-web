@@ -13,6 +13,8 @@ struct OnboardingView: View {
     @State private var gender: Gender = .male
     @State private var birthday: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
     @AppStorage("useMetric") private var useMetric = false
+    @AppStorage("aiAnalysisConsentGiven") private var aiConsentGiven = false
+    @AppStorage("acceptedTermsAndPrivacy") private var acceptedTermsAndPrivacy = false
     @State private var isMetric = false
     @State private var heightFeet = 5
     @State private var heightInches = 9
@@ -43,6 +45,7 @@ struct OnboardingView: View {
     @State private var editedCarbs: Int?
     @State private var editingField: EditableField?
     @State private var showCalculationSources = false
+    @State private var hasAcceptedTerms = false
 
     private enum EditableField: String, Identifiable {
         case calories, protein, fat, carbs
@@ -767,51 +770,104 @@ struct OnboardingView: View {
 
     private var aiProviderStep: some View {
         VStack(spacing: 0) {
-            Spacer()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    ZStack {
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .frame(width: 104, height: 104)
 
-            VStack(spacing: 20) {
-                ZStack {
-                    Circle()
-                        .fill(.ultraThinMaterial)
-                        .frame(width: 120, height: 120)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 42))
+                            .foregroundStyle(
+                                LinearGradient(colors: AppColors.calorieGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                            )
+                    }
 
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 48))
-                        .foregroundStyle(
-                            LinearGradient(colors: AppColors.calorieGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                    VStack(spacing: 8) {
+                        Text("Choose Your AI")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .multilineTextAlignment(.center)
+
+                        Text("Use your own AI key for food scans, voice logging, and Coach. Manual logging works without an AI key.")
+                            .font(.system(.callout, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                    }
+
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Before AI analysis")
+                            .font(.system(.headline, design: .rounded, weight: .bold))
+
+                        aiNoticeRow(
+                            icon: "photo.fill",
+                            title: "What is sent",
+                            text: "Food photos, voice transcripts, and typed meal descriptions are sent directly to your selected AI provider for analysis."
                         )
+                        aiNoticeRow(
+                            icon: "person.crop.circle.badge.checkmark",
+                            title: "Coach context",
+                            text: "Profile details like age, weight, and goals are sent only when you use Coach chat."
+                        )
+                        aiNoticeRow(
+                            icon: "lock.shield.fill",
+                            title: "What stays local",
+                            text: "Your API keys, food log, weight history, and body-fat history stay on this device."
+                        )
+                    }
+                    .padding(16)
+                    .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 24)
+
+                    VStack(spacing: 12) {
+                        aiSetupRow(number: "1", text: "Create an API key with Gemini, OpenAI, Groq, or another supported provider.")
+                        aiSetupRow(number: "2", text: "Paste the key in Settings → AI Provider after setup.")
+                        aiSetupRow(number: "3", text: "Requests go from this device directly to the provider you choose.")
+                    }
+                    .padding(.horizontal, 24)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Button {
+                            hasAcceptedTerms.toggle()
+                        } label: {
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: hasAcceptedTerms ? "checkmark.square.fill" : "square")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundStyle(hasAcceptedTerms ? AppColors.calorie : .secondary)
+                                    .frame(width: 26, height: 26)
+
+                                Text("I accept the Terms of Service and Privacy Policy, including AI provider data sharing described above.")
+                                    .font(.system(.footnote, design: .rounded, weight: .medium))
+                                    .foregroundStyle(.primary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        HStack(spacing: 6) {
+                            Link("Privacy Policy", destination: URL(string: "https://fud-ai.app/privacy.html")!)
+                            Text("and")
+                                .foregroundStyle(.secondary)
+                            Link("Terms of Service", destination: URL(string: "https://fud-ai.app/terms.html")!)
+                        }
+                        .font(.system(.footnote, design: .rounded, weight: .semibold))
+                        .foregroundStyle(AppColors.calorie)
+                    }
+                    .padding(16)
+                    .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 24)
                 }
-
-                VStack(spacing: 8) {
-                    Text("Choose Your AI")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .multilineTextAlignment(.center)
-
-                    Text("Use your own AI key for food scans, voice logging, and Coach. You can start with Gemini or choose another provider later in Settings.")
-                        .font(.system(.callout, design: .rounded))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-
-                VStack(spacing: 12) {
-                    aiSetupRow(number: "1", text: "Create an API key with Gemini, OpenAI, Groq, or another supported provider.")
-                    aiSetupRow(number: "2", text: "Paste the key in Settings → AI Provider after setup.")
-                    aiSetupRow(number: "3", text: "Keys stay on this device and requests go directly to your provider.")
-                }
-                .padding(.horizontal, 24)
-
-                Text("Manual logging works without an AI key. Add a key whenever you want AI analysis.")
-                    .font(.system(.caption, design: .rounded))
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
+                .padding(.top, 24)
+                .padding(.bottom, 20)
             }
 
-            Spacer()
-
             Button {
+                aiConsentGiven = true
+                acceptedTermsAndPrivacy = true
                 withAnimation(.snappy) { step += 1 }
             } label: {
-                Text("Continue")
+                Text("Accept & Continue")
                     .font(.system(.body, design: .rounded, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -822,8 +878,28 @@ struct OnboardingView: View {
                     )
                     .shadow(color: AppColors.calorie.opacity(0.3), radius: 8, y: 4)
             }
+            .disabled(!hasAcceptedTerms)
+            .opacity(hasAcceptedTerms ? 1 : 0.45)
             .padding(.horizontal, 24)
             .padding(.bottom, 36)
+        }
+    }
+
+    private func aiNoticeRow(icon: String, title: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(AppColors.calorie)
+                .frame(width: 24, height: 24)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                Text(text)
+                    .font(.system(.caption, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
