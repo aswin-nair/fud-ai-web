@@ -38,13 +38,13 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.2: Energy Burn Goals now refresh automatically once per day, Adaptive Goals (Experimental) can make a small weekly calorie correction, and Activity Level shows clearer protein targets including lean-mass equivalents when body fat is set.
+NEW in v2.2: What if? previews meal impact with AI suggestions, Energy Burn Goals refresh daily, Adaptive Goals can add weekly corrections, and Activity Level shows body-fat-aware protein targets.
 
 Free, open source, privacy-first. Bring your own API key. All data stays on your device.
 
 HOW TO USE
 1) Set up your profile with goals + body stats
-2) Snap, scan, speak, type, or manually enter a meal — review and save
+2) Snap, scan, speak, type, or manually enter a meal — review, preview What if?, and save
 3) Ask Coach anything: trends, predictions, advice
 4) Track progress on charts and home screen widgets
 
@@ -72,7 +72,10 @@ Google Gemini, OpenAI, Anthropic Claude, xAI Grok, Groq, OpenRouter, Together AI
 Native Android, Gemini, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use Device Language, or a fixed language.
 
 COACH
-Multi-turn chat that sees your profile, weight, body fat, and food log. Ask "what was my weight in March?" or "how's my protein this week?" — Coach pulls the date range it needs via on-demand tools. You can also attach a camera photo or photo-library image to a Coach message.
+Multi-turn chat sees your profile, weight, body fat, and food log. Ask "what was my weight in March?" or "how's my protein this week?" — Coach pulls the date range it needs. You can attach a camera or photo-library image.
+
+MEAL WHAT IF
+Review Food previews how a meal changes today's calories and macros before logging. Tap What if? for an optional AI suggestion from current totals and goals.
 
 PERSONALIZED GOALS
 BMR via Katch-McArdle or Mifflin-St Jeor. TDEE with 6 activity levels. Auto-calculated calorie + protein + carbs + fat targets — fully customizable. Activity Level shows protein in g/kg body weight, or the equivalent lean-mass multiplier when body fat is set.
@@ -118,7 +121,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Uses recent completed Health Connect burn data from 14 days.
 • Adaptive Goals (Experimental) can add a weekly trend correction.
 • Activity Level shows protein g/kg; body-fat entries switch it to lean-mass equivalent.
-• Calories and macros stay editable without resetting logs.
+• What if? in Review Food previews macro impact and AI suggestion before logging.
 </en-US>
 
 <ar>
@@ -126,7 +129,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • يستخدم بيانات حرق الطاقة المكتملة من Health Connect لآخر 14 يومًا.
 • يمكن لـ Adaptive Goals (تجريبي) إضافة تصحيح أسبوعي للاتجاه.
 • يعرض Activity Level البروتين g/kg؛ ومع دهون الجسم يتحول لمكافئ الكتلة الخالية من الدهون.
-• تبقى السعرات والماكروز قابلة للتعديل دون تصفير السجلات.
+• يعرض What if? في Review Food تأثير الماكروز واقتراح AI قبل التسجيل.
 </ar>
 
 <az-AZ>
@@ -134,7 +137,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Son 14 günün tamamlanmış Health Connect enerji sərfiyyatı məlumatından istifadə edir.
 • Adaptive Goals (Eksperimental) həftəlik trend düzəlişi əlavə edə bilər.
 • Activity Level protein g/kg göstərir; bədən yağı varsa yağsız kütlə ekvivalentinə keçir.
-• Kalorilər və makrolar logları sıfırlamadan redaktə qalır.
+• Review Food-da What if? makro təsiri və AI təklifini logdan əvvəl göstərir.
 </az-AZ>
 
 <de-DE>
@@ -142,7 +145,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Nutzt abgeschlossene Health-Connect-Energiedaten der letzten 14 Tage.
 • Adaptive Goals (Experimental) kann eine wöchentliche Trendkorrektur hinzufügen.
 • Aktivitätslevel zeigt Protein g/kg; mit Körperfett als Magermasse-Äquivalent.
-• Kalorien und Makros bleiben ohne Log-Reset editierbar.
+• What if? in Review Food zeigt Makroauswirkung und KI-Tipp vor dem Loggen.
 </de-DE>
 
 <es-ES>
@@ -150,7 +153,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Usa datos completados de energía de Health Connect de los últimos 14 días.
 • Adaptive Goals (Experimental) puede añadir una corrección semanal de tendencia.
 • Nivel de actividad muestra proteína g/kg; con grasa corporal pasa a equivalente de masa magra.
-• Calorías y macros siguen editables sin borrar registros.
+• What if? en Review Food previsualiza macros y sugerencia AI antes de registrar.
 </es-ES>
 
 <fr-FR>
@@ -158,7 +161,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Utilise les données d'énergie Health Connect terminées des 14 derniers jours.
 • Adaptive Goals (Experimental) peut ajouter une correction hebdomadaire de tendance.
 • Niveau d'activité affiche les protéines g/kg; avec graisse corporelle, équivalent masse maigre.
-• Calories et macros restent modifiables sans réinitialiser les journaux.
+• What if? dans Review Food affiche l'impact macro et un conseil IA avant journal.
 </fr-FR>
 
 <hi-IN>
@@ -166,7 +169,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • पिछले 14 दिनों के completed Health Connect burn data का उपयोग करता है.
 • Adaptive Goals (Experimental) weekly trend correction जोड़ सकता है.
 • Activity Level protein g/kg दिखाता है; body fat होने पर lean-mass equivalent दिखता है.
-• Calories और macros editable रहते हैं, logs reset नहीं होते.
+• Review Food में What if? logging से पहले macro impact और AI suggestion दिखाता है.
 </hi-IN>
 
 <it-IT>
@@ -174,7 +177,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Usa i dati Health Connect completati degli ultimi 14 giorni.
 • Adaptive Goals (Experimental) può aggiungere una correzione settimanale del trend.
 • Livello attività mostra proteine g/kg; con grasso corporeo passa all'equivalente massa magra.
-• Calorie e macro restano modificabili senza azzerare i log.
+• What if? in Review Food mostra impatto macro e suggerimento AI prima del log.
 </it-IT>
 
 <ja-JP>
@@ -182,7 +185,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • 過去14日間の完了済みHealth Connect消費データを使用します。
 • Adaptive Goals（Experimental）は週次トレンド補正を追加できます。
 • Activity Levelにたんぱく質g/kgを表示。体脂肪がある場合は除脂肪量換算に切替。
-• カロリーとマクロはログをリセットせず編集できます。
+• Review FoodのWhat if?で記録前にマクロ影響とAI提案を確認できます。
 </ja-JP>
 
 <ko-KR>
@@ -190,7 +193,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • 최근 14일의 완료된 Health Connect 에너지 소모 데이터를 사용합니다.
 • Adaptive Goals(Experimental)는 주간 추세 보정을 추가할 수 있습니다.
 • Activity Level에 단백질 g/kg 표시; 체지방 입력 시 제지방량 환산으로 전환.
-• 칼로리와 매크로는 로그 초기화 없이 편집 가능합니다.
+• Review Food의 What if?가 기록 전 매크로 영향과 AI 제안을 보여줍니다.
 </ko-KR>
 
 <nl-NL>
@@ -198,7 +201,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Gebruikt voltooide Health Connect-energiegegevens van de laatste 14 dagen.
 • Adaptive Goals (Experimental) kan een wekelijkse trendcorrectie toevoegen.
 • Activiteitsniveau toont eiwit g/kg; met lichaamsvet als vetvrije-massa-equivalent.
-• Calorieën en macro's blijven bewerkbaar zonder logs te resetten.
+• What if? in Review Food toont macro-impact en AI-tip voor het loggen.
 </nl-NL>
 
 <pt-BR>
@@ -206,7 +209,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Usa dados concluídos de energia do Health Connect dos últimos 14 dias.
 • Adaptive Goals (Experimental) pode adicionar correção semanal de tendência.
 • Nível de atividade mostra proteína g/kg; com gordura corporal vira equivalente de massa magra.
-• Calorias e macros continuam editáveis sem zerar registros.
+• What if? em Review Food mostra impacto macro e sugestão AI antes de registrar.
 </pt-BR>
 
 <ro>
@@ -214,7 +217,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Folosește date Health Connect finalizate din ultimele 14 zile.
 • Adaptive Goals (Experimental) poate adăuga o corecție săptămânală de trend.
 • Nivelul de activitate arată proteine g/kg; cu grăsime corporală trece la echivalent masă slabă.
-• Caloriile și macrourile rămân editabile fără resetarea jurnalelor.
+• What if? în Review Food arată impact macro și sugestie AI înainte de logare.
 </ro>
 
 <ru-RU>
@@ -222,7 +225,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • Берет завершенные данные Health Connect за последние 14 дней.
 • Adaptive Goals (Experimental) может добавить недельную коррекцию тренда.
 • Activity Level показывает белок g/kg; при % жира — эквивалент по сухой массе.
-• Калории и макросы редактируются без сброса журналов.
+• What if? в Review Food показывает макро-влияние и AI-совет до записи.
 </ru-RU>
 
 <zh-CN>
@@ -230,7 +233,7 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 • 使用最近 14 天已完成的 Health Connect 能量消耗数据。
 • Adaptive Goals（Experimental）可加入每周趋势校正。
 • Activity Level 显示蛋白质 g/kg；有体脂时切换为瘦体重等效值。
-• 热量和宏量营养可编辑，不会重置日志。
+• Review Food 的 What if? 可在记录前预览宏量影响和 AI 建议。
 </zh-CN>
 ```
 

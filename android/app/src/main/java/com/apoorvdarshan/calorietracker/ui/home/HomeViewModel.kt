@@ -26,6 +26,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
+import kotlin.math.roundToInt
 
 enum class FoodLogSortOrder(val storageValue: String, val displayName: String) {
     STANDARD("standard", "Breakfast → Lunch → Dinner"),
@@ -45,6 +46,7 @@ data class HomeUiState(
     val optionalNutrientGoals: OptionalNutrientGoals = OptionalNutrientGoals.Default,
     val foodLogSortOrder: FoodLogSortOrder = FoodLogSortOrder.STANDARD,
     val preferGramsByDefault: Boolean = false,
+    val useMetric: Boolean = true,
     val favoriteKeys: Set<String> = emptySet(),
     val pendingAnalysis: FoodAnalysis? = null,
     val pendingImageBytes: ByteArray? = null,
@@ -110,6 +112,12 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         container.prefs.preferGramsByDefault
             .onEach { preferGrams ->
                 _ui.value = _ui.value.copy(preferGramsByDefault = preferGrams)
+            }
+            .launchIn(viewModelScope)
+
+        container.prefs.useMetric
+            .onEach { useMetric ->
+                _ui.value = _ui.value.copy(useMetric = useMetric)
             }
             .launchIn(viewModelScope)
 
@@ -294,7 +302,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             val filename = reviewSource?.imageFilename
                 ?: pendingDraftImageFilename
                 ?: imageBytes?.let { container.imageStore.storeBytes(it, id) }
-            fun s(v: Int) = (v * scale).toInt()
+            fun s(v: Int) = (v * scale).roundToInt()
             fun macro(v: Double) = v * scale
             fun s(v: Double?) = v?.let { it * scale }
             val entry = FoodEntry(
@@ -348,6 +356,18 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
                 pendingReviewSource = null
             )
         }
+    }
+
+    suspend fun suggestMealWhatIf(entry: FoodEntry): String {
+        val snapshot = _ui.value
+        val profile = snapshot.profile
+            ?: return "Finish onboarding first to compare this meal against your daily goals."
+        return container.foodAnalysis.suggestMealWhatIf(
+            entry = entry,
+            dayEntries = snapshot.todayEntries,
+            profile = profile,
+            useMetric = snapshot.useMetric
+        )
     }
 
     fun dismissPending() {

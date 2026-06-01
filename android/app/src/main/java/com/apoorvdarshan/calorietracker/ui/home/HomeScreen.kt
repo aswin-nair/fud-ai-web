@@ -115,6 +115,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.apoorvdarshan.calorietracker.R
 import com.apoorvdarshan.calorietracker.AppContainer
 import com.apoorvdarshan.calorietracker.models.FoodEntry
+import com.apoorvdarshan.calorietracker.models.FoodSource
 import com.apoorvdarshan.calorietracker.models.MacroValueFormatter
 import com.apoorvdarshan.calorietracker.models.MealType
 import com.apoorvdarshan.calorietracker.models.ServingUnitOption
@@ -709,6 +710,12 @@ fun HomeScreen(container: AppContainer) {
             analysis = analysis,
             imageBytes = ui.pendingImageBytes,
             preferGramsByDefault = ui.preferGramsByDefault,
+            profile = ui.profile,
+            dayEntries = ui.todayEntries,
+            source = ui.pendingReviewSource?.source
+                ?: ui.pendingFoodSource
+                ?: if (ui.pendingImageBytes != null) FoodSource.SNAP_FOOD else FoodSource.TEXT_INPUT,
+            onWhatIfSuggestion = vm::suggestMealWhatIf,
             onSave = { name, grams, scale, mealType, selectedServingUnit, selectedServingQuantity ->
                 vm.saveAnalysis(
                     name = name,

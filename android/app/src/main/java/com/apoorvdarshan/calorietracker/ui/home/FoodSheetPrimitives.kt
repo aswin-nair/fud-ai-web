@@ -72,8 +72,10 @@ import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 internal fun SheetReviewToolbar(
     title: String,
     primaryLabel: String,
+    secondaryLabel: String? = null,
     onCancel: () -> Unit,
-    onPrimary: () -> Unit
+    onPrimary: () -> Unit,
+    onSecondary: (() -> Unit)? = null
 ) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp),
@@ -83,6 +85,10 @@ internal fun SheetReviewToolbar(
         Spacer(Modifier.weight(1f))
         Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.weight(1f))
+        if (secondaryLabel != null && onSecondary != null) {
+            SheetToolbarPill(secondaryLabel, onClick = onSecondary)
+            Spacer(Modifier.width(8.dp))
+        }
         SheetToolbarPill(primaryLabel, bold = true, onClick = onPrimary)
     }
 }

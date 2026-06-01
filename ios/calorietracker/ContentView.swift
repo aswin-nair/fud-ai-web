@@ -382,6 +382,7 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
+        "Review Food now has a What if? check that previews macro impact and can ask AI for a practical suggestion before logging.",
         "Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.",
         "Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.",
         "Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.",

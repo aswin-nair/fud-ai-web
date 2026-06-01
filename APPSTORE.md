@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Cleaner Lock Screen widgets, Experimental goal tools, and clearer activity-based protein targets.
+Meal what-if previews, Experimental goal tools, and clearer activity-based protein targets.
 ```
 
 ## Keywords (100 chars max)
@@ -33,6 +33,7 @@ Secondary: Food & Drink
 Fud AI 4.1 — clearer widgets and Experimental goal tools.
 
 NEW
+• Review Food now has a What if? check that previews macro impact and can ask AI for a practical suggestion before logging.
 • Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.
 • Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
 • Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.
@@ -50,13 +51,13 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Lock Screen widgets now show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
+NEW in v4.1: Review Food now has a What if? check for meal impact and AI suggestions before logging, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
 HOW TO USE
 1) Set your profile and goals
-2) Snap, scan, speak, type, or manually enter a meal — review and save
+2) Snap, scan, speak, type, or manually enter a meal — review, preview What if?, and save
 3) Ask Coach for trends, predictions, and advice
 4) Track progress on charts and widgets
 
@@ -71,6 +72,11 @@ Bring Your Own Key is the iOS access model for full provider control. No Fud AI 
 
 6 SPEECH-TO-TEXT OPTIONS
 Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use iPhone Language, or a specific language per provider where supported.
+
+AI SUGGESTIONS
+• What if? in Review Food previews daily macro impact before logging
+• Optional AI suggestion can recommend logging as-is, changing portion, replacing part of the meal, or adjusting the next meal
+• Uses your selected BYOK provider and only the reviewed meal, profile, goals, and current daily totals needed for that suggestion
 
 COACH
 • Multi-turn chat with on-demand access to your history

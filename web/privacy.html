@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Privacy Policy — Fud AI Calorie Tracker for iOS &amp; Android</title>
-<meta name="description" content="Privacy Policy for Fud AI, the open-source AI calorie tracker and food scanner for iPhone and Android. Learn how photos, iOS Share Extension input, voice, health data, API keys, and Watch snapshots are handled.">
+<meta name="description" content="Privacy Policy for Fud AI, the open-source AI calorie tracker and food scanner for iPhone and Android. Learn how photos, voice, meal what-if suggestions, health data, API keys, and Watch snapshots are handled.">
 <link rel="canonical" href="https://www.fud-ai.app/privacy.html">
 <meta name="theme-color" content="#FF375F">
 <!-- Open Graph -->
@@ -13,7 +13,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://www.fud-ai.app/privacy.html">
 <meta property="og:title" content="Privacy Policy — Fud AI Calorie Tracker for iOS &amp; Android">
-<meta property="og:description" content="How Fud AI handles photos, voice, health data, API keys, and local app data.">
+<meta property="og:description" content="How Fud AI handles photos, voice, meal what-if suggestions, health data, API keys, and local app data.">
 <meta property="og:image" content="https://www.fud-ai.app/assets/opengraph.jpg?v=1">
 <meta property="og:image:secure_url" content="https://www.fud-ai.app/assets/opengraph.jpg?v=1">
 <meta property="og:image:type" content="image/jpeg">
@@ -26,7 +26,7 @@
 <meta name="twitter:creator" content="@apoorvdarshan">
 <meta name="twitter:url" content="https://www.fud-ai.app/privacy.html">
 <meta name="twitter:title" content="Privacy Policy — Fud AI Calorie Tracker for iOS &amp; Android">
-<meta name="twitter:description" content="How Fud AI handles photos, voice, health data, API keys, and local app data.">
+<meta name="twitter:description" content="How Fud AI handles photos, voice, meal what-if suggestions, health data, API keys, and local app data.">
 <meta name="twitter:image" content="https://www.fud-ai.app/assets/opengraph.jpg?v=1">
 <meta name="twitter:image:alt" content="Fud AI — AI calorie tracker for iOS and Android. Snap, speak, or type your meal.">
 <link rel="icon" href="assets/calorie logo transparent.png">
@@ -75,6 +75,7 @@
         <li>Images attached to Coach messages, including camera captures or photo-library selections where supported</li>
         <li>Barcode values scanned for packaged-food lookup</li>
         <li>Food entries and nutrition data you log (including manual entries)</li>
+        <li>Reviewed meal details and current daily macro totals when you tap What if? for an AI meal-impact suggestion</li>
         <li>Weight log entries</li>
         <li>Body fat % readings logged over time, plus an optional goal body fat % (only collected if you opt into body-fat tracking during onboarding or later in Settings)</li>
         <li>Voice recordings (when using voice meal input)</li>
@@ -85,7 +86,8 @@
 
       <h3>How We Use Your Information</h3>
       <ul>
-        <li><strong>AI Food Analysis:</strong> Food photos from the camera, system photo picker, or iOS Share Extension, meal notes, text descriptions, and the text produced from voice input are sent to your selected AI provider only after you choose to analyze them. Requests go directly from your device to your chosen AI provider (any of 13 supported: Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, OpenRouter, Together AI, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama running locally, or a custom OpenAI-compatible endpoint you configure). <strong>Explicit in-app consent before any data leaves your device:</strong> the first time you trigger an AI analysis (photo, voice, text, or nutrition label), the app shows an "AI Analysis Notice" sheet that names your current AI provider, lists exactly what is sent (photo / voice transcript / text / profile data for Coach chat), and requires you to tap Allow before the request fires. Manual entry never requires consent because no data is sent anywhere. <strong>Custom AI Instructions (optional, Settings → AI Provider):</strong> if you fill in the Custom AI Instructions text box, that text is appended to every AI request so the model sees your context. The text stays local except when included in the AI request payload. <strong>Fallback AI Provider:</strong> if your primary provider returns an error, the request can retry with the secondary provider you configured. <strong>Note on OpenRouter <code>openrouter/free</code>:</strong> when you pick the free-tier default model on OpenRouter, OpenRouter itself selects the upstream provider that handles your request.</li>
+        <li><strong>AI Food Analysis:</strong> Food photos from the camera, system photo picker, or iOS Share Extension, meal notes, text descriptions, and the text produced from voice input are sent to your selected AI provider only after you choose to analyze them. Requests go directly from your device to your chosen AI provider (any of 13 supported: Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, OpenRouter, Together AI, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama running locally, or a custom OpenAI-compatible endpoint you configure). The onboarding and AI Provider settings explain that AI analysis sends request content to your chosen provider; manual entry never sends anything to an AI provider. <strong>Custom AI Instructions (optional, Settings → AI Provider):</strong> if you fill in the Custom AI Instructions text box, that text is appended to every AI request so the model sees your context. The text stays local except when included in the AI request payload. <strong>Fallback AI Provider:</strong> if your primary provider returns an error, the request can retry with the secondary provider you configured. <strong>Note on OpenRouter <code>openrouter/free</code>:</strong> when you pick the free-tier default model on OpenRouter, OpenRouter itself selects the upstream provider that handles your request.</li>
+        <li><strong>Meal What-If Suggestions:</strong> If you tap What if? on the Review Food screen, the app locally previews the meal's calorie/protein/carbs/fat impact. If it asks AI for a suggestion, it sends the reviewed meal name and macros, your current daily totals, daily goals, and minimal profile context through your selected AI access path. The meal is not logged until you tap Log.</li>
         <li><strong>Barcode Lookup:</strong> On iOS and Android, if you choose Barcode from the logging menu, the scanned barcode is sent from your device to the public Open Food Facts API. Fud AI requests only product fields needed for nutrition logging, such as product name, brand, quantity, serving size, and nutriments. If Open Food Facts has no product or incomplete nutrition, the app asks you to scan the nutrition label instead. Barcode lookup does not use your AI provider key.</li>
         <li><strong>AI Coach Chat:</strong> When you use the Coach tab, the app sends a slim system prompt (your profile, BMR/TDEE/macro formulas, weight forecast, current date/timezone, and a one-line "data available" snapshot) plus your conversation history through your selected AI access path. Coach can additionally call <strong>tool functions</strong> mid-turn to fetch any date range of your weight, body-fat, calorie, or food-entry history when you ask about specific past dates ("what was my weight in March?", "what did I eat Tuesday?"). If you attach an image to a Coach message, that image is included in the AI request. The fetched data is sent as part of the AI request and may include meal source, meal type, serving size, and micronutrients when relevant. Full chat history is kept locally; only the last 20 messages are included in each LLM request to cap token cost.</li>
         <li><strong>Optional Nutrient Goal Estimation:</strong> If you tap the AI estimate button for detailed nutrient goals, the app sends the minimum profile context needed for that estimate, such as your goal, body measurements, activity level, and current calorie/macro targets, through your selected AI access path. Returned detailed goals such as fiber, sugar, fats, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins, folate, omega-3, and related nutrients are stored locally as settings and do not change the calorie/protein/carbs/fat calculator.</li>

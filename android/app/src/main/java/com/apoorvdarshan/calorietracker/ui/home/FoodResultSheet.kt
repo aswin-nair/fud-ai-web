@@ -9,19 +9,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,12 +46,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apoorvdarshan.calorietracker.R
+import com.apoorvdarshan.calorietracker.models.FoodEntry
+import com.apoorvdarshan.calorietracker.models.FoodSource
 import com.apoorvdarshan.calorietracker.models.MacroValueFormatter
 import com.apoorvdarshan.calorietracker.models.MealType
 import com.apoorvdarshan.calorietracker.models.ServingUnitOption
+import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.services.ai.FoodAnalysis
 import com.apoorvdarshan.calorietracker.ui.theme.AppColors
 import kotlin.math.roundToInt
+import java.time.Instant
 
 /**
  * First-time review sheet shown after photo / text / voice analysis returns
@@ -59,6 +69,12 @@ fun FoodResultSheet(
     analysis: FoodAnalysis,
     imageBytes: ByteArray? = null,
     preferGramsByDefault: Boolean = false,
+    profile: UserProfile? = null,
+    dayEntries: List<FoodEntry> = emptyList(),
+    source: FoodSource = FoodSource.TEXT_INPUT,
+    onWhatIfSuggestion: suspend (FoodEntry) -> String = {
+        "Finish onboarding first to compare this meal against your daily goals."
+    },
     onSave: (
         name: String,
         servingGrams: Double,
@@ -118,6 +134,45 @@ fun FoodResultSheet(
     fun scaledInt(v: Int) = (v * scale).roundToInt()
     fun scaledMacro(v: Double) = v * scale
     fun scaledD(v: Double?) = v?.let { ((it * scale) * 10).roundToInt() / 10.0 }
+    fun previewEntry() = FoodEntry(
+        name = name.trim().ifEmpty { analysis.name },
+        calories = scaledInt(analysis.calories),
+        protein = scaledMacro(analysis.protein),
+        carbs = scaledMacro(analysis.carbs),
+        fat = scaledMacro(analysis.fat),
+        timestamp = Instant.now(),
+        imageFilename = null,
+        emoji = analysis.emoji,
+        source = source,
+        mealType = mealType,
+        sugar = scaledD(analysis.sugar),
+        addedSugar = scaledD(analysis.addedSugar),
+        fiber = scaledD(analysis.fiber),
+        saturatedFat = scaledD(analysis.saturatedFat),
+        monounsaturatedFat = scaledD(analysis.monounsaturatedFat),
+        polyunsaturatedFat = scaledD(analysis.polyunsaturatedFat),
+        cholesterol = scaledD(analysis.cholesterol),
+        sodium = scaledD(analysis.sodium),
+        potassium = scaledD(analysis.potassium),
+        transFat = scaledD(analysis.transFat),
+        calcium = scaledD(analysis.calcium),
+        iron = scaledD(analysis.iron),
+        magnesium = scaledD(analysis.magnesium),
+        zinc = scaledD(analysis.zinc),
+        vitaminA = scaledD(analysis.vitaminA),
+        vitaminC = scaledD(analysis.vitaminC),
+        vitaminD = scaledD(analysis.vitaminD),
+        vitaminB12 = scaledD(analysis.vitaminB12),
+        vitaminE = scaledD(analysis.vitaminE),
+        vitaminK = scaledD(analysis.vitaminK),
+        folate = scaledD(analysis.folate),
+        omega3 = scaledD(analysis.omega3),
+        servingSizeGrams = servingGrams,
+        servingUnitOptions = analysis.servingUnitOptions,
+        selectedServingUnit = if (servingUnitOptions.isEmpty()) null else selectedServingOption.unit,
+        selectedServingQuantity = if (servingUnitOptions.isEmpty()) null else selectedServingQuantity
+    )
+    var whatIfEntry by remember { mutableStateOf<FoodEntry?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -128,6 +183,7 @@ fun FoodResultSheet(
         SheetReviewToolbar(
             title = stringResource(R.string.sheet_review_food),
             primaryLabel = stringResource(R.string.action_log),
+            secondaryLabel = stringResource(R.string.action_what_if),
             onCancel = onDismiss,
             onPrimary = {
                 onSave(
@@ -138,7 +194,8 @@ fun FoodResultSheet(
                     if (servingUnitOptions.isEmpty()) null else selectedServingOption.unit,
                     if (servingUnitOptions.isEmpty()) null else selectedServingQuantity
                 )
-            }
+            },
+            onSecondary = { whatIfEntry = previewEntry() }
         )
 
         LazyColumn(
@@ -339,4 +396,191 @@ fun FoodResultSheet(
             }
         }
     }
+
+    whatIfEntry?.let { entry ->
+        WhatIfMealImpactDialog(
+            entry = entry,
+            dayEntries = dayEntries,
+            profile = profile,
+            onDismiss = { whatIfEntry = null },
+            onSuggest = onWhatIfSuggestion
+        )
+    }
 }
+
+private data class WhatIfTotals(
+    val calories: Int,
+    val protein: Double,
+    val carbs: Double,
+    val fat: Double
+) {
+    operator fun plus(other: WhatIfTotals) = WhatIfTotals(
+        calories = calories + other.calories,
+        protein = protein + other.protein,
+        carbs = carbs + other.carbs,
+        fat = fat + other.fat
+    )
+}
+
+private fun List<FoodEntry>.whatIfTotals() = WhatIfTotals(
+    calories = sumOf { it.calories },
+    protein = sumOf { it.protein },
+    carbs = sumOf { it.carbs },
+    fat = sumOf { it.fat }
+)
+
+private fun FoodEntry.whatIfTotals() = WhatIfTotals(
+    calories = calories,
+    protein = protein,
+    carbs = carbs,
+    fat = fat
+)
+
+@Composable
+private fun WhatIfMealImpactDialog(
+    entry: FoodEntry,
+    dayEntries: List<FoodEntry>,
+    profile: UserProfile?,
+    onDismiss: () -> Unit,
+    onSuggest: suspend (FoodEntry) -> String
+) {
+    val before = remember(dayEntries) { dayEntries.whatIfTotals() }
+    val after = remember(before, entry) { before + entry.whatIfTotals() }
+    var loading by remember(entry.id) { mutableStateOf(true) }
+    var suggestion by remember(entry.id) { mutableStateOf<String?>(null) }
+    var error by remember(entry.id) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(entry.id) {
+        loading = true
+        suggestion = null
+        error = null
+        runCatching { onSuggest(entry) }
+            .onSuccess { suggestion = it.ifBlank { null } }
+            .onFailure { error = it.localizedMessage ?: "Could not load AI suggestion." }
+        loading = false
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(28.dp),
+        title = {
+            Text(
+                stringResource(R.string.what_if_title),
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text(
+                    stringResource(R.string.what_if_subtitle),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f),
+                    lineHeight = 19.sp
+                )
+                SheetPillCard {
+                    WhatIfImpactRow(
+                        label = stringResource(R.string.nutrition_label_calories),
+                        added = "+${entry.calories} kcal",
+                        total = profile?.let { "${after.calories} / ${it.effectiveCalories} kcal" }
+                            ?: "${after.calories} kcal"
+                    )
+                    SheetHairline()
+                    WhatIfImpactRow(
+                        label = stringResource(R.string.nutrition_label_protein),
+                        added = "+${whatIfGrams(entry.protein)}",
+                        total = profile?.let { "${whatIfGrams(after.protein)} / ${it.effectiveProtein}g" }
+                            ?: whatIfGrams(after.protein)
+                    )
+                    SheetHairline()
+                    WhatIfImpactRow(
+                        label = stringResource(R.string.nutrition_label_carbs),
+                        added = "+${whatIfGrams(entry.carbs)}",
+                        total = profile?.let { "${whatIfGrams(after.carbs)} / ${it.effectiveCarbs}g" }
+                            ?: whatIfGrams(after.carbs)
+                    )
+                    SheetHairline()
+                    WhatIfImpactRow(
+                        label = stringResource(R.string.nutrition_label_fat),
+                        added = "+${whatIfGrams(entry.fat)}",
+                        total = profile?.let { "${whatIfGrams(after.fat)} / ${it.effectiveFat}g" }
+                            ?: whatIfGrams(after.fat)
+                    )
+                }
+
+                SheetPillCard {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            stringResource(R.string.what_if_ai_suggestion),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f)
+                        )
+                        if (loading) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = AppColors.Calorie
+                                )
+                                Text(
+                                    stringResource(R.string.what_if_loading),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+                                )
+                            }
+                        } else {
+                            Text(
+                                suggestion ?: error ?: stringResource(R.string.what_if_no_suggestion),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+                                lineHeight = 19.sp
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_done), color = AppColors.Calorie)
+            }
+        }
+    )
+}
+
+@Composable
+private fun WhatIfImpactRow(
+    label: String,
+    added: String,
+    total: String
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                added,
+                fontSize = 13.sp,
+                color = AppColors.Calorie,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Text(
+            total,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
+        )
+    }
+}
+
+private fun whatIfGrams(value: Double): String = "${MacroValueFormatter.string(value)}g"

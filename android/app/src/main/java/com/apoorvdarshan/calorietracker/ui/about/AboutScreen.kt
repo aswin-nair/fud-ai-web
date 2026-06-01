@@ -289,6 +289,7 @@ private fun WhatsNewRow(
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_energy_auto_refresh))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_adaptive_goals))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_activity_protein_targets))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_meal_what_if))
             }
         }
     }

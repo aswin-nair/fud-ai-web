@@ -3,11 +3,13 @@ package com.apoorvdarshan.calorietracker.services.ai
 import com.apoorvdarshan.calorietracker.data.KeyStore
 import com.apoorvdarshan.calorietracker.data.PreferencesStore
 import com.apoorvdarshan.calorietracker.models.AIProvider
+import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.OptionalNutrientGoals
 import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.services.health.HealthEnergySummary
 import kotlinx.coroutines.flow.first
 import okhttp3.OkHttpClient
+import java.util.Locale
 
 /**
  * Single-shot food / text / nutrition-label analysis. Port of iOS GeminiService.
@@ -119,6 +121,72 @@ class FoodAnalysisService(
             - Health total: $healthTotalLine
         """.trimIndent()
         return FoodJsonParser.parseHealthEnergyGoalSuggestion(callAi(prompt, imageBytes = null))
+    }
+
+    suspend fun suggestMealWhatIf(
+        entry: FoodEntry,
+        dayEntries: List<FoodEntry>,
+        profile: UserProfile,
+        useMetric: Boolean
+    ): String {
+        val beforeCalories = dayEntries.sumOf { it.calories }
+        val beforeProtein = dayEntries.sumOf { it.protein }
+        val beforeCarbs = dayEntries.sumOf { it.carbs }
+        val beforeFat = dayEntries.sumOf { it.fat }
+        val afterCalories = beforeCalories + entry.calories
+        val afterProtein = beforeProtein + entry.protein
+        val afterCarbs = beforeCarbs + entry.carbs
+        val afterFat = beforeFat + entry.fat
+        val weight = if (useMetric) {
+            String.format(Locale.US, "%.1f kg", profile.weightKg)
+        } else {
+            String.format(Locale.US, "%.1f lb", profile.weightKg * 2.20462)
+        }
+        val bodyFat = profile.bodyFatPercentage
+            ?.let { "${(it * 100).toInt()}%" }
+            ?: "not set"
+        fun grams(value: Double) = String.format(Locale.US, "%.1fg", value)
+
+        val prompt = """
+            The user tapped "What if?" before logging a meal in a nutrition tracker.
+            Return 2-4 short sentences, no markdown, under 90 words.
+            Explain how this meal changes today's calorie/protein/carbs/fat totals compared with the user's goals, then give one practical action: log it as-is, reduce portion, replace part of it, or adjust the next meal.
+            Stay practical and non-medical.
+
+            User profile:
+            - Gender: ${profile.gender.name.lowercase()}
+            - Age: ${profile.age}
+            - Weight: $weight
+            - Activity level: ${profile.activityLevel.name.lowercase()}
+            - Weight goal: ${profile.goal.name.lowercase()}
+            - Body fat: $bodyFat
+
+            Daily goals:
+            - Calories: ${profile.effectiveCalories} kcal
+            - Protein: ${profile.effectiveProtein}g
+            - Carbs: ${profile.effectiveCarbs}g
+            - Fat: ${profile.effectiveFat}g
+
+            Today's totals before this meal:
+            - Calories: $beforeCalories kcal
+            - Protein: ${grams(beforeProtein)}
+            - Carbs: ${grams(beforeCarbs)}
+            - Fat: ${grams(beforeFat)}
+
+            Meal being reviewed:
+            - Name: ${entry.name}
+            - Calories: ${entry.calories} kcal
+            - Protein: ${grams(entry.protein)}
+            - Carbs: ${grams(entry.carbs)}
+            - Fat: ${grams(entry.fat)}
+
+            Today's totals if logged:
+            - Calories: $afterCalories kcal
+            - Protein: ${grams(afterProtein)}
+            - Carbs: ${grams(afterCarbs)}
+            - Fat: ${grams(afterFat)}
+        """.trimIndent()
+        return callAi(prompt, imageBytes = null).trim()
     }
 
     suspend fun analyzeText(description: String): FoodAnalysis {

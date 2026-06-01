@@ -31,6 +31,7 @@
     <string name="action_continue">Continue</string>
     <string name="action_get_started">Get Started</string>
     <string name="action_log">Log</string>
+    <string name="action_what_if">What if?</string>
     <string name="action_analyze">Analyze</string>
     <string name="action_discard">Discard</string>
     <string name="action_reset">Reset</string>
@@ -362,6 +363,11 @@
     <string name="sheet_meal_type">Meal Type</string>
     <string name="sheet_review_food">Review Food</string>
     <string name="sheet_edit_food">Edit Food</string>
+    <string name="what_if_title">What if?</string>
+    <string name="what_if_subtitle">Preview how this meal changes today before logging it.</string>
+    <string name="what_if_ai_suggestion">AI suggestion</string>
+    <string name="what_if_loading">Checking impact…</string>
+    <string name="what_if_no_suggestion">No suggestion available.</string>
 
     <string name="sheet_micro_sugar">Sugar</string>
     <string name="sheet_micro_added_sugar">Added Sugar</string>
@@ -659,6 +665,7 @@
     <string name="about_whats_new_item_energy_auto_refresh">Energy Burn Goals now refresh automatically once per day when you open the app, using recent Health Connect burn data.</string>
     <string name="about_whats_new_item_adaptive_goals">Adaptive Goals (Experimental) can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.</string>
     <string name="about_whats_new_item_activity_protein_targets">Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.</string>
+    <string name="about_whats_new_item_meal_what_if">Review Food now has a What if? check that previews macro impact and can ask AI for a practical suggestion before logging.</string>
     <string name="about_whats_new_item_decimal_macros">Protein, carbs, and fat now preserve decimal grams instead of rounding to whole numbers.</string>
     <string name="about_whats_new_item_home_cards">Home nutrition cards show decimal macro totals in one compact line.</string>
     <string name="about_whats_new_item_progress_summaries">Progress shows current, goal, net change, and average for weight and body fat.</string>
