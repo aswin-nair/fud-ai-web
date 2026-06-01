@@ -145,3 +145,111 @@ enum WeightAnalysisService {
         return kgPerSecond * 86_400.0
     }
 }
+
+struct AdaptiveGoalResult {
+    var profile: UserProfile
+    var changed: Bool
+    var updatedCalories: Int?
+    var message: String
+}
+
+enum AdaptiveGoalService {
+    private static let minimumFoodDays = 4
+    private static let minimumWeightEntries = 3
+    private static let minimumDailyAdjustment = 25
+    private static let maximumDailyAdjustment = 150
+    private static let caloriesPerKg = 7_700.0
+
+    static func apply(profile: UserProfile, weights: [WeightEntry], foods: [FoodEntry]) -> AdaptiveGoalResult {
+        let forecast = WeightAnalysisService.compute(weights: weights, foods: foods, profile: profile)
+
+        guard forecast.daysOfFoodData >= minimumFoodDays,
+              forecast.weightEntriesUsed >= minimumWeightEntries,
+              let observedWeeklyChangeKg = forecast.observedWeeklyChangeKg else {
+            return AdaptiveGoalResult(
+                profile: profile,
+                changed: false,
+                updatedCalories: nil,
+                message: "Adaptive Goals is on. It needs at least \(minimumFoodDays) logged food days and \(minimumWeightEntries) recent weight entries before making a weekly correction."
+            )
+        }
+
+        let targetWeeklyChangeKg = targetWeeklyChangeKg(for: profile)
+        let rawDailyAdjustment = (targetWeeklyChangeKg - observedWeeklyChangeKg) * caloriesPerKg / 7.0
+        let limitedAdjustment = Int(rawDailyAdjustment.rounded())
+            .clamped(to: -maximumDailyAdjustment...maximumDailyAdjustment)
+
+        guard abs(limitedAdjustment) >= minimumDailyAdjustment else {
+            return AdaptiveGoalResult(
+                profile: profile,
+                changed: false,
+                updatedCalories: nil,
+                message: "Your recent weight trend is close to your selected goal pace, so Adaptive Goals did not change calories this week."
+            )
+        }
+
+        let currentCalories = profile.effectiveCalories
+        let safetyFloor = max(Int(profile.bmr.rounded()), 1_200)
+        let safetyCeiling = max(safetyFloor, Int((profile.tdee * 1.25).rounded()))
+
+        if limitedAdjustment < 0, currentCalories <= safetyFloor {
+            return AdaptiveGoalResult(
+                profile: profile,
+                changed: false,
+                updatedCalories: nil,
+                message: "Adaptive Goals did not lower calories because your current target is already at the safety floor."
+            )
+        }
+        if limitedAdjustment > 0, currentCalories >= safetyCeiling {
+            return AdaptiveGoalResult(
+                profile: profile,
+                changed: false,
+                updatedCalories: nil,
+                message: "Adaptive Goals did not raise calories because your current target is already at the safety ceiling."
+            )
+        }
+
+        let proposedCalories = currentCalories + limitedAdjustment
+        let adjustedCalories = limitedAdjustment < 0
+            ? max(proposedCalories, safetyFloor)
+            : min(proposedCalories, safetyCeiling)
+
+        guard adjustedCalories != currentCalories else {
+            return AdaptiveGoalResult(
+                profile: profile,
+                changed: false,
+                updatedCalories: nil,
+                message: "Adaptive Goals checked your trend, but calorie guardrails kept this week's target unchanged."
+            )
+        }
+
+        var nextProfile = profile
+        nextProfile.customCalories = adjustedCalories
+
+        let signedAdjustment = adjustedCalories - currentCalories
+        let sign = signedAdjustment > 0 ? "+" : ""
+        return AdaptiveGoalResult(
+            profile: nextProfile,
+            changed: true,
+            updatedCalories: adjustedCalories,
+            message: "Adaptive Goals adjusted calories by \(sign)\(signedAdjustment) kcal to \(adjustedCalories) kcal based on your recent weight trend. Pinned macros stay pinned; unlocked macros auto-balance."
+        )
+    }
+
+    private static func targetWeeklyChangeKg(for profile: UserProfile) -> Double {
+        switch profile.goal {
+        case .lose:
+            return -(profile.weeklyChangeKg ?? 0.5)
+        case .maintain:
+            return 0
+        case .gain:
+            return profile.weeklyChangeKg ?? 0.5
+        }
+    }
+}
+
+private extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
+    }
+}

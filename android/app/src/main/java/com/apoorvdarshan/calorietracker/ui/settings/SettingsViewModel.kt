@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 data class SettingsUiState(
     val selectedAI: AIProvider = AIProvider.GEMINI,
@@ -38,9 +39,13 @@ data class SettingsUiState(
     val goalReachedNotificationsEnabled: Boolean = true,
     val healthConnectEnabled: Boolean = false,
     val healthEnergyGoalsEnabled: Boolean = false,
+    val adaptiveGoalsEnabled: Boolean = false,
     val applyingHealthEnergyGoals: Boolean = false,
+    val applyingAdaptiveGoals: Boolean = false,
     val healthEnergyGoalAlertTitle: String? = null,
     val healthEnergyGoalAlertMessage: String? = null,
+    val adaptiveGoalAlertTitle: String? = null,
+    val adaptiveGoalAlertMessage: String? = null,
     val apiKeyMasked: String = "",
     val speechApiKeyMasked: String = "",
     val appearanceMode: String = "system",
@@ -86,6 +91,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val hc = reconcileHealthConnectState()
             val profile = container.profileRepository.current()
             val energyGoals = container.prefs.healthEnergyGoalsEnabled.first() && hc
+            val adaptiveGoals = container.prefs.adaptiveGoalsEnabled.first()
             val masked = maskKey(container.keyStore.apiKey(provider))
             val speechMasked = maskKey(container.keyStore.speechApiKey(speech))
             val appearance = container.prefs.appearanceMode.first()
@@ -113,6 +119,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 goalReachedNotificationsEnabled = goalReachedNotifications,
                 healthConnectEnabled = hc,
                 healthEnergyGoalsEnabled = energyGoals,
+                adaptiveGoalsEnabled = adaptiveGoals,
                 apiKeyMasked = masked,
                 speechApiKeyMasked = speechMasked,
                 appearanceMode = appearance,
@@ -484,6 +491,40 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         )
     }
 
+    fun setAdaptiveGoalsEnabled(v: Boolean) {
+        viewModelScope.launch {
+            container.prefs.setAdaptiveGoalsEnabled(v)
+            if (!v) {
+                _ui.value = _ui.value.copy(
+                    adaptiveGoalsEnabled = false,
+                    applyingAdaptiveGoals = false
+                )
+                return@launch
+            }
+
+            _ui.value = _ui.value.copy(
+                adaptiveGoalsEnabled = true,
+                applyingAdaptiveGoals = true
+            )
+            val result = container.refreshAdaptiveGoalsIfNeeded(force = true)
+            _ui.value = _ui.value.copy(
+                profile = result?.profile ?: container.profileRepository.current() ?: _ui.value.profile,
+                adaptiveGoalsEnabled = true,
+                applyingAdaptiveGoals = false,
+                adaptiveGoalAlertTitle = "Adaptive Goals",
+                adaptiveGoalAlertMessage = result?.message
+                    ?: "Adaptive Goals is on. Fud AI will check once per week after enough food and weight data exists."
+            )
+        }
+    }
+
+    fun dismissAdaptiveGoalAlert() {
+        _ui.value = _ui.value.copy(
+            adaptiveGoalAlertTitle = null,
+            adaptiveGoalAlertMessage = null
+        )
+    }
+
     private suspend fun applyHealthEnergyGoals(saveExistingTargets: Boolean) {
         if (_ui.value.applyingHealthEnergyGoals) return
         _ui.value = _ui.value.copy(applyingHealthEnergyGoals = true)
@@ -538,13 +579,19 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             )
             container.profileRepository.save(next)
             container.prefs.setHealthEnergyGoalsEnabled(true)
+            container.prefs.setHealthEnergyGoalsLastAutoRefreshDay(LocalDate.now().toString())
+            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
             val reason = suggestion.reason?.takeIf { it.isNotBlank() }?.let { "\n\n$it" }.orEmpty()
+            val adaptiveMessage = adaptiveResult
+                ?.takeIf { it.changed }
+                ?.let { "\n\n${it.message}" }
+                .orEmpty()
             _ui.value = _ui.value.copy(
-                profile = next,
+                profile = adaptiveResult?.profile ?: next,
                 healthConnectEnabled = true,
                 healthEnergyGoalsEnabled = true,
                 healthEnergyGoalAlertTitle = "Goals Updated",
-                healthEnergyGoalAlertMessage = "Updated to ${suggestion.calories} kcal using ${summary.daysUsed} days of Health Connect energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.$reason"
+                healthEnergyGoalAlertMessage = "Updated to ${suggestion.calories} kcal using ${summary.daysUsed} days of Health Connect energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.$reason$adaptiveMessage"
             )
         } catch (e: Throwable) {
             container.prefs.setHealthEnergyGoalsEnabled(false)
@@ -605,7 +652,8 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             } else {
                 val next = current.recalculatedFromFormulas()
                 container.profileRepository.save(next)
-                _ui.value = _ui.value.copy(profile = next)
+                val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
+                _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
             }
         }
     }
@@ -632,7 +680,8 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 goalWeightKg = if (mismatch) null else refreshed.goalWeightKg
             ).recalculatedFromFormulas()
             container.profileRepository.save(next)
-            _ui.value = _ui.value.copy(profile = next)
+            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
+            _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
         }
     }
 
@@ -655,7 +704,8 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val current = container.profileRepository.current() ?: return@launch
             val next = update(current).recalculatedFromFormulas()
             container.profileRepository.save(next)
-            _ui.value = _ui.value.copy(profile = next)
+            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
+            _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
         }
     }
 

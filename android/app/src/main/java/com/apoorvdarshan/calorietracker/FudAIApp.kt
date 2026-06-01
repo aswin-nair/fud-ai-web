@@ -12,6 +12,8 @@ import com.apoorvdarshan.calorietracker.services.FoodImageStore
 import com.apoorvdarshan.calorietracker.services.NotificationService
 import com.apoorvdarshan.calorietracker.services.TestDataSeeder
 import com.apoorvdarshan.calorietracker.services.WidgetSnapshotWriter
+import com.apoorvdarshan.calorietracker.services.AdaptiveGoalResult
+import com.apoorvdarshan.calorietracker.services.AdaptiveGoalService
 import com.apoorvdarshan.calorietracker.services.ai.ChatService
 import com.apoorvdarshan.calorietracker.services.ai.FoodAnalysisService
 import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /**
  * Application-scoped singleton wiring. Manual DI (no Hilt) — repositories and
@@ -110,4 +113,77 @@ class AppContainer(app: FudAIApp) {
      * tab bar).
      */
     val analyzingFood: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    private var healthEnergyGoalsRefreshInFlight = false
+    private var adaptiveGoalsRefreshInFlight = false
+
+    suspend fun refreshHealthEnergyGoalsIfNeeded() {
+        if (healthEnergyGoalsRefreshInFlight) return
+        healthEnergyGoalsRefreshInFlight = true
+        try {
+            if (!prefs.healthEnergyGoalsEnabled.first()) return
+            if (!prefs.healthConnectEnabled.first()) return
+            if (!health.isAvailable() || !health.hasAllPermissions()) return
+
+            val today = LocalDate.now().toString()
+            if (prefs.healthEnergyGoalsLastAutoRefreshDay.first() == today) return
+
+            val profile = profileRepository.current() ?: return
+            prefs.setHealthEnergyGoalsLastAutoRefreshDay(today)
+
+            val summary = health.readRecentEnergySummary(days = 14) ?: return
+            val suggestion = foodAnalysis.suggestHealthEnergyGoals(
+                profile = profile,
+                energy = summary,
+                useMetric = prefs.useMetric.first()
+            )
+            profileRepository.save(
+                profile.copy(
+                    customCalories = suggestion.calories,
+                    customProtein = null,
+                    customCarbs = null,
+                    customFat = null,
+                    autoBalanceMacro = null
+                )
+            )
+        } catch (_: Exception) {
+            // Auto-refresh is opportunistic; Settings keeps the visible manual
+            // Refresh path for errors and retries.
+        } finally {
+            healthEnergyGoalsRefreshInFlight = false
+        }
+    }
+
+    suspend fun refreshAdaptiveGoalsIfNeeded(force: Boolean = false): AdaptiveGoalResult? {
+        if (adaptiveGoalsRefreshInFlight) return null
+        adaptiveGoalsRefreshInFlight = true
+        try {
+            if (!prefs.adaptiveGoalsEnabled.first()) return null
+
+            val today = LocalDate.now()
+            if (!force && !shouldCheckAdaptiveGoals(prefs.adaptiveGoalsLastCheckDay.first(), today)) {
+                return null
+            }
+
+            val profile = profileRepository.current() ?: return null
+            val result = AdaptiveGoalService.apply(
+                profile = profile,
+                weights = weightRepository.entries.first(),
+                foods = foodRepository.entries.first()
+            )
+            prefs.setAdaptiveGoalsLastCheckDay(today.toString())
+            if (result.changed) {
+                profileRepository.save(result.profile)
+            }
+            return result
+        } finally {
+            adaptiveGoalsRefreshInFlight = false
+        }
+    }
+
+    private fun shouldCheckAdaptiveGoals(lastCheckDay: String?, today: LocalDate): Boolean {
+        val lastCheck = lastCheckDay?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            ?: return true
+        return !lastCheck.plusDays(7).isAfter(today)
+    }
 }

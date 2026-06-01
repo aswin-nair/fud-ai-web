@@ -67,13 +67,14 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Decimal nutrition totals** — macros and detailed nutrients preserve decimal precision in logs, Home, widgets, and View More
 - **Weight History** — tap-to-delete past entries, syncs deletion to Apple Health
 - **Goal tracking** — set target weight, BMR/TDEE auto-calculation; goal-reached alert fires from both manual logs and Apple Health reads
+- **Adaptive Goals (Experimental)** — optional weekly calorie correction from observed weight trend; pinned macros stay pinned and unlocked macros auto-balance
 
 ### Health & platform
-- **Apple Health** — bidirectional sync for body measurements + nutrition types written per meal; optional energy-burn goals can estimate calorie targets from active/total energy while macros stay editable
-- **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support
+- **Apple Health** — bidirectional sync for body measurements + nutrition types written per meal; Experimental Energy Burn Goals can estimate calorie targets from active/total energy while macros stay editable
+- **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support; Experimental Energy Burn Goals can use recent energy data for calorie targets
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
 - **Widgets** — Home Screen and Lock Screen widgets on iOS follow your selected Home nutrient cards instead of fixed macros; Android Glance widgets update when you log
-- **Android 2.1 updates** — cleaner glass-style UI, in-app camera capture, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
+- **Android 2.2 updates** — Energy Burn Goals auto-refresh, Experimental Adaptive Goals, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 15 languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
@@ -331,7 +332,7 @@ See [SECURITY.md](SECURITY.md). Use [private vulnerability reporting](https://gi
 
 ## Privacy
 
-No accounts, no cloud sync, no analytics. BYOK API keys are encrypted on-device and requests go directly to the provider you choose. Barcode lookup sends the scanned barcode to Open Food Facts and stores the returned nutrition locally. Optional nutrient goals, Home nutrient-card choices, food photos from the app or iOS Share Extension, cached thumbnails, widget snapshots, and Apple Watch nutrition snapshots are local preferences/data; AI estimation sends only the profile context needed for that one estimate. Apple Health energy-burn goals read active/total energy only after the user enables that setting. **Delete All Data** is local-only — it wipes the app's storage (food log, weight log, body-fat log, profile, Coach chat, saved meals, API keys, widget / Watch snapshot) but never touches Apple Health or Health Connect. Samples you've synced are yours; if you want them cleaned up, do it from Health / Health Connect settings. See [Privacy Policy](https://fud-ai.app/privacy.html).
+No accounts, no cloud sync, no analytics. BYOK API keys are encrypted on-device and requests go directly to the provider you choose. Barcode lookup sends the scanned barcode to Open Food Facts and stores the returned nutrition locally. Optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, food photos from the app or iOS Share Extension, cached thumbnails, widget snapshots, and Apple Watch nutrition snapshots are local preferences/data; AI estimation sends only the profile context needed for that one estimate. Apple Health / Health Connect energy-burn goals read active/total energy only after the user enables that setting. **Delete All Data** is local-only — it wipes the app's storage (food log, weight log, body-fat log, profile, Coach chat, saved meals, API keys, widget / Watch snapshot) but never touches Apple Health or Health Connect. Samples you've synced are yours; if you want them cleaned up, do it from Health / Health Connect settings. See [Privacy Policy](https://fud-ai.app/privacy.html).
 
 ## License
 

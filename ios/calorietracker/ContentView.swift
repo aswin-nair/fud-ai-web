@@ -382,6 +382,8 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
+        "Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.",
+        "Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.",
         "Lock Screen rectangular widgets now show current / goal values in clean metric rows.",
         "Lock Screen circular widgets now use larger value-first previews for faster reading.",
         "Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.",
@@ -2574,6 +2576,7 @@ struct ProfileView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("healthKitEnabled") private var healthKitEnabled = false
     @AppStorage(HealthEnergyGoalSettings.enabledKey) private var healthEnergyGoalsEnabled = false
+    @AppStorage(AdaptiveGoalSettings.enabledKey) private var adaptiveGoalsEnabled = false
     @AppStorage("weekStartsOnMonday") private var weekStartsOnMonday = false
     @AppStorage(FoodMeasurementSettings.preferGramsByDefaultKey) private var preferGramsByDefault = false
     @AppStorage(AppThemeColor.storageKey) private var appThemeColorRaw = AppThemeColor.defaultColor.rawValue
@@ -2592,10 +2595,15 @@ struct ProfileView: View {
     @State private var showInvalidGoalWeightAlert = false
     @State private var showDefaultGramsInfo = false
     @State private var showHealthEnergyGoalsInfo = false
+    @State private var showAdaptiveGoalsInfo = false
     @State private var isApplyingHealthEnergyGoals = false
+    @State private var isApplyingAdaptiveGoals = false
     @State private var showHealthEnergyGoalAlert = false
+    @State private var showAdaptiveGoalAlert = false
     @State private var healthEnergyGoalAlertTitle = ""
     @State private var healthEnergyGoalAlertMessage = ""
+    @State private var adaptiveGoalAlertTitle = ""
+    @State private var adaptiveGoalAlertMessage = ""
     @State private var invalidGoalWeightMessage = ""
     @State private var selectedProvider: AIProvider = AIProviderSettings.selectedProvider
     @State private var selectedModel: String = AIProviderSettings.selectedModel
@@ -2830,7 +2838,12 @@ struct ProfileView: View {
 
                     HStack {
                         Label {
-                            Text("Energy Burn Goals")
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Energy Burn Goals")
+                                Text("Experimental")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         } icon: {
                             Image(systemName: "flame.fill")
                                 .foregroundStyle(AppColors.calorie)
@@ -2870,6 +2883,40 @@ struct ProfileView: View {
                         }
                         .disabled(isApplyingHealthEnergyGoals)
                         .tint(.primary)
+                    }
+
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Adaptive Goals")
+                                Text("Experimental")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .foregroundStyle(AppColors.calorie)
+                        }
+                        Spacer()
+                        if isApplyingAdaptiveGoals {
+                            ProgressView()
+                        }
+                        Button {
+                            showAdaptiveGoalsInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("About Adaptive Goals")
+
+                        Toggle("", isOn: $adaptiveGoalsEnabled)
+                            .labelsHidden()
+                            .tint(AppColors.calorie)
+                            .disabled(isApplyingAdaptiveGoals)
+                            .onChange(of: adaptiveGoalsEnabled) { oldValue, enabled in
+                                handleAdaptiveGoalsToggle(enabled, wasEnabled: oldValue)
+                            }
                     }
 
                     ProfileInfoRow(icon: "flame", label: "Calories", value: "\(profile.effectiveCalories) kcal") {
@@ -3706,12 +3753,22 @@ struct ProfileView: View {
             .alert("Energy Burn Goals", isPresented: $showHealthEnergyGoalsInfo) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("When enabled, Fud AI asks Apple Health for Active Energy and Basal Energy, then uses your AI provider to estimate calories. Protein, carbs, and fat stay unlocked on auto-balance unless you lock them manually. Turning this off restores your previous targets.")
+                Text("Experimental. Uses recent Apple Health Active Energy and Basal Energy with your selected AI provider to estimate your calorie target. Workout calories are estimates, so Fud AI treats them cautiously and keeps energy-burn adjustments separate from normal goal formulas where possible. It refreshes automatically once per day when you open the app, using completed days from the last 14 days, and you can still refresh manually. Protein, carbs, and fat stay unlocked on auto-balance unless you lock them manually. Turning this off restores your previous targets.")
+            }
+            .alert("Adaptive Goals", isPresented: $showAdaptiveGoalsInfo) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Experimental. Once per week, Fud AI compares your recent weight trend with your target pace and makes a small local calorie correction. Pinned macros stay pinned; unlocked macros auto-balance. If Energy Burn Goals is also enabled, Adaptive Goals uses weight trend as a weekly correction on top of energy-burn targets. This is not medical advice.")
             }
             .alert(healthEnergyGoalAlertTitle, isPresented: $showHealthEnergyGoalAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(healthEnergyGoalAlertMessage)
+            }
+            .alert(adaptiveGoalAlertTitle, isPresented: $showAdaptiveGoalAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(adaptiveGoalAlertMessage)
             }
             .sheet(isPresented: $showCalculationMethods) {
                 CalculationMethodsView()
@@ -3781,6 +3838,7 @@ struct ProfileView: View {
         }
         profile.recalculateGoalsFromFormulas()
         saveProfile()
+        _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
     }
 
     /// Macro row. Tap to open the picker (which lets the user enter a value to pin, or reset to auto).
@@ -3831,6 +3889,7 @@ struct ProfileView: View {
         }
         profile.recalculateGoalsFromFormulas()
         saveProfile()
+        _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
     }
 
     private func handleHealthKitToggle(_ enabled: Bool) {
@@ -3891,6 +3950,35 @@ struct ProfileView: View {
         }
     }
 
+    private func handleAdaptiveGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
+        guard enabled else { return }
+        _ = applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true)
+    }
+
+    @discardableResult
+    private func applyAdaptiveGoalsIfDue(force: Bool, showAlert: Bool) -> AdaptiveGoalResult? {
+        guard adaptiveGoalsEnabled, !isApplyingAdaptiveGoals else { return nil }
+        guard force || AdaptiveGoalSettings.shouldCheckThisWeek() else { return nil }
+
+        isApplyingAdaptiveGoals = true
+        let result = AdaptiveGoalService.apply(
+            profile: profile,
+            weights: weightStore.entries,
+            foods: foodStore.entries
+        )
+        AdaptiveGoalSettings.markCheckedToday()
+        if result.changed {
+            profile = result.profile
+            saveProfile()
+        }
+        isApplyingAdaptiveGoals = false
+
+        if showAlert {
+            showAdaptiveGoalAlert(title: "Adaptive Goals", message: result.message)
+        }
+        return result
+    }
+
     private func applyHealthEnergyGoals(saveExistingTargets: Bool) async {
         guard !isApplyingHealthEnergyGoals else { return }
         isApplyingHealthEnergyGoals = true
@@ -3934,11 +4022,16 @@ struct ProfileView: View {
             profile.customFat = nil
             profile.autoBalanceMacro = nil
             saveProfile()
+            HealthEnergyGoalSettings.markAutoRefreshAttemptedToday()
+            let adaptiveResult = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
 
             let reason = suggestion.reason.map { "\n\n\($0)" } ?? ""
+            let adaptiveMessage = adaptiveResult?.changed == true
+                ? "\n\n\(adaptiveResult?.message ?? "")"
+                : ""
             showHealthEnergyGoalsAlert(
                 title: "Goals Updated",
-                message: "Updated to \(suggestion.calories) kcal using \(summary.daysUsed) days of Apple Health energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.\(reason)"
+                message: "Updated to \(suggestion.calories) kcal using \(summary.daysUsed) days of Apple Health energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.\(reason)\(adaptiveMessage)"
             )
         } catch {
             healthEnergyGoalsEnabled = false
@@ -3953,6 +4046,12 @@ struct ProfileView: View {
         healthEnergyGoalAlertTitle = title
         healthEnergyGoalAlertMessage = message
         showHealthEnergyGoalAlert = true
+    }
+
+    private func showAdaptiveGoalAlert(title: String, message: String) {
+        adaptiveGoalAlertTitle = title
+        adaptiveGoalAlertMessage = message
+        showAdaptiveGoalAlert = true
     }
 
 }

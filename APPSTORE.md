@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Cleaner Lock Screen widgets with readable calorie and nutrient rows.
+Cleaner Lock Screen widgets, plus Experimental goal tools for energy burn and weight-trend adjustments.
 ```
 
 ## Keywords (100 chars max)
@@ -30,9 +30,11 @@ Secondary: Food & Drink
 
 ## What's New (v4.1)
 ```
-Fud AI 4.1 — clearer Lock Screen widgets.
+Fud AI 4.1 — clearer widgets and Experimental goal tools.
 
 NEW
+• Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.
+• Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
 • Lock Screen rectangular widgets now show current / goal values in clean metric rows.
 • Lock Screen circular widgets now use larger value-first previews for faster reading.
 • Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.
@@ -47,7 +49,7 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Lock Screen widgets now show readable current / goal rows in the rectangular calorie widget, larger circular values, distinct calorie/nutrient icons, no duplicate nutrient rectangular option, and BYOK-only AI access on iOS.
+NEW in v4.1: Lock Screen widgets now show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
@@ -79,7 +81,7 @@ EXPANDED NUTRIENTS
 Calories, protein, carbs, fat, sugar, added sugar, fiber, saturated fat, trans fat, mono/polyunsaturated fat, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3, and more when available.
 
 PERSONALIZED GOALS
-BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calorie + protein + carbs + fat targets, and optional detailed nutrient goals. Optional goals stay separate from the calorie and macro calculator.
+BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calorie + protein + carbs + fat targets, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly weight-trend corrections while pinned macros stay pinned.
 
 PROGRESS
 Weight / Body Fat chart, average and net change summaries, goal lines, calorie trend vs goal, and macro averages over 1W, 1M, 3M, 6M, 1Y, All Time.
@@ -94,7 +96,7 @@ PRIVACY
 No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
-Two-way sync for nutrition, weight, height, and body fat. External samples from Apple Watch, scales, and Health app can auto-import. Optional energy-burn goals can use Apple Health active/total energy to estimate calorie targets while keeping macros editable.
+Two-way sync for nutrition, weight, height, and body fat. External samples from Apple Watch, scales, and Health app can auto-import. Experimental Energy Burn Goals can use Apple Health active/total energy to estimate calorie targets while keeping macros editable.
 
 Fud AI is not medical advice — consult a healthcare professional before significant diet changes.
 

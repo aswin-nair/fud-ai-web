@@ -324,6 +324,7 @@ struct UserProfile: Codable, Equatable {
 struct HealthEnergyGoalSettings {
     static let enabledKey = "healthEnergyGoalsEnabled"
     private static let previousTargetsKey = "healthEnergyGoalsPreviousTargets"
+    private static let lastAutoRefreshDayKey = "healthEnergyGoalsLastAutoRefreshDay"
 
     private struct TargetSnapshot: Codable {
         var customCalories: Int?
@@ -370,6 +371,54 @@ struct HealthEnergyGoalSettings {
 
     static func clearPreviousTargets() {
         UserDefaults.standard.removeObject(forKey: previousTargetsKey)
+    }
+
+    static func shouldAutoRefreshToday(calendar: Calendar = .current, now: Date = .now) -> Bool {
+        UserDefaults.standard.string(forKey: lastAutoRefreshDayKey) != dayKey(for: now, calendar: calendar)
+    }
+
+    static func markAutoRefreshAttemptedToday(calendar: Calendar = .current, now: Date = .now) {
+        UserDefaults.standard.set(dayKey(for: now, calendar: calendar), forKey: lastAutoRefreshDayKey)
+    }
+
+    private static func dayKey(for date: Date, calendar: Calendar) -> String {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", components.year ?? 0, components.month ?? 0, components.day ?? 0)
+    }
+}
+
+struct AdaptiveGoalSettings {
+    static let enabledKey = "adaptiveGoalsEnabled"
+    private static let lastCheckDayKey = "adaptiveGoalsLastCheckDay"
+    private static let daysBetweenChecks = 7
+
+    static func shouldCheckThisWeek(calendar: Calendar = .current, now: Date = .now) -> Bool {
+        guard let lastCheck = UserDefaults.standard.string(forKey: lastCheckDayKey),
+              let lastDate = date(from: lastCheck, calendar: calendar) else {
+            return true
+        }
+
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: lastDate),
+            to: calendar.startOfDay(for: now)
+        ).day ?? daysBetweenChecks
+        return days >= daysBetweenChecks
+    }
+
+    static func markCheckedToday(calendar: Calendar = .current, now: Date = .now) {
+        UserDefaults.standard.set(dayKey(for: now, calendar: calendar), forKey: lastCheckDayKey)
+    }
+
+    private static func dayKey(for date: Date, calendar: Calendar) -> String {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", components.year ?? 0, components.month ?? 0, components.day ?? 0)
+    }
+
+    private static func date(from dayKey: String, calendar: Calendar) -> Date? {
+        let parts = dayKey.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3 else { return nil }
+        return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2]))
     }
 }
 

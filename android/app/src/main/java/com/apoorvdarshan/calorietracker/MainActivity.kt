@@ -21,6 +21,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 open class MainActivity : ComponentActivity() {
+    override fun onStart() {
+        super.onStart()
+        lifecycleScope.launch {
+            val container = (application as FudAIApp).container
+            container.refreshHealthEnergyGoalsIfNeeded()
+            container.refreshAdaptiveGoalsIfNeeded()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must run before super.onCreate so the system swaps the splash theme
         // back to Theme.FudAI before the first frame, preventing a white flash

@@ -8,6 +8,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -34,6 +36,110 @@ data class WeightForecast(
 ) {
     companion object {
         const val MAX_LOOKBACK_DAYS = 90
+    }
+}
+
+data class AdaptiveGoalResult(
+    val profile: UserProfile,
+    val changed: Boolean,
+    val updatedCalories: Int?,
+    val message: String
+)
+
+object AdaptiveGoalService {
+    private const val MINIMUM_FOOD_DAYS = 4
+    private const val MINIMUM_WEIGHT_ENTRIES = 3
+    private const val MINIMUM_DAILY_ADJUSTMENT = 25
+    private const val MAXIMUM_DAILY_ADJUSTMENT = 150
+    private const val CALORIES_PER_KG = 7_700.0
+
+    fun apply(
+        profile: UserProfile,
+        weights: List<WeightEntry>,
+        foods: List<FoodEntry>
+    ): AdaptiveGoalResult {
+        val forecast = WeightAnalysisService.compute(weights = weights, foods = foods, profile = profile)
+        val observedWeeklyChangeKg = forecast.observedWeeklyChangeKg
+
+        if (forecast.daysOfFoodData < MINIMUM_FOOD_DAYS ||
+            forecast.weightEntriesUsed < MINIMUM_WEIGHT_ENTRIES ||
+            observedWeeklyChangeKg == null
+        ) {
+            return AdaptiveGoalResult(
+                profile = profile,
+                changed = false,
+                updatedCalories = null,
+                message = "Adaptive Goals is on. It needs at least $MINIMUM_FOOD_DAYS logged food days and $MINIMUM_WEIGHT_ENTRIES recent weight entries before making a weekly correction."
+            )
+        }
+
+        val targetWeeklyChangeKg = targetWeeklyChangeKg(profile)
+        val rawDailyAdjustment = (targetWeeklyChangeKg - observedWeeklyChangeKg) * CALORIES_PER_KG / 7.0
+        val limitedAdjustment = rawDailyAdjustment
+            .roundToInt()
+            .coerceIn(-MAXIMUM_DAILY_ADJUSTMENT, MAXIMUM_DAILY_ADJUSTMENT)
+
+        if (abs(limitedAdjustment) < MINIMUM_DAILY_ADJUSTMENT) {
+            return AdaptiveGoalResult(
+                profile = profile,
+                changed = false,
+                updatedCalories = null,
+                message = "Your recent weight trend is close to your selected goal pace, so Adaptive Goals did not change calories this week."
+            )
+        }
+
+        val currentCalories = profile.effectiveCalories
+        val safetyFloor = max(profile.bmr.roundToInt(), 1_200)
+        val safetyCeiling = max(safetyFloor, (profile.tdee * 1.25).roundToInt())
+
+        if (limitedAdjustment < 0 && currentCalories <= safetyFloor) {
+            return AdaptiveGoalResult(
+                profile = profile,
+                changed = false,
+                updatedCalories = null,
+                message = "Adaptive Goals did not lower calories because your current target is already at the safety floor."
+            )
+        }
+        if (limitedAdjustment > 0 && currentCalories >= safetyCeiling) {
+            return AdaptiveGoalResult(
+                profile = profile,
+                changed = false,
+                updatedCalories = null,
+                message = "Adaptive Goals did not raise calories because your current target is already at the safety ceiling."
+            )
+        }
+
+        val proposedCalories = currentCalories + limitedAdjustment
+        val adjustedCalories = if (limitedAdjustment < 0) {
+            max(proposedCalories, safetyFloor)
+        } else {
+            min(proposedCalories, safetyCeiling)
+        }
+
+        if (adjustedCalories == currentCalories) {
+            return AdaptiveGoalResult(
+                profile = profile,
+                changed = false,
+                updatedCalories = null,
+                message = "Adaptive Goals checked your trend, but calorie guardrails kept this week's target unchanged."
+            )
+        }
+
+        val nextProfile = profile.copy(customCalories = adjustedCalories)
+        val signedAdjustment = adjustedCalories - currentCalories
+        val sign = if (signedAdjustment > 0) "+" else ""
+        return AdaptiveGoalResult(
+            profile = nextProfile,
+            changed = true,
+            updatedCalories = adjustedCalories,
+            message = "Adaptive Goals adjusted calories by $sign$signedAdjustment kcal to $adjustedCalories kcal based on your recent weight trend. Pinned macros stay pinned; unlocked macros auto-balance."
+        )
+    }
+
+    private fun targetWeeklyChangeKg(profile: UserProfile): Double = when (profile.goal) {
+        WeightGoal.LOSE -> -(profile.weeklyChangeKg ?: 0.5)
+        WeightGoal.MAINTAIN -> 0.0
+        WeightGoal.GAIN -> profile.weeklyChangeKg ?: 0.5
     }
 }
 

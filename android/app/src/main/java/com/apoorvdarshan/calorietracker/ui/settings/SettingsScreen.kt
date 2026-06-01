@@ -190,6 +190,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
     var permissionDeniedMessage by remember { mutableStateOf<String?>(null) }
     var showDefaultGramsInfo by remember { mutableStateOf(false) }
     var showHealthEnergyGoalsInfo by remember { mutableStateOf(false) }
+    var showAdaptiveGoalsInfo by remember { mutableStateOf(false) }
     var pendingHealthPermissionAction by remember { mutableStateOf<HealthConnectPermissionAction?>(null) }
     val activityContext = LocalContext.current
 
@@ -418,6 +419,13 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             )
                         }
                     }
+                    HorizontalDivider()
+                    AdaptiveGoalsRow(
+                        checked = ui.adaptiveGoalsEnabled,
+                        applying = ui.applyingAdaptiveGoals,
+                        onInfo = { showAdaptiveGoalsInfo = true },
+                        onChange = vm::setAdaptiveGoalsEnabled
+                    )
                     HorizontalDivider()
                     // iOS shows "2452 kcal" with no chevron suffix on the Calories row.
                     SettingRow(stringResource(R.string.settings_calories), stringResource(R.string.kcal_value_format, p.effectiveCalories), icon = Icons.Outlined.LocalFireDepartment) { sheet = SettingsSheet.CALORIES }
@@ -789,6 +797,20 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
         }
     }
 
+    if (showAdaptiveGoalsInfo) {
+        FudGlassDialog(onDismissRequest = { showAdaptiveGoalsInfo = false }) {
+            Text(stringResource(R.string.settings_adaptive_goals), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.settings_adaptive_goals_info),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { showAdaptiveGoalsInfo = false }
+            )
+        }
+    }
+
     val energyAlertTitle = ui.healthEnergyGoalAlertTitle
     val energyAlertMessage = ui.healthEnergyGoalAlertMessage
     if (energyAlertTitle != null && energyAlertMessage != null) {
@@ -801,6 +823,22 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
             FudGlassDialogActions(
                 primaryText = stringResource(R.string.action_ok),
                 onPrimary = { vm.dismissHealthEnergyGoalAlert() }
+            )
+        }
+    }
+
+    val adaptiveAlertTitle = ui.adaptiveGoalAlertTitle
+    val adaptiveAlertMessage = ui.adaptiveGoalAlertMessage
+    if (adaptiveAlertTitle != null && adaptiveAlertMessage != null) {
+        FudGlassDialog(onDismissRequest = { vm.dismissAdaptiveGoalAlert() }) {
+            Text(adaptiveAlertTitle, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                adaptiveAlertMessage,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { vm.dismissAdaptiveGoalAlert() }
             )
         }
     }
@@ -2244,12 +2282,69 @@ private fun EnergyBurnGoalsRow(
     ) {
         FudIconBubble(icon = Icons.Outlined.LocalFireDepartment, size = 22.dp, iconSize = 14.dp)
         Spacer(Modifier.width(14.dp))
-        Text(
-            stringResource(R.string.settings_energy_goals),
+        Column(
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium
-        )
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                stringResource(R.string.settings_energy_goals),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                stringResource(R.string.settings_experimental),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+            )
+        }
+        if (applying) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                strokeWidth = 2.dp,
+                color = AppColors.Calorie
+            )
+            Spacer(Modifier.width(14.dp))
+        }
+        IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = stringResource(R.string.action_info),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Switch(checked = checked, onCheckedChange = onChange, enabled = !applying)
+    }
+}
+
+@Composable
+private fun AdaptiveGoalsRow(
+    checked: Boolean,
+    applying: Boolean,
+    onInfo: () -> Unit,
+    onChange: (Boolean) -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        FudIconBubble(icon = Icons.Outlined.TrackChanges, size = 22.dp, iconSize = 14.dp)
+        Spacer(Modifier.width(14.dp))
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                stringResource(R.string.settings_adaptive_goals),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                stringResource(R.string.settings_experimental),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+            )
+        }
         if (applying) {
             CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),

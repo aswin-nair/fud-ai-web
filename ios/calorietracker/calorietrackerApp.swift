@@ -21,8 +21,11 @@ struct calorietrackerApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("appearanceMode") private var appearanceMode = "system"
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
+    @AppStorage("useMetric") private var useMetric = false
     @AppStorage(AppThemeColor.storageKey) private var appThemeColorRaw = AppThemeColor.defaultColor.rawValue
     @Environment(\.scenePhase) private var scenePhase
+    @State private var isAutoRefreshingHealthEnergyGoals = false
+    @State private var isAutoRefreshingAdaptiveGoals = false
 
     private var colorScheme: ColorScheme? {
         switch appearanceMode {
@@ -91,6 +94,9 @@ struct calorietrackerApp: App {
                     // hook existed (the .onChange(hasCompletedOnboarding) branch
                     // only fires on the false→true transition, never on cold launch).
                     wireUpFoodStoreCallback()
+                    if !refreshHealthEnergyGoalsIfNeeded() {
+                        refreshAdaptiveGoalsIfNeeded()
+                    }
                 }
                 // Refresh on scene-active so widgets roll over at midnight even
                 // without an explicit food change.
@@ -305,5 +311,69 @@ struct calorietrackerApp: App {
             return
         }
         WidgetSnapshotWriter.publish(foods: foodStore.entries, profile: profile)
+    }
+
+    @MainActor
+    private func refreshHealthEnergyGoalsIfNeeded() -> Bool {
+        guard !isAutoRefreshingHealthEnergyGoals else { return false }
+        guard UserDefaults.standard.bool(forKey: HealthEnergyGoalSettings.enabledKey) else { return false }
+        guard UserDefaults.standard.bool(forKey: "healthKitEnabled") else { return false }
+        guard HealthEnergyGoalSettings.shouldAutoRefreshToday() else { return false }
+        guard UserProfile.load() != nil else { return false }
+        let usesMetricUnits = useMetric
+
+        isAutoRefreshingHealthEnergyGoals = true
+        HealthEnergyGoalSettings.markAutoRefreshAttemptedToday()
+
+        Task {
+            defer {
+                Task { @MainActor in
+                    isAutoRefreshingHealthEnergyGoals = false
+                    refreshAdaptiveGoalsIfNeeded()
+                }
+            }
+
+            guard var profile = UserProfile.load() else { return }
+            guard let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) else { return }
+
+            do {
+                let suggestion = try await GeminiService.suggestHealthEnergyGoals(
+                    profile: profile,
+                    energy: summary,
+                    useMetric: usesMetricUnits
+                )
+                profile.customCalories = suggestion.calories
+                profile.customProtein = nil
+                profile.customCarbs = nil
+                profile.customFat = nil
+                profile.autoBalanceMacro = nil
+                profile.save()
+            } catch {
+                // Daily auto-refresh is opportunistic. Manual Refresh in Settings
+                // remains available for visible errors and retries.
+            }
+        }
+        return true
+    }
+
+    @MainActor
+    private func refreshAdaptiveGoalsIfNeeded() {
+        guard !isAutoRefreshingAdaptiveGoals else { return }
+        guard UserDefaults.standard.bool(forKey: AdaptiveGoalSettings.enabledKey) else { return }
+        guard AdaptiveGoalSettings.shouldCheckThisWeek() else { return }
+        guard let profile = UserProfile.load() else { return }
+
+        isAutoRefreshingAdaptiveGoals = true
+        defer { isAutoRefreshingAdaptiveGoals = false }
+
+        let result = AdaptiveGoalService.apply(
+            profile: profile,
+            weights: weightStore.entries,
+            foods: foodStore.entries
+        )
+        AdaptiveGoalSettings.markCheckedToday()
+        if result.changed {
+            result.profile.save()
+        }
     }
 }

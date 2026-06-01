@@ -108,6 +108,23 @@ class PreferencesStore(private val context: Context) {
     val healthEnergyGoalsEnabled: Flow<Boolean> = ds.data.map { it[Keys.HEALTH_ENERGY_GOALS_ENABLED] ?: false }
     suspend fun setHealthEnergyGoalsEnabled(v: Boolean) { ds.edit { it[Keys.HEALTH_ENERGY_GOALS_ENABLED] = v } }
 
+    val healthEnergyGoalsLastAutoRefreshDay: Flow<String?> = ds.data.map {
+        it[Keys.HEALTH_ENERGY_GOALS_LAST_AUTO_REFRESH_DAY]
+    }
+    suspend fun setHealthEnergyGoalsLastAutoRefreshDay(v: String) {
+        ds.edit { it[Keys.HEALTH_ENERGY_GOALS_LAST_AUTO_REFRESH_DAY] = v }
+    }
+
+    val adaptiveGoalsEnabled: Flow<Boolean> = ds.data.map { it[Keys.ADAPTIVE_GOALS_ENABLED] ?: false }
+    suspend fun setAdaptiveGoalsEnabled(v: Boolean) { ds.edit { it[Keys.ADAPTIVE_GOALS_ENABLED] = v } }
+
+    val adaptiveGoalsLastCheckDay: Flow<String?> = ds.data.map {
+        it[Keys.ADAPTIVE_GOALS_LAST_CHECK_DAY]
+    }
+    suspend fun setAdaptiveGoalsLastCheckDay(v: String) {
+        ds.edit { it[Keys.ADAPTIVE_GOALS_LAST_CHECK_DAY] = v }
+    }
+
     suspend fun saveHealthEnergyGoalPreviousTargetsIfNeeded(profile: UserProfile) {
         ds.edit { prefs ->
             if (prefs[Keys.HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS] != null) return@edit
@@ -401,6 +418,9 @@ class PreferencesStore(private val context: Context) {
         val HEALTH_TYPES_VERSION = intPreferencesKey("healthTypesVersion")
         val HEALTH_ENERGY_GOALS_ENABLED = booleanPreferencesKey("healthEnergyGoalsEnabled")
         val HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS = stringPreferencesKey("healthEnergyGoalsPreviousTargets")
+        val HEALTH_ENERGY_GOALS_LAST_AUTO_REFRESH_DAY = stringPreferencesKey("healthEnergyGoalsLastAutoRefreshDay")
+        val ADAPTIVE_GOALS_ENABLED = booleanPreferencesKey("adaptiveGoalsEnabled")
+        val ADAPTIVE_GOALS_LAST_CHECK_DAY = stringPreferencesKey("adaptiveGoalsLastCheckDay")
         val USE_METRIC = booleanPreferencesKey("useMetric")
         val PREFER_GRAMS_BY_DEFAULT = booleanPreferencesKey("foodMeasurementPreferGramsByDefault")
         val APPEARANCE_MODE = stringPreferencesKey("appearanceMode")

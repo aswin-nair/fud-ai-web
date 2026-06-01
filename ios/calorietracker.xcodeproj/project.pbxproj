@@ -383,6 +383,8 @@
 				BA8E0E422F33F198007DD537 /* Frameworks */,
 				BA8E0E432F33F198007DD537 /* Resources */,
 			);
+			buildRules = (
+			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
@@ -1048,9 +1050,9 @@
 		BA8E0E3F2F33F198007DD537 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				APP_DISPLAY_NAME = "Fud AI Debug";
 				APP_GROUP_IDENTIFIER = group.com.apoorvdarshan.calorietracker.debug;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = calorietrackerShare/calorietrackerShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 21;
@@ -1086,9 +1088,9 @@
 		BA8E0E402F33F198007DD537 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				APP_DISPLAY_NAME = "Fud AI";
 				APP_GROUP_IDENTIFIER = group.com.apoorvdarshan.calorietracker;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = calorietrackerShare/calorietrackerShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 21;
@@ -1357,7 +1359,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-		};
+	};
 	rootObject = BA8E0DEB2F33F197007DD537 /* Project object */;
 }
