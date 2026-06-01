@@ -38,8 +38,9 @@ NEW
 • Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.
 • The calorie rectangular widget shows calories plus all three selected Home nutrients.
 • The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.
+• iOS AI access is BYOK-only again; Fud AI Plus subscriptions and RevenueCat purchase checks have been removed.
 
-No data migration is required. Existing logs, goals, widgets, BYOK settings, and Fud AI Plus status are preserved.
+No data migration is required. Existing logs, goals, widgets, and BYOK settings are preserved.
 ```
 
 ## Description
