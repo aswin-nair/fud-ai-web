@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Meal what-if previews, Experimental goal tools, and clearer activity-based protein targets.
+Review nutrition edits, meal what-if previews, Experimental goals, and clearer protein targets.
 ```
 
 ## Keywords (100 chars max)
@@ -33,6 +33,7 @@ Secondary: Food & Drink
 Fud AI 4.1 — clearer widgets and Experimental goal tools.
 
 NEW
+• Review Food now has a Nutrition lock: unlock to correct calories, macros, and detailed nutrients before logging, then lock again so serving changes scale from those edits.
 • Review Food now has a What if? check that previews macro impact and can ask AI for a practical suggestion before logging.
 • Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.
 • Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
@@ -51,13 +52,13 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Review Food now has a What if? check for meal impact and AI suggestions before logging, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
+NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
 HOW TO USE
 1) Set your profile and goals
-2) Snap, scan, speak, type, or manually enter a meal — review, preview What if?, and save
+2) Snap, scan, speak, type, or manually enter a meal — review/edit nutrition, preview What if?, and save
 3) Ask Coach for trends, predictions, and advice
 4) Track progress on charts and widgets
 
@@ -73,7 +74,9 @@ Bring Your Own Key is the iOS access model for full provider control. No Fud AI 
 6 SPEECH-TO-TEXT OPTIONS
 Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use iPhone Language, or a specific language per provider where supported.
 
-AI SUGGESTIONS
+REVIEW BEFORE LOGGING
+• Unlock Nutrition in Review Food to correct calories, macros, and detailed nutrients before logging
+• Lock again so serving and quantity changes scale from the corrected base values
 • What if? in Review Food previews daily macro impact before logging
 • Optional AI suggestion can recommend logging as-is, changing portion, replacing part of the meal, or adjusting the next meal
 • Uses your selected BYOK provider and only the reviewed meal, profile, goals, and current daily totals needed for that suggestion
@@ -100,7 +103,7 @@ Widgets in all 5 families — Small, Medium, Circular, Rectangular, Inline. Nutr
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
 
 PRIVACY
-No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Barcode sends only the barcode to Open Food Facts. MIT licensed.
+No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Review nutrition edits are local and saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
 Two-way sync for nutrition, weight, height, and body fat. External samples from Apple Watch, scales, and Health app can auto-import. Experimental Energy Burn Goals can use Apple Health active/total energy to estimate calorie targets while keeping macros editable.

@@ -46,6 +46,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Voice input** — speak your meals hands-free (6 STT options with per-provider language selection, see below)
 - **Manual Entry** — log known calories and macros without AI
 - **Smart serving units** — AI can show slices, pieces, cups, ml, or other visible serving units while grams stay the source of truth
+- **Review nutrition unlock** — correct calories, macros, and detailed nutrients before logging, then lock again so serving changes scale from your edits
 - **Meal What if?** — preview how a reviewed meal changes today's calories and macros, then ask AI for a practical suggestion before logging
 - **Saved Meals** — Recents, Frequent, and Favorites with safer swipe actions, search, and drag-to-reorder
 
@@ -170,7 +171,7 @@ An eight-screen walkthrough of the current app flow — from opening the dashboa
       <br><br>
       <b>04 · Review · Edit</b>
       <br>
-      <sub>Review the AI's guess, adjust the serving size (everything recalculates live), preview "What if?" impact, and pick a meal type before logging.</sub>
+      <sub>Review the AI's guess, unlock nutrition if values need correction, adjust the serving size (everything recalculates live), preview "What if?" impact, and pick a meal type before logging.</sub>
     </td>
     <td align="center" width="33%">
       <img src="web/assets/screenshots/meals.png" width="230" alt="Meals log">
@@ -333,7 +334,7 @@ See [SECURITY.md](SECURITY.md). Use [private vulnerability reporting](https://gi
 
 ## Privacy
 
-No accounts, no cloud sync, no analytics. BYOK API keys are encrypted on-device and requests go directly to the provider you choose. Barcode lookup sends the scanned barcode to Open Food Facts and stores the returned nutrition locally. Optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, food photos from the app or iOS Share Extension, cached thumbnails, widget snapshots, and Apple Watch nutrition snapshots are local preferences/data; AI estimation sends only the profile, reviewed meal, and daily-total context needed for the specific estimate or meal what-if suggestion. Apple Health / Health Connect energy-burn goals read active/total energy only after the user enables that setting. **Delete All Data** is local-only — it wipes the app's storage (food log, weight log, body-fat log, profile, Coach chat, saved meals, API keys, widget / Watch snapshot) but never touches Apple Health or Health Connect. Samples you've synced are yours; if you want them cleaned up, do it from Health / Health Connect settings. See [Privacy Policy](https://fud-ai.app/privacy.html).
+No accounts, no cloud sync, no analytics. BYOK API keys are encrypted on-device and requests go directly to the provider you choose. Barcode lookup sends the scanned barcode to Open Food Facts and stores the returned nutrition locally. Optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, saved review nutrition edits, food photos from the app or iOS Share Extension, cached thumbnails, widget snapshots, and Apple Watch nutrition snapshots are local preferences/data; AI estimation sends only the profile, reviewed meal, and daily-total context needed for the specific estimate or meal what-if suggestion. Apple Health / Health Connect energy-burn goals read active/total energy only after the user enables that setting. **Delete All Data** is local-only — it wipes the app's storage (food log, weight log, body-fat log, profile, Coach chat, saved meals, API keys, widget / Watch snapshot) but never touches Apple Health or Health Connect. Samples you've synced are yours; if you want them cleaned up, do it from Health / Health Connect settings. See [Privacy Policy](https://fud-ai.app/privacy.html).
 
 ## License
 

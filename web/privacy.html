@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Privacy Policy — Fud AI Calorie Tracker for iOS &amp; Android</title>
-<meta name="description" content="Privacy Policy for Fud AI, the open-source AI calorie tracker and food scanner for iPhone and Android. Learn how photos, voice, meal what-if suggestions, health data, API keys, and Watch snapshots are handled.">
+<meta name="description" content="Privacy Policy for Fud AI, the open-source AI calorie tracker and food scanner for iPhone and Android. Learn how photos, voice, review nutrition edits, meal what-if suggestions, health data, API keys, and Watch snapshots are handled.">
 <link rel="canonical" href="https://www.fud-ai.app/privacy.html">
 <meta name="theme-color" content="#FF375F">
 <!-- Open Graph -->
@@ -13,7 +13,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://www.fud-ai.app/privacy.html">
 <meta property="og:title" content="Privacy Policy — Fud AI Calorie Tracker for iOS &amp; Android">
-<meta property="og:description" content="How Fud AI handles photos, voice, meal what-if suggestions, health data, API keys, and local app data.">
+<meta property="og:description" content="How Fud AI handles photos, voice, review nutrition edits, meal what-if suggestions, health data, API keys, and local app data.">
 <meta property="og:image" content="https://www.fud-ai.app/assets/opengraph.jpg?v=1">
 <meta property="og:image:secure_url" content="https://www.fud-ai.app/assets/opengraph.jpg?v=1">
 <meta property="og:image:type" content="image/jpeg">
@@ -26,7 +26,7 @@
 <meta name="twitter:creator" content="@apoorvdarshan">
 <meta name="twitter:url" content="https://www.fud-ai.app/privacy.html">
 <meta name="twitter:title" content="Privacy Policy — Fud AI Calorie Tracker for iOS &amp; Android">
-<meta name="twitter:description" content="How Fud AI handles photos, voice, meal what-if suggestions, health data, API keys, and local app data.">
+<meta name="twitter:description" content="How Fud AI handles photos, voice, review nutrition edits, meal what-if suggestions, health data, API keys, and local app data.">
 <meta name="twitter:image" content="https://www.fud-ai.app/assets/opengraph.jpg?v=1">
 <meta name="twitter:image:alt" content="Fud AI — AI calorie tracker for iOS and Android. Snap, speak, or type your meal.">
 <link rel="icon" href="assets/calorie logo transparent.png">
@@ -74,7 +74,7 @@
         <li>Food photos selected from your library through the system picker or shared into Fud AI through the iOS Share Extension, plus any meal notes or text descriptions you submit for AI analysis</li>
         <li>Images attached to Coach messages, including camera captures or photo-library selections where supported</li>
         <li>Barcode values scanned for packaged-food lookup</li>
-        <li>Food entries and nutrition data you log (including manual entries)</li>
+        <li>Food entries and nutrition data you log, including manual entries and Review Food nutrition edits you save by logging the meal</li>
         <li>Reviewed meal details and current daily macro totals when you tap What if? for an AI meal-impact suggestion</li>
         <li>Weight log entries</li>
         <li>Body fat % readings logged over time, plus an optional goal body fat % (only collected if you opt into body-fat tracking during onboarding or later in Settings)</li>
@@ -92,7 +92,7 @@
         <li><strong>AI Coach Chat:</strong> When you use the Coach tab, the app sends a slim system prompt (your profile, BMR/TDEE/macro formulas, weight forecast, current date/timezone, and a one-line "data available" snapshot) plus your conversation history through your selected AI access path. Coach can additionally call <strong>tool functions</strong> mid-turn to fetch any date range of your weight, body-fat, calorie, or food-entry history when you ask about specific past dates ("what was my weight in March?", "what did I eat Tuesday?"). If you attach an image to a Coach message, that image is included in the AI request. The fetched data is sent as part of the AI request and may include meal source, meal type, serving size, and micronutrients when relevant. Full chat history is kept locally; only the last 20 messages are included in each LLM request to cap token cost.</li>
         <li><strong>Optional Nutrient Goal Estimation:</strong> If you tap the AI estimate button for detailed nutrient goals, the app sends the minimum profile context needed for that estimate, such as your goal, body measurements, activity level, and current calorie/macro targets, through your selected AI access path. Returned detailed goals such as fiber, sugar, fats, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins, folate, omega-3, and related nutrients are stored locally as settings and do not change the calorie/protein/carbs/fat calculator.</li>
         <li><strong>Speech-to-Text:</strong> If you pick the on-device option (Native iOS on iPhone, Native Android <code>SpeechRecognizer</code> on Android), voice recognition happens on your device and the selected language is passed as a local recognition hint when applicable. If you pick a remote provider (Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI), a short audio recording is uploaded directly from your device to that provider and its text response is returned to the app. If you choose a fixed speech language or "Use Device Language" instead of Provider Auto, the corresponding language code may be sent with the audio so it can bias transcription.</li>
-        <li><strong>Local Storage:</strong> All food entries, weight entries, body-fat readings, user profile (including any goal body fat %), Coach chat history, food photos, cached thumbnails, optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, and app preferences are stored locally on your device — in <code>UserDefaults</code> on iOS, in <code>DataStore Preferences</code> on Android. Body-fat-aware protein target display is calculated locally from that profile data. Nothing leaves your device except the specific AI/STT requests described above.</li>
+        <li><strong>Local Storage:</strong> All food entries, saved Review Food nutrition edits, weight entries, body-fat readings, user profile (including any goal body fat %), Coach chat history, food photos, cached thumbnails, optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, and app preferences are stored locally on your device — in <code>UserDefaults</code> on iOS, in <code>DataStore Preferences</code> on Android. Body-fat-aware protein target display is calculated locally from that profile data. Nothing leaves your device except the specific AI/STT requests described above.</li>
         <li><strong>API Key Storage:</strong> On iOS, your API keys are stored in iOS Keychain (encrypted, hardware-backed, accessible only to the app). On Android, they are stored in <code>EncryptedSharedPreferences</code> using AES-256 with the master key managed by Android Keystore (also hardware-backed on devices with a TEE / StrongBox).</li>
         <li><strong>Widgets and Apple Watch:</strong> To display today's calorie and selected nutrient totals on the Home Screen, Lock Screen, and Apple Watch, the main app writes a small snapshot (today's totals + goals + selected Home nutrient cards) into a shared container — App Group on iOS, the same DataStore on Android. iOS also sends the small numbers-only snapshot to the paired Watch app through WatchConnectivity when available. The snapshot never leaves your devices and contains only numbers and nutrient labels — no food names, photos, or identifiers.</li>
         <li><strong>Apple Health (iOS) / Health Connect (Android):</strong> If you enable health integration in Settings, the app writes body measurements (weight, height, body fat percentage where supported) and per-meal nutrition to the platform's health store. On iOS, it also reads weight + body fat + height + date of birth + biological sex back into your profile, can automatically import external weight + body-fat samples from any other Health-compatible app (Apple Watch, Withings, Renpho, smart scales), and can read active/total energy burned only when you turn on Energy Burn Goals in Goal Settings. Energy-burn goal estimates recalculate calorie targets but keep protein, carbs, and fat editable. On Android, Health Connect sync covers nutrition, weight, body fat, and active/total energy reads for Energy Burn Goals, with permission reconciliation and backfill support for compatible sources such as Samsung Health, Fitbit, Withings, and Google Fit. Adaptive Goals use local food, weight, and profile data to make small weekly calorie corrections and do not send that calculation to an AI provider. On first enable where supported, historical backfill pulls past weight/body-fat samples into the Progress chart so the chart starts populated rather than blank. You control this via iOS Settings → Health → Data Access → Fud AI, or via the Health Connect app on Android.</li>
@@ -117,7 +117,7 @@
           <tr><th>Data</th><th>Storage Location (iOS)</th><th>Storage Location (Android)</th><th>Accessible By</th></tr>
         </thead>
         <tbody>
-          <tr><td>Food entries</td><td>UserDefaults</td><td>DataStore Preferences</td><td>You only</td></tr>
+          <tr><td>Food entries and saved review nutrition edits</td><td>UserDefaults</td><td>DataStore Preferences</td><td>You only</td></tr>
           <tr><td>Food photos and cached thumbnails</td><td>App Support directory</td><td><code>filesDir/fudai-food-images/</code> plus local thumbnail cache</td><td>You only</td></tr>
           <tr><td>Weight entries</td><td>UserDefaults</td><td>DataStore Preferences</td><td>You only</td></tr>
           <tr><td>Body-fat entries (history)</td><td>UserDefaults</td><td>DataStore Preferences</td><td>You only</td></tr>
