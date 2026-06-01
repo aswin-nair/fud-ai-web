@@ -3758,7 +3758,7 @@ struct ProfileView: View {
             .alert("Adaptive Goals", isPresented: $showAdaptiveGoalsInfo) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("Experimental. Once per week, Fud AI compares your recent weight trend with your target pace and makes a small local calorie correction. Pinned macros stay pinned; unlocked macros auto-balance. If Energy Burn Goals is also enabled, Adaptive Goals uses weight trend as a weekly correction on top of energy-burn targets. This is not medical advice.")
+                Text("Experimental. Once per week, Fud AI compares your recent weight trend with your target pace and makes a small local calorie correction. Pinned macros stay pinned; unlocked macros auto-balance. If Energy Burn Goals is also enabled, Adaptive Goals uses weight trend as a weekly correction on top of energy-burn targets. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice.")
             }
             .alert(healthEnergyGoalAlertTitle, isPresented: $showHealthEnergyGoalAlert) {
                 Button("OK", role: .cancel) { }
@@ -3951,8 +3951,14 @@ struct ProfileView: View {
     }
 
     private func handleAdaptiveGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
-        guard enabled else { return }
-        _ = applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true)
+        if enabled {
+            _ = applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true)
+        } else {
+            if AdaptiveGoalSettings.restorePreviousTargets(to: &profile) {
+                saveProfile()
+            }
+            AdaptiveGoalSettings.clearPreviousTargets()
+        }
     }
 
     @discardableResult
@@ -3968,6 +3974,7 @@ struct ProfileView: View {
         )
         AdaptiveGoalSettings.markCheckedToday()
         if result.changed {
+            AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
             profile = result.profile
             saveProfile()
         }

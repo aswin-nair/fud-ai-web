@@ -389,8 +389,53 @@ struct HealthEnergyGoalSettings {
 
 struct AdaptiveGoalSettings {
     static let enabledKey = "adaptiveGoalsEnabled"
+    private static let previousTargetsKey = "adaptiveGoalsPreviousTargets"
     private static let lastCheckDayKey = "adaptiveGoalsLastCheckDay"
     private static let daysBetweenChecks = 7
+
+    private struct TargetSnapshot: Codable {
+        var customCalories: Int?
+        var customProtein: Int?
+        var customFat: Int?
+        var customCarbs: Int?
+        var autoBalanceMacro: AutoBalanceMacro?
+    }
+
+    static var hasPreviousTargets: Bool {
+        UserDefaults.standard.data(forKey: previousTargetsKey) != nil
+    }
+
+    static func savePreviousTargetsIfNeeded(from profile: UserProfile) {
+        guard !hasPreviousTargets else { return }
+        let snapshot = TargetSnapshot(
+            customCalories: profile.customCalories,
+            customProtein: profile.customProtein,
+            customFat: profile.customFat,
+            customCarbs: profile.customCarbs,
+            autoBalanceMacro: profile.autoBalanceMacro
+        )
+        if let data = try? JSONEncoder().encode(snapshot) {
+            UserDefaults.standard.set(data, forKey: previousTargetsKey)
+        }
+    }
+
+    @discardableResult
+    static func restorePreviousTargets(to profile: inout UserProfile) -> Bool {
+        guard let data = UserDefaults.standard.data(forKey: previousTargetsKey),
+              let snapshot = try? JSONDecoder().decode(TargetSnapshot.self, from: data) else {
+            return false
+        }
+        profile.customCalories = snapshot.customCalories
+        profile.customProtein = snapshot.customProtein
+        profile.customFat = snapshot.customFat
+        profile.customCarbs = snapshot.customCarbs
+        profile.autoBalanceMacro = snapshot.autoBalanceMacro
+        return true
+    }
+
+    static func clearPreviousTargets() {
+        UserDefaults.standard.removeObject(forKey: previousTargetsKey)
+    }
 
     static func shouldCheckThisWeek(calendar: Calendar = .current, now: Date = .now) -> Bool {
         guard let lastCheck = UserDefaults.standard.string(forKey: lastCheckDayKey),

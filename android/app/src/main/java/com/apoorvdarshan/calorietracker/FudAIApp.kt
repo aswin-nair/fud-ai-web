@@ -173,6 +173,7 @@ class AppContainer(app: FudAIApp) {
             )
             prefs.setAdaptiveGoalsLastCheckDay(today.toString())
             if (result.changed) {
+                prefs.saveAdaptiveGoalPreviousTargetsIfNeeded(profile)
                 profileRepository.save(result.profile)
             }
             return result

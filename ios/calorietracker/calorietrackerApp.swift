@@ -373,6 +373,7 @@ struct calorietrackerApp: App {
         )
         AdaptiveGoalSettings.markCheckedToday()
         if result.changed {
+            AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
             result.profile.save()
         }
     }

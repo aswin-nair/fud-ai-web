@@ -125,6 +125,38 @@ class PreferencesStore(private val context: Context) {
         ds.edit { it[Keys.ADAPTIVE_GOALS_LAST_CHECK_DAY] = v }
     }
 
+    suspend fun saveAdaptiveGoalPreviousTargetsIfNeeded(profile: UserProfile) {
+        ds.edit { prefs ->
+            if (prefs[Keys.ADAPTIVE_GOALS_PREVIOUS_TARGETS] != null) return@edit
+            val snapshot = HealthEnergyGoalTargetSnapshot(
+                customCalories = profile.customCalories,
+                customProtein = profile.customProtein,
+                customFat = profile.customFat,
+                customCarbs = profile.customCarbs,
+                autoBalanceMacro = profile.autoBalanceMacro
+            )
+            prefs[Keys.ADAPTIVE_GOALS_PREVIOUS_TARGETS] =
+                json.encodeToString(HealthEnergyGoalTargetSnapshot.serializer(), snapshot)
+        }
+    }
+
+    suspend fun restoreAdaptiveGoalPreviousTargets(profile: UserProfile): UserProfile {
+        val snapshot = ds.data.first()[Keys.ADAPTIVE_GOALS_PREVIOUS_TARGETS]
+            ?.let { runCatching { json.decodeFromString<HealthEnergyGoalTargetSnapshot>(it) }.getOrNull() }
+            ?: return profile
+        return profile.copy(
+            customCalories = snapshot.customCalories,
+            customProtein = snapshot.customProtein,
+            customFat = snapshot.customFat,
+            customCarbs = snapshot.customCarbs,
+            autoBalanceMacro = snapshot.autoBalanceMacro
+        )
+    }
+
+    suspend fun clearAdaptiveGoalPreviousTargets() {
+        ds.edit { it.remove(Keys.ADAPTIVE_GOALS_PREVIOUS_TARGETS) }
+    }
+
     suspend fun saveHealthEnergyGoalPreviousTargetsIfNeeded(profile: UserProfile) {
         ds.edit { prefs ->
             if (prefs[Keys.HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS] != null) return@edit
@@ -420,6 +452,7 @@ class PreferencesStore(private val context: Context) {
         val HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS = stringPreferencesKey("healthEnergyGoalsPreviousTargets")
         val HEALTH_ENERGY_GOALS_LAST_AUTO_REFRESH_DAY = stringPreferencesKey("healthEnergyGoalsLastAutoRefreshDay")
         val ADAPTIVE_GOALS_ENABLED = booleanPreferencesKey("adaptiveGoalsEnabled")
+        val ADAPTIVE_GOALS_PREVIOUS_TARGETS = stringPreferencesKey("adaptiveGoalsPreviousTargets")
         val ADAPTIVE_GOALS_LAST_CHECK_DAY = stringPreferencesKey("adaptiveGoalsLastCheckDay")
         val USE_METRIC = booleanPreferencesKey("useMetric")
         val PREFER_GRAMS_BY_DEFAULT = booleanPreferencesKey("foodMeasurementPreferGramsByDefault")

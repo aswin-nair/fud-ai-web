@@ -495,7 +495,14 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             container.prefs.setAdaptiveGoalsEnabled(v)
             if (!v) {
+                val current = container.profileRepository.current()
+                val restored = current?.let { container.prefs.restoreAdaptiveGoalPreviousTargets(it) }
+                if (restored != null) {
+                    container.profileRepository.save(restored)
+                }
+                container.prefs.clearAdaptiveGoalPreviousTargets()
                 _ui.value = _ui.value.copy(
+                    profile = restored ?: _ui.value.profile,
                     adaptiveGoalsEnabled = false,
                     applyingAdaptiveGoals = false
                 )
