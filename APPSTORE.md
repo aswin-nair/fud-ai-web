@@ -47,9 +47,9 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Lock Screen widgets now show readable current / goal rows in the rectangular calorie widget, larger circular values, distinct calorie/nutrient icons, and no duplicate nutrient rectangular option.
+NEW in v4.1: Lock Screen widgets now show readable current / goal rows in the rectangular calorie widget, larger circular values, distinct calorie/nutrient icons, no duplicate nutrient rectangular option, and BYOK-only AI access on iOS.
 
-Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Plus if you do not want to set up APIs.
+Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
 HOW TO USE
 1) Set your profile and goals
@@ -63,11 +63,11 @@ Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From 
 13 AI PROVIDERS
 Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Add Custom AI Instructions and an optional Fallback Provider.
 
-AI ACCESS MODES
-Bring Your Own Key remains available for full provider control. Fud AI Plus is optional and uses Fud AI's proxy for no-key food scans, Deepgram voice transcription, and Coach access with daily limits. Plus includes weekly, monthly, and yearly plans.
+AI ACCESS
+Bring Your Own Key is the iOS access model for full provider control. No Fud AI account, subscription, RevenueCat purchase check, or Fud AI Plus proxy is required.
 
 6 SPEECH-TO-TEXT OPTIONS
-Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use iPhone Language, or a specific language per provider where supported. Fud AI Plus voice uses Deepgram and caps recordings at 60 seconds.
+Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use iPhone Language, or a specific language per provider where supported.
 
 COACH
 • Multi-turn chat with on-demand access to your history
@@ -91,7 +91,7 @@ Widgets in all 5 families — Small, Medium, Circular, Rectangular, Inline. Nutr
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
 
 PRIVACY
-No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Barcode sends only the barcode to Open Food Facts. Plus sends only active AI or speech requests through Fud AI's proxy. MIT licensed.
+No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
 Two-way sync for nutrition, weight, height, and body fat. External samples from Apple Watch, scales, and Health app can auto-import. Optional energy-burn goals can use Apple Health active/total energy to estimate calorie targets while keeping macros editable.
@@ -127,8 +127,7 @@ https://fud-ai.app
 ## Reviewer Notes
 ```
 1) iPhone only — not optimized for iPad. Please review on iPhone.
-2) App is free and open source. Subscription is optional for Fud AI Plus; BYOK mode works without purchase or sign-in.
+2) App is free and open source. BYOK mode works without purchase, subscription, or sign-in.
 3) BYOK test path: go to Settings → AI Provider → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
-4) Plus test path: select Settings → AI Access → Fud AI Plus, subscribe to the weekly, monthly, or yearly product, then use camera, text, voice, or Coach without adding an API key.
-5) No test account needed — app works immediately after onboarding.
+4) No test account needed — app works immediately after onboarding.
 ```

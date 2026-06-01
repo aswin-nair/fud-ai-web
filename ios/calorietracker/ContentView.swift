@@ -386,7 +386,8 @@ private struct AboutView: View {
         "Lock Screen circular widgets now use larger value-first previews for faster reading.",
         "Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.",
         "The calorie rectangular widget shows calories plus all three selected Home nutrients.",
-        "The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option."
+        "The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.",
+        "iOS AI access is BYOK-only again; Fud AI Plus subscriptions and RevenueCat purchase checks have been removed."
     ]
 
     private var whatsNewRow: some View {
