@@ -8,12 +8,8 @@ struct OnboardingView: View {
     @Environment(FoodStore.self) private var foodStore
     @Environment(WeightStore.self) private var weightStore
     @Environment(HealthKitManager.self) private var healthKitManager
-    @Environment(StoreManager.self) private var storeManager
 
     @State private var step = 0
-    @State private var selectedAccessMode: AIAccessMode = .fudAIPlus
-    @State private var showPaywall = false
-    @State private var shouldAdvanceAfterPlusPurchase = false
     @State private var gender: Gender = .male
     @State private var birthday: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
     @AppStorage("useMetric") private var useMetric = false
@@ -149,16 +145,6 @@ struct OnboardingView: View {
                 ))
                 .animation(.snappy, value: step)
             }
-            .sheet(isPresented: $showPaywall) {
-                PaywallView {
-                    advanceAfterPlusPurchaseIfNeeded()
-                }
-            }
-            .onChange(of: storeManager.isSubscribed) { _, isSubscribed in
-                if isSubscribed {
-                    advanceAfterPlusPurchaseIfNeeded()
-                }
-            }
     }
 
     // MARK: - Continue Button
@@ -177,14 +163,6 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 36)
-    }
-
-    private func advanceAfterPlusPurchaseIfNeeded() {
-        guard shouldAdvanceAfterPlusPurchase, step == 11 else { return }
-        shouldAdvanceAfterPlusPurchase = false
-        showPaywall = false
-        AIAccessSettings.mode = .fudAIPlus
-        withAnimation(.snappy) { step += 1 }
     }
 
     // MARK: - 0: Welcome
@@ -809,45 +787,20 @@ struct OnboardingView: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .multilineTextAlignment(.center)
 
-                    Text("BYOK keeps Fud AI free. Plus is optional for no API setup and supports development.")
+                    Text("Use your own AI key for food scans, voice logging, and Coach. You can start with Gemini or choose another provider later in Settings.")
                         .font(.system(.callout, design: .rounded))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
 
                 VStack(spacing: 12) {
-                    aiAccessCard(
-                        mode: .fudAIPlus,
-                        title: "Fud AI Plus",
-                        subtitle: "No setup for non-technical users. Gemini food scans, voice, and Coach with fallback.",
-                        badge: storeManager.isSubscribed ? "Active" : "Default"
-                    )
-
-                    aiAccessCard(
-                        mode: .bringYourOwnKey,
-                        title: "Bring Your Own Key",
-                        subtitle: "Free app mode. Use your own Gemini key, OpenAI, Groq, or another provider.",
-                        badge: "Free"
-                    )
-
-                    if selectedAccessMode == .fudAIPlus && !storeManager.isSubscribed {
-                        Button {
-                            AIAccessSettings.mode = .fudAIPlus
-                            shouldAdvanceAfterPlusPurchase = true
-                            showPaywall = true
-                        } label: {
-                            Text("See Plans")
-                                .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .background(AppColors.calorie, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-                    }
+                    aiSetupRow(number: "1", text: "Create an API key with Gemini, OpenAI, Groq, or another supported provider.")
+                    aiSetupRow(number: "2", text: "Paste the key in Settings → AI Provider after setup.")
+                    aiSetupRow(number: "3", text: "Keys stay on this device and requests go directly to your provider.")
                 }
                 .padding(.horizontal, 24)
 
-                Text("Calorie tracking should stay accessible: use BYOK freely if you can make an API key, or choose Plus for convenience.")
+                Text("Manual logging works without an AI key. Add a key whenever you want AI analysis.")
                     .font(.system(.caption, design: .rounded))
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
@@ -856,15 +809,9 @@ struct OnboardingView: View {
             Spacer()
 
             Button {
-                AIAccessSettings.mode = selectedAccessMode
-                if selectedAccessMode == .fudAIPlus && !storeManager.isSubscribed {
-                    shouldAdvanceAfterPlusPurchase = true
-                    showPaywall = true
-                } else {
-                    withAnimation(.snappy) { step += 1 }
-                }
+                withAnimation(.snappy) { step += 1 }
             } label: {
-                Text(selectedAccessMode == .fudAIPlus && !storeManager.isSubscribed ? "Subscribe to Continue" : "Continue")
+                Text("Continue")
                     .font(.system(.body, design: .rounded, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -892,58 +839,6 @@ struct OnboardingView: View {
                 .foregroundStyle(.primary)
             Spacer(minLength: 0)
         }
-    }
-
-    private func aiAccessCard(mode: AIAccessMode, title: String, subtitle: String, badge: String) -> some View {
-        Button {
-            selectedAccessMode = mode
-            AIAccessSettings.mode = mode
-        } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.ultraThinMaterial)
-                        .frame(width: 44, height: 44)
-                    Image(systemName: mode.icon)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(AppColors.calorie)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text(title)
-                            .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Text(badge)
-                            .font(.system(.caption2, design: .rounded, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 2)
-                            .background(AppColors.calorie, in: Capsule())
-                    }
-                    Text(subtitle)
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: selectedAccessMode == mode ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundStyle(selectedAccessMode == mode ? AppColors.calorie : .secondary.opacity(0.35))
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(selectedAccessMode == mode ? AppColors.calorie.opacity(0.45) : Color.white.opacity(0.10), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - 14: Review

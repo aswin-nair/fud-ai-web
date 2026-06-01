@@ -110,13 +110,8 @@ private enum AppUpdateChecker {
 
 // MARK: - Main Content View
 struct ContentView: View {
-    @Environment(StoreManager.self) private var storeManager
     @AppStorage(AppThemeColor.storageKey) private var appThemeColorRaw = AppThemeColor.defaultColor.rawValue
     @State private var appUpdateState: AppUpdateState = .idle
-    @State private var showFudAIPlusIntro = false
-    @State private var showFudAIPlusPaywall = false
-    @State private var requestReviewAfterPlusIntroDismiss = false
-    @State private var suppressPlusIntroReviewRequest = false
 
     var body: some View {
         TabView {
@@ -159,35 +154,6 @@ struct ContentView: View {
         .tint(AppThemeColor.color(for: appThemeColorRaw).color)
         .task {
             await refreshAppUpdateState()
-            await storeManager.checkEntitlements()
-            maybeShowFudAIPlusIntro()
-        }
-        .sheet(isPresented: $showFudAIPlusIntro, onDismiss: handleFudAIPlusIntroDismissed) {
-            FudAIPlusIntroView(
-                onUpgrade: {
-                    suppressPlusIntroReviewRequest = true
-                    markFudAIPlusIntroSeen()
-                    AIAccessSettings.mode = .fudAIPlus
-                    showFudAIPlusIntro = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        showFudAIPlusPaywall = true
-                    }
-                },
-                onStarGitHub: {
-                    suppressPlusIntroReviewRequest = true
-                    markFudAIPlusIntroSeen()
-                    showFudAIPlusIntro = false
-                    openGitHubRepo()
-                },
-                onDismiss: {
-                    requestReviewAfterPlusIntroDismiss = true
-                    markFudAIPlusIntroSeen()
-                    showFudAIPlusIntro = false
-                }
-            )
-        }
-        .sheet(isPresented: $showFudAIPlusPaywall) {
-            PaywallView()
         }
     }
 
@@ -199,142 +165,6 @@ struct ContentView: View {
 
         appUpdateState = .checking
         appUpdateState = await AppUpdateChecker.check()
-    }
-
-    @MainActor
-    private func maybeShowFudAIPlusIntro() {
-        guard AppUpdateChecker.currentVersion == AIAccessSettings.plusIntroTargetVersion else { return }
-        guard AIAccessSettings.lastSeenPlusIntroVersion != AIAccessSettings.plusIntroTargetVersion else { return }
-        guard !AIAccessSettings.hasActivePlusEntitlement else { return }
-        requestReviewAfterPlusIntroDismiss = false
-        suppressPlusIntroReviewRequest = false
-        showFudAIPlusIntro = true
-    }
-
-    private func markFudAIPlusIntroSeen() {
-        AIAccessSettings.lastSeenPlusIntroVersion = AIAccessSettings.plusIntroTargetVersion
-    }
-
-    private func handleFudAIPlusIntroDismissed() {
-        let wasAlreadySeen = AIAccessSettings.lastSeenPlusIntroVersion == AIAccessSettings.plusIntroTargetVersion
-        markFudAIPlusIntroSeen()
-
-        let shouldRequestReview = !suppressPlusIntroReviewRequest
-            && (requestReviewAfterPlusIntroDismiss || !wasAlreadySeen)
-            && AIAccessSettings.postPlusIntroReviewRequestedVersion != AIAccessSettings.plusIntroTargetVersion
-
-        requestReviewAfterPlusIntroDismiss = false
-        suppressPlusIntroReviewRequest = false
-
-        guard shouldRequestReview else { return }
-        AIAccessSettings.postPlusIntroReviewRequestedVersion = AIAccessSettings.plusIntroTargetVersion
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-            requestNativeReview()
-        }
-    }
-
-    private func requestNativeReview() {
-        if let scene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-            AppStore.requestReview(in: scene)
-        }
-    }
-
-    private func openGitHubRepo() {
-        if let url = URL(string: "https://github.com/apoorvdarshan/fud-ai") {
-            UIApplication.shared.open(url)
-        }
-    }
-}
-
-private struct FudAIPlusIntroView: View {
-    let onUpgrade: () -> Void
-    let onStarGitHub: () -> Void
-    let onDismiss: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 18) {
-                    ZStack {
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .frame(width: 96, height: 96)
-                        Image(systemName: "key.slash.fill")
-                            .font(.system(size: 40, weight: .semibold))
-                            .foregroundStyle(
-                                LinearGradient(colors: AppColors.calorieGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-                            )
-                    }
-
-                    VStack(spacing: 8) {
-                        Text("Upgrade to Fud AI Plus")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                        Text("No API key setup needed. If Gemini or API keys feel confusing, Fud AI Plus lets scans, voice, barcode, and Coach work through Fud AI.")
-                            .font(.system(.callout, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 28)
-                    }
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        plusIntroRow("No Gemini/API key setup for non-technical users")
-                        plusIntroRow("Food scan, voice, barcode, and Coach run through Fud AI")
-                        plusIntroRow("BYOK stays available if you prefer using your own keys")
-                    }
-                    .font(.system(.subheadline, design: .rounded))
-                    .padding(.horizontal, 30)
-                    .padding(.top, 4)
-                }
-                .padding(.top, 28)
-                .padding(.bottom, 16)
-            }
-
-            VStack(spacing: 10) {
-                Button(action: onUpgrade) {
-                    Text("Upgrade to Fud AI Plus")
-                        .font(.system(.body, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(
-                            LinearGradient(colors: AppColors.calorieGradient, startPoint: .leading, endPoint: .trailing),
-                            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        )
-                }
-
-                Button(action: onStarGitHub) {
-                    Label("Star on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
-                        .font(.system(.body, design: .rounded, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                }
-                .buttonStyle(.bordered)
-                .tint(.secondary)
-
-                Button(action: onDismiss) {
-                    Text("Not Now")
-                        .font(.system(.body, design: .rounded, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 28)
-        }
-        .background(AppColors.appBackground)
-        .presentationDetents([.large])
-    }
-
-    private func plusIntroRow(_ text: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(AppColors.calorie)
-            Text(text)
-                .foregroundStyle(.primary)
-            Spacer(minLength: 0)
-        }
     }
 }
 
@@ -2800,7 +2630,6 @@ struct ProfileView: View {
     @Environment(FoodStore.self) private var foodStore
     @Environment(NotificationManager.self) private var notificationManager
     @Environment(HealthKitManager.self) private var healthKitManager
-    @Environment(StoreManager.self) private var storeManager
     private var profile: UserProfile {
         get { profileStore.profile }
         nonmutating set { profileStore.profile = newValue }
@@ -2854,8 +2683,6 @@ struct ProfileView: View {
     @State private var selectedSpeechLanguage: SpeechLanguage = SpeechSettings.selectedLanguage(for: SpeechSettings.selectedProvider)
     @State private var speechApiKeyText: String = SpeechSettings.apiKey(for: SpeechSettings.selectedProvider) ?? ""
     @State private var showSpeechAPIKey = false
-    @State private var selectedAccessMode: AIAccessMode = AIAccessSettings.mode
-    @State private var showFudAIPlusPaywall = false
 
     // Height formatting
     private var heightDisplay: String {
@@ -3259,16 +3086,8 @@ struct ProfileView: View {
                 }
                 .listRowBackground(AppColors.appCard)
 
-                AIAccessSettingsSection(
-                    selectedAccessMode: $selectedAccessMode,
-                    showFudAIPlusPaywall: $showFudAIPlusPaywall
-                )
-
-                if selectedAccessMode == .fudAIPlus {
-                    FudAIPlusManagedSettingsSection()
-                } else {
-                    // Section 4: AI Provider
-                    Section("AI Provider") {
+                // Section 4: AI Provider
+                Section("AI Provider") {
                     Picker(selection: $selectedProvider) {
                         ForEach(AIProvider.allCases) { provider in
                             Label(provider.rawValue, systemImage: provider.icon).tag(provider)
@@ -3416,7 +3235,6 @@ struct ProfileView: View {
                     }
                 }
                     .listRowBackground(AppColors.appCard)
-                }
 
                 // Custom AI Instructions (User Context) — prepended to every AI request when non-empty
                 Section {
@@ -3452,9 +3270,8 @@ struct ProfileView: View {
                 }
                 .listRowBackground(AppColors.appCard)
 
-                if selectedAccessMode == .bringYourOwnKey {
-                    // Fallback Provider — retry on a second provider when the primary fails
-                    Section {
+                // Fallback Provider — retry on a second provider when the primary fails
+                Section {
                     Toggle(isOn: $fallbackEnabled) {
                         Label {
                             Text("Enable Fallback")
@@ -3737,7 +3554,6 @@ struct ProfileView: View {
                     Text("Used when you tap the voice icon to log a meal. Each provider remembers its own language. Provider Auto keeps the provider default; Use iPhone Language sends your current iPhone language when supported.")
                 }
                     .listRowBackground(AppColors.appCard)
-                }
 
                 // Section 5: Health & Data
                 Section("Health & Data") {
@@ -3968,12 +3784,6 @@ struct ProfileView: View {
             .sheet(isPresented: $showCalculationMethods) {
                 CalculationMethodsView()
             }
-            .sheet(isPresented: $showFudAIPlusPaywall) {
-                PaywallView()
-            }
-            .onAppear {
-                selectedAccessMode = AIAccessSettings.mode
-            }
             .alert("Auto-balanced", isPresented: $showAutoMacroEditAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -4010,7 +3820,6 @@ struct ProfileView: View {
                     // Wipe Keychain API keys
                     AIProviderSettings.deleteAllData()
                     SpeechSettings.deleteAllData()
-                    AIAccessSettings.resetForDeleteAllData()
                     chatStore.reset()
                     // Wipe the widget snapshot out of the App Group container —
                     // it lives outside UserDefaults.standard and would otherwise
@@ -4216,211 +4025,6 @@ struct ProfileView: View {
 
 }
 
-private struct FudAIPlusManagedSettingsSection: View {
-    @State private var quotaSnapshot: AIAccessQuotaSnapshot = .fallback
-    @State private var quotaError: String?
-    @State private var isLoadingQuota = false
-    @State private var selectedPlusSpeechLanguage: SpeechLanguage = SpeechSettings.selectedLanguage(for: .deepgram)
-
-    var body: some View {
-        Section {
-            quotaRow(icon: "fork.knife", title: "Food Analysis", bucket: quotaSnapshot.food)
-            quotaRow(icon: "waveform", title: "Speech-to-Text", bucket: quotaSnapshot.speech)
-            quotaRow(icon: "message.fill", title: "Coach", bucket: quotaSnapshot.coach)
-            quotaRow(icon: "shield.lefthalf.filled", title: "Daily Safety Limit", bucket: quotaSnapshot.global)
-
-            Picker(selection: $selectedPlusSpeechLanguage) {
-                ForEach(SpeechLanguage.allCases) { language in
-                    Text(language.displayName).tag(language)
-                }
-            } label: {
-                Label {
-                    Text("Speech Language")
-                } icon: {
-                    Image(systemName: "globe")
-                        .foregroundStyle(AppColors.calorie)
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(.secondary)
-            .onChange(of: selectedPlusSpeechLanguage) { _, newLanguage in
-                SpeechSettings.setLanguage(newLanguage, for: .deepgram)
-            }
-
-            if isLoadingQuota {
-                HStack {
-                    ProgressView()
-                    Text("Refreshing usage")
-                        .foregroundStyle(.secondary)
-                }
-            } else if let quotaError {
-                Text(quotaError)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        } header: {
-            Text("Fud AI Plus")
-        } footer: {
-            Text("Remaining daily Plus usage is refreshed from Fud AI's server. Plus voice uses Deepgram through Fud AI's proxy. Provider Auto lets Deepgram detect the language; choose a language to override it. Provider, model, fallback, and speech API key settings are managed by Plus.")
-        }
-        .listRowBackground(AppColors.appCard)
-        .task {
-            selectedPlusSpeechLanguage = SpeechSettings.selectedLanguage(for: .deepgram)
-            await refreshQuota()
-        }
-    }
-
-    private func quotaRow(icon: String, title: String, bucket: AIAccessQuotaSnapshot.Bucket) -> some View {
-        HStack {
-            Label {
-                Text(title)
-            } icon: {
-                Image(systemName: icon)
-                    .foregroundStyle(AppColors.calorie)
-            }
-            Spacer()
-            Text("\(bucket.remaining)/\(bucket.limit) left")
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private func refreshQuota() async {
-        guard AIAccessSettings.hasActivePlusEntitlement else { return }
-        isLoadingQuota = true
-        quotaError = nil
-        do {
-            quotaSnapshot = try await FudAIProxyClient.quotaSnapshot()
-        } catch {
-            quotaError = "Could not refresh usage right now."
-        }
-        isLoadingQuota = false
-    }
-}
-
-private struct AIAccessSettingsSection: View {
-    @Environment(StoreManager.self) private var storeManager
-    @Binding var selectedAccessMode: AIAccessMode
-    @Binding var showFudAIPlusPaywall: Bool
-    @State private var isManagingSubscription = false
-
-    var body: some View {
-        Section {
-            Picker(selection: $selectedAccessMode) {
-                ForEach(AIAccessMode.allCases) { mode in
-                    Label(mode.displayName, systemImage: mode.icon).tag(mode)
-                }
-            } label: {
-                Label {
-                    Text("Mode")
-                } icon: {
-                    Image(systemName: selectedAccessMode.icon)
-                        .foregroundStyle(AppColors.calorie)
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(.secondary)
-            .onChange(of: selectedAccessMode) { _, newMode in
-                AIAccessSettings.mode = newMode
-                if newMode == .fudAIPlus && !storeManager.isSubscribed {
-                    showFudAIPlusPaywall = true
-                }
-            }
-
-            if selectedAccessMode == .fudAIPlus {
-                plusStatusRow
-                plusActionButton
-                if storeManager.isSubscribed {
-                    switchToBYOKButton
-                }
-            } else {
-                upgradeButton
-            }
-        } header: {
-            Text("AI Access")
-        } footer: {
-            Text("BYOK is the free route if you can create your own Gemini/API key. Plus is optional no-setup access and supports development. Switching to BYOK does not cancel a subscription; use Cancel or Manage Subscription for that.")
-        }
-        .listRowBackground(AppColors.appCard)
-    }
-
-    private var plusStatusRow: some View {
-        HStack {
-            Label {
-                Text("Status")
-            } icon: {
-                Image(systemName: storeManager.isSubscribed ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                    .foregroundStyle(storeManager.isSubscribed ? .green : AppColors.calorie)
-            }
-            Spacer()
-            Text(storeManager.isSubscribed ? storeManager.currentPlanName : "Subscription needed")
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var plusActionButton: some View {
-        Button {
-            if storeManager.isSubscribed {
-                openSubscriptionManagement()
-            } else {
-                showFudAIPlusPaywall = true
-            }
-        } label: {
-            Label {
-                Text(storeManager.isSubscribed ? "Cancel or Manage Subscription" : "Upgrade to Plus")
-            } icon: {
-                Image(systemName: storeManager.isSubscribed ? "creditcard.fill" : "sparkles")
-                    .foregroundStyle(AppColors.calorie)
-            }
-        }
-        .tint(.primary)
-        .disabled(isManagingSubscription)
-    }
-
-    private var switchToBYOKButton: some View {
-        Button {
-            selectedAccessMode = .bringYourOwnKey
-            AIAccessSettings.mode = .bringYourOwnKey
-        } label: {
-            Label {
-                Text("Switch to BYOK")
-            } icon: {
-                Image(systemName: "key.fill")
-                    .foregroundStyle(AppColors.calorie)
-            }
-        }
-        .tint(.primary)
-    }
-
-    private var upgradeButton: some View {
-        Button {
-            selectedAccessMode = .fudAIPlus
-            AIAccessSettings.mode = .fudAIPlus
-            showFudAIPlusPaywall = true
-        } label: {
-            Label {
-                Text("Upgrade to Fud AI Plus")
-            } icon: {
-                Image(systemName: "sparkles")
-                    .foregroundStyle(AppColors.calorie)
-            }
-        }
-        .tint(.primary)
-    }
-
-    @MainActor
-    private func openSubscriptionManagement() {
-        isManagingSubscription = true
-        defer { isManagingSubscription = false }
-        openAppleSubscriptionsURL()
-    }
-
-    private func openAppleSubscriptionsURL() {
-        if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-            UIApplication.shared.open(url)
-        }
-    }
-}
-
 private struct ThemeColorSettingsView: View {
     @Binding var selectedColorRaw: String
 
@@ -4493,7 +4097,7 @@ struct AIConsentSheetView: View {
     let onCancel: () -> Void
 
     private var providerName: String {
-        AIAccessSettings.isUsingFudAIPlus ? "Fud AI Plus (Gemini + Deepgram)" : AIProviderSettings.selectedProvider.rawValue
+        AIProviderSettings.selectedProvider.rawValue
     }
 
     var body: some View {
@@ -4527,9 +4131,9 @@ struct AIConsentSheetView: View {
                         consentRow(icon: "photo.fill", title: "What is sent",
                                    text: "When you log a meal, the photo, voice audio or transcript, or text description is sent to your selected AI provider. Profile data (age, weight, goals) is sent only for Coach chat.")
                         consentRow(icon: "network", title: "Who receives it",
-                                   text: "Your current AI access: \(providerName). You can change this anytime in Settings → AI Access. BYOK requests go directly to your provider; Plus requests go through Fud AI's proxy.")
+                                   text: "Your current AI provider: \(providerName). You can change this anytime in Settings → AI Provider. Requests go directly from your device to that provider.")
                         consentRow(icon: "lock.shield.fill", title: "What stays local",
-                                   text: AIAccessSettings.isUsingFudAIPlus ? "Your saved food log, weight history, and body fat history stay on this device. Only the active AI request is sent for processing." : "Your API key, weight history, body fat history, and food log all stay on this device. Requests go directly from your device to the provider.")
+                                   text: "Your API key, weight history, body fat history, and food log all stay on this device. Requests go directly from your device to the provider.")
                     }
                     .padding(.horizontal, 20)
 

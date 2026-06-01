@@ -22,14 +22,12 @@ struct VoiceInputView: View {
     // Remote path (file-based recorder)
     @State private var audioRecorder: AVAudioRecorder?
     @State private var recordedFileURL: URL?
-    @State private var remoteRecordingLimitTask: Task<Void, Never>?
 
     var onCancel: () -> Void
     var onSubmit: (String) -> Void
 
-    private var provider: SpeechProvider { AIAccessSettings.isUsingFudAIPlus ? .deepgram : SpeechSettings.selectedProvider }
+    private var provider: SpeechProvider { SpeechSettings.selectedProvider }
     private var isNative: Bool { provider == .nativeIOS }
-    private var hasPlusVoiceLimit: Bool { AIAccessSettings.isUsingFudAIPlus && !isNative }
 
     private var analyzeButtonLabel: String { "Analyze" }
 
@@ -139,13 +137,6 @@ struct VoiceInputView: View {
                     .multilineTextAlignment(.center)
             }
 
-            if hasPlusVoiceLimit {
-                Text("Fud AI Plus voice recordings are capped at 60 seconds.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-
             // Analyze button.
             // Native: one-tap — stops the live recognizer and submits.
             // Remote: two-tap — user must stop via mic first, review the transcription, then Analyze.
@@ -185,7 +176,7 @@ struct VoiceInputView: View {
         if isNative {
             startNativeRecording()
         } else {
-            guard AIAccessSettings.isUsingFudAIPlus || SpeechSettings.apiKey(for: provider) != nil else {
+            guard SpeechSettings.apiKey(for: provider) != nil else {
                 permissionError = "No API key configured for \(provider.rawValue). Add one in Settings → Speech-to-Text."
                 return
             }
@@ -336,7 +327,6 @@ struct VoiceInputView: View {
             audioRecorder = try AVAudioRecorder(url: fileURL, settings: settings)
             audioRecorder?.record()
             isRecording = true
-            startRemoteRecordingLimitIfNeeded()
         } catch {
             permissionError = "Failed to start recording: \(error.localizedDescription)"
         }
@@ -344,8 +334,6 @@ struct VoiceInputView: View {
 
     private func stopRemoteRecording() {
         guard isRecording || audioRecorder != nil else { return }
-        remoteRecordingLimitTask?.cancel()
-        remoteRecordingLimitTask = nil
         audioRecorder?.stop()
         audioRecorder = nil
         isRecording = false
@@ -364,20 +352,6 @@ struct VoiceInputView: View {
                 permissionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             }
             try? FileManager.default.removeItem(at: fileURL)
-        }
-    }
-
-    private func startRemoteRecordingLimitIfNeeded() {
-        remoteRecordingLimitTask?.cancel()
-        guard hasPlusVoiceLimit else { return }
-        remoteRecordingLimitTask = Task {
-            try? await Task.sleep(for: .seconds(60))
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                guard isRecording else { return }
-                remoteNotice = "60-second limit reached. Transcribing your meal now."
-                stopRemoteRecording()
-            }
         }
     }
 }
