@@ -2794,7 +2794,7 @@ struct ProfileView: View {
 
                     Picker(selection: profileBinding.activityLevel) {
                         ForEach(ActivityLevel.allCases, id: \.self) { level in
-                            Text(level.displayNameWithProteinRequirement(usesLeanMass: profile.bodyFatPercentage != nil)).tag(level)
+                            Text(level.displayNameWithProteinRequirement(bodyFatPercentage: profile.bodyFatPercentage)).tag(level)
                         }
                     } label: {
                         Label {

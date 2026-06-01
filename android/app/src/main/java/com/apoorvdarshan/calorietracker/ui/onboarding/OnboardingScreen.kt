@@ -184,7 +184,7 @@ fun OnboardingScreen(container: AppContainer, onComplete: () -> Unit) {
                 )
                 OnboardingStep.ACTIVITY -> ActivityStep(
                     selected = ui.activity,
-                    usesLeanMass = ui.bodyFatPercentage != null,
+                    bodyFatPercentage = ui.bodyFatPercentage,
                     onSelect = vm::setActivity
                 )
                 OnboardingStep.GOAL -> GoalStep(selected = ui.goal, onSelect = vm::setGoal)
@@ -618,7 +618,7 @@ private fun WheeledColumn(
 }
 
 @Composable
-private fun ActivityStep(selected: ActivityLevel, usesLeanMass: Boolean, onSelect: (ActivityLevel) -> Unit) {
+private fun ActivityStep(selected: ActivityLevel, bodyFatPercentage: Double?, onSelect: (ActivityLevel) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         StepHeader(
             stringResource(R.string.onboarding_activity_title),
@@ -627,7 +627,7 @@ private fun ActivityStep(selected: ActivityLevel, usesLeanMass: Boolean, onSelec
         for (a in ActivityLevel.values()) {
             SelectionCard(
                 icon = activityIcon(a),
-                title = activityLevelLabelWithProtein(a, usesLeanMass),
+                title = activityLevelLabelWithProtein(a, bodyFatPercentage),
                 subtitle = stringResource(a.subtitleRes),
                 selected = a == selected
             ) { onSelect(a) }
@@ -637,9 +637,10 @@ private fun ActivityStep(selected: ActivityLevel, usesLeanMass: Boolean, onSelec
 }
 
 @Composable
-private fun activityLevelLabelWithProtein(level: ActivityLevel, usesLeanMass: Boolean): String {
-    val basis = if (usesLeanMass) "lean mass" else "bodyweight"
-    return "${stringResource(level.displayNameRes)} (${String.format(Locale.US, "%.1f g/kg %s protein", level.proteinPerKg, basis)})"
+private fun activityLevelLabelWithProtein(level: ActivityLevel, bodyFatPercentage: Double?): String {
+    val basis = if (bodyFatPercentage == null) "bodyweight" else "lean mass"
+    val multiplier = level.proteinRequirementPerKg(bodyFatPercentage)
+    return "${stringResource(level.displayNameRes)} (${String.format(Locale.US, "%.1f g/kg %s protein", multiplier, basis)})"
 }
 
 private fun activityIcon(level: ActivityLevel): ImageVector = when (level) {

@@ -78,11 +78,12 @@ data class UserProfile(
     val proteinGoal: Int get() {
         // +0.2 g/kg during cutting phase to preserve lean mass (Helms et al 2014).
         val cuttingBoost = if (goal == WeightGoal.LOSE) 0.2 else 0.0
-        return ((activityLevel.proteinPerKg + cuttingBoost) * proteinBasisWeightKg).toInt()
+        val multiplier = activityLevel.proteinRequirementPerKg(bodyFatPercentage, cuttingBoost)
+        return (multiplier * proteinBasisWeightKg).toInt()
     }
 
     private val proteinBasisWeightKg: Double get() =
-        bodyFatPercentage?.let { weightKg * (1.0 - it).coerceIn(0.0, 1.0) } ?: weightKg
+        bodyFatPercentage?.let { weightKg * (1.0 - it).coerceIn(0.05, 1.0) } ?: weightKg
 
     val fatGoal: Int get() = (0.6 * weightKg).toInt()
 

@@ -41,9 +41,18 @@ enum ActivityLevel: String, Codable, CaseIterable {
         }
     }
 
-    func displayNameWithProteinRequirement(usesLeanMass: Bool = false) -> String {
-        let basis = usesLeanMass ? "lean mass" : "bodyweight"
-        return "\(displayName) (\(String(format: "%.1f g/kg %@ protein", proteinPerKg, basis)))"
+    func proteinRequirementPerKg(bodyFatPercentage: Double? = nil, extra: Double = 0.0) -> Double {
+        let bodyweightEquivalent = proteinPerKg + extra
+        guard let bodyFatPercentage else { return bodyweightEquivalent }
+
+        let leanMassFraction = max(0.05, min(1.0, 1.0 - bodyFatPercentage))
+        return bodyweightEquivalent / leanMassFraction
+    }
+
+    func displayNameWithProteinRequirement(bodyFatPercentage: Double? = nil) -> String {
+        let basis = bodyFatPercentage == nil ? "bodyweight" : "lean mass"
+        let multiplier = proteinRequirementPerKg(bodyFatPercentage: bodyFatPercentage)
+        return "\(displayName) (\(String(format: "%.1f g/kg %@ protein", multiplier, basis)))"
     }
 
     var subtitle: String {
@@ -203,12 +212,13 @@ struct UserProfile: Codable, Equatable {
     var proteinGoal: Int {
         // +0.2 g/kg during cutting phase to preserve lean mass (Helms et al 2014).
         let cuttingBoost = goal == .lose ? 0.2 : 0.0
-        return Int((activityLevel.proteinPerKg + cuttingBoost) * proteinBasisWeightKg)
+        let multiplier = activityLevel.proteinRequirementPerKg(bodyFatPercentage: bodyFatPercentage, extra: cuttingBoost)
+        return Int(multiplier * proteinBasisWeightKg)
     }
 
     private var proteinBasisWeightKg: Double {
         guard let bodyFatPercentage else { return weightKg }
-        let leanMassFraction = max(0.0, min(1.0, 1.0 - bodyFatPercentage))
+        let leanMassFraction = max(0.05, min(1.0, 1.0 - bodyFatPercentage))
         return weightKg * leanMassFraction
     }
 
