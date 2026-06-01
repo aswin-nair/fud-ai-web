@@ -119,6 +119,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -368,7 +369,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 profile?.let { p ->
                     SettingRow(stringResource(R.string.settings_weight_goal), stringResource(p.goal.displayNameRes), icon = Icons.Outlined.Equalizer, inlineMenu = true) { sheet = SettingsSheet.GOAL }
                     HorizontalDivider()
-                    SettingRow(stringResource(R.string.settings_activity_level), activityLevelLabelWithProtein(p.activityLevel, p.bodyFatPercentage), icon = Icons.AutoMirrored.Outlined.DirectionsRun, inlineMenu = true) { sheet = SettingsSheet.ACTIVITY }
+                    ActivityLevelSettingRow(p.activityLevel, p.bodyFatPercentage) { sheet = SettingsSheet.ACTIVITY }
                     if (p.goal != WeightGoal.MAINTAIN) {
                         HorizontalDivider()
                         SettingRow(
@@ -2112,6 +2113,57 @@ private fun SettingRow(
     }
 }
 
+@Composable
+private fun ActivityLevelSettingRow(
+    level: ActivityLevel,
+    bodyFatPercentage: Double?,
+    onClick: () -> Unit
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        FudIconBubble(icon = Icons.AutoMirrored.Outlined.DirectionsRun, size = 22.dp, iconSize = 14.dp)
+        Spacer(Modifier.width(14.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp)
+        ) {
+            Text(
+                stringResource(R.string.settings_activity_level),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                activityLevelProteinDetail(level, bodyFatPercentage),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.58f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Text(
+            stringResource(level.displayNameRes),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.58f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Icon(
+            Icons.Filled.UnfoldMore,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
 /**
  * Verbatim port of iOS `macroRow(label:icon:macro:value:sheet:)` in
  * ContentView.swift's ProfileView. Uses the DataUsage circle icon (matches
@@ -2462,9 +2514,13 @@ private fun genderIcon(g: Gender): ImageVector = when (g) {
 
 @Composable
 private fun activityLevelLabelWithProtein(level: ActivityLevel, bodyFatPercentage: Double?): String {
+    return "${stringResource(level.displayNameRes)} (${activityLevelProteinDetail(level, bodyFatPercentage)})"
+}
+
+private fun activityLevelProteinDetail(level: ActivityLevel, bodyFatPercentage: Double?): String {
     val basis = if (bodyFatPercentage == null) "bodyweight" else "lean mass"
     val multiplier = level.proteinRequirementPerKg(bodyFatPercentage)
-    return "${stringResource(level.displayNameRes)} (${String.format(Locale.US, "%.1f g/kg %s protein", multiplier, basis)})"
+    return String.format(Locale.US, "%.1f g/kg %s protein", multiplier, basis)
 }
 
 private fun activityIcon(a: ActivityLevel): ImageVector = when (a) {
