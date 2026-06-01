@@ -182,7 +182,11 @@ fun OnboardingScreen(container: AppContainer, onComplete: () -> Unit) {
                     onChange = vm::setBodyFat,
                     onGoalChange = vm::setGoalBodyFat
                 )
-                OnboardingStep.ACTIVITY -> ActivityStep(selected = ui.activity, onSelect = vm::setActivity)
+                OnboardingStep.ACTIVITY -> ActivityStep(
+                    selected = ui.activity,
+                    usesLeanMass = ui.bodyFatPercentage != null,
+                    onSelect = vm::setActivity
+                )
                 OnboardingStep.GOAL -> GoalStep(selected = ui.goal, onSelect = vm::setGoal)
                 OnboardingStep.GOAL_WEIGHT -> GoalWeightStep(
                     current = ui.goalWeightKg,
@@ -614,7 +618,7 @@ private fun WheeledColumn(
 }
 
 @Composable
-private fun ActivityStep(selected: ActivityLevel, onSelect: (ActivityLevel) -> Unit) {
+private fun ActivityStep(selected: ActivityLevel, usesLeanMass: Boolean, onSelect: (ActivityLevel) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         StepHeader(
             stringResource(R.string.onboarding_activity_title),
@@ -623,13 +627,19 @@ private fun ActivityStep(selected: ActivityLevel, onSelect: (ActivityLevel) -> U
         for (a in ActivityLevel.values()) {
             SelectionCard(
                 icon = activityIcon(a),
-                title = stringResource(a.displayNameRes),
+                title = activityLevelLabelWithProtein(a, usesLeanMass),
                 subtitle = stringResource(a.subtitleRes),
                 selected = a == selected
             ) { onSelect(a) }
             Spacer(Modifier.height(12.dp))
         }
     }
+}
+
+@Composable
+private fun activityLevelLabelWithProtein(level: ActivityLevel, usesLeanMass: Boolean): String {
+    val basis = if (usesLeanMass) "lean mass" else "bodyweight"
+    return "${stringResource(level.displayNameRes)} (${String.format(Locale.US, "%.1f g/kg %s protein", level.proteinPerKg, basis)})"
 }
 
 private fun activityIcon(level: ActivityLevel): ImageVector = when (level) {

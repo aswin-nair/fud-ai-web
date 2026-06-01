@@ -368,7 +368,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 profile?.let { p ->
                     SettingRow(stringResource(R.string.settings_weight_goal), stringResource(p.goal.displayNameRes), icon = Icons.Outlined.Equalizer, inlineMenu = true) { sheet = SettingsSheet.GOAL }
                     HorizontalDivider()
-                    SettingRow(stringResource(R.string.settings_activity_level), stringResource(p.activityLevel.displayNameRes), icon = Icons.AutoMirrored.Outlined.DirectionsRun, inlineMenu = true) { sheet = SettingsSheet.ACTIVITY }
+                    SettingRow(stringResource(R.string.settings_activity_level), activityLevelLabelWithProtein(p.activityLevel, p.bodyFatPercentage != null), icon = Icons.AutoMirrored.Outlined.DirectionsRun, inlineMenu = true) { sheet = SettingsSheet.ACTIVITY }
                     if (p.goal != WeightGoal.MAINTAIN) {
                         HorizontalDivider()
                         SettingRow(
@@ -1254,7 +1254,7 @@ private fun SettingsSheets(
                 SettingsSheet.ACTIVITY -> ListSheet(
                     title = stringResource(R.string.sheet_activity_level),
                     items = ActivityLevel.values().toList(),
-                    label = { stringResource(it.displayNameRes) },
+                    label = { activityLevelLabelWithProtein(it, ui.profile?.bodyFatPercentage != null) },
                     subtitle = { stringResource(it.subtitleRes) },
                     selected = { it == ui.profile?.activityLevel },
                     onSelect = { a -> vm.updateProfileAndRecompute { it.copy(activityLevel = a) }; onDismiss() },
@@ -2458,6 +2458,12 @@ private fun genderIcon(g: Gender): ImageVector = when (g) {
     Gender.MALE -> Icons.Outlined.Male
     Gender.FEMALE -> Icons.Outlined.Female
     Gender.OTHER -> Icons.Outlined.Wc
+}
+
+@Composable
+private fun activityLevelLabelWithProtein(level: ActivityLevel, usesLeanMass: Boolean): String {
+    val basis = if (usesLeanMass) "lean mass" else "bodyweight"
+    return "${stringResource(level.displayNameRes)} (${String.format(Locale.US, "%.1f g/kg %s protein", level.proteinPerKg, basis)})"
 }
 
 private fun activityIcon(a: ActivityLevel): ImageVector = when (a) {

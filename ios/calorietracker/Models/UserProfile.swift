@@ -41,6 +41,11 @@ enum ActivityLevel: String, Codable, CaseIterable {
         }
     }
 
+    func displayNameWithProteinRequirement(usesLeanMass: Bool = false) -> String {
+        let basis = usesLeanMass ? "lean mass" : "bodyweight"
+        return "\(displayName) (\(String(format: "%.1f g/kg %@ protein", proteinPerKg, basis)))"
+    }
+
     var subtitle: String {
         switch self {
         case .sedentary: "Little or no exercise"
@@ -198,7 +203,13 @@ struct UserProfile: Codable, Equatable {
     var proteinGoal: Int {
         // +0.2 g/kg during cutting phase to preserve lean mass (Helms et al 2014).
         let cuttingBoost = goal == .lose ? 0.2 : 0.0
-        return Int((activityLevel.proteinPerKg + cuttingBoost) * weightKg)
+        return Int((activityLevel.proteinPerKg + cuttingBoost) * proteinBasisWeightKg)
+    }
+
+    private var proteinBasisWeightKg: Double {
+        guard let bodyFatPercentage else { return weightKg }
+        let leanMassFraction = max(0.0, min(1.0, 1.0 - bodyFatPercentage))
+        return weightKg * leanMassFraction
     }
 
     var fatGoal: Int {
