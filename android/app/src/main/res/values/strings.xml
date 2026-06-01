@@ -368,6 +368,8 @@
     <string name="what_if_ai_suggestion">AI suggestion</string>
     <string name="what_if_loading">Checking impact…</string>
     <string name="what_if_no_suggestion">No suggestion available.</string>
+    <string name="nutrition_unlock_editing">Unlock nutrition editing</string>
+    <string name="nutrition_lock_editing">Lock nutrition editing</string>
 
     <string name="sheet_micro_sugar">Sugar</string>
     <string name="sheet_micro_added_sugar">Added Sugar</string>

@@ -716,14 +716,15 @@ fun HomeScreen(container: AppContainer) {
                 ?: ui.pendingFoodSource
                 ?: if (ui.pendingImageBytes != null) FoodSource.SNAP_FOOD else FoodSource.TEXT_INPUT,
             onWhatIfSuggestion = vm::suggestMealWhatIf,
-            onSave = { name, grams, scale, mealType, selectedServingUnit, selectedServingQuantity ->
+            onSave = { name, grams, scale, mealType, selectedServingUnit, selectedServingQuantity, editedAnalysis ->
                 vm.saveAnalysis(
                     name = name,
                     servingGrams = grams,
                     scale = scale,
                     mealType = mealType,
                     selectedServingUnit = selectedServingUnit,
-                    selectedServingQuantity = selectedServingQuantity
+                    selectedServingQuantity = selectedServingQuantity,
+                    editedAnalysis = editedAnalysis
                 )
             },
             onDismiss = { vm.dismissPending() }

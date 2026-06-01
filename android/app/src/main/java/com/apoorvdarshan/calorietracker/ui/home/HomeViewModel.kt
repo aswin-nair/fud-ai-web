@@ -286,9 +286,10 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         scale: Double = 1.0,
         mealType: MealType = MealType.currentMeal,
         selectedServingUnit: String? = null,
-        selectedServingQuantity: Double? = null
+        selectedServingQuantity: Double? = null,
+        editedAnalysis: FoodAnalysis? = null
     ) {
-        val analysis = _ui.value.pendingAnalysis ?: return
+        val analysis = editedAnalysis ?: _ui.value.pendingAnalysis ?: return
         val reviewSource = _ui.value.pendingReviewSource
         val pendingFoodSource = _ui.value.pendingFoodSource
         val pendingDraftImageFilename = _ui.value.pendingDraftImageFilename

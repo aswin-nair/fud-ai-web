@@ -9,34 +9,7 @@ struct FoodResultView: View {
     let emoji: String?
     let source: FoodSource
 
-    // Base values (original nutrition from Gemini for the original serving size)
-    let baseCalories: Int
-    let baseProtein: Double
-    let baseCarbs: Double
-    let baseFat: Double
     let baseServingSizeGrams: Double
-    let baseSugar: Double?
-    let baseAddedSugar: Double?
-    let baseFiber: Double?
-    let baseSaturatedFat: Double?
-    let baseMonounsaturatedFat: Double?
-    let basePolyunsaturatedFat: Double?
-    let baseCholesterol: Double?
-    let baseSodium: Double?
-    let basePotassium: Double?
-    let baseTransFat: Double?
-    let baseCalcium: Double?
-    let baseIron: Double?
-    let baseMagnesium: Double?
-    let baseZinc: Double?
-    let baseVitaminA: Double?
-    let baseVitaminC: Double?
-    let baseVitaminD: Double?
-    let baseVitaminB12: Double?
-    let baseVitaminE: Double?
-    let baseVitaminK: Double?
-    let baseFolate: Double?
-    let baseOmega3: Double?
     let servingUnitOptions: [ServingUnitOption]
 
     @State var name: String
@@ -45,6 +18,33 @@ struct FoodResultView: View {
     @State private var selectedServingUnitID: String
     @State private var quantityFocusRequest = 0
     @State private var isQuantityEditing = false
+    @State private var nutritionUnlocked = false
+    @State private var editableCalories: Int
+    @State private var editableProtein: Double
+    @State private var editableCarbs: Double
+    @State private var editableFat: Double
+    @State private var editableSugar: Double?
+    @State private var editableAddedSugar: Double?
+    @State private var editableFiber: Double?
+    @State private var editableSaturatedFat: Double?
+    @State private var editableMonounsaturatedFat: Double?
+    @State private var editablePolyunsaturatedFat: Double?
+    @State private var editableCholesterol: Double?
+    @State private var editableSodium: Double?
+    @State private var editablePotassium: Double?
+    @State private var editableTransFat: Double?
+    @State private var editableCalcium: Double?
+    @State private var editableIron: Double?
+    @State private var editableMagnesium: Double?
+    @State private var editableZinc: Double?
+    @State private var editableVitaminA: Double?
+    @State private var editableVitaminC: Double?
+    @State private var editableVitaminD: Double?
+    @State private var editableVitaminB12: Double?
+    @State private var editableVitaminE: Double?
+    @State private var editableVitaminK: Double?
+    @State private var editableFolate: Double?
+    @State private var editableOmega3: Double?
     @State private var showWhatIfSheet = false
     @State var mealType: MealType = .currentMeal
 
@@ -62,32 +62,32 @@ struct FoodResultView: View {
     }
 
     // Computed scaled nutrition values
-    private var scaledCalories: Int { Int(round(Double(baseCalories) * scale)) }
-    private var scaledProtein: Double { baseProtein * scale }
-    private var scaledCarbs: Double { baseCarbs * scale }
-    private var scaledFat: Double { baseFat * scale }
-    private var scaledSugar: Double? { baseSugar.map { round($0 * scale * 10) / 10 } }
-    private var scaledAddedSugar: Double? { baseAddedSugar.map { round($0 * scale * 10) / 10 } }
-    private var scaledFiber: Double? { baseFiber.map { round($0 * scale * 10) / 10 } }
-    private var scaledSaturatedFat: Double? { baseSaturatedFat.map { round($0 * scale * 10) / 10 } }
-    private var scaledMonounsaturatedFat: Double? { baseMonounsaturatedFat.map { round($0 * scale * 10) / 10 } }
-    private var scaledPolyunsaturatedFat: Double? { basePolyunsaturatedFat.map { round($0 * scale * 10) / 10 } }
-    private var scaledCholesterol: Double? { baseCholesterol.map { round($0 * scale * 10) / 10 } }
-    private var scaledSodium: Double? { baseSodium.map { round($0 * scale * 10) / 10 } }
-    private var scaledPotassium: Double? { basePotassium.map { round($0 * scale * 10) / 10 } }
-    private var scaledTransFat: Double? { baseTransFat.map { round($0 * scale * 10) / 10 } }
-    private var scaledCalcium: Double? { baseCalcium.map { round($0 * scale * 10) / 10 } }
-    private var scaledIron: Double? { baseIron.map { round($0 * scale * 10) / 10 } }
-    private var scaledMagnesium: Double? { baseMagnesium.map { round($0 * scale * 10) / 10 } }
-    private var scaledZinc: Double? { baseZinc.map { round($0 * scale * 10) / 10 } }
-    private var scaledVitaminA: Double? { baseVitaminA.map { round($0 * scale * 10) / 10 } }
-    private var scaledVitaminC: Double? { baseVitaminC.map { round($0 * scale * 10) / 10 } }
-    private var scaledVitaminD: Double? { baseVitaminD.map { round($0 * scale * 10) / 10 } }
-    private var scaledVitaminB12: Double? { baseVitaminB12.map { round($0 * scale * 10) / 10 } }
-    private var scaledVitaminE: Double? { baseVitaminE.map { round($0 * scale * 10) / 10 } }
-    private var scaledVitaminK: Double? { baseVitaminK.map { round($0 * scale * 10) / 10 } }
-    private var scaledFolate: Double? { baseFolate.map { round($0 * scale * 10) / 10 } }
-    private var scaledOmega3: Double? { baseOmega3.map { round($0 * scale * 10) / 10 } }
+    private var scaledCalories: Int { Int(round(Double(editableCalories) * scale)) }
+    private var scaledProtein: Double { editableProtein * scale }
+    private var scaledCarbs: Double { editableCarbs * scale }
+    private var scaledFat: Double { editableFat * scale }
+    private var scaledSugar: Double? { editableSugar.map { round($0 * scale * 10) / 10 } }
+    private var scaledAddedSugar: Double? { editableAddedSugar.map { round($0 * scale * 10) / 10 } }
+    private var scaledFiber: Double? { editableFiber.map { round($0 * scale * 10) / 10 } }
+    private var scaledSaturatedFat: Double? { editableSaturatedFat.map { round($0 * scale * 10) / 10 } }
+    private var scaledMonounsaturatedFat: Double? { editableMonounsaturatedFat.map { round($0 * scale * 10) / 10 } }
+    private var scaledPolyunsaturatedFat: Double? { editablePolyunsaturatedFat.map { round($0 * scale * 10) / 10 } }
+    private var scaledCholesterol: Double? { editableCholesterol.map { round($0 * scale * 10) / 10 } }
+    private var scaledSodium: Double? { editableSodium.map { round($0 * scale * 10) / 10 } }
+    private var scaledPotassium: Double? { editablePotassium.map { round($0 * scale * 10) / 10 } }
+    private var scaledTransFat: Double? { editableTransFat.map { round($0 * scale * 10) / 10 } }
+    private var scaledCalcium: Double? { editableCalcium.map { round($0 * scale * 10) / 10 } }
+    private var scaledIron: Double? { editableIron.map { round($0 * scale * 10) / 10 } }
+    private var scaledMagnesium: Double? { editableMagnesium.map { round($0 * scale * 10) / 10 } }
+    private var scaledZinc: Double? { editableZinc.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminA: Double? { editableVitaminA.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminC: Double? { editableVitaminC.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminD: Double? { editableVitaminD.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminB12: Double? { editableVitaminB12.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminE: Double? { editableVitaminE.map { round($0 * scale * 10) / 10 } }
+    private var scaledVitaminK: Double? { editableVitaminK.map { round($0 * scale * 10) / 10 } }
+    private var scaledFolate: Double? { editableFolate.map { round($0 * scale * 10) / 10 } }
+    private var scaledOmega3: Double? { editableOmega3.map { round($0 * scale * 10) / 10 } }
     private var selectedServingOption: ServingUnitOption {
         ServingUnitOption.option(matching: selectedServingUnitID, in: servingUnitOptions)
     }
@@ -146,33 +146,7 @@ struct FoodResultView: View {
         self.image = image
         self.emoji = emoji
         self.source = source
-        self.baseCalories = calories
-        self.baseProtein = protein
-        self.baseCarbs = carbs
-        self.baseFat = fat
         self.baseServingSizeGrams = servingSizeGrams
-        self.baseSugar = sugar
-        self.baseAddedSugar = addedSugar
-        self.baseFiber = fiber
-        self.baseSaturatedFat = saturatedFat
-        self.baseMonounsaturatedFat = monounsaturatedFat
-        self.basePolyunsaturatedFat = polyunsaturatedFat
-        self.baseCholesterol = cholesterol
-        self.baseSodium = sodium
-        self.basePotassium = potassium
-        self.baseTransFat = transFat
-        self.baseCalcium = calcium
-        self.baseIron = iron
-        self.baseMagnesium = magnesium
-        self.baseZinc = zinc
-        self.baseVitaminA = vitaminA
-        self.baseVitaminC = vitaminC
-        self.baseVitaminD = vitaminD
-        self.baseVitaminB12 = vitaminB12
-        self.baseVitaminE = vitaminE
-        self.baseVitaminK = vitaminK
-        self.baseFolate = folate
-        self.baseOmega3 = omega3
         self.servingUnitOptions = normalizedServingUnitOptions
         self._name = State(initialValue: name)
         self._servingSizeGrams = State(initialValue: servingSizeGrams)
@@ -183,6 +157,32 @@ struct FoodResultView: View {
             options: normalizedServingUnitOptions
         ))
         self._selectedServingUnitID = State(initialValue: initialServingUnitID)
+        self._editableCalories = State(initialValue: calories)
+        self._editableProtein = State(initialValue: protein)
+        self._editableCarbs = State(initialValue: carbs)
+        self._editableFat = State(initialValue: fat)
+        self._editableSugar = State(initialValue: sugar)
+        self._editableAddedSugar = State(initialValue: addedSugar)
+        self._editableFiber = State(initialValue: fiber)
+        self._editableSaturatedFat = State(initialValue: saturatedFat)
+        self._editableMonounsaturatedFat = State(initialValue: monounsaturatedFat)
+        self._editablePolyunsaturatedFat = State(initialValue: polyunsaturatedFat)
+        self._editableCholesterol = State(initialValue: cholesterol)
+        self._editableSodium = State(initialValue: sodium)
+        self._editablePotassium = State(initialValue: potassium)
+        self._editableTransFat = State(initialValue: transFat)
+        self._editableCalcium = State(initialValue: calcium)
+        self._editableIron = State(initialValue: iron)
+        self._editableMagnesium = State(initialValue: magnesium)
+        self._editableZinc = State(initialValue: zinc)
+        self._editableVitaminA = State(initialValue: vitaminA)
+        self._editableVitaminC = State(initialValue: vitaminC)
+        self._editableVitaminD = State(initialValue: vitaminD)
+        self._editableVitaminB12 = State(initialValue: vitaminB12)
+        self._editableVitaminE = State(initialValue: vitaminE)
+        self._editableVitaminK = State(initialValue: vitaminK)
+        self._editableFolate = State(initialValue: folate)
+        self._editableOmega3 = State(initialValue: omega3)
         self.logDate = logDate
         self.profile = profile
         self.dayEntries = dayEntries
@@ -195,6 +195,47 @@ struct FoodResultView: View {
             return String(Int(value))
         }
         return String(format: "%.1f", value)
+    }
+
+    private var safeInverseScale: Double {
+        scale > 0 ? scale : 1
+    }
+
+    private func decimalValue(from text: String) -> Double? {
+        let normalized = text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        guard !normalized.isEmpty, let value = Double(normalized) else {
+            return nil
+        }
+        return max(0, value)
+    }
+
+    private func editText(_ value: Double?) -> String {
+        value.map { String(format: "%.1f", $0) } ?? ""
+    }
+
+    private func displayText(_ value: Double?) -> String {
+        value.map { String(format: "%.1f", $0) } ?? "—"
+    }
+
+    private func updateBaseCalories(from text: String) {
+        editableCalories = Int(round((decimalValue(from: text) ?? 0) / safeInverseScale))
+    }
+
+    private func updateBaseDouble(from text: String, set: (Double) -> Void) {
+        set((decimalValue(from: text) ?? 0) / safeInverseScale)
+    }
+
+    private func updateOptionalBaseDouble(from text: String, set: (Double?) -> Void) {
+        set(decimalValue(from: text).map { $0 / safeInverseScale })
+    }
+
+    private func toggleNutritionLock() {
+        nutritionUnlocked.toggle()
+        if !nutritionUnlocked {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
     }
 
     var body: some View {
@@ -265,37 +306,77 @@ struct FoodResultView: View {
                         }
                     }
 
-                    Section("Nutrition") {
-                        NutritionDisplayRow(label: "Calories", value: "\(scaledCalories)", unit: "kcal")
-                        NutritionDisplayRow(label: "Protein", value: MacroValueFormatter.string(scaledProtein), unit: "g")
-                        NutritionDisplayRow(label: "Carbs", value: MacroValueFormatter.string(scaledCarbs), unit: "g")
-                        NutritionDisplayRow(label: "Fat", value: MacroValueFormatter.string(scaledFat), unit: "g")
+                    Section {
+                        ReviewNutritionValueRow(
+                            label: "Calories",
+                            displayValue: "\(scaledCalories)",
+                            editValue: "\(scaledCalories)",
+                            unit: "kcal",
+                            isUnlocked: nutritionUnlocked,
+                            onEdit: updateBaseCalories
+                        )
+                        ReviewNutritionValueRow(
+                            label: "Protein",
+                            displayValue: MacroValueFormatter.string(scaledProtein),
+                            editValue: MacroValueFormatter.string(scaledProtein),
+                            unit: "g",
+                            isUnlocked: nutritionUnlocked,
+                            onEdit: { updateBaseDouble(from: $0) { editableProtein = $0 } }
+                        )
+                        ReviewNutritionValueRow(
+                            label: "Carbs",
+                            displayValue: MacroValueFormatter.string(scaledCarbs),
+                            editValue: MacroValueFormatter.string(scaledCarbs),
+                            unit: "g",
+                            isUnlocked: nutritionUnlocked,
+                            onEdit: { updateBaseDouble(from: $0) { editableCarbs = $0 } }
+                        )
+                        ReviewNutritionValueRow(
+                            label: "Fat",
+                            displayValue: MacroValueFormatter.string(scaledFat),
+                            editValue: MacroValueFormatter.string(scaledFat),
+                            unit: "g",
+                            isUnlocked: nutritionUnlocked,
+                            onEdit: { updateBaseDouble(from: $0) { editableFat = $0 } }
+                        )
+                    } header: {
+                        HStack {
+                            Text("Nutrition")
+                            Spacer()
+                            Button(action: toggleNutritionLock) {
+                                Image(systemName: nutritionUnlocked ? "lock.open.fill" : "lock.fill")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundStyle(nutritionUnlocked ? AppColors.calorie : .secondary)
+                            .accessibilityLabel(nutritionUnlocked ? "Lock nutrition editing" : "Unlock nutrition editing")
+                        }
                     }
 
                     Section {
                         DisclosureGroup("More Nutrition") {
-                            OptionalNutritionDisplayRow(label: "Sugar", value: scaledSugar, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Added Sugar", value: scaledAddedSugar, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Fiber", value: scaledFiber, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Saturated Fat", value: scaledSaturatedFat, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Mono Fat", value: scaledMonounsaturatedFat, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Poly Fat", value: scaledPolyunsaturatedFat, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Cholesterol", value: scaledCholesterol, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Sodium", value: scaledSodium, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Potassium", value: scaledPotassium, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Trans Fat", value: scaledTransFat, unit: "g")
-                            OptionalNutritionDisplayRow(label: "Calcium", value: scaledCalcium, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Iron", value: scaledIron, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Magnesium", value: scaledMagnesium, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Zinc", value: scaledZinc, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Vitamin A", value: scaledVitaminA, unit: "mcg")
-                            OptionalNutritionDisplayRow(label: "Vitamin C", value: scaledVitaminC, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Vitamin D", value: scaledVitaminD, unit: "mcg")
-                            OptionalNutritionDisplayRow(label: "Vitamin B12", value: scaledVitaminB12, unit: "mcg")
-                            OptionalNutritionDisplayRow(label: "Vitamin E", value: scaledVitaminE, unit: "mg")
-                            OptionalNutritionDisplayRow(label: "Vitamin K", value: scaledVitaminK, unit: "mcg")
-                            OptionalNutritionDisplayRow(label: "Folate", value: scaledFolate, unit: "mcg")
-                            OptionalNutritionDisplayRow(label: "Omega-3", value: scaledOmega3, unit: "g")
+                            ReviewNutritionValueRow(label: "Sugar", displayValue: displayText(scaledSugar), editValue: editText(scaledSugar), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableSugar = $0 } })
+                            ReviewNutritionValueRow(label: "Added Sugar", displayValue: displayText(scaledAddedSugar), editValue: editText(scaledAddedSugar), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableAddedSugar = $0 } })
+                            ReviewNutritionValueRow(label: "Fiber", displayValue: displayText(scaledFiber), editValue: editText(scaledFiber), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableFiber = $0 } })
+                            ReviewNutritionValueRow(label: "Saturated Fat", displayValue: displayText(scaledSaturatedFat), editValue: editText(scaledSaturatedFat), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableSaturatedFat = $0 } })
+                            ReviewNutritionValueRow(label: "Mono Fat", displayValue: displayText(scaledMonounsaturatedFat), editValue: editText(scaledMonounsaturatedFat), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableMonounsaturatedFat = $0 } })
+                            ReviewNutritionValueRow(label: "Poly Fat", displayValue: displayText(scaledPolyunsaturatedFat), editValue: editText(scaledPolyunsaturatedFat), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editablePolyunsaturatedFat = $0 } })
+                            ReviewNutritionValueRow(label: "Cholesterol", displayValue: displayText(scaledCholesterol), editValue: editText(scaledCholesterol), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableCholesterol = $0 } })
+                            ReviewNutritionValueRow(label: "Sodium", displayValue: displayText(scaledSodium), editValue: editText(scaledSodium), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableSodium = $0 } })
+                            ReviewNutritionValueRow(label: "Potassium", displayValue: displayText(scaledPotassium), editValue: editText(scaledPotassium), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editablePotassium = $0 } })
+                            ReviewNutritionValueRow(label: "Trans Fat", displayValue: displayText(scaledTransFat), editValue: editText(scaledTransFat), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableTransFat = $0 } })
+                            ReviewNutritionValueRow(label: "Calcium", displayValue: displayText(scaledCalcium), editValue: editText(scaledCalcium), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableCalcium = $0 } })
+                            ReviewNutritionValueRow(label: "Iron", displayValue: displayText(scaledIron), editValue: editText(scaledIron), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableIron = $0 } })
+                            ReviewNutritionValueRow(label: "Magnesium", displayValue: displayText(scaledMagnesium), editValue: editText(scaledMagnesium), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableMagnesium = $0 } })
+                            ReviewNutritionValueRow(label: "Zinc", displayValue: displayText(scaledZinc), editValue: editText(scaledZinc), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableZinc = $0 } })
+                            ReviewNutritionValueRow(label: "Vitamin A", displayValue: displayText(scaledVitaminA), editValue: editText(scaledVitaminA), unit: "mcg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableVitaminA = $0 } })
+                            ReviewNutritionValueRow(label: "Vitamin C", displayValue: displayText(scaledVitaminC), editValue: editText(scaledVitaminC), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableVitaminC = $0 } })
+                            ReviewNutritionValueRow(label: "Vitamin D", displayValue: displayText(scaledVitaminD), editValue: editText(scaledVitaminD), unit: "mcg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableVitaminD = $0 } })
+                            ReviewNutritionValueRow(label: "Vitamin B12", displayValue: displayText(scaledVitaminB12), editValue: editText(scaledVitaminB12), unit: "mcg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableVitaminB12 = $0 } })
+                            ReviewNutritionValueRow(label: "Vitamin E", displayValue: displayText(scaledVitaminE), editValue: editText(scaledVitaminE), unit: "mg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableVitaminE = $0 } })
+                            ReviewNutritionValueRow(label: "Vitamin K", displayValue: displayText(scaledVitaminK), editValue: editText(scaledVitaminK), unit: "mcg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableVitaminK = $0 } })
+                            ReviewNutritionValueRow(label: "Folate", displayValue: displayText(scaledFolate), editValue: editText(scaledFolate), unit: "mcg", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableFolate = $0 } })
+                            ReviewNutritionValueRow(label: "Omega-3", displayValue: displayText(scaledOmega3), editValue: editText(scaledOmega3), unit: "g", isUnlocked: nutritionUnlocked, dim: true, onEdit: { updateOptionalBaseDouble(from: $0) { editableOmega3 = $0 } })
                         }
                         .tint(AppColors.calorie)
                     }
@@ -810,6 +891,63 @@ private extension UITouch {
             currentView = view.superview
         }
         return false
+    }
+}
+
+private struct ReviewNutritionValueRow: View {
+    let label: String
+    let displayValue: String
+    let editValue: String
+    let unit: String
+    let isUnlocked: Bool
+    var dim = false
+    let onEdit: (String) -> Void
+
+    @State private var draft = ""
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(dim ? .secondary : .primary)
+            Spacer()
+            if isUnlocked {
+                TextField("0", text: Binding(
+                    get: { isFocused ? draft : editValue },
+                    set: { newValue in
+                        draft = newValue
+                        onEdit(newValue)
+                    }
+                ))
+                .focused($isFocused)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .fontWeight(.medium)
+                .frame(minWidth: 76, maxWidth: 118)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(AppColors.calorie.opacity(0.10), in: RoundedRectangle(cornerRadius: 9))
+                .onAppear { draft = editValue }
+                .onChange(of: editValue) { _, newValue in
+                    if !isFocused {
+                        draft = newValue
+                    }
+                }
+                .onChange(of: isUnlocked) { _, unlocked in
+                    if unlocked {
+                        draft = editValue
+                    } else {
+                        isFocused = false
+                    }
+                }
+            } else {
+                Text(displayValue)
+                    .fontWeight(.medium)
+            }
+            Text(unit)
+                .foregroundStyle(.secondary)
+                .frame(width: 36, alignment: .leading)
+        }
     }
 }
 
