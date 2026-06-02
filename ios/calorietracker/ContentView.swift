@@ -796,7 +796,6 @@ struct HomeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Menu {
                             Button(action: {
                                 cameraMode = .snapFood
                                 pendingSecondCameraImage = nil
@@ -825,17 +824,12 @@ struct HomeView: View {
                             }) {
                                 Label("Nutrition Label", systemImage: "text.viewfinder")
                             }
-                        } label: {
-                            Label("Camera", systemImage: "camera.fill")
-                        }
+                            Button(action: {
 
-                        Button {
-                            showBarcodeScanner = true
-                        } label: {
-                            Label("Barcode", systemImage: "barcode.viewfinder")
-                        }
-
-                        Menu {
+                                showBarcodeScanner = true
+                            }) {
+                                Label("Barcode", systemImage: "barcode.viewfinder")
+                            }
                             Button(action: {
                                 cameraMode = .snapFood
                                 photoPickerMode = .snapFood
@@ -852,52 +846,42 @@ struct HomeView: View {
                             }) {
                                 Label("From Photos + Note", systemImage: "photo.badge.plus")
                             }
-                        } label: {
-                            Label("From Photos", systemImage: "photo.on.rectangle")
-                        }
-
-                        Menu {
-                            Button {
+                            Button(action: {
                                 showTextPopover = true
-                            } label: {
+                            }) {
                                 Label("Text Input", systemImage: "character.cursor.ibeam")
                             }
-
-                            Button {
+                            Button(action: {
                                 showVoicePopover = true
-                            } label: {
+                            }) {
                                 Label("Voice", systemImage: "mic.fill")
                             }
+                            Button(action: {
 
-                            Button {
                                 showManualPopover = true
-                            } label: {
+                            }) {
                                 Label("Manual Entry", systemImage: "square.and.pencil")
                             }
-                        } label: {
-                            Label("Text, Voice, Manual", systemImage: "square.and.pencil")
-                        }
+                            Button(action: {
 
-                        Button {
-                            showRecentSheet = true
-                        } label: {
-                            Label("Saved Meals", systemImage: "bookmark.fill")
-                        }
+                                showRecentSheet = true
+                            }) {
+                                Label("Saved Meals", systemImage: "bookmark.fill")
+                            }
+                            Button(action: {
 
-                        Button {
-                            showCopyFromDaySheet = true
+                                showCopyFromDaySheet = true
+                            }) {
+                                Label("Copy from Day", systemImage: "calendar")
+                            }
+                            Button(action: {
+                                showSiriPhrasesSheet = true
+                            }) {
+                                Label("Siri Phrases", systemImage: "waveform.circle.fill")
+                            }
                         } label: {
-                            Label("Copy from Day", systemImage: "calendar")
+                            Image(systemName: "plus")
                         }
-
-                        Button {
-                            showSiriPhrasesSheet = true
-                        } label: {
-                            Label("Siri Phrases", systemImage: "waveform.circle.fill")
-                        }
-                    } label: {
-                        Image(systemName: "plus")
-                    }
                         .popover(isPresented: $showTextPopover) {
                             TextFoodInputView(
                                 onCancel: {
@@ -1382,7 +1366,7 @@ private struct SiriPhrasesSheet: View {
                 }
             }
         }
-        .presentationDetents([.height(600), .large])
+        .presentationDetents([.large])
     }
 }
 
