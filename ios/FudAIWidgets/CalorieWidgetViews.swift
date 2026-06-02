@@ -238,7 +238,7 @@ private struct LargeMacroRow: View {
             HStack(spacing: 8) {
                 Image(systemName: nutrient.lockScreenIconName)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(nutrient.homeAccentColor)
+                    .foregroundStyle(WidgetPalette.calorieGradient)
                     .frame(width: 17)
 
                 Text(nutrient.label)
@@ -259,9 +259,9 @@ private struct LargeMacroRow: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(nutrient.homeAccentColor.opacity(0.14))
+                        .fill(WidgetPalette.calorie.opacity(0.14))
                     Capsule()
-                        .fill(nutrient.homeGradient)
+                        .fill(WidgetPalette.calorieGradient)
                         .frame(width: max(5, geo.size.width * nutrient.progress))
                 }
             }
@@ -297,25 +297,6 @@ private struct MacroBar: View {
             }
             .frame(height: 6)
         }
-    }
-}
-
-private extension WidgetNutrientValue {
-    var homeAccentColor: Color {
-        switch id {
-        case "protein": return Color(red: 0.19, green: 0.45, blue: 0.95)
-        case "carbs", "fiber", "folate": return Color(red: 0.10, green: 0.62, blue: 0.38)
-        case "fat": return Color(red: 0.92, green: 0.55, blue: 0.12)
-        default: return WidgetPalette.calorie
-        }
-    }
-
-    var homeGradient: LinearGradient {
-        LinearGradient(
-            colors: [homeAccentColor, homeAccentColor.opacity(0.68)],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
     }
 }
 
