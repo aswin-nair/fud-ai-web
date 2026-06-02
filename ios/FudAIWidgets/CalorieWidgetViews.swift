@@ -23,6 +23,7 @@ struct CalorieWidgetView: View {
         switch family {
         case .systemSmall:       SmallCalorieView(snapshot: entry.snapshot)
         case .systemMedium:      MediumCalorieView(snapshot: entry.snapshot)
+        case .systemLarge:       LargeCalorieView(snapshot: entry.snapshot)
         case .accessoryCircular: CircularCalorieView(snapshot: entry.snapshot)
         case .accessoryRectangular: RectangularCalorieView(snapshot: entry.snapshot)
         case .accessoryInline:   InlineCalorieView(snapshot: entry.snapshot)
@@ -111,6 +112,164 @@ private struct MediumCalorieView: View {
     }
 }
 
+private struct LargeCalorieView: View {
+    let snapshot: WidgetSnapshot
+
+    private var progressText: String {
+        "\(Int((snapshot.calorieProgress * 100).rounded()))%"
+    }
+
+    private var remainingText: String {
+        snapshot.caloriesRemaining > 0 ? "\(snapshot.caloriesRemaining) kcal left" : "Goal reached"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Today")
+                        .font(.system(.caption, design: .rounded, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    Text("Nutrition")
+                        .font(.system(.title3, design: .rounded, weight: .bold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+
+                Spacer()
+
+                Label("Fud AI", systemImage: "flame.fill")
+                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .foregroundStyle(WidgetPalette.calorieGradient)
+                    .labelStyle(.titleAndIcon)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+
+            HStack(alignment: .center, spacing: 18) {
+                ZStack {
+                    Circle()
+                        .stroke(WidgetPalette.calorie.opacity(0.14), lineWidth: 13)
+                    Circle()
+                        .trim(from: 0, to: snapshot.calorieProgress)
+                        .stroke(WidgetPalette.calorieGradient, style: StrokeStyle(lineWidth: 13, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+
+                    VStack(spacing: 2) {
+                        Text("\(snapshot.calories)")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.55)
+                        Text("/ \(snapshot.calorieGoal) kcal")
+                            .font(.system(.caption2, design: .rounded, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+                    .padding(.horizontal, 10)
+                }
+                .frame(width: 134, height: 134)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    LargeCalorieStat(
+                        title: "Remaining",
+                        value: remainingText,
+                        iconName: "arrow.down.circle.fill"
+                    )
+
+                    LargeCalorieStat(
+                        title: "Progress",
+                        value: progressText,
+                        iconName: "chart.pie.fill"
+                    )
+                }
+                .frame(maxWidth: .infinity)
+            }
+
+            VStack(alignment: .leading, spacing: 11) {
+                ForEach(snapshot.displayedHomeNutrients) { nutrient in
+                    LargeMacroRow(nutrient: nutrient)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
+private struct LargeCalorieStat: View {
+    let title: String
+    let value: String
+    let iconName: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: iconName)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(WidgetPalette.calorieGradient)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.system(.caption2, design: .rounded, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Text(value)
+                    .font(.system(.callout, design: .rounded, weight: .bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct LargeMacroRow: View {
+    let nutrient: WidgetNutrientValue
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 8) {
+                Image(systemName: nutrient.lockScreenIconName)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(nutrient.homeAccentColor)
+                    .frame(width: 17)
+
+                Text(nutrient.label)
+                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                Spacer(minLength: 8)
+
+                Text(nutrient.displayPair)
+                    .font(.system(.caption, design: .rounded, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(nutrient.homeAccentColor.opacity(0.14))
+                    Capsule()
+                        .fill(nutrient.homeGradient)
+                        .frame(width: max(5, geo.size.width * nutrient.progress))
+                }
+            }
+            .frame(height: 8)
+        }
+    }
+}
+
 private struct MacroBar: View {
     let nutrient: WidgetNutrientValue
 
@@ -138,6 +297,25 @@ private struct MacroBar: View {
             }
             .frame(height: 6)
         }
+    }
+}
+
+private extension WidgetNutrientValue {
+    var homeAccentColor: Color {
+        switch id {
+        case "protein": return Color(red: 0.19, green: 0.45, blue: 0.95)
+        case "carbs", "fiber", "folate": return Color(red: 0.10, green: 0.62, blue: 0.38)
+        case "fat": return Color(red: 0.92, green: 0.55, blue: 0.12)
+        default: return WidgetPalette.calorie
+        }
+    }
+
+    var homeGradient: LinearGradient {
+        LinearGradient(
+            colors: [homeAccentColor, homeAccentColor.opacity(0.68)],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
     }
 }
 
