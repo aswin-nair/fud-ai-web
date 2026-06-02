@@ -5,6 +5,7 @@ import HealthKit
 import StoreKit
 import WidgetKit
 import AVFoundation
+import WebKit
 
 // MARK: - Camera Mode
 enum CameraMode {
@@ -570,6 +571,7 @@ struct HomeView: View {
     @State private var showManualPopover = false
     @State private var showRecentSheet = false
     @State private var showCopyFromDaySheet = false
+    @State private var showSiriPhrasesSheet = false
     @State private var pendingContextImage: UIImage?
     @State private var pendingSecondCameraImage: UIImage?
     @State private var contextDescription: String = ""
@@ -872,6 +874,11 @@ struct HomeView: View {
                             }) {
                                 Label("Copy from Day", systemImage: "calendar")
                             }
+                            Button(action: {
+                                showSiriPhrasesSheet = true
+                            }) {
+                                Label("Siri Phrases", systemImage: "waveform.circle.fill")
+                            }
                         } label: {
                             Image(systemName: "plus")
                         }
@@ -1132,6 +1139,9 @@ struct HomeView: View {
             .sheet(isPresented: $showCopyFromDaySheet) {
                 CopyFromDaySheet(targetDate: selectedDate)
             }
+            .sheet(isPresented: $showSiriPhrasesSheet) {
+                SiriPhrasesSheet()
+            }
             .interactiveDismissDisabled(activeSheet == .analyzing || activeSheet == .analyzingText || activeSheet == .lookingUpBarcode)
             .photosPicker(isPresented: $showPhotoPicker, selection: $selectedPhotoItem, matching: .images)
             .onChange(of: selectedPhotoItem) { oldValue, newValue in
@@ -1277,6 +1287,165 @@ struct HomeView: View {
         }
     }
 
+}
+
+// MARK: - Siri Phrases
+private struct SiriPhrasesSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let groups: [SiriPhraseGroup] = [
+        SiriPhraseGroup(
+            title: "Log Food",
+            icon: "fork.knife",
+            phrases: [
+                "Log food in Fud AI",
+                "Add food in Fud AI",
+                "Track food in Fud AI",
+            ]
+        ),
+        SiriPhraseGroup(
+            title: "Today's Calories",
+            icon: "chart.bar.fill",
+            phrases: [
+                "Calories today in Fud AI",
+                "How many calories in Fud AI",
+                "Today's nutrition in Fud AI",
+            ]
+        ),
+        SiriPhraseGroup(
+            title: "Log Weight",
+            icon: "scalemass.fill",
+            phrases: [
+                "Log my weight in Fud AI",
+                "Record weight in Fud AI",
+            ]
+        ),
+    ]
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    HStack(spacing: 12) {
+                        Image(systemName: "waveform.circle.fill")
+                            .font(.system(size: 34))
+                            .foregroundStyle(AppColors.calorie)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Siri Phrases")
+                                .font(.system(.headline, design: .rounded, weight: .semibold))
+                            Text("Say one of these to Siri.")
+                                .font(.system(.subheadline, design: .rounded))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .listRowBackground(AppColors.appCard)
+
+                Section {
+                    SiriGIFView()
+                        .frame(height: 118)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
+                }
+                .listRowBackground(AppColors.appCard)
+
+                ForEach(groups) { group in
+                    Section {
+                        ForEach(group.phrases, id: \.self) { phrase in
+                            HStack(spacing: 12) {
+                                Image(systemName: group.icon)
+                                    .font(.system(.body, design: .rounded, weight: .semibold))
+                                    .foregroundStyle(AppColors.calorie)
+                                    .frame(width: 22)
+
+                                Text("Hey Siri, \(phrase)")
+                                    .font(.system(.body, design: .rounded, weight: .medium))
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.8)
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    } header: {
+                        Text(group.title)
+                    }
+                    .listRowBackground(AppColors.appCard)
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(AppColors.appBackground)
+            .navigationTitle("Siri Phrases")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+private struct SiriGIFView: UIViewRepresentable {
+    private func html(gifSource: String) -> String {
+        """
+    <!doctype html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: transparent;
+          }
+          body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="\(gifSource)" alt="Siri">
+      </body>
+    </html>
+    """
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView(frame: .zero)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+
+        if let gifURL = Bundle.main.url(forResource: "siri", withExtension: "gif") {
+            webView.loadHTMLString(html(gifSource: "siri.gif"), baseURL: gifURL.deletingLastPathComponent())
+        }
+
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {}
+}
+
+private struct SiriPhraseGroup: Identifiable {
+    let title: String
+    let icon: String
+    let phrases: [String]
+
+    var id: String { title }
 }
 
 // MARK: - Copy From Day
