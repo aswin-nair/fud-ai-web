@@ -391,6 +391,7 @@ private struct AboutView: View {
         "Lock Screen circular widgets now use larger value-first previews for faster reading.",
         "Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.",
         "The calorie rectangular widget shows calories plus all three selected Home nutrients.",
+        "The iOS Home Screen widget gallery now has one Fud AI widget name with Small, Medium, and Large sizes, instead of a separate protein-only Home widget.",
         "The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.",
         "iOS AI access is BYOK-only again; legacy hosted AI access has been removed."
     ]

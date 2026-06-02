@@ -75,7 +75,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Apple Health** — bidirectional sync for body measurements + nutrition types written per meal; Experimental Energy Burn Goals can estimate calorie targets from active/total energy while macros stay editable
 - **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support; Experimental Energy Burn Goals can use recent energy data for calorie targets
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
-- **Widgets** — Home Screen and Lock Screen widgets on iOS follow your selected Home nutrient cards instead of fixed macros; Android Glance widgets update when you log
+- **Widgets** — iOS Home Screen has one Fud AI widget name in Small, Medium, and Large that follows your selected Home nutrient cards; Lock Screen widgets stay separate, and Android Glance widgets update when you log
 - **Android 2.2 updates** — Energy Burn Goals auto-refresh, Experimental Adaptive Goals, body-fat-aware Activity Level protein targets, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 15 languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
