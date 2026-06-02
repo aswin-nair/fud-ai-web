@@ -8,14 +8,31 @@ class WeightStore {
     var onEntryDeleted: ((UUID) -> Void)?
 
     private let storageKey = "weightEntries"
+    private let observesExternalChanges: Bool
 
-    init() {
+    static let externalChangeNotification = "ai.fud.weightEntriesDidChange"
+
+    init(observesExternalChanges: Bool = true) {
+        self.observesExternalChanges = observesExternalChanges
         loadEntries()
+        if observesExternalChanges {
+            startObservingExternalChanges()
+        }
         // No default seed — WeightStore.init runs before onboarding finishes on a fresh
         // install, so `UserProfile.load()` is nil and the old seed fell back to .default
         // (70 kg), dropping a phantom 70 kg entry onto every new user's chart even if
         // their real weight was different. Onboarding now seeds the first WeightEntry
         // via `seedInitialWeightFromProfileIfEmpty(_:)` once the profile is real.
+    }
+
+    deinit {
+        guard observesExternalChanges else { return }
+        CFNotificationCenterRemoveObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()),
+            CFNotificationName(Self.externalChangeNotification as CFString),
+            nil
+        )
     }
 
     /// Add the first WeightEntry from the user's onboarding-set profile weight.
@@ -112,7 +129,42 @@ class WeightStore {
     private func loadEntries() {
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([WeightEntry].self, from: data)
-        else { return }
+        else {
+            entries = []
+            return
+        }
         entries = decoded
+    }
+
+    private func startObservingExternalChanges() {
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()),
+            { _, observer, _, _, _ in
+                guard let observer else { return }
+                let store = Unmanaged<WeightStore>.fromOpaque(observer).takeUnretainedValue()
+                DispatchQueue.main.async {
+                    store.reloadFromExternalChange()
+                }
+            },
+            Self.externalChangeNotification as CFString,
+            nil,
+            .deliverImmediately
+        )
+    }
+
+    private func reloadFromExternalChange() {
+        loadEntries()
+        syncProfileWeightToLatest()
+    }
+
+    static func postExternalChangeNotification() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(externalChangeNotification as CFString),
+            nil,
+            nil,
+            true
+        )
     }
 }

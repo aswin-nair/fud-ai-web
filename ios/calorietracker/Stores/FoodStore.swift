@@ -39,10 +39,27 @@ class FoodStore {
     private let storageKey = "foodEntries"
     private let favoritesKey = "favoriteFoodEntries"
     private(set) var favorites: [FoodEntry] = []
+    private let observesExternalChanges: Bool
 
-    init() {
+    static let externalChangeNotification = "ai.fud.foodEntriesDidChange"
+
+    init(observesExternalChanges: Bool = true) {
+        self.observesExternalChanges = observesExternalChanges
         loadEntries()
         loadFavorites()
+        if observesExternalChanges {
+            startObservingExternalChanges()
+        }
+    }
+
+    deinit {
+        guard observesExternalChanges else { return }
+        CFNotificationCenterRemoveObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()),
+            CFNotificationName(Self.externalChangeNotification as CFString),
+            nil
+        )
     }
 
     var todayEntries: [FoodEntry] {
@@ -397,6 +414,38 @@ class FoodStore {
         return favorites.contains { $0.imageFilename == filename }
     }
 
+    private func startObservingExternalChanges() {
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()),
+            { _, observer, _, _, _ in
+                guard let observer else { return }
+                let store = Unmanaged<FoodStore>.fromOpaque(observer).takeUnretainedValue()
+                DispatchQueue.main.async {
+                    store.reloadFromExternalChange()
+                }
+            },
+            Self.externalChangeNotification as CFString,
+            nil,
+            .deliverImmediately
+        )
+    }
+
+    private func reloadFromExternalChange() {
+        loadEntries()
+        onEntriesChanged?()
+    }
+
+    static func postExternalChangeNotification() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(externalChangeNotification as CFString),
+            nil,
+            nil,
+            true
+        )
+    }
+
     private func saveEntries() {
         if let data = try? JSONEncoder().encode(entries) {
             UserDefaults.standard.set(data, forKey: storageKey)
@@ -407,7 +456,10 @@ class FoodStore {
     private func loadEntries() {
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([FoodEntry].self, from: data)
-        else { return }
+        else {
+            entries = []
+            return
+        }
         entries = decoded
 
         // Legacy migration: rows written by pre-FoodImageStore builds embedded
