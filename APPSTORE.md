@@ -54,7 +54,7 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. Siri Shortcuts on iOS can log food, read today's calories, and log weight, with phrase examples in Settings. iOS Home Screen widgets now include Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
+NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. Siri can log food, read today's calories, and log weight. Widgets are clearer, Energy Burn Goals and Adaptive Goals are marked Experimental, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
@@ -64,42 +64,36 @@ HOW TO USE
 3) Ask Coach for trends, predictions, and advice
 4) Track progress on charts and widgets
 
-11 IN-APP WAYS TO LOG A MEAL + SIRI
-Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri Shortcuts can also log food or weight and read today's calories.
+LOG MEALS
+Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri can also log food or weight and read today's calories.
 
 13 AI PROVIDERS
-Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Add Custom AI Instructions and an optional Fallback Provider.
-
-AI ACCESS
-Bring Your Own Key is the iOS access model for full provider control. No Fud AI account or hosted proxy is required.
+Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Add Custom AI Instructions and an optional Fallback Provider.
 
 6 SPEECH-TO-TEXT OPTIONS
-Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, Use iPhone Language, or a specific language per provider where supported.
+Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, iPhone Language, or a specific language where supported.
 
 REVIEW BEFORE LOGGING
 • Unlock Nutrition in Review Food to correct calories, macros, and detailed nutrients before logging
-• Lock again so serving and quantity changes scale from the corrected base values
 • What if? in Review Food previews daily macro impact before logging
 • Optional AI suggestion can recommend logging as-is, changing portion, replacing part of the meal, or adjusting the next meal
-• Uses your selected BYOK provider and only the reviewed meal, profile, goals, and current daily totals needed for that suggestion
 
 COACH
 • Multi-turn chat with on-demand access to your history
-• Attach photos when a visual detail helps the conversation
 • Ask any date range — "what did I eat Tuesday?"
-• Sees your profile, targets, forecast, and food log when you allow it
+• Uses your profile, targets, forecast, and food log context
 
 EXPANDED NUTRIENTS
 Calories, protein, carbs, fat, sugar, added sugar, fiber, saturated fat, trans fat, mono/polyunsaturated fat, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3, and more when available.
 
 PERSONALIZED GOALS
-BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calorie + protein + carbs + fat targets, Activity Level protein targets in g/kg body weight or equivalent lean-mass multipliers when body fat is set, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly weight-trend corrections while pinned macros stay pinned.
+BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calories/macros, Activity Level protein targets, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly corrections while pinned macros stay pinned.
 
 PROGRESS
-Weight / Body Fat chart, average and net change summaries, goal lines, calorie trend vs goal, and macro averages over 1W, 1M, 3M, 6M, 1Y, All Time.
+Weight / Body Fat chart, average and net change summaries, goal lines, calorie trend vs goal, and macro averages.
 
 WIDGETS
-iOS widgets cover Fud AI Home Screen Small, Medium, and Large, a small-only Fud AI Protein Home widget, plus Lock Screen Circular, Rectangular, and Inline. The main Fud AI Home widget follows the three Home cards you choose. Apple Watch app and complications show calories and macros at a glance.
+iOS widgets cover Home Screen Small, Medium, and Large, a small-only Protein widget, and Lock Screen widgets. Apple Watch app and complications show calories and macros at a glance.
 
 15 LANGUAGES
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
@@ -108,7 +102,7 @@ PRIVACY
 No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Review nutrition edits are local and saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
-Two-way sync for nutrition, weight, height, and body fat. External samples from Apple Watch, scales, and Health app can auto-import. Experimental Energy Burn Goals can use Apple Health active/total energy to estimate calorie targets while keeping macros editable.
+Two-way sync for nutrition, weight, height, and body fat. External samples can auto-import. Experimental Energy Burn Goals can use active/total energy while keeping macros editable.
 
 Fud AI is not medical advice — consult a healthcare professional before significant diet changes.
 
