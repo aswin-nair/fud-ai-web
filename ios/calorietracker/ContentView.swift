@@ -1324,57 +1324,39 @@ private struct SiriPhrasesSheet: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    HStack(spacing: 12) {
-                        Image(systemName: "waveform.circle.fill")
-                            .font(.system(size: 34))
-                            .foregroundStyle(AppColors.calorie)
+            VStack(alignment: .leading, spacing: 11) {
+                HStack(spacing: 12) {
+                    Image(systemName: "waveform.circle.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(AppColors.calorie)
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Siri Phrases")
-                                .font(.system(.headline, design: .rounded, weight: .semibold))
-                            Text("Say one of these to Siri.")
-                                .font(.system(.subheadline, design: .rounded))
-                                .foregroundStyle(.secondary)
-                        }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Siri Phrases")
+                            .font(.system(.headline, design: .rounded, weight: .semibold))
+                        Text("Say one of these to Siri.")
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(.vertical, 4)
                 }
-                .listRowBackground(AppColors.appCard)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 12))
 
-                Section {
-                    SiriGIFView()
-                        .frame(height: 118)
-                        .frame(maxWidth: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
-                }
-                .listRowBackground(AppColors.appCard)
+                SiriGIFView()
+                    .frame(height: 58)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 12))
 
                 ForEach(groups) { group in
-                    Section {
-                        ForEach(group.phrases, id: \.self) { phrase in
-                            HStack(spacing: 12) {
-                                Image(systemName: group.icon)
-                                    .font(.system(.body, design: .rounded, weight: .semibold))
-                                    .foregroundStyle(AppColors.calorie)
-                                    .frame(width: 22)
-
-                                Text("Hey Siri, \(phrase)")
-                                    .font(.system(.body, design: .rounded, weight: .medium))
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.8)
-                            }
-                            .padding(.vertical, 2)
-                        }
-                    } header: {
-                        Text(group.title)
-                    }
-                    .listRowBackground(AppColors.appCard)
+                    SiriPhraseGroupView(group: group)
                 }
+
+                Spacer(minLength: 0)
             }
-            .scrollContentBackground(.hidden)
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
             .background(AppColors.appBackground)
             .navigationTitle("Siri Phrases")
             .navigationBarTitleDisplayMode(.inline)
@@ -1384,7 +1366,39 @@ private struct SiriPhrasesSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.height(600), .large])
+    }
+}
+
+private struct SiriPhraseGroupView: View {
+    let group: SiriPhraseGroup
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Label {
+                Text(group.title)
+                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .foregroundStyle(.secondary)
+            } icon: {
+                Image(systemName: group.icon)
+                    .font(.system(.caption, design: .rounded, weight: .semibold))
+                    .foregroundStyle(AppColors.calorie)
+            }
+
+            ForEach(group.phrases, id: \.self) { phrase in
+                Text("Hey Siri, \(phrase)")
+                    .font(.system(.subheadline, design: .rounded, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(AppColors.calorie.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
