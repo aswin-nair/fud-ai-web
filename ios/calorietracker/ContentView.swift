@@ -1366,7 +1366,7 @@ private struct SiriPhrasesSheet: View {
                 }
             }
         }
-        .presentationDetents([.height(600), .large])
+        .presentationDetents([.large])
     }
 }
 
