@@ -571,6 +571,7 @@ struct HomeView: View {
     @State private var showManualPopover = false
     @State private var showRecentSheet = false
     @State private var showCopyFromDaySheet = false
+    @State private var showAddFoodSheet = false
     @State private var showSiriPhrasesSheet = false
     @State private var pendingContextImage: UIImage?
     @State private var pendingSecondCameraImage: UIImage?
@@ -795,108 +796,93 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Menu {
-                            Button(action: {
-                                cameraMode = .snapFood
-                                pendingSecondCameraImage = nil
-                                showCamera = true
-                            }) {
-                                Label("Camera", systemImage: "camera.fill")
-                            }
-                            Button(action: {
-                                cameraMode = .snapFoodWithContext
-                                pendingSecondCameraImage = nil
-                                showCamera = true
-                            }) {
-                                Label("Camera + Note", systemImage: "camera.badge.ellipsis")
-                            }
-                            Button(action: {
-                                cameraMode = .snapFoodWithSecondPhoto
-                                pendingSecondCameraImage = nil
-                                showCamera = true
-                            }) {
-                                Label("Camera + Camera", systemImage: "camera.badge.clock")
-                            }
-                            Button(action: {
-                                cameraMode = .nutritionLabel
-                                pendingSecondCameraImage = nil
-                                showCamera = true
-                            }) {
-                                Label("Nutrition Label", systemImage: "text.viewfinder")
-                            }
-                        } label: {
-                            Label("Camera", systemImage: "camera.fill")
-                        }
-
-                        Button {
-                            showBarcodeScanner = true
-                        } label: {
-                            Label("Barcode", systemImage: "barcode.viewfinder")
-                        }
-
-                        Menu {
-                            Button(action: {
-                                cameraMode = .snapFood
-                                photoPickerMode = .snapFood
-                                pendingSecondCameraImage = nil
-                                showPhotoPicker = true
-                            }) {
-                                Label("From Photos", systemImage: "photo.on.rectangle")
-                            }
-                            Button(action: {
-                                cameraMode = .snapFoodWithContext
-                                photoPickerMode = .snapFoodWithContext
-                                pendingSecondCameraImage = nil
-                                showPhotoPicker = true
-                            }) {
-                                Label("From Photos + Note", systemImage: "photo.badge.plus")
-                            }
-                        } label: {
-                            Label("From Photos", systemImage: "photo.on.rectangle")
-                        }
-
-                        Menu {
-                            Button {
-                                showTextPopover = true
-                            } label: {
-                                Label("Text Input", systemImage: "character.cursor.ibeam")
-                            }
-
-                            Button {
-                                showVoicePopover = true
-                            } label: {
-                                Label("Voice", systemImage: "mic.fill")
-                            }
-
-                            Button {
-                                showManualPopover = true
-                            } label: {
-                                Label("Manual Entry", systemImage: "square.and.pencil")
-                            }
-                        } label: {
-                            Label("Text, Voice, Manual", systemImage: "square.and.pencil")
-                        }
-
-                        Button {
-                            showRecentSheet = true
-                        } label: {
-                            Label("Saved Meals", systemImage: "bookmark.fill")
-                        }
-
-                        Button {
-                            showCopyFromDaySheet = true
-                        } label: {
-                            Label("Copy from Day", systemImage: "calendar")
-                        }
-
-                        Button {
-                            showSiriPhrasesSheet = true
-                        } label: {
-                            Label("Siri Phrases", systemImage: "waveform.circle.fill")
-                        }
+                    Button {
+                        showAddFoodSheet = true
                     } label: {
                         Image(systemName: "plus")
+                    }
+                    .sheet(isPresented: $showAddFoodSheet) {
+                        AddFoodMenuSheet(
+                            onCamera: {
+                                performAddMenuAction {
+                                    cameraMode = .snapFood
+                                    pendingSecondCameraImage = nil
+                                    showCamera = true
+                                }
+                            },
+                            onCameraNote: {
+                                performAddMenuAction {
+                                    cameraMode = .snapFoodWithContext
+                                    pendingSecondCameraImage = nil
+                                    showCamera = true
+                                }
+                            },
+                            onCameraCamera: {
+                                performAddMenuAction {
+                                    cameraMode = .snapFoodWithSecondPhoto
+                                    pendingSecondCameraImage = nil
+                                    showCamera = true
+                                }
+                            },
+                            onNutritionLabel: {
+                                performAddMenuAction {
+                                    cameraMode = .nutritionLabel
+                                    pendingSecondCameraImage = nil
+                                    showCamera = true
+                                }
+                            },
+                            onBarcode: {
+                                performAddMenuAction {
+                                    showBarcodeScanner = true
+                                }
+                            },
+                            onPhotos: {
+                                performAddMenuAction {
+                                    cameraMode = .snapFood
+                                    photoPickerMode = .snapFood
+                                    pendingSecondCameraImage = nil
+                                    showPhotoPicker = true
+                                }
+                            },
+                            onPhotosNote: {
+                                performAddMenuAction {
+                                    cameraMode = .snapFoodWithContext
+                                    photoPickerMode = .snapFoodWithContext
+                                    pendingSecondCameraImage = nil
+                                    showPhotoPicker = true
+                                }
+                            },
+                            onText: {
+                                performAddMenuAction {
+                                    showTextPopover = true
+                                }
+                            },
+                            onVoice: {
+                                performAddMenuAction {
+                                    showVoicePopover = true
+                                }
+                            },
+                            onManual: {
+                                performAddMenuAction {
+                                    showManualPopover = true
+                                }
+                            },
+                            onSavedMeals: {
+                                performAddMenuAction {
+                                    showRecentSheet = true
+                                }
+                            },
+                            onCopyFromDay: {
+                                performAddMenuAction {
+                                    showCopyFromDaySheet = true
+                                }
+                            },
+                            onSiriPhrases: {
+                                performAddMenuAction {
+                                    showSiriPhrasesSheet = true
+                                }
+                            }
+                        )
                     }
                         .popover(isPresented: $showTextPopover) {
                             TextFoodInputView(
@@ -1215,6 +1201,13 @@ struct HomeView: View {
             }
         }
     }
+
+    private func performAddMenuAction(_ action: @escaping () -> Void) {
+        showAddFoodSheet = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            action()
+        }
+    }
     
     private func checkAndConsumeSharedImage() {
         guard let image = ShareImportManager.consumeSharedImage() else { return }
@@ -1303,6 +1296,86 @@ struct HomeView: View {
         }
     }
 
+}
+
+// MARK: - Add Food Menu
+private struct AddFoodMenuSheet: View {
+    let onCamera: () -> Void
+    let onCameraNote: () -> Void
+    let onCameraCamera: () -> Void
+    let onNutritionLabel: () -> Void
+    let onBarcode: () -> Void
+    let onPhotos: () -> Void
+    let onPhotosNote: () -> Void
+    let onText: () -> Void
+    let onVoice: () -> Void
+    let onManual: () -> Void
+    let onSavedMeals: () -> Void
+    let onCopyFromDay: () -> Void
+    let onSiriPhrases: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 6) {
+                AddFoodMenuButton(title: "Camera", icon: "camera.fill", action: onCamera)
+                AddFoodMenuButton(title: "Camera + Note", icon: "camera.badge.ellipsis", action: onCameraNote)
+                AddFoodMenuButton(title: "Camera + Camera", icon: "camera.badge.clock", action: onCameraCamera)
+                AddFoodMenuButton(title: "Nutrition Label", icon: "text.viewfinder", action: onNutritionLabel)
+                AddFoodMenuButton(title: "Barcode", icon: "barcode.viewfinder", action: onBarcode)
+                AddFoodMenuButton(title: "From Photos", icon: "photo.on.rectangle", action: onPhotos)
+                AddFoodMenuButton(title: "From Photos + Note", icon: "photo.badge.plus", action: onPhotosNote)
+                AddFoodMenuButton(title: "Text Input", icon: "character.cursor.ibeam", action: onText)
+                AddFoodMenuButton(title: "Voice", icon: "mic.fill", action: onVoice)
+                AddFoodMenuButton(title: "Manual Entry", icon: "square.and.pencil", action: onManual)
+                AddFoodMenuButton(title: "Saved Meals", icon: "bookmark.fill", action: onSavedMeals)
+                AddFoodMenuButton(title: "Copy from Day", icon: "calendar", action: onCopyFromDay)
+                AddFoodMenuButton(title: "Siri Phrases", icon: "waveform.circle.fill", action: onSiriPhrases)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(AppColors.appBackground)
+            .navigationTitle("Add Food")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+}
+
+private struct AddFoodMenuButton: View {
+    let title: String
+    let icon: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label {
+                Text(title)
+                    .font(.system(.subheadline, design: .rounded, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            } icon: {
+                Image(systemName: icon)
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    .foregroundStyle(AppColors.calorie)
+                    .frame(width: 22)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .frame(height: 38)
+            .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 // MARK: - Siri Phrases
