@@ -571,7 +571,6 @@ struct HomeView: View {
     @State private var showManualPopover = false
     @State private var showRecentSheet = false
     @State private var showCopyFromDaySheet = false
-    @State private var showSiriPhrasesSheet = false
     @State private var pendingContextImage: UIImage?
     @State private var pendingSecondCameraImage: UIImage?
     @State private var contextDescription: String = ""
@@ -874,11 +873,6 @@ struct HomeView: View {
                             }) {
                                 Label("Copy from Day", systemImage: "calendar")
                             }
-                            Button(action: {
-                                showSiriPhrasesSheet = true
-                            }) {
-                                Label("Siri Phrases", systemImage: "waveform.circle.fill")
-                            }
                         } label: {
                             Image(systemName: "plus")
                         }
@@ -1138,9 +1132,6 @@ struct HomeView: View {
             })
             .sheet(isPresented: $showCopyFromDaySheet) {
                 CopyFromDaySheet(targetDate: selectedDate)
-            }
-            .sheet(isPresented: $showSiriPhrasesSheet) {
-                SiriPhrasesSheet()
             }
             .interactiveDismissDisabled(activeSheet == .analyzing || activeSheet == .analyzingText || activeSheet == .lookingUpBarcode)
             .photosPicker(isPresented: $showPhotoPicker, selection: $selectedPhotoItem, matching: .images)
@@ -2787,6 +2778,7 @@ struct ProfileView: View {
     @State private var showDefaultGramsInfo = false
     @State private var showHealthEnergyGoalsInfo = false
     @State private var showAdaptiveGoalsInfo = false
+    @State private var showSiriPhrasesSheet = false
     @State private var isApplyingHealthEnergyGoals = false
     @State private var isApplyingAdaptiveGoals = false
     @State private var showHealthEnergyGoalAlert = false
@@ -3253,6 +3245,23 @@ struct ProfileView: View {
                                 .foregroundStyle(AppColors.calorie)
                         }
                     }
+
+                    Button {
+                        showSiriPhrasesSheet = true
+                    } label: {
+                        Label {
+                            HStack {
+                                Text("Siri Phrases")
+                                Spacer()
+                                Text("How to use Siri")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "waveform.circle.fill")
+                                .foregroundStyle(AppColors.calorie)
+                        }
+                    }
+                    .tint(.primary)
                 }
                 .listRowBackground(AppColors.appCard)
 
@@ -3963,6 +3972,9 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showCalculationMethods) {
                 CalculationMethodsView()
+            }
+            .sheet(isPresented: $showSiriPhrasesSheet) {
+                SiriPhrasesSheet()
             }
             .alert("Auto-balanced", isPresented: $showAutoMacroEditAlert) {
                 Button("OK", role: .cancel) { }
