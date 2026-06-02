@@ -68,25 +68,26 @@ struct LogWeightIntent: AppIntent {
     static let openAppWhenRun = false
 
     @Parameter(
-        title: "Weight in kg",
-        description: "Your weight in kilograms, for example 75.5.",
-        requestValueDialog: "What is your weight in kilograms?"
+        title: "Weight",
+        description: "Your weight, for example 75 kilograms or 165 pounds.",
+        requestValueDialog: "What is your weight?"
     )
-    var weightKg: Double
+    var weightDescription: String
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Log \(\.$weightKg) kg")
+        Summary("Log weight \(\.$weightDescription)")
     }
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard weightKg > 0, weightKg < 500 else {
-            return .result(dialog: "That does not look like a valid weight.")
+        do {
+            let logged = try SiriLoggingService.logWeight(description: weightDescription)
+            let formatted = String(format: "%.1f", logged.displayValue)
+            return .result(dialog: "Logged \(formatted) \(logged.unitName).")
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            return .result(dialog: IntentDialog(stringLiteral: message))
         }
-
-        _ = SiriLoggingService.logWeight(kg: weightKg)
-        let formatted = String(format: "%.1f", weightKg)
-        return .result(dialog: "Logged \(formatted) kilograms.")
     }
 }
 

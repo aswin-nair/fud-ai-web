@@ -2,10 +2,30 @@ import Foundation
 
 @MainActor
 enum SiriLoggingService {
+    enum WeightInputError: LocalizedError {
+        case missingNumber
+        case invalidRange
+
+        var errorDescription: String? {
+            switch self {
+            case .missingNumber:
+                "Please say a weight, such as 75 kilograms or 165 pounds."
+            case .invalidRange:
+                "That does not look like a valid weight."
+            }
+        }
+    }
+
     struct NutritionSummary {
         let calories: Int
         let protein: Double
         let calorieGoal: Int
+    }
+
+    struct LoggedWeight {
+        let entry: WeightEntry
+        let displayValue: Double
+        let unitName: String
     }
 
     static func analyzeAndLogFood(description: String) async throws -> FoodEntry {
@@ -32,7 +52,12 @@ enum SiriLoggingService {
         )
     }
 
-    static func logWeight(kg: Double) -> WeightEntry {
+    static func logWeight(description: String) throws -> LoggedWeight {
+        let parsed = try parseWeight(description)
+        return logWeight(kg: parsed.kg, displayValue: parsed.displayValue, unitName: parsed.unitName)
+    }
+
+    private static func logWeight(kg: Double, displayValue: Double, unitName: String) -> LoggedWeight {
         let entry = WeightEntry(date: .now, weightKg: kg)
         let weightStore = WeightStore(observesExternalChanges: false)
         weightStore.addEntry(entry)
@@ -41,7 +66,45 @@ enum SiriLoggingService {
         rescheduleNotificationsIfNeeded(foodStore: FoodStore(observesExternalChanges: false), weightStore: weightStore)
         WeightStore.postExternalChangeNotification()
 
-        return entry
+        return LoggedWeight(entry: entry, displayValue: displayValue, unitName: unitName)
+    }
+
+    private static func parseWeight(_ description: String) throws -> (kg: Double, displayValue: Double, unitName: String) {
+        let normalized = description
+            .lowercased()
+            .replacingOccurrences(of: ",", with: ".")
+
+        guard let numberRange = normalized.range(
+            of: #"[-+]?[0-9]*\.?[0-9]+"#,
+            options: .regularExpression
+        ), let value = Double(normalized[numberRange]) else {
+            throw WeightInputError.missingNumber
+        }
+
+        let usesMetric = UserDefaults.standard.bool(forKey: "useMetric")
+        let unitIsPounds = normalized.contains("lb")
+            || normalized.contains("lbs")
+            || normalized.contains("pound")
+            || normalized.contains("pounds")
+        let unitIsKilograms = normalized.contains("kg")
+            || normalized.contains("kgs")
+            || normalized.contains("kilogram")
+            || normalized.contains("kilograms")
+            || normalized.contains("kilo")
+            || normalized.contains("kilos")
+
+        let usePounds = unitIsPounds || (!unitIsKilograms && !usesMetric)
+        let kg = usePounds ? value / 2.20462 : value
+
+        guard kg > 0, kg < 500 else {
+            throw WeightInputError.invalidRange
+        }
+
+        return (
+            kg: kg,
+            displayValue: value,
+            unitName: usePounds ? "pounds" : "kilograms"
+        )
     }
 
     private static func foodEntry(from analysis: GeminiService.FoodAnalysis) -> FoodEntry {
