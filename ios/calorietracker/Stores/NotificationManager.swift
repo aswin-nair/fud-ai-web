@@ -70,6 +70,7 @@ class NotificationManager {
         content.title = title
         content.body = body
         content.sound = .default
+        content.filterCriteria = FudAIFocusFilterCriteria.mealReminder
 
         var dateComponents = DateComponents()
         dateComponents.hour = hour
