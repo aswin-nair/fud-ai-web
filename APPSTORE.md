@@ -42,7 +42,7 @@ NEW
 • Lock Screen circular widgets now use larger value-first previews for faster reading.
 • Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.
 • The calorie rectangular widget shows calories plus all three selected Home nutrients.
-• The iOS Home Screen widget gallery now has one Fud AI widget name with Small, Medium, and Large sizes, instead of a separate protein-only Home widget.
+• The iOS Home Screen widget gallery keeps the small Fud AI Protein widget while removing its duplicate medium Home widget.
 • The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.
 • iOS AI access is BYOK-only again; legacy hosted AI access has been removed.
 
@@ -53,7 +53,7 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. iOS Home Screen widgets now use one Fud AI widget name with Small, Medium, and Large sizes, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
+NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. iOS Home Screen widgets now include Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
@@ -98,7 +98,7 @@ PROGRESS
 Weight / Body Fat chart, average and net change summaries, goal lines, calorie trend vs goal, and macro averages over 1W, 1M, 3M, 6M, 1Y, All Time.
 
 WIDGETS
-iOS widgets cover Home Screen Small, Medium, and Large plus Lock Screen Circular, Rectangular, and Inline. The Home Screen gallery uses one Fud AI widget name and follows the three Home cards you choose. Apple Watch app and complications show calories and macros at a glance.
+iOS widgets cover Fud AI Home Screen Small, Medium, and Large, a small-only Fud AI Protein Home widget, plus Lock Screen Circular, Rectangular, and Inline. The main Fud AI Home widget follows the three Home cards you choose. Apple Watch app and complications show calories and macros at a glance.
 
 15 LANGUAGES
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.

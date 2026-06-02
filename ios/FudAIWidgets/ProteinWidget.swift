@@ -36,6 +36,7 @@ struct ProteinWidget: Widget {
         .configurationDisplayName("Fud AI Protein")
         .description("See today's protein progress at a glance.")
         .supportedFamilies([
+            .systemSmall,
             .accessoryCircular,
             .accessoryInline,
         ])
