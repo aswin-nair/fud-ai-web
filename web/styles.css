@@ -223,6 +223,9 @@ p { color: var(--ink-soft); }
   color: var(--coral);
   font-variation-settings: "opsz" 144, "SOFT" 100;
 }
+.hero-title-line {
+  white-space: nowrap;
+}
 .hero-lede {
   font-family: var(--sans);
   font-size: 1.05rem;
@@ -231,17 +234,6 @@ p { color: var(--ink-soft); }
   max-width: 540px;
   margin-bottom: 44px;
   letter-spacing: -0.005em;
-}
-.hero-lede .dropcap {
-  float: left;
-  font-family: var(--serif);
-  font-weight: 500;
-  font-style: italic;
-  font-size: 4.6rem;
-  line-height: 0.85;
-  color: var(--ink);
-  margin: 6px 12px -4px 0;
-  font-variation-settings: "opsz" 144;
 }
 
 /* Hero card — chrome removed: phone floats directly on page paper.
@@ -980,7 +972,6 @@ p { color: var(--ink-soft); }
     font-size: 1rem;
     margin-bottom: 32px;
   }
-  .hero-lede .dropcap { font-size: 3.2rem; line-height: 0.85; }
   .hero-card { padding: 0; }
   .phone-frame { width: 280px; }
 
@@ -1111,7 +1102,6 @@ p { color: var(--ink-soft); }
     margin-bottom: 20px;
   }
   .hero-lede { font-size: 0.96rem; line-height: 1.6; }
-  .hero-lede .dropcap { font-size: 2.8rem; margin: 4px 10px -2px 0; }
 
   .app-store-btn,
   .play-store-btn,
@@ -1126,8 +1116,7 @@ p { color: var(--ink-soft); }
 
 @media (max-width: 360px) {
   .container { padding: 0 14px; }
-  .hero-title { font-size: clamp(2.1rem, 13vw, 2.8rem); }
-  .hero-lede .dropcap { font-size: 2.4rem; }
+  .hero-title { font-size: clamp(1.95rem, 11vw, 2.6rem); }
   .ticker-item { font-size: 9.5px; gap: 10px; }
   .stat-number { font-size: 2.4rem; }
   .chip-btn { height: 36px; padding: 0 12px; font-size: 10px; }
