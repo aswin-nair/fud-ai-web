@@ -64,6 +64,7 @@ Barcode logging on iOS and Android uses Open Food Facts directly from the device
 - Xcode auto-discovers files via `PBXFileSystemSynchronizedRootGroup` — **do not** edit `project.pbxproj` to register source files
 - Every user-facing string must be localized in `ios/calorietracker/Localizable.xcstrings` across all 15 supported languages before commit
 - All data persistence is local (`UserDefaults` + iOS Keychain). No Core Data, no iCloud, no CloudKit
+- Siri/App Intents live under `ios/calorietracker/AppIntents/`; phrase-help UI lives in Settings and should stay a normal in-stack settings page, not an add-food menu item or modal
 
 ## Code Style (Android)
 
@@ -91,6 +92,7 @@ Open a bug at [github.com/apoorvdarshan/fud-ai/issues/new?labels=bug](https://gi
 - Expected vs actual behavior
 - Device model + OS version (iPhone model + iOS version, or Android model + OS / OEM skin like OriginOS / One UI / HyperOS)
 - Which AI provider you were using (if the bug is analysis-related)
+- For Siri/App Intent bugs, the exact phrase used and whether the issue happened from Siri, Shortcuts, or the Settings phrase guide
 - Screenshots or a short screen recording if relevant
 
 For feature ideas, use [the enhancement label](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=enhancement&title=Feature:%20).

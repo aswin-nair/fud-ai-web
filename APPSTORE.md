@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Review nutrition edits, meal what-if previews, Experimental goals, and clearer protein targets.
+Siri logging, review edits, meal what-if previews, and Experimental goal tools.
 ```
 
 ## Keywords (100 chars max)
@@ -35,6 +35,7 @@ Fud AI 4.1 — clearer widgets and Experimental goal tools.
 NEW
 • Review Food now has a Nutrition lock: unlock to correct calories, macros, and detailed nutrients before logging, then lock again so serving changes scale from those edits.
 • Review Food now has a What if? check that previews macro impact and can ask AI for a practical suggestion before logging.
+• Siri Shortcuts on iOS can log food, read today's calories, and log weight. Phrase examples are now in Settings → Siri Phrases.
 • Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.
 • Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
 • Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.
@@ -53,18 +54,18 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. iOS Home Screen widgets now include Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
+NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. Siri Shortcuts on iOS can log food, read today's calories, and log weight, with phrase examples in Settings. iOS Home Screen widgets now include Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget, Lock Screen widgets show readable current / goal rows, Energy Burn Goals and Adaptive Goals are marked Experimental, Adaptive Goals can make a small weekly calorie correction from weight trend, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
 
 Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
 
 HOW TO USE
 1) Set your profile and goals
-2) Snap, scan, speak, type, or manually enter a meal — review/edit nutrition, preview What if?, and save
+2) Snap, scan, speak, type, or manually enter a meal — review/edit nutrition, preview What if?, and save. On iOS, Siri can also log food or weight hands-free.
 3) Ask Coach for trends, predictions, and advice
 4) Track progress on charts and widgets
 
-11 WAYS TO LOG A MEAL
-Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals.
+11 IN-APP WAYS TO LOG A MEAL + SIRI
+Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri Shortcuts can also log food or weight and read today's calories.
 
 13 AI PROVIDERS
 Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Add Custom AI Instructions and an optional Fallback Provider.
