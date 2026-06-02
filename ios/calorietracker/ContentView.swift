@@ -5,7 +5,6 @@ import HealthKit
 import StoreKit
 import WidgetKit
 import AVFoundation
-import WebKit
 
 // MARK: - Camera Mode
 enum CameraMode {
@@ -1281,9 +1280,7 @@ struct HomeView: View {
 }
 
 // MARK: - Siri Phrases
-private struct SiriPhrasesSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
+private struct SiriPhrasesSettingsView: View {
     private let groups: [SiriPhraseGroup] = [
         SiriPhraseGroup(
             title: "Log Food",
@@ -1314,135 +1311,33 @@ private struct SiriPhrasesSheet: View {
     ]
 
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 11) {
-                HStack(spacing: 12) {
+        List {
+            Section {
+                Label {
+                    Text("Say these phrases to Siri to use Fud AI hands-free.")
+                        .foregroundStyle(.secondary)
+                } icon: {
                     Image(systemName: "waveform.circle.fill")
-                        .font(.system(size: 30))
                         .foregroundStyle(AppColors.calorie)
+                }
+            }
+            .listRowBackground(AppColors.appCard)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Siri Phrases")
-                            .font(.system(.headline, design: .rounded, weight: .semibold))
-                        Text("Say one of these to Siri.")
-                            .font(.system(.caption, design: .rounded))
-                            .foregroundStyle(.secondary)
+            ForEach(groups) { group in
+                Section(group.title) {
+                    ForEach(group.phrases, id: \.self) { phrase in
+                        Text("Hey Siri, \(phrase)")
+                            .foregroundStyle(.primary)
                     }
                 }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 12))
-
-                SiriGIFView()
-                    .frame(height: 58)
-                    .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 12))
-
-                ForEach(groups) { group in
-                    SiriPhraseGroupView(group: group)
-                }
-
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 10)
-            .padding(.bottom, 8)
-            .background(AppColors.appBackground)
-            .navigationTitle("Siri Phrases")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
+                .listRowBackground(AppColors.appCard)
             }
         }
-        .presentationDetents([.large])
+        .scrollContentBackground(.hidden)
+        .background(AppColors.appBackground)
+        .navigationTitle("Siri Phrases")
+        .navigationBarTitleDisplayMode(.inline)
     }
-}
-
-private struct SiriPhraseGroupView: View {
-    let group: SiriPhraseGroup
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Label {
-                Text(group.title)
-                    .font(.system(.caption, design: .rounded, weight: .bold))
-                    .foregroundStyle(.secondary)
-            } icon: {
-                Image(systemName: group.icon)
-                    .font(.system(.caption, design: .rounded, weight: .semibold))
-                    .foregroundStyle(AppColors.calorie)
-            }
-
-            ForEach(group.phrases, id: \.self) { phrase in
-                Text("Hey Siri, \(phrase)")
-                    .font(.system(.subheadline, design: .rounded, weight: .medium))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(AppColors.calorie.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
-            }
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-private struct SiriGIFView: UIViewRepresentable {
-    private func html(gifSource: String) -> String {
-        """
-    <!doctype html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            background: transparent;
-          }
-          body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-          }
-        </style>
-      </head>
-      <body>
-        <img src="\(gifSource)" alt="Siri">
-      </body>
-    </html>
-    """
-    }
-
-    func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView(frame: .zero)
-        webView.isOpaque = false
-        webView.backgroundColor = .clear
-        webView.scrollView.backgroundColor = .clear
-        webView.scrollView.isScrollEnabled = false
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-
-        if let gifURL = Bundle.main.url(forResource: "siri", withExtension: "gif") {
-            webView.loadHTMLString(html(gifSource: "siri.gif"), baseURL: gifURL.deletingLastPathComponent())
-        }
-
-        return webView
-    }
-
-    func updateUIView(_ webView: WKWebView, context: Context) {}
 }
 
 private struct SiriPhraseGroup: Identifiable {
@@ -2778,7 +2673,6 @@ struct ProfileView: View {
     @State private var showDefaultGramsInfo = false
     @State private var showHealthEnergyGoalsInfo = false
     @State private var showAdaptiveGoalsInfo = false
-    @State private var showSiriPhrasesSheet = false
     @State private var isApplyingHealthEnergyGoals = false
     @State private var isApplyingAdaptiveGoals = false
     @State private var showHealthEnergyGoalAlert = false
@@ -3246,22 +3140,16 @@ struct ProfileView: View {
                         }
                     }
 
-                    Button {
-                        showSiriPhrasesSheet = true
+                    NavigationLink {
+                        SiriPhrasesSettingsView()
                     } label: {
                         Label {
-                            HStack {
-                                Text("Siri Phrases")
-                                Spacer()
-                                Text("How to use Siri")
-                                    .foregroundStyle(.secondary)
-                            }
+                            Text("Siri Phrases")
                         } icon: {
                             Image(systemName: "waveform.circle.fill")
                                 .foregroundStyle(AppColors.calorie)
                         }
                     }
-                    .tint(.primary)
                 }
                 .listRowBackground(AppColors.appCard)
 
@@ -3972,9 +3860,6 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showCalculationMethods) {
                 CalculationMethodsView()
-            }
-            .sheet(isPresented: $showSiriPhrasesSheet) {
-                SiriPhrasesSheet()
             }
             .alert("Auto-balanced", isPresented: $showAutoMacroEditAlert) {
                 Button("OK", role: .cancel) { }
