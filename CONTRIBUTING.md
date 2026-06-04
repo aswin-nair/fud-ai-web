@@ -62,7 +62,7 @@ Barcode logging on iOS and Android uses Open Food Facts directly from the device
 - Main actor isolation is default (`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`) — no manual `@MainActor` annotations needed
 - Services are stateless structs with static methods (`GeminiService`, `ChatService`, `SpeechService`, etc.)
 - Xcode auto-discovers files via `PBXFileSystemSynchronizedRootGroup` — **do not** edit `project.pbxproj` to register source files
-- Every user-facing string must be localized in `ios/calorietracker/Localizable.xcstrings` across all 15 supported languages before commit
+- Every user-facing string must be localized in `ios/calorietracker/Localizable.xcstrings` across all 16 supported iOS languages before commit
 - All data persistence is local (`UserDefaults` + iOS Keychain). No Core Data, no iCloud, no CloudKit
 - Siri/App Intents live under `ios/calorietracker/AppIntents/`; phrase-help UI lives in Settings and should stay a normal in-stack settings page, not an add-food menu item or modal
 
@@ -117,9 +117,9 @@ Include vision-capable model IDs since the app needs vision for food photo analy
 
 ## Localization
 
-Both clients ship in 15 languages. Any new user-facing string must be translated before the PR lands.
+iOS ships in 16 languages; Android ships in 15. Any new user-facing string must be translated before the PR lands.
 
-**iOS:** Add to `ios/calorietracker/Localizable.xcstrings` (String Catalog) — Xcode auto-extracts new English strings on build with `SWIFT_EMIT_LOC_STRINGS = YES`, but leaves the other 14 columns empty. Fill them in.
+**iOS:** Add to `ios/calorietracker/Localizable.xcstrings` (String Catalog) — Xcode auto-extracts new English strings on build with `SWIFT_EMIT_LOC_STRINGS = YES`, but leaves the other 15 columns empty. Fill them in.
 
 **Android:** Add the key to `app/src/main/res/values/strings.xml`, then add the translated value to all 14 non-English `values-*/strings.xml` files. For batches of 10+ strings, spawn a translation agent per locale (the existing translations were sourced from the iOS catalog where keys matched, plus fresh translations for Android-specific strings — same workflow applies). Enums use `displayNameRes: Int` instead of `displayName: String` — see the existing `MealType` / `WeightGoal` for the pattern.
 

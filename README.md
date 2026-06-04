@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/kotlin-2.2-7F52FF?logo=kotlin" alt="Kotlin">
   <img src="https://img.shields.io/badge/UI-SwiftUI%20%2F%20Compose-purple" alt="UI">
   <img src="https://img.shields.io/badge/privacy-local--first-brightgreen" alt="Local-first privacy">
-  <img src="https://img.shields.io/badge/languages-15-blue" alt="15 Languages">
+  <img src="https://img.shields.io/badge/languages-iOS%2016%20%2F%20Android%2015-blue" alt="iOS 16 languages / Android 15 languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <a href="https://github.com/apoorvdarshan/fud-ai/stargazers"><img src="https://img.shields.io/github/stars/apoorvdarshan/fud-ai?style=flat&logo=github&color=yellow" alt="GitHub stars"></a>
   <a href="https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726"><img src="https://img.shields.io/badge/App%20Store-Download-black?logo=apple" alt="App Store"></a>
@@ -78,10 +78,10 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
 - **Widgets** — iOS Home Screen has Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget; Lock Screen widgets stay separate, and Android Glance widgets update when you log
 - **Android 2.2 updates** — Energy Burn Goals auto-refresh, Experimental Adaptive Goals, body-fat-aware Activity Level protein targets, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
-- **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 15 languages
+- **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 16 iOS languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
-- **15 languages** — Arabic, Azerbaijani, Dutch, English, French, German, Hindi, Italian, Japanese, Korean, Portuguese (Brazil), Romanian, Russian, Simplified Chinese, Spanish (auto-selected by the phone's Language setting)
+- **Languages** — iOS supports 16 languages: Arabic, Azerbaijani, Dutch, English, French, German, Hindi, Italian, Japanese, Korean, Polish, Portuguese (Brazil), Romanian, Russian, Simplified Chinese, Spanish. Android supports the same set except Polish. The app auto-selects by the phone's Language setting.
 - **Meal reminders** — customizable breakfast, lunch, dinner notifications
 - **Dark mode** — system, light, or dark
 - **Metric & imperial** units
@@ -233,7 +233,7 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 | **Speech** | Native `SFSpeechRecognizer` or remote providers via `SpeechService` (m4a upload) |
 | **Health** | HealthKit / Health Connect read-write paths for body measurements and meal nutrition, with UUID-tagged samples for safe delete |
 | **Pattern** | `@Observable` + `.environment()`, main actor isolation |
-| **Localization** | `Localizable.xcstrings` (String Catalog), 15 languages, auto-selected by iPhone's system language |
+| **Localization** | `Localizable.xcstrings` (String Catalog), 16 iOS languages, auto-selected by iPhone's system language |
 | **Dependencies** | Native platform frameworks; app data and API keys remain local |
 
 ### Repo Layout
@@ -260,7 +260,7 @@ ios/
 └── calorietracker/
     ├── calorietrackerApp.swift       # Entry point, environment setup
     ├── ContentView.swift             # 5-tab layout (Home, Progress, Coach, Settings, About)
-    ├── Localizable.xcstrings         # String Catalog, 15 languages
+    ├── Localizable.xcstrings         # String Catalog, 16 languages
     ├── Models/
     │   ├── AIProvider.swift          # 13 LLM providers, model lists, settings
     │   ├── SpeechProvider.swift      # 6 STT options + Keychain settings

@@ -77,7 +77,7 @@ COACH
 • Uses your profile, targets, forecast, and food log context
 
 EXPANDED NUTRIENTS
-Calories, protein, carbs, fat, sugar, added sugar, fiber, saturated fat, trans fat, mono/polyunsaturated fat, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3, and more when available.
+Calories, protein, carbs, fat, sugar, added sugar, fiber, saturated fat, trans fat, mono/polyunsaturated fat, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3 when available.
 
 PERSONALIZED GOALS
 BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calories/macros, Activity Level protein targets, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly corrections while pinned macros stay pinned.
@@ -88,8 +88,8 @@ Weight / Body Fat chart, average and net change summaries, goal lines, calorie t
 WIDGETS
 iOS widgets cover Home Screen Small, Medium, and Large, a small-only Protein widget, and Lock Screen widgets. Apple Watch app and complications show calories and macros at a glance.
 
-15 LANGUAGES
-English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
+16 LANGUAGES
+English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Polish, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
 
 PRIVACY
 No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Premium requests go through Fud AI's proxy only for the AI request being processed. Review nutrition edits are local and saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
