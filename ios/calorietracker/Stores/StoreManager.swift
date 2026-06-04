@@ -97,6 +97,11 @@ class StoreManager {
     func loadProducts() async {
         if RevenueCatConfig.isConfigured {
             await loadRevenueCatProducts()
+            if !products.isEmpty {
+                return
+            }
+
+            await loadStoreKitProducts()
             return
         }
 
@@ -110,6 +115,11 @@ class StoreManager {
                 return
             }
             products = premiumProducts(from: offering)
+            if products.isEmpty {
+                purchaseError = "RevenueCat offering has no App Store products available yet."
+            } else {
+                purchaseError = nil
+            }
         } catch {
             purchaseError = error.localizedDescription
             print("Failed to load RevenueCat offerings: \(error)")
@@ -176,6 +186,7 @@ class StoreManager {
                     applySubscriptionState(isSubscribed: true, productID: transaction.productID)
                 }
                 await transaction.finish()
+                await syncRevenueCatPurchasesIfNeeded()
                 await checkEntitlements(fallbackActiveProductID: purchasedPremiumSubscription ? transaction.productID : nil)
                 return purchasedPremiumSubscription || isSubscribed
             case .userCancelled, .pending:
@@ -188,6 +199,16 @@ class StoreManager {
         }
 
         return false
+    }
+
+    private func syncRevenueCatPurchasesIfNeeded() async {
+        guard RevenueCatConfig.isConfigured else { return }
+        do {
+            let customerInfo = try await Purchases.shared.syncPurchases()
+            applyCustomerInfo(customerInfo)
+        } catch {
+            print("Failed to sync StoreKit purchase with RevenueCat: \(error)")
+        }
     }
 
     @discardableResult
