@@ -496,6 +496,7 @@
 				ja,
 				ko,
 				nl,
+				pl,
 				"pt-BR",
 				ro,
 				ru,
