@@ -37,8 +37,11 @@ NEW
 • Premium plans are Weekly at $6.99/week and Yearly at $199.99/year.
 • Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.
 • Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.
+• Onboarding now includes a clear AI Access choice: use BYOK for free or upgrade to Premium.
 • Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.
 • Premium mode now hides BYOK provider, fallback, and speech API key controls; switching back to BYOK restores them.
+• Premium purchase loading supports RevenueCat with StoreKit product fallback for App Store sandbox review.
+• iOS localization expanded to 16 languages with Polish and complete Russian support.
 
 No data migration is required. Existing logs, goals, widgets, and BYOK settings are preserved.
 ```
@@ -128,7 +131,14 @@ https://fud-ai.app
 ## Reviewer Notes
 ```
 1) iPhone only — not optimized for iPad. Please review on iPhone.
-2) App is free and open source. BYOK mode works without sign-in.
-3) BYOK test path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
-4) No test account needed — app works immediately after onboarding.
+2) No test account is needed. The app works immediately after onboarding.
+3) Fud AI has two AI Access modes:
+   • Bring Your Own Key (free): users enter their own provider API key.
+   • Fud AI Premium (optional subscription): no-key AI access through Fud AI's Gemini + Deepgram proxy.
+4) Premium subscription products:
+   • fudai.premium.weekly — $6.99/week
+   • fudai.premium.yearly — $199.99/year
+5) Premium review path: during onboarding choose Fud AI Premium, or after onboarding go to Settings → AI Access → Fud AI Premium. The paywall uses RevenueCat and falls back to StoreKit products if RevenueCat offerings are unavailable, so App Store sandbox purchase testing should be available.
+6) BYOK review path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
+7) Premium mode hides BYOK provider, fallback, and speech API key controls to avoid conflicting settings. Switching back to Bring Your Own Key restores those controls and does not delete saved BYOK settings.
 ```
