@@ -386,7 +386,7 @@ private struct AboutView: View {
     private static let whatsNewItems = [
         "Fud AI Premium is back as optional no-key AI access for food scans, voice logging, and Coach.",
         "Premium adds two plans: Weekly at $6.99/week and Yearly at $199.99/year.",
-        "Russian localization is now complete across the current iOS app, including Premium, Siri, Energy Burn Goals, and Adaptive Goals.",
+        "Polish and Russian localizations are now complete across the current iOS app, including Premium, Siri, Energy Burn Goals, and Adaptive Goals.",
         "Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.",
         "Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.",
         "Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.",
