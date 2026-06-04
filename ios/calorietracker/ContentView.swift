@@ -3160,155 +3160,157 @@ struct ProfileView: View {
                     FudAIPremiumManagedSettingsSection()
                 }
 
-                // Section 4: AI Provider
-                Section("AI Provider") {
-                    Picker(selection: $selectedProvider) {
-                        ForEach(AIProvider.allCases) { provider in
-                            Label(provider.rawValue, systemImage: provider.icon).tag(provider)
-                        }
-                    } label: {
-                        Label {
-                            Text("Provider")
-                        } icon: {
-                            Image(systemName: "cpu")
-                                .foregroundStyle(AppColors.calorie)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .tint(.secondary)
-                    .onChange(of: selectedProvider) { _, newProvider in
-                        AIProviderSettings.selectedProvider = newProvider
-                        selectedModel = newProvider.defaultModel
-                        AIProviderSettings.selectedModel = newProvider.defaultModel
-                        apiKeyText = AIProviderSettings.apiKey(for: newProvider) ?? ""
-                        customBaseURL = AIProviderSettings.customBaseURL(for: newProvider) ?? ""
-                    }
-
-                    if selectedProvider.supportsCustomModelName {
-                        // Free-form TextField for any model ID, with optional preset suggestions menu
-                        // (e.g., OpenRouter has presets but lets user type any of openrouter.ai/models).
-                        HStack {
-                            Label {
-                                Text("Model")
-                            } icon: {
-                                Image(systemName: "brain")
-                                    .foregroundStyle(AppColors.calorie)
-                            }
-                            Spacer()
-                            TextField(
-                                selectedProvider == .openrouter
-                                    ? "e.g. anthropic/claude-sonnet-4"
-                                    : "e.g. gpt-4o-mini",
-                                text: $selectedModel
-                            )
-                                .textFieldStyle(.plain)
-                                .multilineTextAlignment(.trailing)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .onChange(of: selectedModel) { _, newModel in
-                                    AIProviderSettings.selectedModel = newModel
-                                }
-                            if !selectedProvider.models.isEmpty {
-                                Menu {
-                                    ForEach(selectedProvider.models, id: \.self) { model in
-                                        Button(model) {
-                                            selectedModel = model
-                                            AIProviderSettings.selectedModel = model
-                                        }
-                                    }
-                                } label: {
-                                    Image(systemName: "list.bullet.circle")
-                                        .foregroundStyle(AppColors.calorie)
-                                }
-                            }
-                        }
-                    } else {
-                        Picker(selection: $selectedModel) {
-                            ForEach(selectedProvider.models, id: \.self) { model in
-                                Text(model).tag(model)
+                if selectedAccessMode == .bringYourOwnKey {
+                    // Section 4: AI Provider
+                    Section("AI Provider") {
+                        Picker(selection: $selectedProvider) {
+                            ForEach(AIProvider.allCases) { provider in
+                                Label(provider.rawValue, systemImage: provider.icon).tag(provider)
                             }
                         } label: {
                             Label {
-                                Text("Model")
+                                Text("Provider")
                             } icon: {
-                                Image(systemName: "brain")
+                                Image(systemName: "cpu")
                                     .foregroundStyle(AppColors.calorie)
                             }
                         }
                         .pickerStyle(.menu)
                         .tint(.secondary)
-                        .onAppear {
-                            if !selectedProvider.models.contains(selectedModel) {
-                                selectedModel = selectedProvider.defaultModel
-                                AIProviderSettings.selectedModel = selectedModel
-                            }
+                        .onChange(of: selectedProvider) { _, newProvider in
+                            AIProviderSettings.selectedProvider = newProvider
+                            selectedModel = newProvider.defaultModel
+                            AIProviderSettings.selectedModel = newProvider.defaultModel
+                            apiKeyText = AIProviderSettings.apiKey(for: newProvider) ?? ""
+                            customBaseURL = AIProviderSettings.customBaseURL(for: newProvider) ?? ""
                         }
-                        .onChange(of: selectedModel) { _, newModel in
-                            AIProviderSettings.selectedModel = newModel
-                        }
-                    }
 
-                    if selectedProvider.requiresAPIKey {
-                        HStack {
-                            Label {
-                                Text("API Key")
-                            } icon: {
-                                Image(systemName: "key.fill")
-                                    .foregroundStyle(AppColors.calorie)
-                            }
-                            Spacer()
-                            Group {
-                                if showAPIKey {
-                                    TextField(selectedProvider.apiKeyPlaceholder, text: $apiKeyText)
-                                } else {
-                                    SecureField(selectedProvider.apiKeyPlaceholder, text: $apiKeyText)
+                        if selectedProvider.supportsCustomModelName {
+                            // Free-form TextField for any model ID, with optional preset suggestions menu
+                            // (e.g., OpenRouter has presets but lets user type any of openrouter.ai/models).
+                            HStack {
+                                Label {
+                                    Text("Model")
+                                } icon: {
+                                    Image(systemName: "brain")
+                                        .foregroundStyle(AppColors.calorie)
+                                }
+                                Spacer()
+                                TextField(
+                                    selectedProvider == .openrouter
+                                        ? "e.g. anthropic/claude-sonnet-4"
+                                        : "e.g. gpt-4o-mini",
+                                    text: $selectedModel
+                                )
+                                    .textFieldStyle(.plain)
+                                    .multilineTextAlignment(.trailing)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                    .onChange(of: selectedModel) { _, newModel in
+                                        AIProviderSettings.selectedModel = newModel
+                                    }
+                                if !selectedProvider.models.isEmpty {
+                                    Menu {
+                                        ForEach(selectedProvider.models, id: \.self) { model in
+                                            Button(model) {
+                                                selectedModel = model
+                                                AIProviderSettings.selectedModel = model
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: "list.bullet.circle")
+                                            .foregroundStyle(AppColors.calorie)
+                                    }
                                 }
                             }
-                            .textFieldStyle(.plain)
-                            .multilineTextAlignment(.trailing)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            .onChange(of: apiKeyText) { _, newValue in
-                                AIProviderSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedProvider)
-                            }
-                            Button {
-                                showAPIKey.toggle()
+                        } else {
+                            Picker(selection: $selectedModel) {
+                                ForEach(selectedProvider.models, id: \.self) { model in
+                                    Text(model).tag(model)
+                                }
                             } label: {
-                                Image(systemName: showAPIKey ? "eye.fill" : "eye.slash.fill")
-                                    .foregroundStyle(.secondary)
-                                    .font(.system(size: 14))
+                                Label {
+                                    Text("Model")
+                                } icon: {
+                                    Image(systemName: "brain")
+                                        .foregroundStyle(AppColors.calorie)
+                                }
                             }
-                            .buttonStyle(.plain)
+                            .pickerStyle(.menu)
+                            .tint(.secondary)
+                            .onAppear {
+                                if !selectedProvider.models.contains(selectedModel) {
+                                    selectedModel = selectedProvider.defaultModel
+                                    AIProviderSettings.selectedModel = selectedModel
+                                }
+                            }
+                            .onChange(of: selectedModel) { _, newModel in
+                                AIProviderSettings.selectedModel = newModel
+                            }
                         }
-                    }
 
-                    if selectedProvider == .ollama || selectedProvider.requiresCustomEndpoint {
-                        HStack {
-                            Label {
-                                Text(selectedProvider.requiresCustomEndpoint ? "Base URL" : "Server URL")
-                            } icon: {
-                                Image(systemName: "link")
-                                    .foregroundStyle(AppColors.calorie)
-                            }
-                            Spacer()
-                            TextField(
-                                selectedProvider.requiresCustomEndpoint
-                                    ? "https://your-endpoint.com/v1"
-                                    : selectedProvider.baseURL,
-                                text: $customBaseURL
-                            )
+                        if selectedProvider.requiresAPIKey {
+                            HStack {
+                                Label {
+                                    Text("API Key")
+                                } icon: {
+                                    Image(systemName: "key.fill")
+                                        .foregroundStyle(AppColors.calorie)
+                                }
+                                Spacer()
+                                Group {
+                                    if showAPIKey {
+                                        TextField(selectedProvider.apiKeyPlaceholder, text: $apiKeyText)
+                                    } else {
+                                        SecureField(selectedProvider.apiKeyPlaceholder, text: $apiKeyText)
+                                    }
+                                }
                                 .textFieldStyle(.plain)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
-                                .keyboardType(.URL)
-                                .onChange(of: customBaseURL) { _, newValue in
-                                    AIProviderSettings.setCustomBaseURL(newValue.isEmpty ? nil : newValue, for: selectedProvider)
+                                .onChange(of: apiKeyText) { _, newValue in
+                                    AIProviderSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedProvider)
                                 }
+                                Button {
+                                    showAPIKey.toggle()
+                                } label: {
+                                    Image(systemName: showAPIKey ? "eye.fill" : "eye.slash.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.system(size: 14))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        if selectedProvider == .ollama || selectedProvider.requiresCustomEndpoint {
+                            HStack {
+                                Label {
+                                    Text(selectedProvider.requiresCustomEndpoint ? "Base URL" : "Server URL")
+                                } icon: {
+                                    Image(systemName: "link")
+                                        .foregroundStyle(AppColors.calorie)
+                                }
+                                Spacer()
+                                TextField(
+                                    selectedProvider.requiresCustomEndpoint
+                                        ? "https://your-endpoint.com/v1"
+                                        : selectedProvider.baseURL,
+                                    text: $customBaseURL
+                                )
+                                    .textFieldStyle(.plain)
+                                    .multilineTextAlignment(.trailing)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                    .keyboardType(.URL)
+                                    .onChange(of: customBaseURL) { _, newValue in
+                                        AIProviderSettings.setCustomBaseURL(newValue.isEmpty ? nil : newValue, for: selectedProvider)
+                                    }
+                            }
                         }
                     }
+                        .listRowBackground(AppColors.appCard)
                 }
-                    .listRowBackground(AppColors.appCard)
 
                 // Custom AI Instructions (User Context) — prepended to every AI request when non-empty
                 Section {
@@ -3344,140 +3346,253 @@ struct ProfileView: View {
                 }
                 .listRowBackground(AppColors.appCard)
 
-                // Fallback Provider — retry on a second provider when the primary fails
-                Section {
-                    Toggle(isOn: $fallbackEnabled) {
-                        Label {
-                            Text("Enable Fallback")
-                        } icon: {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .foregroundStyle(AppColors.calorie)
-                        }
-                    }
-                    .tint(AppColors.calorie)
-                    .onChange(of: fallbackEnabled) { _, newValue in
-                        AIProviderSettings.fallbackEnabled = newValue
-                    }
-
-                    if fallbackEnabled {
-                        // Fallback provider list shows all 13 — same provider as primary IS allowed
-                        // (so e.g. Gemini Pro primary + Gemini Flash fallback works for capacity diversity).
-                        // The collision is handled at the model layer below + at the runtime check in
-                        // AIProviderSettings.currentFallbackConfig.
-                        Picker(selection: $selectedFallbackProvider) {
-                            ForEach(AIProvider.allCases) { provider in
-                                Label(provider.rawValue, systemImage: provider.icon).tag(provider)
-                            }
-                        } label: {
+                if selectedAccessMode == .bringYourOwnKey {
+                    // Fallback Provider — retry on a second provider when the primary fails
+                    Section {
+                        Toggle(isOn: $fallbackEnabled) {
                             Label {
-                                Text("Provider")
+                                Text("Enable Fallback")
                             } icon: {
-                                Image(systemName: "cpu")
+                                Image(systemName: "arrow.triangle.2.circlepath")
                                     .foregroundStyle(AppColors.calorie)
                             }
                         }
-                        .pickerStyle(.menu)
-                        .tint(.secondary)
-                        .onChange(of: selectedFallbackProvider) { _, newProvider in
-                            AIProviderSettings.selectedFallbackProvider = newProvider
-                            if !newProvider.supportsCustomModelName,
-                               !newProvider.models.contains(selectedFallbackModel) {
-                                selectedFallbackModel = newProvider.defaultModel
-                                AIProviderSettings.selectedFallbackModel = selectedFallbackModel
-                            }
-                            // If switching fallback to same provider as primary AND model collides,
-                            // bump to first non-primary model so picker doesn't show identical config.
-                            if newProvider == selectedProvider, selectedFallbackModel == selectedModel,
-                               let alt = newProvider.models.first(where: { $0 != selectedModel }) {
-                                selectedFallbackModel = alt
-                                AIProviderSettings.selectedFallbackModel = alt
-                            }
-                            fallbackApiKeyText = AIProviderSettings.apiKey(for: newProvider) ?? ""
-                            fallbackBaseURL = AIProviderSettings.customBaseURL(for: newProvider) ?? ""
+                        .tint(AppColors.calorie)
+                        .onChange(of: fallbackEnabled) { _, newValue in
+                            AIProviderSettings.fallbackEnabled = newValue
                         }
 
-                        if selectedFallbackProvider.supportsCustomModelName {
-                            // Free-form TextField + preset Menu, mirrors primary AI Provider section.
-                            // When fallback provider == primary, the preset menu hides the primary's model.
-                            let presetOptions: [String] = {
-                                if selectedFallbackProvider == selectedProvider {
-                                    return selectedFallbackProvider.models.filter { $0 != selectedModel }
+                        if fallbackEnabled {
+                            // Fallback provider list shows all 13 — same provider as primary IS allowed
+                            // (so e.g. Gemini Pro primary + Gemini Flash fallback works for capacity diversity).
+                            // The collision is handled at the model layer below + at the runtime check in
+                            // AIProviderSettings.currentFallbackConfig.
+                            Picker(selection: $selectedFallbackProvider) {
+                                ForEach(AIProvider.allCases) { provider in
+                                    Label(provider.rawValue, systemImage: provider.icon).tag(provider)
                                 }
-                                return selectedFallbackProvider.models
-                            }()
-                            HStack {
+                            } label: {
                                 Label {
-                                    Text("Model")
+                                    Text("Provider")
                                 } icon: {
-                                    Image(systemName: "brain")
+                                    Image(systemName: "cpu")
                                         .foregroundStyle(AppColors.calorie)
                                 }
-                                Spacer()
-                                TextField(
-                                    selectedFallbackProvider == .openrouter
-                                        ? "e.g. anthropic/claude-sonnet-4"
-                                        : "e.g. gpt-4o-mini",
-                                    text: $selectedFallbackModel
-                                )
-                                .textFieldStyle(.plain)
-                                .multilineTextAlignment(.trailing)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .onChange(of: selectedFallbackModel) { _, newModel in
-                                    AIProviderSettings.selectedFallbackModel = newModel
-                                }
-                                if !presetOptions.isEmpty {
-                                    Menu {
-                                        ForEach(presetOptions, id: \.self) { model in
-                                            Button(model) {
-                                                selectedFallbackModel = model
-                                                AIProviderSettings.selectedFallbackModel = model
-                                            }
-                                        }
-                                    } label: {
-                                        Image(systemName: "list.bullet.circle")
-                                            .foregroundStyle(AppColors.calorie)
-                                    }
-                                }
                             }
-                        } else {
-                            // Same provider as primary → exclude the primary's model from the picker so
-                            // user can't accidentally pick an identical config.
-                            let modelOptions: [String] = {
-                                if selectedFallbackProvider == selectedProvider {
-                                    return selectedFallbackProvider.models.filter { $0 != selectedModel }
+                            .pickerStyle(.menu)
+                            .tint(.secondary)
+                            .onChange(of: selectedFallbackProvider) { _, newProvider in
+                                AIProviderSettings.selectedFallbackProvider = newProvider
+                                if !newProvider.supportsCustomModelName,
+                                   !newProvider.models.contains(selectedFallbackModel) {
+                                    selectedFallbackModel = newProvider.defaultModel
+                                    AIProviderSettings.selectedFallbackModel = selectedFallbackModel
                                 }
-                                return selectedFallbackProvider.models
-                            }()
-                            if !modelOptions.isEmpty {
-                                Picker(selection: $selectedFallbackModel) {
-                                    ForEach(modelOptions, id: \.self) { model in
-                                        Text(model).tag(model)
+                                // If switching fallback to same provider as primary AND model collides,
+                                // bump to first non-primary model so picker doesn't show identical config.
+                                if newProvider == selectedProvider, selectedFallbackModel == selectedModel,
+                                   let alt = newProvider.models.first(where: { $0 != selectedModel }) {
+                                    selectedFallbackModel = alt
+                                    AIProviderSettings.selectedFallbackModel = alt
+                                }
+                                fallbackApiKeyText = AIProviderSettings.apiKey(for: newProvider) ?? ""
+                                fallbackBaseURL = AIProviderSettings.customBaseURL(for: newProvider) ?? ""
+                            }
+
+                            if selectedFallbackProvider.supportsCustomModelName {
+                                // Free-form TextField + preset Menu, mirrors primary AI Provider section.
+                                // When fallback provider == primary, the preset menu hides the primary's model.
+                                let presetOptions: [String] = {
+                                    if selectedFallbackProvider == selectedProvider {
+                                        return selectedFallbackProvider.models.filter { $0 != selectedModel }
                                     }
-                                } label: {
+                                    return selectedFallbackProvider.models
+                                }()
+                                HStack {
                                     Label {
                                         Text("Model")
                                     } icon: {
                                         Image(systemName: "brain")
                                             .foregroundStyle(AppColors.calorie)
                                     }
+                                    Spacer()
+                                    TextField(
+                                        selectedFallbackProvider == .openrouter
+                                            ? "e.g. anthropic/claude-sonnet-4"
+                                            : "e.g. gpt-4o-mini",
+                                        text: $selectedFallbackModel
+                                    )
+                                    .textFieldStyle(.plain)
+                                    .multilineTextAlignment(.trailing)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                    .onChange(of: selectedFallbackModel) { _, newModel in
+                                        AIProviderSettings.selectedFallbackModel = newModel
+                                    }
+                                    if !presetOptions.isEmpty {
+                                        Menu {
+                                            ForEach(presetOptions, id: \.self) { model in
+                                                Button(model) {
+                                                    selectedFallbackModel = model
+                                                    AIProviderSettings.selectedFallbackModel = model
+                                                }
+                                            }
+                                        } label: {
+                                            Image(systemName: "list.bullet.circle")
+                                                .foregroundStyle(AppColors.calorie)
+                                        }
+                                    }
                                 }
-                                .pickerStyle(.menu)
-                                .tint(.secondary)
-                                .onChange(of: selectedFallbackModel) { _, newModel in
-                                    AIProviderSettings.selectedFallbackModel = newModel
+                            } else {
+                                // Same provider as primary → exclude the primary's model from the picker so
+                                // user can't accidentally pick an identical config.
+                                let modelOptions: [String] = {
+                                    if selectedFallbackProvider == selectedProvider {
+                                        return selectedFallbackProvider.models.filter { $0 != selectedModel }
+                                    }
+                                    return selectedFallbackProvider.models
+                                }()
+                                if !modelOptions.isEmpty {
+                                    Picker(selection: $selectedFallbackModel) {
+                                        ForEach(modelOptions, id: \.self) { model in
+                                            Text(model).tag(model)
+                                        }
+                                    } label: {
+                                        Label {
+                                            Text("Model")
+                                        } icon: {
+                                            Image(systemName: "brain")
+                                                .foregroundStyle(AppColors.calorie)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .tint(.secondary)
+                                    .onChange(of: selectedFallbackModel) { _, newModel in
+                                        AIProviderSettings.selectedFallbackModel = newModel
+                                    }
+                                    .onAppear {
+                                        if !modelOptions.contains(selectedFallbackModel),
+                                           let first = modelOptions.first {
+                                            selectedFallbackModel = first
+                                            AIProviderSettings.selectedFallbackModel = first
+                                        }
+                                    }
                                 }
-                                .onAppear {
-                                    if !modelOptions.contains(selectedFallbackModel),
-                                       let first = modelOptions.first {
-                                        selectedFallbackModel = first
-                                        AIProviderSettings.selectedFallbackModel = first
+                            }
+
+                            if selectedFallbackProvider.requiresAPIKey {
+                                HStack {
+                                    Label {
+                                        Text("API Key")
+                                    } icon: {
+                                        Image(systemName: "key.fill")
+                                            .foregroundStyle(AppColors.calorie)
+                                    }
+                                    Spacer()
+                                    Group {
+                                        if showFallbackAPIKey {
+                                            TextField(selectedFallbackProvider.apiKeyPlaceholder, text: $fallbackApiKeyText)
+                                        } else {
+                                            SecureField(selectedFallbackProvider.apiKeyPlaceholder, text: $fallbackApiKeyText)
+                                        }
+                                    }
+                                    .textFieldStyle(.plain)
+                                    .multilineTextAlignment(.trailing)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                    .onChange(of: fallbackApiKeyText) { _, newValue in
+                                        AIProviderSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedFallbackProvider)
+                                    }
+                                    Button {
+                                        showFallbackAPIKey.toggle()
+                                    } label: {
+                                        Image(systemName: showFallbackAPIKey ? "eye.fill" : "eye.slash.fill")
+                                            .foregroundStyle(.secondary)
+                                            .font(.system(size: 14))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+
+                            if selectedFallbackProvider == .ollama || selectedFallbackProvider.requiresCustomEndpoint {
+                                HStack {
+                                    Label {
+                                        Text(selectedFallbackProvider.requiresCustomEndpoint ? "Base URL" : "Server URL")
+                                    } icon: {
+                                        Image(systemName: "link")
+                                            .foregroundStyle(AppColors.calorie)
+                                    }
+                                    Spacer()
+                                    TextField(
+                                        selectedFallbackProvider.requiresCustomEndpoint
+                                            ? "https://your-endpoint.com/v1"
+                                            : selectedFallbackProvider.baseURL,
+                                        text: $fallbackBaseURL
+                                    )
+                                    .textFieldStyle(.plain)
+                                    .multilineTextAlignment(.trailing)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                    .keyboardType(.URL)
+                                    .onChange(of: fallbackBaseURL) { _, newValue in
+                                        AIProviderSettings.setCustomBaseURL(newValue.isEmpty ? nil : newValue, for: selectedFallbackProvider)
                                     }
                                 }
                             }
                         }
+                    } header: {
+                        Text("Fallback Provider")
+                    } footer: {
+                        Text("If your primary provider fails (overloaded, no credits, network error), the request automatically retries on this fallback. Same provider as primary is allowed — just pick a different model.")
+                    }
+                        .listRowBackground(AppColors.appCard)
 
-                        if selectedFallbackProvider.requiresAPIKey {
+                        // Speech-to-Text Provider
+                        Section {
+                        Picker(selection: $selectedSpeechProvider) {
+                            ForEach(SpeechProvider.allCases) { provider in
+                                Text(provider.rawValue).tag(provider)
+                            }
+                        } label: {
+                            Label {
+                                Text("Provider")
+                            } icon: {
+                                Image(systemName: selectedSpeechProvider.icon)
+                                    .foregroundStyle(AppColors.calorie)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .tint(.secondary)
+                        .onChange(of: selectedSpeechProvider) { _, newProvider in
+                            SpeechSettings.selectedProvider = newProvider
+                            speechApiKeyText = SpeechSettings.apiKey(for: newProvider) ?? ""
+                            selectedSpeechLanguage = SpeechSettings.selectedLanguage(for: newProvider)
+                        }
+
+                        Text(selectedSpeechProvider.description)
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Picker(selection: $selectedSpeechLanguage) {
+                            ForEach(SpeechLanguage.allCases) { language in
+                                Text(language.displayName).tag(language)
+                            }
+                        } label: {
+                            Label {
+                                Text("Language")
+                            } icon: {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(AppColors.calorie)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .tint(.secondary)
+                        .onChange(of: selectedSpeechLanguage) { _, newLanguage in
+                            SpeechSettings.setLanguage(newLanguage, for: selectedSpeechProvider)
+                        }
+
+                        if selectedSpeechProvider.requiresAPIKey {
                             HStack {
                                 Label {
                                     Text("API Key")
@@ -3487,147 +3602,36 @@ struct ProfileView: View {
                                 }
                                 Spacer()
                                 Group {
-                                    if showFallbackAPIKey {
-                                        TextField(selectedFallbackProvider.apiKeyPlaceholder, text: $fallbackApiKeyText)
+                                    if showSpeechAPIKey {
+                                        TextField(selectedSpeechProvider.apiKeyPlaceholder, text: $speechApiKeyText)
                                     } else {
-                                        SecureField(selectedFallbackProvider.apiKeyPlaceholder, text: $fallbackApiKeyText)
+                                        SecureField(selectedSpeechProvider.apiKeyPlaceholder, text: $speechApiKeyText)
                                     }
                                 }
                                 .textFieldStyle(.plain)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
-                                .onChange(of: fallbackApiKeyText) { _, newValue in
-                                    AIProviderSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedFallbackProvider)
+                                .onChange(of: speechApiKeyText) { _, newValue in
+                                    SpeechSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedSpeechProvider)
                                 }
                                 Button {
-                                    showFallbackAPIKey.toggle()
+                                    showSpeechAPIKey.toggle()
                                 } label: {
-                                    Image(systemName: showFallbackAPIKey ? "eye.fill" : "eye.slash.fill")
+                                    Image(systemName: showSpeechAPIKey ? "eye.fill" : "eye.slash.fill")
                                         .foregroundStyle(.secondary)
                                         .font(.system(size: 14))
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
-
-                        if selectedFallbackProvider == .ollama || selectedFallbackProvider.requiresCustomEndpoint {
-                            HStack {
-                                Label {
-                                    Text(selectedFallbackProvider.requiresCustomEndpoint ? "Base URL" : "Server URL")
-                                } icon: {
-                                    Image(systemName: "link")
-                                        .foregroundStyle(AppColors.calorie)
-                                }
-                                Spacer()
-                                TextField(
-                                    selectedFallbackProvider.requiresCustomEndpoint
-                                        ? "https://your-endpoint.com/v1"
-                                        : selectedFallbackProvider.baseURL,
-                                    text: $fallbackBaseURL
-                                )
-                                .textFieldStyle(.plain)
-                                .multilineTextAlignment(.trailing)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .keyboardType(.URL)
-                                .onChange(of: fallbackBaseURL) { _, newValue in
-                                    AIProviderSettings.setCustomBaseURL(newValue.isEmpty ? nil : newValue, for: selectedFallbackProvider)
-                                }
-                            }
-                        }
+                    } header: {
+                        Text("Speech-to-Text")
+                    } footer: {
+                        Text("Used when you tap the voice icon to log a meal. Each provider remembers its own language. Provider Auto keeps the provider default; Use iPhone Language sends your current iPhone language when supported.")
                     }
-                } header: {
-                    Text("Fallback Provider")
-                } footer: {
-                    Text("If your primary provider fails (overloaded, no credits, network error), the request automatically retries on this fallback. Same provider as primary is allowed — just pick a different model.")
+                        .listRowBackground(AppColors.appCard)
                 }
-                    .listRowBackground(AppColors.appCard)
-
-                    // Speech-to-Text Provider
-                    Section {
-                    Picker(selection: $selectedSpeechProvider) {
-                        ForEach(SpeechProvider.allCases) { provider in
-                            Text(provider.rawValue).tag(provider)
-                        }
-                    } label: {
-                        Label {
-                            Text("Provider")
-                        } icon: {
-                            Image(systemName: selectedSpeechProvider.icon)
-                                .foregroundStyle(AppColors.calorie)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .tint(.secondary)
-                    .onChange(of: selectedSpeechProvider) { _, newProvider in
-                        SpeechSettings.selectedProvider = newProvider
-                        speechApiKeyText = SpeechSettings.apiKey(for: newProvider) ?? ""
-                        selectedSpeechLanguage = SpeechSettings.selectedLanguage(for: newProvider)
-                    }
-
-                    Text(selectedSpeechProvider.description)
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Picker(selection: $selectedSpeechLanguage) {
-                        ForEach(SpeechLanguage.allCases) { language in
-                            Text(language.displayName).tag(language)
-                        }
-                    } label: {
-                        Label {
-                            Text("Language")
-                        } icon: {
-                            Image(systemName: "globe")
-                                .foregroundStyle(AppColors.calorie)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .tint(.secondary)
-                    .onChange(of: selectedSpeechLanguage) { _, newLanguage in
-                        SpeechSettings.setLanguage(newLanguage, for: selectedSpeechProvider)
-                    }
-
-                    if selectedSpeechProvider.requiresAPIKey {
-                        HStack {
-                            Label {
-                                Text("API Key")
-                            } icon: {
-                                Image(systemName: "key.fill")
-                                    .foregroundStyle(AppColors.calorie)
-                            }
-                            Spacer()
-                            Group {
-                                if showSpeechAPIKey {
-                                    TextField(selectedSpeechProvider.apiKeyPlaceholder, text: $speechApiKeyText)
-                                } else {
-                                    SecureField(selectedSpeechProvider.apiKeyPlaceholder, text: $speechApiKeyText)
-                                }
-                            }
-                            .textFieldStyle(.plain)
-                            .multilineTextAlignment(.trailing)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            .onChange(of: speechApiKeyText) { _, newValue in
-                                SpeechSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedSpeechProvider)
-                            }
-                            Button {
-                                showSpeechAPIKey.toggle()
-                            } label: {
-                                Image(systemName: showSpeechAPIKey ? "eye.fill" : "eye.slash.fill")
-                                    .foregroundStyle(.secondary)
-                                    .font(.system(size: 14))
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                } header: {
-                    Text("Speech-to-Text")
-                } footer: {
-                    Text("Used when you tap the voice icon to log a meal. Each provider remembers its own language. Provider Auto keeps the provider default; Use iPhone Language sends your current iPhone language when supported.")
-                }
-                    .listRowBackground(AppColors.appCard)
 
                 // Section 5: Health & Data
                 Section("Health & Data") {
@@ -4211,7 +4215,7 @@ private struct FudAIPremiumManagedSettingsSection: View {
         } header: {
             Text("Fud AI Premium")
         } footer: {
-            Text("Premium requests use Fud AI's Gemini and Deepgram proxy with daily usage limits. Provider, model, fallback, and speech API key settings below apply only when AI Access is set to Bring Your Own Key.")
+            Text("Premium requests use Fud AI's Gemini and Deepgram proxy with daily usage limits. BYOK provider, fallback, and speech API key settings are hidden while Premium is selected and reappear when you switch back to Bring Your Own Key.")
         }
         .listRowBackground(AppColors.appCard)
         .task {
