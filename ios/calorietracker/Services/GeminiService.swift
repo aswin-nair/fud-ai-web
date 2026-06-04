@@ -136,6 +136,7 @@ struct GeminiService {
         case networkError(Error)
         case invalidResponse
         case apiError(String)
+        case subscriptionRequired
 
         var errorDescription: String? {
             switch self {
@@ -149,6 +150,8 @@ struct GeminiService {
                 return "Could not understand the AI response. Please try again."
             case .apiError(let message):
                 return "API error: \(message)"
+            case .subscriptionRequired:
+                return "Fud AI Premium is not active. Subscribe or switch back to Bring Your Own Key in Settings."
             }
         }
     }
@@ -544,13 +547,29 @@ struct GeminiService {
     }
 
     private static func callAI(prompt: String, images: [UIImage]) async throws -> String {
+        let usingPremium = AIAccessSettings.isUsingFudAIPremium
+        if usingPremium, !AIAccessSettings.hasActivePremiumEntitlement {
+            throw AnalysisError.subscriptionRequired
+        }
+
         let primaryProvider = AIProviderSettings.selectedProvider
-        if primaryProvider.requiresAPIKey, AIProviderSettings.currentAPIKey == nil {
+        if !usingPremium, primaryProvider.requiresAPIKey, AIProviderSettings.currentAPIKey == nil {
             throw AnalysisError.noAPIKey
         }
 
         let imageDataList = try images.map {
-            try encodedJPEGData(for: $0)
+            try encodedJPEGData(for: $0, usingPremium: usingPremium, imageCount: images.count)
+        }
+
+        if usingPremium {
+            return try await dispatch(
+                provider: .gemini,
+                model: "gemini-3.1-flash-lite",
+                baseURL: AIProvider.gemini.baseURL,
+                apiKey: nil,
+                prompt: prompt,
+                imageDataList: imageDataList
+            )
         }
 
         do {
@@ -580,16 +599,66 @@ struct GeminiService {
         }
     }
 
-    private static func encodedJPEGData(for image: UIImage) throws -> Data {
-        guard let data = image.jpegData(compressionQuality: 0.8) else {
+    private static func encodedJPEGData(for image: UIImage, usingPremium: Bool, imageCount: Int) throws -> Data {
+        guard usingPremium else {
+            guard let data = image.jpegData(compressionQuality: 0.8) else {
+                throw AnalysisError.imageConversionFailed
+            }
+            return data
+        }
+
+        let maxBytes = imageCount > 1 ? 850_000 : 1_700_000
+        var maxDimension: CGFloat = imageCount > 1 ? 1024 : 1600
+        var quality: CGFloat = imageCount > 1 ? 0.55 : 0.68
+
+        for _ in 0..<8 {
+            let resized = resizedImage(image, maxDimension: maxDimension)
+            guard let data = resized.jpegData(compressionQuality: quality) else {
+                throw AnalysisError.imageConversionFailed
+            }
+            if data.count <= maxBytes {
+                return data
+            }
+            if quality > 0.42 {
+                quality -= 0.08
+            } else {
+                maxDimension *= 0.82
+                quality = imageCount > 1 ? 0.52 : 0.62
+            }
+        }
+
+        let fallback = resizedImage(image, maxDimension: imageCount > 1 ? 768 : 1200)
+        guard let data = fallback.jpegData(compressionQuality: imageCount > 1 ? 0.45 : 0.55) else {
             throw AnalysisError.imageConversionFailed
         }
         return data
     }
 
+    private static func resizedImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let width = image.size.width
+        let height = image.size.height
+        let largestSide = max(width, height)
+        guard largestSide > maxDimension else { return image }
+
+        let scale = maxDimension / largestSide
+        let targetSize = CGSize(width: width * scale, height: height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        format.opaque = true
+
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { context in
+            UIColor.white.setFill()
+            context.cgContext.fill(CGRect(origin: .zero, size: targetSize))
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+
     private static func dispatch(provider: AIProvider, model: String, baseURL: String, apiKey: String?, prompt: String, imageDataList: [Data]) async throws -> String {
         switch provider.apiFormat {
         case .gemini:
+            if AIAccessSettings.isUsingFudAIPremium {
+                return try await callGemini(baseURL: baseURL, model: model, apiKey: nil, prompt: prompt, imageDataList: imageDataList)
+            }
             guard let key = apiKey else { throw AnalysisError.noAPIKey }
             return try await callGemini(baseURL: baseURL, model: model, apiKey: key, prompt: prompt, imageDataList: imageDataList)
         case .openaiCompatible:
@@ -624,15 +693,19 @@ struct GeminiService {
         }
 
         let data: Data
-        guard let apiKey else { throw AnalysisError.noAPIKey }
-        guard let url = URL(string: "\(baseURL)/models/\(model):generateContent") else {
-            throw AnalysisError.apiError("Invalid API URL. Check your provider settings.")
+        if AIAccessSettings.isUsingFudAIPremium {
+            data = try await FudAIProxyClient.generateContent(task: .food, body: body)
+        } else {
+            guard let apiKey else { throw AnalysisError.noAPIKey }
+            guard let url = URL(string: "\(baseURL)/models/\(model):generateContent") else {
+                throw AnalysisError.apiError("Invalid API URL. Check your provider settings.")
+            }
+            data = try await makeRequest(
+                url: url,
+                headers: ["Content-Type": "application/json", "X-goog-api-key": apiKey],
+                body: body
+            )
         }
-        data = try await makeRequest(
-            url: url,
-            headers: ["Content-Type": "application/json", "X-goog-api-key": apiKey],
-            body: body
-        )
 
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let candidates = json["candidates"] as? [[String: Any]],

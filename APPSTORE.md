@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Fud AI v4.1. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Fud AI v4.2. Each field is in a code block for easy copy-paste.
 
 ## App Name
 ```
@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Siri logging, review edits, meal what-if previews, and Experimental goal tools.
+Fud AI Premium is back with optional no-key AI access, while BYOK stays free.
 ```
 
 ## Keywords (100 chars max)
@@ -28,24 +28,16 @@ Primary: Health & Fitness
 Secondary: Food & Drink
 ```
 
-## What's New (v4.1)
+## What's New (v4.2)
 ```
-Fud AI 4.1 — clearer widgets and Experimental goal tools.
+Fud AI 4.2 — optional Premium AI access.
 
 NEW
-• Review Food now has a Nutrition lock: unlock to correct calories, macros, and detailed nutrients before logging, then lock again so serving changes scale from those edits.
-• Review Food now has a What if? check that previews macro impact and can ask AI for a practical suggestion before logging.
-• Siri Shortcuts on iOS can log food, read today's calories, and log weight. Phrase examples are now in Settings → Siri Phrases.
-• Energy Burn Goals and Adaptive Goals are now clearly marked Experimental in Settings.
-• Adaptive Goals can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.
-• Activity Level now shows protein targets in g/kg body weight, or an equivalent lean-mass multiplier when body fat is set.
-• Lock Screen rectangular widgets now show current / goal values in clean metric rows.
-• Lock Screen circular widgets now use larger value-first previews for faster reading.
-• Lock Screen calories, carbs, and fiber now use distinct icons instead of repeated leaves.
-• The calorie rectangular widget shows calories plus all three selected Home nutrients.
-• The iOS Home Screen widget gallery keeps the small Fud AI Protein widget while removing its duplicate medium Home widget.
-• The separate nutrient Lock Screen widget no longer offers a duplicate rectangular option.
-• iOS AI access is BYOK-only again; legacy hosted AI access has been removed.
+• Fud AI Premium is back as optional no-key AI access for food scans, voice logging, and Coach.
+• Premium plans are Weekly at $6.99/week and Yearly at $199.99/year.
+• Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.
+• Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.
+• Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.
 
 No data migration is required. Existing logs, goals, widgets, and BYOK settings are preserved.
 ```
@@ -54,9 +46,9 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.1: Review Food now has a Nutrition lock for correcting calories, macros, and detailed nutrients before logging, plus a What if? check for meal impact and AI suggestions. Siri can log food, read today's calories, and log weight. Widgets are clearer, Energy Burn Goals and Adaptive Goals are marked Experimental, Activity Level shows clearer protein targets, and BYOK-only AI access is restored on iOS.
+NEW in v4.2: Fud AI Premium is back as optional no-key AI access. Premium plans are Weekly at $6.99/week and Yearly at $199.99/year. Bring Your Own Key remains free and available anytime.
 
-Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach.
+Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits.
 
 HOW TO USE
 1) Set your profile and goals
@@ -67,8 +59,8 @@ HOW TO USE
 LOG MEALS
 Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri can also log food or weight and read today's calories.
 
-13 AI PROVIDERS
-Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Add Custom AI Instructions and an optional Fallback Provider.
+AI ACCESS
+Bring Your Own Key supports Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Optional Fud AI Premium provides no-key AI access through Fud AI's Gemini + Deepgram proxy.
 
 6 SPEECH-TO-TEXT OPTIONS
 Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, iPhone Language, or a specific language where supported.
@@ -99,7 +91,7 @@ iOS widgets cover Home Screen Small, Medium, and Large, a small-only Protein wid
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
 
 PRIVACY
-No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Review nutrition edits are local and saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
+No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Premium requests go through Fud AI's proxy only for the AI request being processed. Review nutrition edits are local and saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
 Two-way sync for nutrition, weight, height, and body fat. External samples can auto-import. Experimental Energy Burn Goals can use active/total energy while keeping macros editable.
