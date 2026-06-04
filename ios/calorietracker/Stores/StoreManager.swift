@@ -5,6 +5,7 @@ import RevenueCat
 enum RevenueCatConfig {
     static let appleAPIKeyInfoKey = "RevenueCatAppleAPIKey"
     static let entitlementID = "premium"
+    static let entitlementIDs = [entitlementID, "Fud AI Premium"]
 
     private static var didConfigure = false
 
@@ -287,7 +288,10 @@ class StoreManager {
     }
 
     private func applyCustomerInfo(_ customerInfo: CustomerInfo, fallbackProductID: String? = nil) {
-        let entitlement = customerInfo.entitlements[RevenueCatConfig.entitlementID]
+        let entitlement = RevenueCatConfig.entitlementIDs
+            .lazy
+            .compactMap { customerInfo.entitlements[$0] }
+            .first { $0.isActive }
         let entitlementProductID = entitlement?.isActive == true ? entitlement?.productIdentifier : nil
         let activeKnownProductID = customerInfo.activeSubscriptions.first { Self.allProductIDs.contains($0) }
         let productID = entitlementProductID ?? activeKnownProductID ?? fallbackProductID
