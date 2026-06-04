@@ -46,7 +46,7 @@
   "name": "Privacy Policy - Fud AI",
   "description": "How Fud AI handles photos, voice, Siri Shortcuts, health data, API keys, and local app data.",
   "inLanguage": "en",
-  "dateModified": "2026-06-03",
+  "dateModified": "2026-06-05",
   "isPartOf": {
     "@type": "WebSite",
     "@id": "https://www.fud-ai.app/#website",
@@ -83,7 +83,7 @@
   <div class="container">
     <div class="legal-content">
       <h1>Privacy Policy</h1>
-      <span class="legal-date">Last updated: June 2, 2026</span>
+      <span class="legal-date">Last updated: June 5, 2026</span>
 
       <p>Fud AI ("we", "our", "the app") is an open-source iOS and Android app developed by Apoorv Darshan. This privacy policy explains how your information is handled across both platforms. In short: we don't have Fud AI accounts, in-app analytics, ads, behavioral tracking, or cloud sync. Your app data stays on your device except for the specific AI/STT requests you initiate, optional Fud AI Premium proxy requests on iOS, barcode lookups you trigger, optional update metadata checks, and platform health sync you explicitly enable. The public website may use Vercel Web Analytics for aggregate pageview metrics; those website metrics are not connected to your app food log, health data, or API keys.</p>
 
@@ -108,7 +108,7 @@
 
       <h3>How We Use Your Information</h3>
       <ul>
-        <li><strong>AI Food Analysis:</strong> Food photos from the camera, system photo picker, or iOS Share Extension, meal notes, text descriptions, and the text produced from voice input are sent to your selected AI access path only after you choose to analyze them. In Bring Your Own Key mode, requests go directly from your device to your chosen AI provider (any of 13 supported: Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, OpenRouter, Together AI, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama running locally, or a custom OpenAI-compatible endpoint you configure). In optional Fud AI Premium mode on iOS, requests go through Fud AI's proxy and then to Google Gemini for food analysis/Coach or Deepgram for speech-to-text. The onboarding and AI Access settings explain that AI analysis sends request content for processing; manual entry never sends anything to an AI provider. <strong>Custom AI Instructions (optional, Settings → AI Provider):</strong> if you fill in the Custom AI Instructions text box, that text is appended to every AI request so the model sees your context. The text stays local except when included in the AI request payload. <strong>Fallback AI Provider:</strong> in BYOK mode, if your primary provider returns an error, the request can retry with the secondary provider you configured. <strong>Note on OpenRouter <code>openrouter/free</code>:</strong> when you pick the free-tier default model on OpenRouter, OpenRouter itself selects the upstream provider that handles your request.</li>
+        <li><strong>AI Food Analysis:</strong> Food photos from the camera, system photo picker, or iOS Share Extension, meal notes, text descriptions, and the text produced from voice input are sent to your selected AI access path only after you choose to analyze them. In Bring Your Own Key mode, requests go directly from your device to your chosen AI provider (any of 13 supported: Google Gemini including Gemini 3.5 Flash, OpenAI, Anthropic Claude, xAI Grok, OpenRouter, Together AI, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama running locally, or a custom OpenAI-compatible endpoint you configure). In optional Fud AI Premium mode on iOS, requests go through Fud AI's proxy and then to Google Gemini for food analysis/Coach or Deepgram for speech-to-text. The onboarding and AI Access settings explain that AI analysis sends request content for processing; manual entry never sends anything to an AI provider. When Premium is selected, BYOK provider, fallback, and speech API key controls are hidden in Settings and reappear if you switch back to BYOK. <strong>Custom AI Instructions (optional, Settings → AI Access → BYOK):</strong> if you fill in the Custom AI Instructions text box, that text is appended to every AI request so the model sees your context. The text stays local except when included in the AI request payload. <strong>Fallback AI Provider:</strong> in BYOK mode, if your primary provider returns an error, the request can retry with the secondary provider you configured. <strong>Note on OpenRouter <code>openrouter/free</code>:</strong> when you pick the free-tier default model on OpenRouter, OpenRouter itself selects the upstream provider that handles your request.</li>
         <li><strong>iOS Siri Shortcuts / App Intents:</strong> If you use Siri to log food, the spoken food description is handled as text input and sent to your selected AI provider to estimate nutrition, then the resulting entry is logged locally and written to Apple Health if Health access allows nutrition writes. If you use Siri to log weight, the app parses the number locally, respects pounds/kilograms in the phrase or your unit setting, stores the weight locally, and writes it to Apple Health if authorized. If you ask Siri for today's calories, the app reads today's local totals and calorie goal. Phrase examples are shown inside the app under Settings → Siri Phrases.</li>
         <li><strong>Meal What-If Suggestions:</strong> If you tap What if? on the Review Food screen, the app locally previews the meal's calorie/protein/carbs/fat impact. If it asks AI for a suggestion, it sends the reviewed meal name and macros, your current daily totals, daily goals, and minimal profile context through your selected AI access path. The meal is not logged until you tap Log.</li>
         <li><strong>Barcode Lookup:</strong> On iOS and Android, if you choose Barcode from the logging menu, the scanned barcode is sent from your device to the public Open Food Facts API. Fud AI requests only product fields needed for nutrition logging, such as product name, brand, quantity, serving size, and nutriments. If Open Food Facts has no product or incomplete nutrition, the app asks you to scan the nutrition label instead. Barcode lookup does not use your AI provider key.</li>
@@ -131,7 +131,7 @@
         <li>We do <strong>not</strong> sell your personal data</li>
         <li>We do <strong>not</strong> operate Fud AI accounts, in-app analytics, ads, or tracking servers</li>
         <li>We do <strong>not</strong> require an account, sign-in, or cloud sync</li>
-        <li>We do <strong>not</strong> see your API keys; AI/STT requests go directly from your device to the provider you configure</li>
+        <li>We do <strong>not</strong> see your BYOK API keys; BYOK AI/STT requests go directly from your device to the provider you configure, while optional Premium requests go through Fud AI's proxy only for processing the selected request</li>
       </ul>
 
       <h3>Data Storage &amp; Security</h3>
@@ -151,7 +151,7 @@
           <tr><td>API keys (LLM + STT)</td><td>iOS Keychain</td><td>EncryptedSharedPreferences (AES-256, AndroidKeystore-backed)</td><td>You only</td></tr>
           <tr><td>Barcode values</td><td colspan="2">Sent to Open Food Facts only when you scan a barcode.</td><td>Open Food Facts</td></tr>
           <tr><td>Food photos, meal notes, and Siri food descriptions (for AI analysis)</td><td colspan="2">Sent to your BYOK provider directly, or through Fud AI's Premium proxy when Premium is selected.</td><td>Processed in transit</td></tr>
-          <tr><td>Voice audio (remote STT)</td><td colspan="2">Sent directly to your chosen STT provider.</td><td>Processed in transit</td></tr>
+          <tr><td>Voice audio (remote STT)</td><td colspan="2">Sent directly to your chosen BYOK STT provider, or through Fud AI's Premium proxy to Deepgram when Premium is selected.</td><td>Processed in transit</td></tr>
           <tr><td>Coach chat messages and attached images</td><td colspan="2">Sent to your BYOK provider directly, or through Fud AI's Premium proxy when Premium is selected.</td><td>Processed in transit</td></tr>
           <tr><td>Health data</td><td>Apple HealthKit</td><td>Health Connect</td><td>You + apps you authorize</td></tr>
         </tbody>

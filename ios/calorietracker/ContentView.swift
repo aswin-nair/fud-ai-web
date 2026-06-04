@@ -388,7 +388,8 @@ private struct AboutView: View {
         "Premium adds two plans: Weekly at $6.99/week and Yearly at $199.99/year.",
         "Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.",
         "Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.",
-        "Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage."
+        "Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.",
+        "Premium mode hides BYOK provider, fallback, and speech API key controls; switching back to BYOK restores them."
     ]
 
     private var whatsNewRow: some View {

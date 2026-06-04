@@ -38,6 +38,7 @@ NEW
 • Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.
 • Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.
 • Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.
+• Premium mode now hides BYOK provider, fallback, and speech API key controls; switching back to BYOK restores them.
 
 No data migration is required. Existing logs, goals, widgets, and BYOK settings are preserved.
 ```
@@ -46,9 +47,9 @@ No data migration is required. Existing logs, goals, widgets, and BYOK settings 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v4.2: Fud AI Premium is back as optional no-key AI access. Premium plans are Weekly at $6.99/week and Yearly at $199.99/year. Bring Your Own Key remains free and available anytime.
+NEW in v4.2: Fud AI Premium is back as optional no-key AI access. Premium plans are $6.99/week or $199.99/year. Bring Your Own Key remains free and available anytime.
 
-Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits.
+Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits. Premium hides BYOK controls until you switch back.
 
 HOW TO USE
 1) Set your profile and goals
@@ -60,7 +61,7 @@ LOG MEALS
 Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri can also log food or weight and read today's calories.
 
 AI ACCESS
-Bring Your Own Key supports Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Optional Fud AI Premium provides no-key AI access through Fud AI's Gemini + Deepgram proxy.
+Bring Your Own Key supports Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Optional Fud AI Premium provides no-key AI access through Fud AI's Gemini + Deepgram proxy; BYOK controls reappear when you switch back.
 
 6 SPEECH-TO-TEXT OPTIONS
 Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, iPhone Language, or a specific language where supported.
@@ -128,6 +129,6 @@ https://fud-ai.app
 ```
 1) iPhone only — not optimized for iPad. Please review on iPhone.
 2) App is free and open source. BYOK mode works without sign-in.
-3) BYOK test path: go to Settings → AI Provider → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
+3) BYOK test path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
 4) No test account needed — app works immediately after onboarding.
 ```

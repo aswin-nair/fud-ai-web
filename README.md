@@ -25,7 +25,7 @@
 
 ---
 
-Open-source, privacy-first calorie tracker for iOS and Android. Bring your own AI provider — 13 supported including Gemini, OpenAI, Claude, Grok, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, and any custom OpenAI-compatible endpoint. Snap a meal, share a food photo into Fud AI, scan a barcode, combine two camera shots, add a note to a camera or library photo, ask your AI coach how to hit your goal, speak your lunch, or use Siri Shortcuts on iOS to log food and weight. No accounts, no cloud sync, no tracking.
+Open-source, privacy-first calorie tracker for iOS and Android. Bring your own AI provider — 13 supported including Gemini, OpenAI, Claude, Grok, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, and any custom OpenAI-compatible endpoint — or use optional Fud AI Premium on iOS for hosted Gemini + Deepgram access. Snap a meal, share a food photo into Fud AI, scan a barcode, combine two camera shots, add a note to a camera or library photo, ask your AI coach how to hit your goal, speak your lunch, or use Siri Shortcuts on iOS to log food and weight. No accounts, no cloud sync, no tracking.
 
 [App Store](https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726) · [Google Play](https://play.google.com/store/apps/details?id=com.apoorvdarshan.calorietracker) · [Website](https://fud-ai.app) · [Report an Issue](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=bug&title=Bug:%20) · [Request a Feature](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=enhancement&title=Feature:%20)
 
@@ -53,7 +53,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 
 ### Intelligence
 - **AI Coach tab** — multi-turn chat with memory. Coach sees your profile, weight history, food log, today's date/timezone, and richer meal details, then answers questions like "what's my expected weight in 30 days?" or "how do I lose 2 kg?". Coach also supports camera/photo attachments on Android. Memory persists across launches; Reset button starts a fresh conversation. Long-press any reply to copy.
-- **AI Access** — Bring Your Own Key is the access model; choose your provider, model, fallback, custom instructions, and speech language settings directly on device.
+- **AI Access** — choose free Bring Your Own Key or optional Fud AI Premium on iOS. BYOK lets you pick provider, model, fallback, custom instructions, and speech language directly on device; Premium uses Fud AI's Gemini + Deepgram proxy with daily safety limits and hides BYOK-only controls until you switch back.
 - **AI optional nutrient goals** — estimate detailed nutrient goals from profile data without changing calorie/protein/carbs/fat formulas.
 - **Goal-aware prompt chips** — suggested questions change based on whether your goal is Lose / Gain / Maintain
 - **Thermodynamic weight forecast** — expected weight at 30/60/90 days, predicted vs observed weekly change, days-to-goal, under-logging detection. Surfaced through Coach as live context on every turn.
@@ -88,7 +88,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 
 ## AI Providers
 
-Pick any of the **13 LLM providers** for food analysis, meal what-if suggestions, optional nutrient-goal estimation, and Coach chat. Free Gemini keys are available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Requests go directly from your device to the provider you configure; there is no hosted proxy, quota system, entitlement check, or server-side AI/STT key required.
+Pick any of the **13 LLM providers** for food analysis, meal what-if suggestions, optional nutrient-goal estimation, and Coach chat. Free Gemini keys are available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). In BYOK mode, requests go directly from your device to the provider you configure. On iOS, optional Fud AI Premium can instead use Fud AI's hosted Gemini + Deepgram proxy with daily safety limits.
 
 | Provider | Format | Highlight | Needs API Key |
 |----------|--------|-----------|:---:|
@@ -127,7 +127,7 @@ API keys are stored encrypted on-device: **iOS Keychain** on iOS and **Encrypted
 Photo / Text / Voice
         │
         ▼
-  BYOK provider API  ──▶  JSON nutrition response
+  BYOK provider API or Premium proxy  ──▶  JSON nutrition response
         │
         ▼
   User reviews & edits
@@ -240,7 +240,7 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 
 ```
 fud-ai/
-├── ios/          # SwiftUI iOS app (shipping on App Store, v4.1)
+├── ios/          # SwiftUI iOS app (shipping on App Store, v4.2)
 ├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2)
 ├── web/          # Marketing site — https://fud-ai.app (static HTML/CSS, Vercel)
 ├── APPSTORE.md   # App Store Connect listing copy (iOS)
@@ -321,7 +321,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.apoorvdarshan.calorietracker/.MainActivity
 ```
 
-First launch walks you through onboarding (gender, birthday, height/weight with metric/imperial toggle, body fat %, activity with protein target preview, goal, goal speed, notifications, Apple Health / Health Connect, AI provider setup, review). A free Gemini key is available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). You can switch providers anytime in **Settings → AI Provider**.
+First launch walks you through onboarding (gender, birthday, height/weight with metric/imperial toggle, body fat %, activity with protein target preview, goal, goal speed, notifications, Apple Health / Health Connect, AI access setup, review). A free Gemini key is available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey), or iOS users can choose optional Fud AI Premium. You can switch anytime in **Settings → AI Access**; BYOK provider/fallback/speech settings appear only while BYOK is selected.
 
 ## Contributing
 
@@ -335,7 +335,7 @@ See [SECURITY.md](SECURITY.md). Use [private vulnerability reporting](https://gi
 
 ## Privacy
 
-No accounts, no cloud sync, no analytics. BYOK API keys are encrypted on-device and requests go directly to the provider you choose. Barcode lookup sends the scanned barcode to Open Food Facts and stores the returned nutrition locally. Optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, saved review nutrition edits, food photos from the app or iOS Share Extension, iOS Siri/App Intent food or weight phrases, cached thumbnails, widget snapshots, and Apple Watch nutrition snapshots are local preferences/data except for the specific provider request needed to analyze a Siri food description. AI estimation sends only the context needed for that request, such as reviewed meal + daily-total context for a meal what-if suggestion or Siri food text for Siri food logging. Apple Health / Health Connect energy-burn goals read active/total energy only after the user enables that setting. **Delete All Data** is local-only — it wipes the app's storage (food log, weight log, body-fat log, profile, Coach chat, saved meals, API keys, widget / Watch snapshot) but never touches Apple Health or Health Connect. Samples you've synced are yours; if you want them cleaned up, do it from Health / Health Connect settings. See [Privacy Policy](https://fud-ai.app/privacy.html).
+No accounts, no cloud sync, no analytics. BYOK API keys are encrypted on-device and requests go directly to the provider you choose; optional iOS Premium requests go through Fud AI's Gemini + Deepgram proxy only for the request being processed. Barcode lookup sends the scanned barcode to Open Food Facts and stores the returned nutrition locally. Optional nutrient goals, Adaptive Goals preferences, Home nutrient-card choices, saved review nutrition edits, food photos from the app or iOS Share Extension, iOS Siri/App Intent food or weight phrases, cached thumbnails, widget snapshots, and Apple Watch nutrition snapshots are local preferences/data except for the specific provider or Premium proxy request needed to analyze a Siri food description. AI estimation sends only the context needed for that request, such as reviewed meal + daily-total context for a meal what-if suggestion or Siri food text for Siri food logging. Apple Health / Health Connect energy-burn goals read active/total energy only after the user enables that setting. **Delete All Data** is local-only — it wipes the app's storage (food log, weight log, body-fat log, profile, Coach chat, saved meals, API keys, widget / Watch snapshot) but never touches Apple Health or Health Connect. Samples you've synced are yours; if you want them cleaned up, do it from Health / Health Connect settings. See [Privacy Policy](https://fud-ai.app/privacy.html).
 
 ## License
 
