@@ -8,8 +8,12 @@ struct OnboardingView: View {
     @Environment(FoodStore.self) private var foodStore
     @Environment(WeightStore.self) private var weightStore
     @Environment(HealthKitManager.self) private var healthKitManager
+    @Environment(StoreManager.self) private var storeManager
 
     @State private var step = 0
+    @State private var selectedAccessMode: AIAccessMode = .fudAIPremium
+    @State private var showPaywall = false
+    @State private var shouldAdvanceAfterPremiumPurchase = false
     @State private var gender: Gender = .male
     @State private var birthday: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
     @AppStorage("useMetric") private var useMetric = false
@@ -148,6 +152,16 @@ struct OnboardingView: View {
                 ))
                 .animation(.snappy, value: step)
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView {
+                    advanceAfterPremiumPurchaseIfNeeded()
+                }
+            }
+            .onChange(of: storeManager.isSubscribed) { _, isSubscribed in
+                if isSubscribed {
+                    advanceAfterPremiumPurchaseIfNeeded()
+                }
+            }
     }
 
     // MARK: - Continue Button
@@ -166,6 +180,16 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 36)
+    }
+
+    private func advanceAfterPremiumPurchaseIfNeeded() {
+        guard shouldAdvanceAfterPremiumPurchase, step == 11 else { return }
+        shouldAdvanceAfterPremiumPurchase = false
+        showPaywall = false
+        aiConsentGiven = true
+        acceptedTermsAndPrivacy = true
+        AIAccessSettings.mode = .fudAIPremium
+        withAnimation(.snappy) { step += 1 }
     }
 
     // MARK: - 0: Welcome
@@ -789,42 +813,61 @@ struct OnboardingView: View {
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .multilineTextAlignment(.center)
 
-                        Text("Use your own AI key for food scans, voice logging, and Coach. Manual logging works without an AI key.")
+                        Text("Premium is the easiest setup. BYOK stays free if you want to use your own AI key.")
                             .font(.system(.callout, design: .rounded))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                     }
 
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("Before AI analysis")
-                            .font(.system(.headline, design: .rounded, weight: .bold))
+                    VStack(spacing: 12) {
+                        aiAccessCard(
+                            mode: .fudAIPremium,
+                            title: "Fud AI Premium",
+                            subtitle: "No API key setup. Food scans, voice logging, and Coach use Fud AI's managed AI providers.",
+                            badge: storeManager.isSubscribed ? "Active" : "Default"
+                        )
 
+                        aiAccessCard(
+                            mode: .bringYourOwnKey,
+                            title: "Bring Your Own Key",
+                            subtitle: "Free app mode. Add your own Gemini, OpenAI, Groq, or other supported provider key later.",
+                            badge: "Free"
+                        )
+
+                        if selectedAccessMode == .fudAIPremium && !storeManager.isSubscribed {
+                            Button {
+                                beginPremiumUpgrade()
+                            } label: {
+                                Text("See Premium Plans")
+                                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 44)
+                                    .background(AppColors.calorie, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .disabled(!hasAcceptedTerms)
+                            .opacity(hasAcceptedTerms ? 1 : 0.45)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+
+                    VStack(alignment: .leading, spacing: 12) {
                         aiNoticeRow(
                             icon: "photo.fill",
-                            title: "What is sent",
-                            text: "Food photos, voice transcripts, and typed meal descriptions are sent directly to your selected AI provider for analysis."
-                        )
-                        aiNoticeRow(
-                            icon: "person.crop.circle.badge.checkmark",
-                            title: "Coach context",
-                            text: "Profile details like age, weight, and goals are sent only when you use Coach chat."
+                            title: "AI analysis",
+                            text: selectedAccessMode == .fudAIPremium
+                                ? "Food photos, voice transcripts, and Coach prompts are sent through Fud AI's Premium proxy."
+                                : "Food photos, voice transcripts, and typed meals are sent directly to your selected AI provider."
                         )
                         aiNoticeRow(
                             icon: "lock.shield.fill",
-                            title: "What stays local",
-                            text: "Your API keys, food log, weight history, and body-fat history stay on this device."
+                            title: "Local data",
+                            text: "Your food log, weight history, body-fat history, and BYOK API keys stay on this device."
                         )
                     }
                     .padding(16)
                     .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 16))
-                    .padding(.horizontal, 24)
-
-                    VStack(spacing: 12) {
-                        aiSetupRow(number: "1", text: "Create an API key with Gemini, OpenAI, Groq, or another supported provider.")
-                        aiSetupRow(number: "2", text: "Paste the key in Settings → AI Provider after setup.")
-                        aiSetupRow(number: "3", text: "Requests go from this device directly to the provider you choose.")
-                    }
                     .padding(.horizontal, 24)
 
                     VStack(alignment: .leading, spacing: 12) {
@@ -863,11 +906,13 @@ struct OnboardingView: View {
             }
 
             Button {
-                aiConsentGiven = true
-                acceptedTermsAndPrivacy = true
-                withAnimation(.snappy) { step += 1 }
+                if selectedAccessMode == .fudAIPremium && !storeManager.isSubscribed {
+                    beginPremiumUpgrade()
+                } else {
+                    completeAIChoiceAndAdvance()
+                }
             } label: {
-                Text("Accept & Continue")
+                Text(selectedAccessMode == .fudAIPremium && !storeManager.isSubscribed ? "Upgrade to Premium" : "Accept & Continue")
                     .font(.system(.body, design: .rounded, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -883,6 +928,71 @@ struct OnboardingView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 36)
         }
+    }
+
+    private func beginPremiumUpgrade() {
+        guard hasAcceptedTerms else { return }
+        aiConsentGiven = true
+        acceptedTermsAndPrivacy = true
+        selectedAccessMode = .fudAIPremium
+        AIAccessSettings.mode = .fudAIPremium
+        shouldAdvanceAfterPremiumPurchase = true
+        showPaywall = true
+    }
+
+    private func completeAIChoiceAndAdvance() {
+        aiConsentGiven = true
+        acceptedTermsAndPrivacy = true
+        AIAccessSettings.mode = selectedAccessMode
+        withAnimation(.snappy) { step += 1 }
+    }
+
+    private func aiAccessCard(mode: AIAccessMode, title: String, subtitle: String, badge: String) -> some View {
+        Button {
+            selectedAccessMode = mode
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 44, height: 44)
+                    Image(systemName: mode.icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(AppColors.calorie)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text(title)
+                            .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        Text(badge)
+                            .font(.system(.caption2, design: .rounded, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 2)
+                            .background(AppColors.calorie, in: Capsule())
+                    }
+                    Text(subtitle)
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: selectedAccessMode == mode ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(selectedAccessMode == mode ? AppColors.calorie : .secondary.opacity(0.35))
+            }
+            .padding(14)
+            .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(selectedAccessMode == mode ? AppColors.calorie.opacity(0.45) : Color.white.opacity(0.10), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private func aiNoticeRow(icon: String, title: String, text: String) -> some View {
