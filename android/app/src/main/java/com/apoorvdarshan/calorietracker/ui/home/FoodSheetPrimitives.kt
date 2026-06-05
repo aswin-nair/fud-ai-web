@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
@@ -77,26 +78,47 @@ internal fun SheetReviewToolbar(
     onPrimary: () -> Unit,
     onSecondary: (() -> Unit)? = null
 ) {
+    val compact = LocalConfiguration.current.screenWidthDp < 380
+    val outerPadding = if (compact) 8.dp else 14.dp
+    val itemGap = if (compact) 6.dp else 8.dp
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp),
+        Modifier.fillMaxWidth().padding(horizontal = outerPadding, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SheetToolbarPill("Cancel", onClick = onCancel)
-        Spacer(Modifier.weight(1f))
-        Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.weight(1f))
+        SheetToolbarPill("Cancel", compact = compact, onClick = onCancel)
+        Spacer(Modifier.width(itemGap))
+        Text(
+            title,
+            fontSize = if (compact) 16.sp else 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(Modifier.width(itemGap))
         if (secondaryLabel != null && onSecondary != null) {
-            SheetToolbarPill(secondaryLabel, onClick = onSecondary)
-            Spacer(Modifier.width(8.dp))
+            SheetToolbarPill(secondaryLabel, compact = compact, onClick = onSecondary)
+            Spacer(Modifier.width(itemGap))
         }
-        SheetToolbarPill(primaryLabel, bold = true, onClick = onPrimary)
+        SheetToolbarPill(primaryLabel, bold = true, compact = compact, onClick = onPrimary)
     }
 }
 
 @Composable
-private fun SheetToolbarPill(label: String, bold: Boolean = false, onClick: () -> Unit) {
+private fun SheetToolbarPill(
+    label: String,
+    bold: Boolean = false,
+    compact: Boolean = false,
+    onClick: () -> Unit
+) {
     val shape = CircleShape
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val horizontalPadding = when {
+        compact && bold -> 12.dp
+        compact -> 10.dp
+        else -> 16.dp
+    }
     val modifier = if (bold) {
         Modifier
             .clip(shape)
@@ -122,12 +144,12 @@ private fun SheetToolbarPill(label: String, bold: Boolean = false, onClick: () -
     Box(
         modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = horizontalPadding, vertical = 8.dp)
     ) {
         Text(
             label,
             color = if (bold) Color.White else AppColors.Calorie,
-            fontSize = 16.sp,
+            fontSize = if (compact) 15.sp else 16.sp,
             fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Medium
         )
     }
