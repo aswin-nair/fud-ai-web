@@ -27,7 +27,7 @@ struct OnDeviceFoodService {
         @Guide(description: "Total fat in grams for the entire analyzed amount")
         var fatGrams: Double
 
-        @Guide(description: "Total analyzed amount in grams (e.g. 100 for '100g chicken', 200 for '2 large eggs')")
+        @Guide(description: "Total analyzed amount in grams (e.g. 150 for '150g chicken', 100 for '2 eggs')")
         var servingSizeGrams: Double
 
         @Guide(description: "Single food emoji that best represents this food (e.g. '🍗', '🥚', '🍔'). Empty string if no clear emoji.")
