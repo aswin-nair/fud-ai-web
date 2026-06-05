@@ -241,6 +241,20 @@ struct GeminiService {
     }
 
     static func analyzeTextInput(description: String) async throws -> FoodAnalysis {
+        // On-device Apple Intelligence: text queries processed locally, no API key consumed.
+        // Requires iOS 26+ and Apple Intelligence-capable hardware (iPhone 15 Pro / iPhone 16+).
+        #if canImport(FoundationModels)
+        if #available(iOS 26.0, *), OnDeviceFoodService.isAvailable {
+            do {
+                // Return directly — serving units are already handled inside OnDeviceFoodService.
+                // Skipping addingFallbackServingUnits avoids a secondary cloud call.
+                return try await OnDeviceFoodService.analyzeTextInput(description: description)
+            } catch {
+                // On-device model failed or unavailable — fall through to cloud AI.
+            }
+        }
+        #endif
+
         let prompt = """
         Estimate the nutritional content for: \(description)
         Parse any quantities, brands, and multiple items from the text. If a brand is mentioned, use that brand's known nutritional data. If multiple items are described, sum up the total nutrition.
