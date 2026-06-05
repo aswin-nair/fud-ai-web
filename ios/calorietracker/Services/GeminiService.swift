@@ -244,7 +244,9 @@ struct GeminiService {
         // On-device Apple Intelligence: text queries processed locally, no API key consumed.
         // Requires iOS 26+ and Apple Intelligence-capable hardware (iPhone 15 Pro / iPhone 16+).
         #if canImport(FoundationModels)
-        if #available(iOS 26.0, *), OnDeviceFoodService.isAvailable {
+        if #available(iOS 26.0, *),
+           OnDeviceFoodService.isAvailable,
+           OnDeviceFoodService.canHandle(description) {
             do {
                 // Return directly — serving units are already handled inside OnDeviceFoodService.
                 // Skipping addingFallbackServingUnits avoids a secondary cloud call.

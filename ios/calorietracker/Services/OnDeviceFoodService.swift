@@ -64,6 +64,21 @@ struct OnDeviceFoodService {
         return false
     }
 
+    /// Returns false when the input contains scripts not supported by Apple Intelligence
+    /// (e.g. Cyrillic, Arabic, Hebrew). Russian is not in the iOS 26.1 supported language list.
+    static func canHandle(_ text: String) -> Bool {
+        for scalar in text.unicodeScalars {
+            let value = scalar.value
+            // Cyrillic: U+0400–U+04FF
+            if value >= 0x0400 && value <= 0x04FF { return false }
+            // Arabic: U+0600–U+06FF
+            if value >= 0x0600 && value <= 0x06FF { return false }
+            // Hebrew: U+0590–U+05FF
+            if value >= 0x0590 && value <= 0x05FF { return false }
+        }
+        return true
+    }
+
     // MARK: - Analysis
 
     static func analyzeTextInput(description: String) async throws -> GeminiService.FoodAnalysis {
