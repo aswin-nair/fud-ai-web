@@ -3,8 +3,8 @@ import Foundation
 import FoundationModels
 
 /// On-device food analysis using Apple Intelligence (iOS 26+, iPhone 15 Pro / iPhone 16+).
-/// Processes text-only food descriptions entirely on-device — no API key, no network request.
-/// Falls back transparently to cloud AI when unavailable.
+/// Last-resort text analysis fallback after the selected cloud provider and configured
+/// fallback provider have failed.
 @available(iOS 26.0, *)
 struct OnDeviceFoodService {
 
@@ -95,13 +95,14 @@ struct OnDeviceFoodService {
 
             BRAND NAMES
             - When a brand or product name is mentioned (Big Mac, Chobani, Snickers, etc.), \
-              use that product's published nutritional values.
+              use commonly known product values when you know them; otherwise estimate from \
+              the closest generic food.
 
             MULTIPLE ITEMS
             - When multiple distinct foods are listed, sum all nutrients into a single total.
 
             ACCURACY
-            - Base all values on USDA FoodData Central or equivalent authoritative database.
+            - Use common nutrition reference values where known.
             - Calories must be mathematically consistent: ≈ protein×4 + carbs×4 + fat×9 (±5%).
             - serving_size_grams is the total weight of the entire analyzed amount.
 
