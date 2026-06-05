@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Fud AI v4.2. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Fud AI v4.3. Each field is in a code block for easy copy-paste.
 
 ## App Name
 ```
@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Fud AI Premium is back with optional no-key AI access, while BYOK stays free.
+Text, voice, and Siri food logs can fall back to Apple Intelligence on supported iPhones when providers fail.
 ```
 
 ## Keywords (100 chars max)
@@ -28,31 +28,26 @@ Primary: Health & Fitness
 Secondary: Food & Drink
 ```
 
-## What's New (v4.2)
+## What's New (v4.3)
 ```
-Fud AI 4.2 — optional Premium AI access.
+Fud AI 4.3 — Apple Intelligence fallback for text, voice, and Siri food logging.
 
 NEW
-• Fud AI Premium is back as optional no-key AI access for food scans, voice logging, and Coach.
-• Premium plans are Weekly at $6.99/week and Yearly at $199.99/year.
-• Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.
-• Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.
-• Onboarding now includes a clear AI Access choice: use BYOK for free or upgrade to Premium.
-• Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.
-• Premium mode now hides BYOK provider, fallback, and speech API key controls; switching back to BYOK restores them.
-• Premium purchase loading supports RevenueCat with StoreKit product fallback for App Store sandbox review.
-• iOS localization expanded to 16 languages with Polish and complete Russian support.
+• Text, voice, and Siri food logging now try your selected AI provider first, then your configured fallback provider.
+• On supported iPhones, Apple Intelligence can run as a final on-device fallback when provider attempts fail.
+• Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.
+• Photo scans, nutrition label scans, and Coach continue using the configured AI access path.
 
-No data migration is required. Existing logs, goals, widgets, and BYOK settings are preserved.
+No data migration is required. Existing logs, goals, widgets, Premium, and BYOK settings are preserved.
 ```
 
 ## Description
 ```
-Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
+Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant calories, macros, and nutrients.
 
-NEW in v4.2: Fud AI Premium is back as optional no-key AI access. Premium plans are $6.99/week or $199.99/year. Bring Your Own Key remains free and available anytime.
+NEW in v4.3: Text, voice, and Siri food logging now try your selected provider first, then your configured fallback provider. On supported iPhones, Apple Intelligence can run as a final on-device fallback when provider attempts fail.
 
-Free, open source, privacy-first. Bring your own API key for AI food analysis, voice transcription, and Coach, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits. Premium hides BYOK controls until you switch back.
+Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits. Premium hides BYOK controls until you switch back.
 
 HOW TO USE
 1) Set your profile and goals
@@ -64,7 +59,7 @@ LOG MEALS
 Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri can also log food or weight and read today's calories.
 
 AI ACCESS
-Bring Your Own Key supports Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Switch anytime. Keys are stored in iOS Keychain. Optional Fud AI Premium provides no-key AI access through Fud AI's Gemini + Deepgram proxy; BYOK controls reappear when you switch back.
+Bring Your Own Key supports Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Keys stay in iOS Keychain. Premium provides no-key Gemini + Deepgram access; BYOK controls reappear when you switch back.
 
 6 SPEECH-TO-TEXT OPTIONS
 Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, iPhone Language, or a specific language where supported.
@@ -80,7 +75,7 @@ COACH
 • Uses your profile, targets, forecast, and food log context
 
 EXPANDED NUTRIENTS
-Calories, protein, carbs, fat, sugar, added sugar, fiber, saturated fat, trans fat, mono/polyunsaturated fat, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3 when available.
+Calories, protein, carbs, fat, sugar, fiber, saturated/trans fats, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3 when available.
 
 PERSONALIZED GOALS
 BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calories/macros, Activity Level protein targets, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly corrections while pinned macros stay pinned.
@@ -95,7 +90,7 @@ iOS widgets cover Home Screen Small, Medium, and Large, a small-only Protein wid
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Polish, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
 
 PRIVACY
-No account, no sign-in, no cloud sync, no analytics, no ads, no tracking. BYOK keys stay on-device. Premium requests go through Fud AI's proxy only for the AI request being processed. Review nutrition edits are local and saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
+No account, sign-in, cloud sync, analytics, ads, or tracking. BYOK keys stay on-device. Premium requests go through Fud AI's proxy only for the request being processed. Supported iPhones can use Apple Intelligence on-device as a final fallback for text/voice/Siri food logs. Review edits are saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
 Two-way sync for nutrition, weight, height, and body fat. External samples can auto-import. Experimental Energy Burn Goals can use active/total energy while keeping macros editable.
@@ -141,4 +136,5 @@ https://fud-ai.app
 5) Premium review path: during onboarding choose Fud AI Premium, or after onboarding go to Settings → AI Access → Fud AI Premium. The paywall uses RevenueCat and falls back to StoreKit products if RevenueCat offerings are unavailable, so App Store sandbox purchase testing should be available.
 6) BYOK review path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
 7) Premium mode hides BYOK provider, fallback, and speech API key controls to avoid conflicting settings. Switching back to Bring Your Own Key restores those controls and does not delete saved BYOK settings.
+8) v4.3 adds Apple Intelligence as a final on-device fallback for text, voice, and Siri food logging on supported iPhones only after the selected provider and configured fallback provider fail. Photo scans, Nutrition Label, and Coach still use the configured AI access path.
 ```

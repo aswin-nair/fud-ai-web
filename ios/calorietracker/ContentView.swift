@@ -384,19 +384,16 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
-        "Fud AI Premium is back as optional no-key AI access for food scans, voice logging, and Coach.",
-        "Premium adds two plans: Weekly at $6.99/week and Yearly at $199.99/year.",
-        "Polish and Russian localizations are now complete across the current iOS app, including Premium, Siri, Energy Burn Goals, and Adaptive Goals.",
-        "Premium uses Fud AI's Gemini and Deepgram proxy with daily safety limits for food, voice, and Coach.",
-        "Bring Your Own Key remains free and available anytime for users who prefer their own AI providers.",
-        "Settings now has AI Access controls to switch between BYOK and Premium, manage purchases, and view Premium usage.",
-        "Premium mode hides BYOK provider, fallback, and speech API key controls; switching back to BYOK restores them."
+        "Text, voice, and Siri food logging now keep your selected AI provider first, then your configured fallback provider.",
+        "On supported iPhones, Apple Intelligence can run as a final on-device fallback only after provider attempts fail.",
+        "The Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.",
+        "Photo scans, nutrition label scans, and Coach still use your selected AI access path."
     ]
 
     private var whatsNewRow: some View {
         DisclosureGroup(isExpanded: $showWhatsNew) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Fud AI 4.2")
+                Text("Fud AI 4.3")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
 

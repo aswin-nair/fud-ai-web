@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing! Fud AI is an open-source, "bring-your-own-key" calorie tracker. The repo is a monorepo:
 
-- `ios/` — SwiftUI iOS app (shipping on the App Store, v4.2)
+- `ios/` — SwiftUI iOS app (shipping on the App Store, v4.3)
 - `android/` — Kotlin + Jetpack Compose app (feature-parity port, v2.2.1)
 - `web/` — marketing site at [fud-ai.app](https://fud-ai.app) (plain HTML/CSS, Vercel)
 
@@ -49,7 +49,7 @@ Marketing screenshots live in `web/assets/screenshots/` and are also used by the
 
 ## First-Run Setup (both platforms)
 
-Go to **Settings → AI Access** in the running app. In BYOK mode, paste an API key for any of the 13 supported providers (Gemini, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama for local, or any custom OpenAI-compatible endpoint). A free Gemini key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) is the fastest way to get started. Keys are stored in iOS Keychain (iOS) or EncryptedSharedPreferences/AES-256 (Android). On iOS, optional Fud AI Premium uses the app's Gemini + Deepgram proxy with daily safety limits; when Premium is selected, BYOK provider/fallback/speech key controls are hidden and reappear when you switch back.
+Go to **Settings → AI Access** in the running app. In BYOK mode, paste an API key for any of the 13 supported providers (Gemini, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama for local, or any custom OpenAI-compatible endpoint). A free Gemini key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) is the fastest way to get started. Keys are stored in iOS Keychain (iOS) or EncryptedSharedPreferences/AES-256 (Android). On iOS, optional Fud AI Premium uses the app's Gemini + Deepgram proxy with daily safety limits; when Premium is selected, BYOK provider/fallback/speech key controls are hidden and reappear when you switch back. Text, voice, and Siri food logs can use Apple Intelligence on-device only as a final fallback after configured provider attempts fail on supported iPhones.
 
 Barcode logging on iOS and Android uses Open Food Facts directly from the device and does not require an API key. If a packaged food is missing or incomplete there, the app should guide the user back to Nutrition Label scan instead of inventing values. Camera + Camera logging should preserve the same review/edit path as other AI food inputs.
 

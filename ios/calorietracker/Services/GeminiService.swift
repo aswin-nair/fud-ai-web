@@ -251,9 +251,15 @@ struct GeminiService {
         unit_options is required when the text names an obvious non-gram serving unit, and optional otherwise. Use slice/piece for pizza, cake, bread, cookies, fruit pieces, etc.; use ml/cup/fl oz for drinks, milk, soup, smoothies, sauces, etc.; use tbsp/tsp for spooned foods; use can/packet when packaged. Its quantity must describe the whole analyzed amount, not always 1. Do not copy any sample number; use the quantity stated or clearly implied by the meal. Use [] only when no non-gram unit is apparent. Do not include g/grams in unit_options.
         Include a single food emoji that best represents the food. Use null for any nutrient you cannot estimate.
         """
-        let text = try await callAI(prompt: prompt, image: nil)
-        let analysis = try parseFoodAnalysis(from: text)
-        return await addingFallbackServingUnits(to: analysis, image: nil, description: description)
+        do {
+            let analysis = try await callTextFoodAnalysis(prompt: prompt)
+            return await addingFallbackServingUnits(to: analysis, image: nil, description: description)
+        } catch {
+            if let fallbackAnalysis = await onDeviceTextFallback(description: description, after: error) {
+                return await addingFallbackServingUnits(to: fallbackAnalysis, image: nil, description: description)
+            }
+            throw error
+        }
     }
 
     static func autoAnalyze(image: UIImage) async throws -> FoodAnalysis {
@@ -544,6 +550,88 @@ struct GeminiService {
 
     private static func callAI(prompt: String, image: UIImage?) async throws -> String {
         try await callAI(prompt: prompt, images: image.map { [$0] } ?? [])
+    }
+
+    private static func callTextFoodAnalysis(prompt: String) async throws -> FoodAnalysis {
+        let usingPremium = AIAccessSettings.isUsingFudAIPremium
+        if usingPremium, !AIAccessSettings.hasActivePremiumEntitlement {
+            throw AnalysisError.subscriptionRequired
+        }
+
+        let primaryProvider = AIProviderSettings.selectedProvider
+        if !usingPremium, primaryProvider.requiresAPIKey, AIProviderSettings.currentAPIKey == nil {
+            throw AnalysisError.noAPIKey
+        }
+
+        if usingPremium {
+            return try await dispatchFoodAnalysis(
+                provider: .gemini,
+                model: "gemini-3.1-flash-lite",
+                baseURL: AIProvider.gemini.baseURL,
+                apiKey: nil,
+                prompt: prompt
+            )
+        }
+
+        do {
+            return try await dispatchFoodAnalysis(
+                provider: primaryProvider,
+                model: AIProviderSettings.selectedModel,
+                baseURL: AIProviderSettings.currentBaseURL,
+                apiKey: AIProviderSettings.currentAPIKey,
+                prompt: prompt
+            )
+        } catch {
+            guard let fallback = AIProviderSettings.currentFallbackConfig(excludingPrimary: primaryProvider) else {
+                throw error
+            }
+            return try await dispatchFoodAnalysis(
+                provider: fallback.provider,
+                model: fallback.model,
+                baseURL: fallback.baseURL,
+                apiKey: fallback.apiKey,
+                prompt: prompt
+            )
+        }
+    }
+
+    private static func dispatchFoodAnalysis(
+        provider: AIProvider,
+        model: String,
+        baseURL: String,
+        apiKey: String?,
+        prompt: String
+    ) async throws -> FoodAnalysis {
+        let text = try await dispatch(
+            provider: provider,
+            model: model,
+            baseURL: baseURL,
+            apiKey: apiKey,
+            prompt: prompt,
+            imageDataList: []
+        )
+        return try parseFoodAnalysis(from: text)
+    }
+
+    private static func onDeviceTextFallback(description: String, after error: Error) async -> FoodAnalysis? {
+        if let analysisError = error as? AnalysisError {
+            switch analysisError {
+            case .noAPIKey, .subscriptionRequired, .imageConversionFailed:
+                return nil
+            case .networkError, .invalidResponse, .apiError:
+                break
+            }
+        }
+
+        #if canImport(FoundationModels)
+        if #available(iOS 26.0, *),
+           OnDeviceFoodService.isAvailable,
+           OnDeviceFoodService.canHandle(description) {
+            return try? await OnDeviceFoodService.analyzeTextInput(description: description)
+        }
+        #endif
+
+        return nil
     }
 
     private static func callAI(prompt: String, images: [UIImage]) async throws -> String {
