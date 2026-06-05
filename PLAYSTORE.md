@@ -113,12 +113,68 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 
 ## 4. What's New (v2.2.1 / versionCode 24)
 
-**500 char hard cap.** Paste the block below into Play Console's "Release notes" field.
+**500 char hard cap per language.** Paste the entire block below into Play Console's "Release notes" field — it auto-routes each `<lang-tag>` block to the matching locale.
 
 ```
 <en-US>
 • Review Food keeps the Log button visible on narrow Android screens.
 </en-US>
+
+<ar>
+• يبقى زر Log ظاهرًا في Review Food على شاشات Android الضيقة.
+</ar>
+
+<az-AZ>
+• Review Food dar Android ekranlarında Log düyməsini görünən saxlayır.
+</az-AZ>
+
+<de-DE>
+• Review Food hält den Log-Button auf schmalen Android-Displays sichtbar.
+</de-DE>
+
+<es-ES>
+• Review Food mantiene visible el botón Log en pantallas Android estrechas.
+</es-ES>
+
+<fr-FR>
+• Review Food garde le bouton Log visible sur les écrans Android étroits.
+</fr-FR>
+
+<hi-IN>
+• संकरी Android स्क्रीन पर Review Food में Log बटन दिखाई देता रहता है.
+</hi-IN>
+
+<it-IT>
+• Review Food mantiene visibile il pulsante Log sugli schermi Android stretti.
+</it-IT>
+
+<ja-JP>
+• 狭いAndroid画面でもReview FoodのLogボタンが表示されます。
+</ja-JP>
+
+<ko-KR>
+• 좁은 Android 화면에서도 Review Food의 Log 버튼이 계속 보입니다.
+</ko-KR>
+
+<nl-NL>
+• Review Food houdt de Log-knop zichtbaar op smalle Android-schermen.
+</nl-NL>
+
+<pt-BR>
+• Review Food mantém o botão Log visível em telas Android estreitas.
+</pt-BR>
+
+<ro>
+• Review Food păstrează butonul Log vizibil pe ecrane Android înguste.
+</ro>
+
+<ru-RU>
+• В Review Food кнопка Log остается видимой на узких экранах Android.
+</ru-RU>
+
+<zh-CN>
+• Review Food 在窄屏 Android 上也会保持 Log 按钮可见。
+</zh-CN>
 ```
 
 ---
