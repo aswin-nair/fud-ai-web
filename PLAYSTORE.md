@@ -1,6 +1,6 @@
 # Play Store Listing
 
-Google Play Console listing copy for Fud AI Android (current: v2.2 / versionCode 23). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
+Google Play Console listing copy for Fud AI Android (current: v2.2.1 / versionCode 24). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
 
 **Where to paste each field in Play Console:**
 - App name / Short description / Full description → Grow → Store presence → **Main store listing** (default English) and Grow → Store presence → **Custom store listings** → Manage translations (per-language overrides)
@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.2: Review Food can unlock Nutrition for corrections before logging, What if? previews meal impact with AI suggestions, Energy Burn Goals refresh daily, Adaptive Goals add weekly corrections, and Activity Level shows body-fat-aware protein targets.
+NEW in v2.2.1: Review Food keeps the Log button visible on narrow Android screens.
 
 Open source, privacy-first. Bring your own API key.
 
@@ -111,145 +111,14 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 
 ---
 
-## 4. What's New (v2.2 / versionCode 23)
+## 4. What's New (v2.2.1 / versionCode 24)
 
-**500 char hard cap per language.** Paste the entire block below into Play Console's "Release notes" field — it auto-routes each `<lang-tag>` block to the matching locale.
+**500 char hard cap.** Paste the block below into Play Console's "Release notes" field.
 
 ```
 <en-US>
-• Energy Burn Goals auto-refresh once per day on open.
-• Uses recent completed Health Connect burn data from 14 days.
-• Adaptive Goals (Experimental) can add a weekly trend correction.
-• Activity Level shows protein g/kg; body-fat entries switch it to lean-mass equivalent.
-• Nutrition lock lets you edit calories/macros before logging.
-• What if? in Review Food previews macro impact and AI suggestion before logging.
+• Review Food keeps the Log button visible on narrow Android screens.
 </en-US>
-
-<ar>
-• يتم تحديث Energy Burn Goals تلقائيًا مرة يوميًا عند فتح Fud AI.
-• يستخدم بيانات حرق الطاقة المكتملة من Health Connect لآخر 14 يومًا.
-• يمكن لـ Adaptive Goals (تجريبي) إضافة تصحيح أسبوعي للاتجاه.
-• يعرض Activity Level البروتين g/kg؛ ومع دهون الجسم يتحول لمكافئ الكتلة الخالية من الدهون.
-• قفل Nutrition يتيح تعديل السعرات والماكروز قبل التسجيل.
-• يعرض What if? في Review Food تأثير الماكروز واقتراح AI قبل التسجيل.
-</ar>
-
-<az-AZ>
-• Energy Burn Goals Fud AI açıldıqda gündə bir dəfə avtomatik yenilənir.
-• Son 14 günün tamamlanmış Health Connect enerji sərfiyyatı məlumatından istifadə edir.
-• Adaptive Goals (Eksperimental) həftəlik trend düzəlişi əlavə edə bilər.
-• Activity Level protein g/kg göstərir; bədən yağı varsa yağsız kütlə ekvivalentinə keçir.
-• Nutrition kilidi logdan əvvəl kalori/makroları düzəltməyə imkan verir.
-• Review Food-da What if? makro təsiri və AI təklifini logdan əvvəl göstərir.
-</az-AZ>
-
-<de-DE>
-• Energy Burn Goals aktualisiert sich einmal täglich beim Öffnen.
-• Nutzt abgeschlossene Health-Connect-Energiedaten der letzten 14 Tage.
-• Adaptive Goals (Experimental) kann eine wöchentliche Trendkorrektur hinzufügen.
-• Aktivitätslevel zeigt Protein g/kg; mit Körperfett als Magermasse-Äquivalent.
-• Nutrition-Sperre erlaubt Kalorien/Makros vor dem Loggen zu bearbeiten.
-• What if? in Review Food zeigt Makroauswirkung und KI-Tipp vor dem Loggen.
-</de-DE>
-
-<es-ES>
-• Energy Burn Goals se actualiza una vez al día al abrir Fud AI.
-• Usa datos completados de energía de Health Connect de los últimos 14 días.
-• Adaptive Goals (Experimental) puede añadir una corrección semanal de tendencia.
-• Nivel de actividad muestra proteína g/kg; con grasa corporal pasa a equivalente de masa magra.
-• Bloqueo Nutrition permite editar calorías/macros antes de registrar.
-• What if? en Review Food previsualiza macros y sugerencia AI antes de registrar.
-</es-ES>
-
-<fr-FR>
-• Energy Burn Goals s'actualise une fois par jour à l'ouverture.
-• Utilise les données d'énergie Health Connect terminées des 14 derniers jours.
-• Adaptive Goals (Experimental) peut ajouter une correction hebdomadaire de tendance.
-• Niveau d'activité affiche les protéines g/kg; avec graisse corporelle, équivalent masse maigre.
-• Verrou Nutrition pour modifier calories/macros avant journal.
-• What if? dans Review Food affiche l'impact macro et un conseil IA avant journal.
-</fr-FR>
-
-<hi-IN>
-• Energy Burn Goals Fud AI खोलने पर दिन में एक बार auto-refresh होता है.
-• पिछले 14 दिनों के completed Health Connect burn data का उपयोग करता है.
-• Adaptive Goals (Experimental) weekly trend correction जोड़ सकता है.
-• Activity Level protein g/kg दिखाता है; body fat होने पर lean-mass equivalent दिखता है.
-• Nutrition lock logging से पहले calories/macros edit करने देता है.
-• Review Food में What if? logging से पहले macro impact और AI suggestion दिखाता है.
-</hi-IN>
-
-<it-IT>
-• Energy Burn Goals si aggiorna una volta al giorno all'apertura.
-• Usa i dati Health Connect completati degli ultimi 14 giorni.
-• Adaptive Goals (Experimental) può aggiungere una correzione settimanale del trend.
-• Livello attività mostra proteine g/kg; con grasso corporeo passa all'equivalente massa magra.
-• Blocco Nutrition per modificare calorie/macro prima del log.
-• What if? in Review Food mostra impatto macro e suggerimento AI prima del log.
-</it-IT>
-
-<ja-JP>
-• Energy Burn Goalsは起動時に1日1回自動更新されます。
-• 過去14日間の完了済みHealth Connect消費データを使用します。
-• Adaptive Goals（Experimental）は週次トレンド補正を追加できます。
-• Activity Levelにたんぱく質g/kgを表示。体脂肪がある場合は除脂肪量換算に切替。
-• Nutritionロックで記録前にカロリー/マクロを編集できます。
-• Review FoodのWhat if?で記録前にマクロ影響とAI提案を確認できます。
-</ja-JP>
-
-<ko-KR>
-• Energy Burn Goals는 열 때 하루 한 번 자동 새로고침됩니다.
-• 최근 14일의 완료된 Health Connect 에너지 소모 데이터를 사용합니다.
-• Adaptive Goals(Experimental)는 주간 추세 보정을 추가할 수 있습니다.
-• Activity Level에 단백질 g/kg 표시; 체지방 입력 시 제지방량 환산으로 전환.
-• Nutrition 잠금으로 기록 전 칼로리/매크로를 수정합니다.
-• Review Food의 What if?가 기록 전 매크로 영향과 AI 제안을 보여줍니다.
-</ko-KR>
-
-<nl-NL>
-• Energy Burn Goals vernieuwt een keer per dag bij openen.
-• Gebruikt voltooide Health Connect-energiegegevens van de laatste 14 dagen.
-• Adaptive Goals (Experimental) kan een wekelijkse trendcorrectie toevoegen.
-• Activiteitsniveau toont eiwit g/kg; met lichaamsvet als vetvrije-massa-equivalent.
-• Nutrition-slot laat calorieën/macro's bewerken voor het loggen.
-• What if? in Review Food toont macro-impact en AI-tip voor het loggen.
-</nl-NL>
-
-<pt-BR>
-• Energy Burn Goals atualiza uma vez por dia ao abrir.
-• Usa dados concluídos de energia do Health Connect dos últimos 14 dias.
-• Adaptive Goals (Experimental) pode adicionar correção semanal de tendência.
-• Nível de atividade mostra proteína g/kg; com gordura corporal vira equivalente de massa magra.
-• Bloqueio Nutrition edita calorias/macros antes de registrar.
-• What if? em Review Food mostra impacto macro e sugestão AI antes de registrar.
-</pt-BR>
-
-<ro>
-• Energy Burn Goals se actualizează o dată pe zi la deschidere.
-• Folosește date Health Connect finalizate din ultimele 14 zile.
-• Adaptive Goals (Experimental) poate adăuga o corecție săptămânală de trend.
-• Nivelul de activitate arată proteine g/kg; cu grăsime corporală trece la echivalent masă slabă.
-• Blocarea Nutrition permite editarea caloriilor/macro înainte de logare.
-• What if? în Review Food arată impact macro și sugestie AI înainte de logare.
-</ro>
-
-<ru-RU>
-• Energy Burn Goals обновляется раз в день при открытии.
-• Берет завершенные данные Health Connect за последние 14 дней.
-• Adaptive Goals (Experimental) может добавить недельную коррекцию тренда.
-• Activity Level показывает белок g/kg; при % жира — эквивалент по сухой массе.
-• Блокировка Nutrition позволяет править калории/макро до записи.
-• What if? в Review Food показывает макро-влияние и AI-совет до записи.
-</ru-RU>
-
-<zh-CN>
-• Energy Burn Goals 打开时每天自动刷新一次。
-• 使用最近 14 天已完成的 Health Connect 能量消耗数据。
-• Adaptive Goals（Experimental）可加入每周趋势校正。
-• Activity Level 显示蛋白质 g/kg；有体脂时切换为瘦体重等效值。
-• Nutrition 锁可在记录前编辑热量/宏量。
-• Review Food 的 What if? 可在记录前预览宏量影响和 AI 建议。
-</zh-CN>
 ```
 
 ---

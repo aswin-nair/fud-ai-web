@@ -77,7 +77,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support; Experimental Energy Burn Goals can use recent energy data for calorie targets
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
 - **Widgets** — iOS Home Screen has Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget; Lock Screen widgets stay separate, and Android Glance widgets update when you log
-- **Android 2.2 updates** — Energy Burn Goals auto-refresh, Experimental Adaptive Goals, body-fat-aware Activity Level protein targets, Health Connect fixes, progress summaries, safer food-row gestures, and updated release/update flows
+- **Android 2.2.1 update** — Review Food keeps the Log button visible on narrow Android screens
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 16 iOS languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
@@ -241,7 +241,7 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 ```
 fud-ai/
 ├── ios/          # SwiftUI iOS app (shipping on App Store, v4.2)
-├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2)
+├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2.1)
 ├── web/          # Marketing site — https://fud-ai.app (static HTML/CSS, Vercel)
 ├── APPSTORE.md   # App Store Connect listing copy (iOS)
 ├── PLAYSTORE.md  # Google Play Console listing copy (Android)
