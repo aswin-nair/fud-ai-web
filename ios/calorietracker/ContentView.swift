@@ -4320,7 +4320,7 @@ private struct AIAccessSettingsSection: View {
                     .foregroundStyle(AppColors.calorie)
             }
             Spacer()
-            if storeManager.isSubscribed {
+            if storeManager.isSubscribed && selectedAccessMode == .fudAIPremium {
                 Text(storeManager.currentPlanName)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppColors.calorie)
