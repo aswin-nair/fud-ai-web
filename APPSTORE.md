@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Text, voice, and Siri food logs can fall back to Apple Intelligence on supported iPhones when providers fail.
+Food-description analysis can fall back to Apple Intelligence on supported iPhones after Premium/BYOK provider attempts fail.
 ```
 
 ## Keywords (100 chars max)
@@ -30,11 +30,11 @@ Secondary: Food & Drink
 
 ## What's New (v4.3)
 ```
-Fud AI 4.3 — Apple Intelligence fallback for text, voice, and Siri food logging.
+Fud AI 4.3 — Apple Intelligence fallback for text, voice-transcribed, and Siri food logging.
 
 NEW
-• Text, voice, and Siri food logging now try your selected AI provider first, then your configured fallback provider.
-• On supported iPhones, Apple Intelligence can run as a final on-device fallback when provider attempts fail.
+• Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback.
+• On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail.
 • Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.
 • Photo scans, nutrition label scans, and Coach continue using the configured AI access path.
 
@@ -45,7 +45,7 @@ No data migration is required. Existing logs, goals, widgets, Premium, and BYOK 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant calories, macros, and nutrients.
 
-NEW in v4.3: Text, voice, and Siri food logging now try your selected provider first, then your configured fallback provider. On supported iPhones, Apple Intelligence can run as a final on-device fallback when provider attempts fail.
+NEW in v4.3: Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback. On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail.
 
 Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits. Premium hides BYOK controls until you switch back.
 
@@ -90,7 +90,7 @@ iOS widgets cover Home Screen Small, Medium, and Large, a small-only Protein wid
 English, Spanish, French, German, Italian, Portuguese (BR), Dutch, Russian, Polish, Japanese, Korean, Chinese (Simplified), Hindi, Arabic, Romanian, Azerbaijani.
 
 PRIVACY
-No account, sign-in, cloud sync, analytics, ads, or tracking. BYOK keys stay on-device. Premium requests go through Fud AI's proxy only for the request being processed. Supported iPhones can use Apple Intelligence on-device as a final fallback for text/voice/Siri food logs. Review edits are saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
+No account, sign-in, cloud sync, analytics, ads, or tracking. BYOK keys stay on-device. Premium requests go through Fud AI's proxy only for the request being processed. Supported iPhones can use Apple Intelligence on-device as a final fallback for text, voice-transcribed, and Siri food-description analysis. Review edits are saved only if you log the meal. Barcode sends only the barcode to Open Food Facts. MIT licensed.
 
 APPLE HEALTH
 Two-way sync for nutrition, weight, height, and body fat. External samples can auto-import. Experimental Energy Burn Goals can use active/total energy while keeping macros editable.
@@ -136,5 +136,5 @@ https://fud-ai.app
 5) Premium review path: during onboarding choose Fud AI Premium, or after onboarding go to Settings → AI Access → Fud AI Premium. The paywall uses RevenueCat and falls back to StoreKit products if RevenueCat offerings are unavailable, so App Store sandbox purchase testing should be available.
 6) BYOK review path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
 7) Premium mode hides BYOK provider, fallback, and speech API key controls to avoid conflicting settings. Switching back to Bring Your Own Key restores those controls and does not delete saved BYOK settings.
-8) v4.3 adds Apple Intelligence as a final on-device fallback for text, voice, and Siri food logging on supported iPhones only after the selected provider and configured fallback provider fail. Photo scans, Nutrition Label, and Coach still use the configured AI access path.
+8) v4.3 adds Apple Intelligence as a final on-device fallback for text, voice-transcribed, and Siri food-description analysis on supported iPhones only after Premium Gemini or BYOK provider/fallback attempts fail. Photo scans, Nutrition Label, Coach, and speech transcription still use the configured AI access path.
 ```
