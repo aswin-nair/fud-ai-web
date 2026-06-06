@@ -49,38 +49,34 @@ Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak,
 
 NEW in v4.3: Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback. On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail. Build 24 also improves Polish localization for dynamic nutrients, meal types, Settings labels, and locale-aware date/time display.
 
-Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits. Premium hides BYOK controls until you switch back.
+Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Premium for hosted Gemini + Deepgram access. Premium hides BYOK controls until you switch back.
 
 HOW TO USE
 1) Set your profile and goals
-2) Snap, scan, speak, type, or manually enter a meal — review/edit nutrition, preview What if?, and save. On iOS, Siri can also log food or weight hands-free.
+2) Snap, scan, speak, type, or manually enter a meal — review/edit nutrition, preview What if?, and save.
 3) Ask Coach for trends, predictions, and advice
 4) Track progress on charts and widgets
 
 LOG MEALS
-Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, From Photos + Note, Voice, Text, Manual Entry, and Saved Meals. On iOS, Siri can also log food or weight and read today's calories.
+Photo, Photo + Note, Photo + Photo, Nutrition Label, Barcode, From Photos, Voice, Text, Manual Entry, Saved Meals, and iOS Siri shortcuts for food, weight, and today's calories.
 
 AI ACCESS
-Bring Your Own Key supports Gemini including Gemini 3.5 Flash, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Keys stay in iOS Keychain. Premium provides no-key Gemini + Deepgram access; BYOK controls reappear when you switch back.
+Bring Your Own Key supports Gemini, OpenAI, Claude, Grok, Groq, OpenRouter, Together AI, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama, or any OpenAI-compatible endpoint. Keys stay in iOS Keychain. Premium provides no-key Gemini + Deepgram access.
 
 6 SPEECH-TO-TEXT OPTIONS
-Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, AssemblyAI. Choose Provider Auto, iPhone Language, or a specific language where supported.
+Native iOS, Gemini Audio, OpenAI Whisper, Groq, Deepgram, and AssemblyAI, with Provider Auto, iPhone Language, or a specific language where supported.
 
 REVIEW BEFORE LOGGING
-• Unlock Nutrition in Review Food to correct calories, macros, and detailed nutrients before logging
-• What if? in Review Food previews daily macro impact before logging
-• Optional AI suggestion can recommend logging as-is, changing portion, replacing part of the meal, or adjusting the next meal
+Unlock Nutrition to correct calories, macros, and detailed nutrients. What if? previews daily macro impact before saving.
 
 COACH
-• Multi-turn chat with on-demand access to your history
-• Ask any date range — "what did I eat Tuesday?"
-• Uses your profile, targets, forecast, and food log context
+Multi-turn chat with on-demand access to your profile, targets, forecast, and food log. Ask any date range — "what did I eat Tuesday?"
 
 EXPANDED NUTRIENTS
 Calories, protein, carbs, fat, sugar, fiber, saturated/trans fats, cholesterol, sodium, potassium, calcium, iron, magnesium, zinc, vitamins A/C/D/E/K/B12, folate, omega-3 when available.
 
 PERSONALIZED GOALS
-BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated calories/macros, Activity Level protein targets, optional detailed nutrient goals, and Experimental Adaptive Goals that can make small weekly corrections while pinned macros stay pinned.
+BMR via Katch-McArdle or Mifflin-St Jeor, TDEE with 6 activity levels, auto-calculated macros, Activity Level protein targets, optional nutrient goals, and Experimental Adaptive Goals.
 
 PROGRESS
 Weight / Body Fat chart, average and net change summaries, goal lines, calorie trend vs goal, and macro averages.
