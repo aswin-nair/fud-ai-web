@@ -387,7 +387,8 @@ private struct AboutView: View {
         "Text, voice, and Siri food logging now keep your selected AI provider first, then your configured fallback provider.",
         "On supported iPhones, Apple Intelligence can run as a final on-device fallback only after provider attempts fail.",
         "The Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.",
-        "Photo scans, nutrition label scans, and Coach still use your selected AI access path."
+        "Photo scans, nutrition label scans, and Coach still use your selected AI access path.",
+        "Polish localization now covers dynamic nutrients, meal types, Settings labels, corrected Log wording, and locale-aware dates and times."
     ]
 
     private var whatsNewRow: some View {
@@ -404,7 +405,7 @@ private struct AboutView: View {
                             .foregroundStyle(AppColors.protein)
                             .padding(.top, 2)
 
-                        Text(item)
+                        Text(LocalizedDisplayText.text(item))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)

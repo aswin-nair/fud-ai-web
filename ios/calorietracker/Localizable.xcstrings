@@ -29346,6 +29346,61 @@
         }
       },
       "extractionState" : "manual"
+    },
+    "Text, voice, and Siri food logging now keep your selected AI provider first, then your configured fallback provider." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodawanie posiłków tekstem, głosem i przez Siri najpierw używa wybranego dostawcy AI, a potem skonfigurowanego dostawcy zapasowego."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "On supported iPhones, Apple Intelligence can run as a final on-device fallback only after provider attempts fail." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na obsługiwanych iPhone'ach Apple Intelligence może działać jako ostatnia lokalna rezerwa dopiero po nieudanych próbach dostawców."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "The Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rezerwa Apple Intelligence zachowuje dotychczasowe sprawdzanie jednostek porcji i pomija nieobsługiwane systemy pisma."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Photo scans, nutrition label scans, and Coach still use your selected AI access path." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skanowanie zdjęć, etykiet żywieniowych i Coach nadal używają wybranej ścieżki dostępu AI."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Polish localization now covers dynamic nutrients, meal types, Settings labels, corrected Log wording, and locale-aware dates and times." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polska lokalizacja obejmuje teraz dynamiczne składniki odżywcze, typy posiłków, etykiety w Ustawieniach, poprawione sformułowanie Dodaj oraz daty i godziny zgodne z lokalizacją."
+          }
+        }
+      },
+      "extractionState" : "manual"
     }
   },
   "version" : "1.1"
