@@ -1887,7 +1887,7 @@ struct NutritionDetailRow: View {
                     )
                     .frame(width: 24)
             }
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
                 .font(.system(.body, design: .rounded))
             Spacer()
             HStack(alignment: .firstTextBaseline, spacing: 3) {
@@ -3965,7 +3965,7 @@ struct ProfileView: View {
                 Image(systemName: icon)
                     .foregroundStyle(AppColors.calorie)
                     .frame(width: 22)
-                Text(label)
+                Text(LocalizedDisplayText.text(label))
                     .foregroundStyle(.primary)
                 Spacer()
                 Text(pinned ? "\(value)g" : "\(value)g · auto")

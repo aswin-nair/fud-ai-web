@@ -680,7 +680,7 @@ private struct WhatIfImpactRow: View {
                 }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(label)
+                Text(LocalizedDisplayText.text(label))
                     .font(.system(.body, design: .rounded, weight: .semibold))
                 Text(after)
                     .font(.caption)
@@ -908,7 +908,7 @@ private struct ReviewNutritionValueRow: View {
 
     var body: some View {
         HStack {
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
                 .foregroundStyle(dim ? .secondary : .primary)
             Spacer()
             if isUnlocked {
@@ -958,7 +958,7 @@ struct NutritionDisplayRow: View {
 
     var body: some View {
         HStack {
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
             Spacer()
             Text(value)
                 .fontWeight(.medium)
@@ -976,7 +976,7 @@ struct OptionalNutritionDisplayRow: View {
 
     var body: some View {
         HStack {
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
                 .foregroundStyle(.secondary)
             Spacer()
             Text(value.map { String(format: "%.1f", $0) } ?? "—")

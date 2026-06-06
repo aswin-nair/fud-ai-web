@@ -8,15 +8,15 @@ enum AIAccessMode: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .bringYourOwnKey: "Bring Your Own Key"
-        case .fudAIPremium: "Fud AI Premium"
+        case .bringYourOwnKey: LocalizedDisplayText.text("Bring Your Own Key", polish: "Własny klucz")
+        case .fudAIPremium: LocalizedDisplayText.text("Fud AI Premium", polish: "Fud AI Premium")
         }
     }
 
     var shortName: String {
         switch self {
-        case .bringYourOwnKey: "BYOK"
-        case .fudAIPremium: "Premium"
+        case .bringYourOwnKey: LocalizedDisplayText.text("BYOK", polish: "Własny klucz")
+        case .fudAIPremium: LocalizedDisplayText.text("Premium", polish: "Premium")
         }
     }
 

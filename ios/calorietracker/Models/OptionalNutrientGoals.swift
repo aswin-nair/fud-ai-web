@@ -77,42 +77,51 @@ enum OptionalNutrient: String, CaseIterable, Identifiable, Codable {
 
     var displayName: String {
         switch self {
-        case .fiber: "Fiber"
-        case .sugar: "Sugar"
-        case .addedSugar: "Added Sugar"
-        case .saturatedFat: "Saturated Fat"
-        case .cholesterol: "Cholesterol"
-        case .sodium: "Sodium"
-        case .potassium: "Potassium"
-        case .transFat: "Trans Fat"
-        case .calcium: "Calcium"
-        case .iron: "Iron"
-        case .magnesium: "Magnesium"
-        case .zinc: "Zinc"
-        case .vitaminA: "Vitamin A"
-        case .vitaminC: "Vitamin C"
-        case .vitaminD: "Vitamin D"
-        case .vitaminB12: "Vitamin B12"
-        case .vitaminE: "Vitamin E"
-        case .vitaminK: "Vitamin K"
-        case .folate: "Folate"
-        case .omega3: "Omega-3"
+        case .fiber: LocalizedDisplayText.text("Fiber", polish: "Błonnik")
+        case .sugar: LocalizedDisplayText.text("Sugar", polish: "Cukier")
+        case .addedSugar: LocalizedDisplayText.text("Added Sugar", polish: "Cukier dodany")
+        case .saturatedFat: LocalizedDisplayText.text("Saturated Fat", polish: "Tłuszcze nasycone")
+        case .cholesterol: LocalizedDisplayText.text("Cholesterol", polish: "Cholesterol")
+        case .sodium: LocalizedDisplayText.text("Sodium", polish: "Sód")
+        case .potassium: LocalizedDisplayText.text("Potassium", polish: "Potas")
+        case .transFat: LocalizedDisplayText.text("Trans Fat", polish: "Tłuszcze trans")
+        case .calcium: LocalizedDisplayText.text("Calcium", polish: "Wapń")
+        case .iron: LocalizedDisplayText.text("Iron", polish: "Żelazo")
+        case .magnesium: LocalizedDisplayText.text("Magnesium", polish: "Magnez")
+        case .zinc: LocalizedDisplayText.text("Zinc", polish: "Cynk")
+        case .vitaminA: LocalizedDisplayText.text("Vitamin A", polish: "Witamina A")
+        case .vitaminC: LocalizedDisplayText.text("Vitamin C", polish: "Witamina C")
+        case .vitaminD: LocalizedDisplayText.text("Vitamin D", polish: "Witamina D")
+        case .vitaminB12: LocalizedDisplayText.text("Vitamin B12", polish: "Witamina B12")
+        case .vitaminE: LocalizedDisplayText.text("Vitamin E", polish: "Witamina E")
+        case .vitaminK: LocalizedDisplayText.text("Vitamin K", polish: "Witamina K")
+        case .folate: LocalizedDisplayText.text("Folate", polish: "Foliany")
+        case .omega3: LocalizedDisplayText.text("Omega-3", polish: "Omega-3")
         }
     }
 
     var shortDisplayName: String {
         switch self {
-        case .saturatedFat: "Sat Fat"
-        case .addedSugar: "Added"
-        case .transFat: "Trans"
-        case .vitaminA: "Vit A"
-        case .vitaminC: "Vit C"
-        case .vitaminD: "Vit D"
-        case .vitaminB12: "B12"
-        case .vitaminE: "Vit E"
-        case .vitaminK: "Vit K"
-        case .omega3: "Omega"
+        case .saturatedFat: LocalizedDisplayText.text("Sat Fat", polish: "Nasyc.")
+        case .addedSugar: LocalizedDisplayText.text("Added", polish: "Dodany")
+        case .transFat: LocalizedDisplayText.text("Trans", polish: "Trans")
+        case .vitaminA: LocalizedDisplayText.text("Vit A", polish: "Wit. A")
+        case .vitaminC: LocalizedDisplayText.text("Vit C", polish: "Wit. C")
+        case .vitaminD: LocalizedDisplayText.text("Vit D", polish: "Wit. D")
+        case .vitaminB12: LocalizedDisplayText.text("B12", polish: "B12")
+        case .vitaminE: LocalizedDisplayText.text("Vit E", polish: "Wit. E")
+        case .vitaminK: LocalizedDisplayText.text("Vit K", polish: "Wit. K")
+        case .omega3: LocalizedDisplayText.text("Omega", polish: "Omega")
         default: displayName
+        }
+    }
+
+    var localizedGoalStyle: String {
+        switch self {
+        case .fiber, .potassium, .calcium, .iron, .magnesium, .zinc, .vitaminA, .vitaminC, .vitaminD, .vitaminB12, .vitaminE, .vitaminK, .folate, .omega3:
+            LocalizedDisplayText.text("Target", polish: "Cel")
+        case .sugar, .addedSugar, .saturatedFat, .cholesterol, .sodium, .transFat:
+            LocalizedDisplayText.text("Limit", polish: "Limit")
         }
     }
 

@@ -12,8 +12,10 @@ enum FoodLogSortOrder: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .standard: "Breakfast → Lunch → Dinner"
-        case .latestMealsFirst: "Latest Meals First"
+        case .standard:
+            LocalizedDisplayText.text("Breakfast → Lunch → Dinner", polish: "Śniadanie → Lunch → Kolacja")
+        case .latestMealsFirst:
+            LocalizedDisplayText.text("Latest Meals First", polish: "Najnowsze posiłki najpierw")
         }
     }
 

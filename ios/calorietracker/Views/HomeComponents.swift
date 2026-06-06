@@ -179,9 +179,9 @@ enum HomeTopNutrient: String, CaseIterable, Identifiable {
         }
 
         switch self {
-        case .protein: return "Protein"
-        case .carbs: return "Carbs"
-        case .fat: return "Fat"
+        case .protein: return LocalizedDisplayText.text("Protein", polish: "Białko")
+        case .carbs: return LocalizedDisplayText.text("Carbs", polish: "Węglowodany")
+        case .fat: return LocalizedDisplayText.text("Fat", polish: "Tłuszcz")
         case .fiber, .sugar, .addedSugar, .saturatedFat, .cholesterol, .sodium, .potassium,
              .transFat, .calcium, .iron, .magnesium, .zinc, .vitaminA, .vitaminC, .vitaminD,
              .vitaminB12, .vitaminE, .vitaminK, .folate, .omega3:
@@ -444,7 +444,7 @@ struct MacroCard: View {
             }
             .frame(height: 6)
 
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
                 .font(.system(.caption, design: .rounded, weight: .medium))
                 .foregroundStyle(.secondary)
 

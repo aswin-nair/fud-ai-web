@@ -27,6 +27,8 @@
 
 Open-source, privacy-first calorie tracker for iOS and Android. Bring your own AI provider — 13 supported including Gemini, OpenAI, Claude, Grok, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, and any custom OpenAI-compatible endpoint — or use optional Fud AI Premium on iOS for hosted Gemini + Deepgram access. Snap a meal, share a food photo into Fud AI, scan a barcode, combine two camera shots, add a note to a camera or library photo, ask your AI coach how to hit your goal, speak your lunch, or use Siri Shortcuts on iOS to log food and weight. On supported iPhones, food-description analysis for text, voice-transcribed, and Siri food logs can use Apple Intelligence on-device as the final fallback after Premium Gemini or BYOK provider/fallback attempts fail. No accounts, no cloud sync, no tracking.
 
+iOS 4.3 build 24 keeps the Apple Intelligence fallback release and adds Polish localization fixes for dynamic nutrient names, meal types, Settings labels, "Log" wording, and locale-aware date/time display.
+
 [App Store](https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726) · [Google Play](https://play.google.com/store/apps/details?id=com.apoorvdarshan.calorietracker) · [Website](https://fud-ai.app) · [Report an Issue](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=bug&title=Bug:%20) · [Request a Feature](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=enhancement&title=Feature:%20)
 
 ---
@@ -82,7 +84,7 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 16 iOS languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
-- **Languages** — iOS supports 16 languages: Arabic, Azerbaijani, Dutch, English, French, German, Hindi, Italian, Japanese, Korean, Polish, Portuguese (Brazil), Romanian, Russian, Simplified Chinese, Spanish. Android supports the same set except Polish. The app auto-selects by the phone's Language setting.
+- **Languages** — iOS supports 16 languages: Arabic, Azerbaijani, Dutch, English, French, German, Hindi, Italian, Japanese, Korean, Polish, Portuguese (Brazil), Romanian, Russian, Simplified Chinese, Spanish. Android supports the same set except Polish. The app auto-selects by the phone's Language setting; iOS 4.3 build 24 improves Polish dynamic labels and locale date/time formatting.
 - **Meal reminders** — customizable breakfast, lunch, dinner notifications
 - **Dark mode** — system, light, or dark
 - **Metric & imperial** units

@@ -48,12 +48,36 @@ enum SpeechProvider: String, CaseIterable, Codable, Identifiable {
 
     var description: String {
         switch self {
-        case .nativeIOS: "Apple's on-device speech recognition. Free, works offline on modern iPhones, real-time partial results. Recommended default."
-        case .gemini: "Gemini API audio transcription. Uses batch audio understanding, not Google Cloud's real-time Speech-to-Text API."
-        case .openai: "OpenAI Whisper API. High accuracy, 99+ languages, paid per minute."
-        case .groq: "Groq-hosted Whisper Large v3. Very fast inference, has a free tier."
-        case .deepgram: "Deepgram Nova. Real-time and batch modes, fast and accurate."
-        case .assemblyai: "AssemblyAI Universal model. Strong accuracy, free tier available."
+        case .nativeIOS:
+            LocalizedDisplayText.text(
+                "Apple's on-device speech recognition. Free, works offline on modern iPhones, real-time partial results. Recommended default.",
+                polish: "Rozpoznawanie mowy Apple na urządzeniu. Bezpłatne, działa offline na nowoczesnych iPhone'ach, pokazuje częściowe wyniki w czasie rzeczywistym. Zalecane domyślnie."
+            )
+        case .gemini:
+            LocalizedDisplayText.text(
+                "Gemini API audio transcription. Uses batch audio understanding, not Google Cloud's real-time Speech-to-Text API.",
+                polish: "Transkrypcja audio przez Gemini API. Używa wsadowego rozumienia audio, a nie czasu rzeczywistego Google Cloud Speech-to-Text."
+            )
+        case .openai:
+            LocalizedDisplayText.text(
+                "OpenAI Whisper API. High accuracy, 99+ languages, paid per minute.",
+                polish: "OpenAI Whisper API. Wysoka dokładność, ponad 99 języków, rozliczanie za minutę."
+            )
+        case .groq:
+            LocalizedDisplayText.text(
+                "Groq-hosted Whisper Large v3. Very fast inference, has a free tier.",
+                polish: "Whisper Large v3 hostowany przez Groq. Bardzo szybkie wnioskowanie, dostępny darmowy limit."
+            )
+        case .deepgram:
+            LocalizedDisplayText.text(
+                "Deepgram Nova. Real-time and batch modes, fast and accurate.",
+                polish: "Deepgram Nova. Tryb czasu rzeczywistego i wsadowy, szybki i dokładny."
+            )
+        case .assemblyai:
+            LocalizedDisplayText.text(
+                "AssemblyAI Universal model. Strong accuracy, free tier available.",
+                polish: "Model AssemblyAI Universal. Wysoka dokładność, dostępny darmowy limit."
+            )
         }
     }
 }
@@ -77,19 +101,19 @@ enum SpeechLanguage: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .automatic: "Provider Auto"
-        case .device: "Use iPhone Language"
-        case .english: "English"
-        case .german: "German"
-        case .spanish: "Spanish"
-        case .french: "French"
-        case .italian: "Italian"
-        case .portuguese: "Portuguese"
-        case .dutch: "Dutch"
-        case .hindi: "Hindi"
-        case .japanese: "Japanese"
-        case .chinese: "Chinese"
-        case .korean: "Korean"
+        case .automatic: LocalizedDisplayText.text("Provider Auto", polish: "Auto dostawcy")
+        case .device: LocalizedDisplayText.text("Use iPhone Language", polish: "Użyj języka iPhone'a")
+        case .english: LocalizedDisplayText.text("English", polish: "Angielski")
+        case .german: LocalizedDisplayText.text("German", polish: "Niemiecki")
+        case .spanish: LocalizedDisplayText.text("Spanish", polish: "Hiszpański")
+        case .french: LocalizedDisplayText.text("French", polish: "Francuski")
+        case .italian: LocalizedDisplayText.text("Italian", polish: "Włoski")
+        case .portuguese: LocalizedDisplayText.text("Portuguese", polish: "Portugalski")
+        case .dutch: LocalizedDisplayText.text("Dutch", polish: "Niderlandzki")
+        case .hindi: LocalizedDisplayText.text("Hindi", polish: "Hindi")
+        case .japanese: LocalizedDisplayText.text("Japanese", polish: "Japoński")
+        case .chinese: LocalizedDisplayText.text("Chinese", polish: "Chiński")
+        case .korean: LocalizedDisplayText.text("Korean", polish: "Koreański")
         }
     }
 

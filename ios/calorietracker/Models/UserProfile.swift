@@ -7,9 +7,9 @@ enum Gender: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .male: "Male"
-        case .female: "Female"
-        case .other: "Other"
+        case .male: LocalizedDisplayText.text("Male", polish: "Mężczyzna")
+        case .female: LocalizedDisplayText.text("Female", polish: "Kobieta")
+        case .other: LocalizedDisplayText.text("Other", polish: "Inne")
         }
     }
 
@@ -32,12 +32,12 @@ enum ActivityLevel: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .sedentary: "Sedentary"
-        case .light: "Light"
-        case .moderate: "Moderate"
-        case .active: "Active"
-        case .veryActive: "Very Active"
-        case .extraActive: "Extra Active"
+        case .sedentary: LocalizedDisplayText.text("Sedentary", polish: "Siedzący")
+        case .light: LocalizedDisplayText.text("Light", polish: "Lekka")
+        case .moderate: LocalizedDisplayText.text("Moderate", polish: "Umiarkowana")
+        case .active: LocalizedDisplayText.text("Active", polish: "Aktywna")
+        case .veryActive: LocalizedDisplayText.text("Very Active", polish: "Bardzo aktywna")
+        case .extraActive: LocalizedDisplayText.text("Extra Active", polish: "Ekstremalnie aktywna")
         }
     }
 
@@ -50,19 +50,24 @@ enum ActivityLevel: String, Codable, CaseIterable {
     }
 
     func displayNameWithProteinRequirement(bodyFatPercentage: Double? = nil) -> String {
-        let basis = bodyFatPercentage == nil ? "bodyweight" : "lean mass"
         let multiplier = proteinRequirementPerKg(bodyFatPercentage: bodyFatPercentage)
+        if Locale.preferredLanguages.first?.lowercased().hasPrefix("pl") == true
+            || Bundle.main.preferredLocalizations.first?.lowercased().hasPrefix("pl") == true {
+            let basis = bodyFatPercentage == nil ? "masy ciała" : "beztłuszczowej masy ciała"
+            return "\(displayName) (\(String(format: "%.1f g/kg %@ białka", multiplier, basis)))"
+        }
+        let basis = bodyFatPercentage == nil ? "bodyweight" : "lean mass"
         return "\(displayName) (\(String(format: "%.1f g/kg %@ protein", multiplier, basis)))"
     }
 
     var subtitle: String {
         switch self {
-        case .sedentary: "Little or no exercise"
-        case .light: "Exercise 1–3 times / week"
-        case .moderate: "Exercise 4–5 times / week"
-        case .active: "Daily exercise or intense 3–4x / week"
-        case .veryActive: "Intense exercise 6–7 times / week"
-        case .extraActive: "Very intense daily, or physical job"
+        case .sedentary: LocalizedDisplayText.text("Little or no exercise", polish: "Mało lub brak ćwiczeń")
+        case .light: LocalizedDisplayText.text("Exercise 1–3 times / week", polish: "Ćwiczenia 1–3 razy w tygodniu")
+        case .moderate: LocalizedDisplayText.text("Exercise 4–5 times / week", polish: "Ćwiczenia 4–5 razy w tygodniu")
+        case .active: LocalizedDisplayText.text("Daily exercise or intense 3–4x / week", polish: "Codzienne ćwiczenia lub intensywne 3–4 razy w tygodniu")
+        case .veryActive: LocalizedDisplayText.text("Intense exercise 6–7 times / week", polish: "Intensywne ćwiczenia 6–7 razy w tygodniu")
+        case .extraActive: LocalizedDisplayText.text("Very intense daily, or physical job", polish: "Bardzo intensywnie codziennie lub praca fizyczna")
         }
     }
 
@@ -106,9 +111,9 @@ enum WeightGoal: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .lose: "Lose Weight"
-        case .maintain: "Maintain"
-        case .gain: "Gain Weight"
+        case .lose: LocalizedDisplayText.text("Lose Weight", polish: "Schudnąć")
+        case .maintain: LocalizedDisplayText.text("Maintain", polish: "Utrzymać")
+        case .gain: LocalizedDisplayText.text("Gain Weight", polish: "Przybrać na wadze")
         }
     }
 
@@ -496,6 +501,12 @@ extension Notification.Name {
 enum AutoBalanceMacro: String, Codable, CaseIterable, Identifiable {
     case protein, carbs, fat
     var id: String { rawValue }
-    var label: String { rawValue.capitalized }
+    var label: String {
+        switch self {
+        case .protein: LocalizedDisplayText.text("Protein", polish: "Białko")
+        case .carbs: LocalizedDisplayText.text("Carbs", polish: "Węglowodany")
+        case .fat: LocalizedDisplayText.text("Fat", polish: "Tłuszcz")
+        }
+    }
     var kcalPerGram: Int { self == .fat ? 9 : 4 }
 }

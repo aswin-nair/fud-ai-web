@@ -50,7 +50,7 @@ struct ProfileInfoRow: View {
         } label: {
             HStack {
                 Label {
-                    Text(label)
+                    Text(LocalizedDisplayText.text(label))
                 } icon: {
                     Image(systemName: icon)
                         .foregroundStyle(AppColors.calorie)
@@ -209,7 +209,7 @@ struct WeightPickerSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text("Weight")
+                Text(LocalizedDisplayText.text("Weight"))
                     .font(.system(.title2, design: .rounded, weight: .bold))
 
                 HStack(spacing: 0) {
@@ -638,7 +638,7 @@ struct NutritionOverrideRow: View {
     var body: some View {
         VStack(spacing: 8) {
             Toggle(isOn: $isCustom) {
-                Label(label, systemImage: icon)
+                Label(LocalizedDisplayText.text(label), systemImage: icon)
             }
             .onChange(of: isCustom) { _, newValue in
                 if newValue {
@@ -754,11 +754,11 @@ struct NutritionPickerSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text(label)
+                Text(LocalizedDisplayText.text(label))
                     .font(.system(.title2, design: .rounded, weight: .bold))
 
                 HStack(spacing: 0) {
-                    Picker(label, selection: $selectedValue) {
+                    Picker(LocalizedDisplayText.text(label), selection: $selectedValue) {
                         ForEach(Array(stride(from: range.lowerBound, through: range.upperBound, by: step)), id: \.self) { value in
                             Text("\(value)").tag(value)
                                 .font(.system(.title2, design: .rounded, weight: .medium))
@@ -1015,7 +1015,7 @@ struct NotificationTimeRow: View {
         VStack(spacing: 8) {
             Toggle(isOn: $isEnabled) {
                 Label {
-                    Text(label)
+                    Text(LocalizedDisplayText.text(label))
                 } icon: {
                     Image(systemName: icon)
                         .foregroundStyle(AppColors.calorie)
@@ -1048,7 +1048,7 @@ struct ComingSoonRow: View {
         Button(action: action) {
             HStack {
                 Label {
-                    Text(label)
+                    Text(LocalizedDisplayText.text(label))
                 } icon: {
                     Image(systemName: icon)
                         .foregroundStyle(AppColors.calorie)

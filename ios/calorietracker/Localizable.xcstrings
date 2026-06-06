@@ -2,7 +2,6 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
     },
     "!" : {
       "comment" : "An exclamation mark.",
@@ -6293,7 +6292,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktualne"
+            "value" : "Aktualna"
           }
         },
         "pt-BR" : {
@@ -9267,7 +9266,8 @@
             "value" : "英尺"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "Female" : {
       "localizations" : {
@@ -10884,7 +10884,8 @@
             "value" : "Цель"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "Goal (optional)" : {
       "extractionState" : "manual",
@@ -11694,7 +11695,8 @@
             "value" : "身高"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "Hey Siri, %@" : {
       "comment" : "A Siri phrase that can be spoken to trigger a specific feature in Fud AI.",
@@ -12704,7 +12706,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie udało się zalogować tego jedzenia. %@"
+            "value" : "Nie udało się dodać tego posiłku. %@"
           }
         },
         "ru" : {
@@ -13756,7 +13758,8 @@
             "value" : "英寸"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "Invalid Goal Weight" : {
       "localizations" : {
@@ -14178,7 +14181,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jasny"
+            "value" : "Lekka"
           }
         },
         "pt-BR" : {
@@ -14205,7 +14208,8 @@
             "value" : "浅色"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "Listening…" : {
       "localizations" : {
@@ -14410,7 +14414,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj"
+            "value" : "Dodaj"
           }
         },
         "pt-BR" : {
@@ -14444,7 +14448,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj ${foodDescription}"
+            "value" : "Dodaj ${foodDescription}"
           }
         },
         "ru" : {
@@ -14545,7 +14549,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj co najmniej 2 dni jedzenia i 2 pomiary wagi, aby zobaczyć prognozę."
+            "value" : "Dodaj co najmniej 2 dni jedzenia i 2 pomiary wagi, aby zobaczyć prognozę."
           }
         },
         "pt-BR" : {
@@ -14640,7 +14644,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj tkankę tłuszczową"
+            "value" : "Dodaj pomiar tkanki tłuszczowej"
           }
         },
         "pt-BR" : {
@@ -14676,7 +14680,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj jedzenie"
+            "value" : "Dodaj posiłek"
           }
         },
         "ru" : {
@@ -14758,7 +14762,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj wagę"
+            "value" : "Dodaj wagę"
           }
         },
         "pt-BR" : {
@@ -14792,7 +14796,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj wagę ${weightDescription}"
+            "value" : "Dodaj wagę ${weightDescription}"
           }
         },
         "ru" : {
@@ -14810,7 +14814,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj swoją aktualną wagę w Fud AI."
+            "value" : "Dodaj swoją aktualną wagę w Fud AI."
           }
         },
         "ru" : {
@@ -14887,7 +14891,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaloguj pierwszy % tkanki tłuszczowej, aby zobaczyć trendy"
+            "value" : "Dodaj pierwszy pomiar % tkanki tłuszczowej, aby zobaczyć trendy"
           }
         },
         "pt-BR" : {
@@ -14929,7 +14933,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zalogowano %1$@ %2$@."
+            "value" : "Dodano %1$@ %2$@."
           }
         },
         "ru" : {
@@ -14953,7 +14957,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zalogowano %1$@: %2$lld kalorii i %3$@ g białka."
+            "value" : "Dodano %1$@: %2$lld kalorii i %3$@ g białka."
           }
         },
         "ru" : {
@@ -15892,7 +15896,8 @@
             "value" : "餐食"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "Meal Reminder Filter" : {
       "comment" : "Title of the meal reminder filter intent.",
@@ -16789,7 +16794,8 @@
             "value" : "名称"
           }
         }
-      }
+      },
+      "extractionState" : "manual"
     },
     "No API key needed.\nAI food scans, voice logging, and Coach run through Fud AI." : {
       "comment" : "A description of Fud AI Premium.",
@@ -16898,7 +16904,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brak zalogowanego jedzenia"
+            "value" : "Brak dodanych posiłków"
           }
         },
         "pt-BR" : {
@@ -16934,7 +16940,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brak jedzenia zalogowanego tego dnia"
+            "value" : "Brak posiłków dodanych tego dnia"
           }
         },
         "ru" : {
@@ -23414,7 +23420,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Powiadomienia o serii i podsumowaniu aktualizują się automatycznie na podstawie zalogowanego jedzenia."
+            "value" : "Powiadomienia o serii i podsumowaniu aktualizują się automatycznie na podstawie dodanych posiłków."
           }
         },
         "pt-BR" : {
@@ -24582,7 +24588,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To nie zapisuje posiłku. Pokazuje, jak wyglądałby dzisiejszy dzień, gdyby zalogować %@."
+            "value" : "To nie zapisuje posiłku. Pokazuje, jak wyglądałby dzisiejszy dzień, gdyby dodać %@."
           }
         },
         "ru" : {
@@ -24864,7 +24870,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To trwale usunie wszystkie zalogowane wpisy jedzenia. Profil, wpisy wagi i ulubione zostaną zachowane. Tej czynności nie można cofnąć."
+            "value" : "To trwale usunie wszystkie dodane wpisy jedzenia. Profil, wpisy wagi i ulubione zostaną zachowane. Tej czynności nie można cofnąć."
           }
         },
         "pt-BR" : {
@@ -24940,7 +24946,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dzisiaj zalogowano %1$lld kalorii i %2$@ g białka."
+            "value" : "Dzisiaj dodano %1$lld kalorii i %2$@ g białka."
           }
         },
         "ru" : {
@@ -24964,7 +24970,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dzisiaj zalogowano %1$lld z %2$lld kalorii. Pozostało %3$lld kalorii. Białko: %4$@ g."
+            "value" : "Dzisiaj dodano %1$lld z %2$lld kalorii. Pozostało %3$lld kalorii. Białko: %4$@ g."
           }
         },
         "ru" : {
@@ -25368,7 +25374,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Używane po stuknięciu ikony głosu, aby zalogować posiłek. Każdy dostawca pamięta własny język. Auto dostawcy zachowuje domyślny język dostawcy; Użyj języka iPhone'a wysyła bieżący język iPhone'a, gdy jest obsługiwany."
+            "value" : "Używane po stuknięciu ikony głosu, aby dodać posiłek. Każdy dostawca pamięta własny język. Auto dostawcy zachowuje domyślny język dostawcy; Użyj języka iPhone'a wysyła bieżący język iPhone'a, gdy jest obsługiwany."
           }
         },
         "ru" : {
@@ -25451,7 +25457,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Używane po stuknięciu ikony głosu, aby zalogować posiłek. Natywny iOS działa bezpłatnie na urządzeniu; zewnętrzni dostawcy często lepiej rozpoznają nazwy jedzenia i akcenty."
+            "value" : "Używane po stuknięciu ikony głosu, aby dodać posiłek. Natywny iOS działa bezpłatnie na urządzeniu; zewnętrzni dostawcy często lepiej rozpoznają nazwy jedzenia i akcenty."
           }
         },
         "pt-BR" : {
@@ -28273,7 +28279,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zalogowane kalorie i waga z pomiarów nie całkiem się zgadzają. Możesz zaniżać wpisy jedzenia."
+            "value" : "Dodane kalorie i waga z pomiarów nie całkiem się zgadzają. Możesz zaniżać wpisy jedzenia."
           }
         },
         "pt-BR" : {
@@ -28317,6 +28323,1029 @@
           }
         }
       }
+    },
+    "Breakfast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Śniadanie"
+          }
+        }
+      }
+    },
+    "Lunch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunch"
+          }
+        }
+      }
+    },
+    "Dinner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kolacja"
+          }
+        }
+      }
+    },
+    "Snack" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przekąska"
+          }
+        }
+      }
+    },
+    "Breakfast → Lunch → Dinner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Śniadanie → Lunch → Kolacja"
+          }
+        }
+      }
+    },
+    "Latest Meals First" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najnowsze posiłki najpierw"
+          }
+        }
+      }
+    },
+    "Sugar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cukier"
+          }
+        }
+      }
+    },
+    "Added Sugar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cukier dodany"
+          }
+        }
+      }
+    },
+    "Fiber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Błonnik"
+          }
+        }
+      }
+    },
+    "Saturated Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze nasycone"
+          }
+        }
+      }
+    },
+    "Mono Unsat. Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze jednonienasycone"
+          }
+        }
+      }
+    },
+    "Poly Unsat. Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze wielonienasycone"
+          }
+        }
+      }
+    },
+    "Mono Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze mono"
+          }
+        }
+      }
+    },
+    "Poly Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze poli"
+          }
+        }
+      }
+    },
+    "Cholesterol" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cholesterol"
+          }
+        }
+      }
+    },
+    "Sodium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sód"
+          }
+        }
+      }
+    },
+    "Potassium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potas"
+          }
+        }
+      }
+    },
+    "Trans Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze trans"
+          }
+        }
+      }
+    },
+    "Calcium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wapń"
+          }
+        }
+      }
+    },
+    "Iron" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żelazo"
+          }
+        }
+      }
+    },
+    "Magnesium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnez"
+          }
+        }
+      }
+    },
+    "Zinc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cynk"
+          }
+        }
+      }
+    },
+    "Vitamin A" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witamina A"
+          }
+        }
+      }
+    },
+    "Vitamin C" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witamina C"
+          }
+        }
+      }
+    },
+    "Vitamin D" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witamina D"
+          }
+        }
+      }
+    },
+    "Vitamin B12" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witamina B12"
+          }
+        }
+      }
+    },
+    "Vitamin E" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witamina E"
+          }
+        }
+      }
+    },
+    "Vitamin K" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Witamina K"
+          }
+        }
+      }
+    },
+    "Folate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foliany"
+          }
+        }
+      }
+    },
+    "Omega-3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omega-3"
+          }
+        }
+      }
+    },
+    "Sat Fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nasyc."
+          }
+        }
+      }
+    },
+    "Added" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodany"
+          }
+        }
+      }
+    },
+    "Trans" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trans"
+          }
+        }
+      }
+    },
+    "Vit A" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wit. A"
+          }
+        }
+      }
+    },
+    "Vit C" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wit. C"
+          }
+        }
+      }
+    },
+    "Vit D" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wit. D"
+          }
+        }
+      }
+    },
+    "Vit E" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wit. E"
+          }
+        }
+      }
+    },
+    "Vit K" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wit. K"
+          }
+        }
+      }
+    },
+    "Omega" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omega"
+          }
+        }
+      }
+    },
+    "Sedentary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siedzący"
+          }
+        }
+      }
+    },
+    "Moderate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umiarkowana"
+          }
+        }
+      }
+    },
+    "Active" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktywna"
+          }
+        }
+      }
+    },
+    "Very Active" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bardzo aktywna"
+          }
+        }
+      }
+    },
+    "Extra Active" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekstremalnie aktywna"
+          }
+        }
+      }
+    },
+    "Little or no exercise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mało lub brak ćwiczeń"
+          }
+        }
+      }
+    },
+    "Exercise 1–3 times / week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ćwiczenia 1–3 razy w tygodniu"
+          }
+        }
+      }
+    },
+    "Exercise 4–5 times / week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ćwiczenia 4–5 razy w tygodniu"
+          }
+        }
+      }
+    },
+    "Daily exercise or intense 3–4x / week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codzienne ćwiczenia lub intensywne 3–4 razy w tygodniu"
+          }
+        }
+      }
+    },
+    "Intense exercise 6–7 times / week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intensywne ćwiczenia 6–7 razy w tygodniu"
+          }
+        }
+      }
+    },
+    "Very intense daily, or physical job" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bardzo intensywnie codziennie lub praca fizyczna"
+          }
+        }
+      }
+    },
+    "Lose Weight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schudnąć"
+          }
+        }
+      }
+    },
+    "Maintain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utrzymać"
+          }
+        }
+      }
+    },
+    "Gain Weight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przybrać na wadze"
+          }
+        }
+      }
+    },
+    "Fud Pink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Róż Fud"
+          }
+        }
+      }
+    },
+    "Red" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czerwony"
+          }
+        }
+      }
+    },
+    "Orange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomarańczowy"
+          }
+        }
+      }
+    },
+    "Green" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zielony"
+          }
+        }
+      }
+    },
+    "Mint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miętowy"
+          }
+        }
+      }
+    },
+    "Teal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turkusowy"
+          }
+        }
+      }
+    },
+    "Blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niebieski"
+          }
+        }
+      }
+    },
+    "Purple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fioletowy"
+          }
+        }
+      }
+    },
+    "Provider Auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto dostawcy"
+          }
+        }
+      }
+    },
+    "Use iPhone Language" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj języka iPhone’a"
+          }
+        }
+      }
+    },
+    "English" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angielski"
+          }
+        }
+      }
+    },
+    "German" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niemiecki"
+          }
+        }
+      }
+    },
+    "Spanish" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiszpański"
+          }
+        }
+      }
+    },
+    "French" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Francuski"
+          }
+        }
+      }
+    },
+    "Italian" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włoski"
+          }
+        }
+      }
+    },
+    "Portuguese" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portugalski"
+          }
+        }
+      }
+    },
+    "Dutch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niderlandzki"
+          }
+        }
+      }
+    },
+    "Hindi" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi"
+          }
+        }
+      }
+    },
+    "Japanese" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Japoński"
+          }
+        }
+      }
+    },
+    "Chinese" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiński"
+          }
+        }
+      }
+    },
+    "Korean" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koreański"
+          }
+        }
+      }
+    },
+    "Bring Your Own Key" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Własny klucz"
+          }
+        }
+      }
+    },
+    "BYOK" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Własny klucz"
+          }
+        }
+      }
+    },
+    "Premium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium"
+          }
+        }
+      }
+    },
+    "Target" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cel"
+          }
+        }
+      }
+    },
+    "Limit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit"
+          }
+        }
+      }
+    },
+    "Net Change" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmiana netto"
+          }
+        }
+      }
+    },
+    "Average" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Średnia"
+          }
+        }
+      }
+    },
+    "Current Streak" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualna seria"
+          }
+        }
+      }
+    },
+    "Best Streak" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Najlepsza seria"
+          }
+        }
+      }
+    },
+    "Days on Target" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dni w celu"
+          }
+        }
+      }
+    },
+    "Total Entries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wszystkie wpisy"
+          }
+        }
+      }
+    },
+    "Protein (g)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Białko (g)"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Carbs (g)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Węglowodany (g)"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Fat (g)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcz (g)"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Nutrition Data" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dane żywieniowe"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Weight Sync" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizacja wagi"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Body Measurements" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomiary ciała"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Health Score" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wynik zdrowia"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Fats" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tłuszcze"
+          }
+        }
+      },
+      "extractionState" : "manual"
     }
   },
   "version" : "1.1"

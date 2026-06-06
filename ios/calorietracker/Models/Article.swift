@@ -42,7 +42,8 @@ struct Article: Identifiable {
 
     var formattedDate: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
         return formatter.string(from: dateAdded)
     }
 

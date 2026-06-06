@@ -59,7 +59,7 @@ struct OptionalNutrientGoalsSettingsView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(nutrient.displayName)
                                     .foregroundStyle(.primary)
-                                Text(nutrient.goalStyle.capitalized)
+                                Text(nutrient.localizedGoalStyle)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }

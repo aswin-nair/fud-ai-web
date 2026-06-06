@@ -257,7 +257,7 @@ struct MacroProgressRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(label)
+                Text(LocalizedDisplayText.text(label))
                     .font(.system(.subheadline, design: .rounded, weight: .medium))
                 Spacer()
                 Text("\(MacroValueFormatter.withUnit(current)) / \(goal)g")
@@ -322,7 +322,7 @@ struct StatTile: View {
             Text(value)
                 .font(.system(.title3, design: .rounded, weight: .bold))
 
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
                 .font(.system(.caption, design: .rounded))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -344,7 +344,7 @@ struct StatBadge: View {
                 .font(.system(.subheadline, design: .rounded, weight: .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text(label)
+            Text(LocalizedDisplayText.text(label))
                 .font(.system(.caption2, design: .rounded))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -556,7 +556,8 @@ struct AllWeightHistoryView: View {
 
 private let weightHistoryFormatter: DateFormatter = {
     let f = DateFormatter()
-    f.dateFormat = "MMM d, yyyy"
+    f.dateStyle = .medium
+    f.timeStyle = .none
     return f
 }()
 
@@ -575,8 +576,8 @@ enum BodyMetric: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var displayName: String {
         switch self {
-        case .weight: "Weight"
-        case .bodyFat: "Body Fat"
+        case .weight: LocalizedDisplayText.text("Weight", polish: "Waga")
+        case .bodyFat: LocalizedDisplayText.text("Body Fat", polish: "Tkanka tłuszczowa")
         }
     }
 }

@@ -300,7 +300,7 @@ struct OnboardingView: View {
                         }.pickerStyle(.wheel).frame(height: 130)
                     }
                     VStack(spacing: 4) {
-                        Text("Weight").font(.system(.caption, design: .rounded, weight: .medium)).foregroundStyle(.secondary)
+                        Text(LocalizedDisplayText.text("Weight")).font(.system(.caption, design: .rounded, weight: .medium)).foregroundStyle(.secondary)
                         decimalWeightWheel(whole: $weightKgWhole, tenth: $weightKgTenth, range: 30...250, unit: "kg")
                             .frame(height: 130)
                     }
@@ -322,7 +322,7 @@ struct OnboardingView: View {
                         }
                     }
                     VStack(spacing: 4) {
-                        Text("Weight").font(.system(.caption, design: .rounded, weight: .medium)).foregroundStyle(.secondary)
+                        Text(LocalizedDisplayText.text("Weight")).font(.system(.caption, design: .rounded, weight: .medium)).foregroundStyle(.secondary)
                         decimalWeightWheel(whole: $weightLbsWhole, tenth: $weightLbsTenth, range: 60...500, unit: "lbs")
                             .frame(height: 130)
                     }
@@ -1195,7 +1195,7 @@ struct OnboardingView: View {
                     .buttonStyle(.plain)
 
                     if editingField == .calories {
-                        Picker("Calories", selection: Binding(
+                        Picker(LocalizedDisplayText.text("Calories"), selection: Binding(
                             get: { planCalories },
                             set: { newCal in
                                 editedCalories = newCal
@@ -1221,7 +1221,7 @@ struct OnboardingView: View {
                     .padding(.horizontal, 24)
 
                     if editingField == .protein {
-                        Picker("Protein", selection: Binding(
+                        Picker(LocalizedDisplayText.text("Protein"), selection: Binding(
                             get: { planProtein },
                             set: { newProtein in
                                 editedProtein = newProtein
@@ -1237,7 +1237,7 @@ struct OnboardingView: View {
                     }
 
                     if editingField == .carbs {
-                        Picker("Carbs", selection: Binding(
+                        Picker(LocalizedDisplayText.text("Carbs"), selection: Binding(
                             get: { planCarbs },
                             set: { newCarbs in
                                 editedCarbs = newCarbs
@@ -1253,7 +1253,7 @@ struct OnboardingView: View {
                     }
 
                     if editingField == .fat {
-                        Picker("Fat", selection: Binding(
+                        Picker(LocalizedDisplayText.text("Fat"), selection: Binding(
                             get: { planFat },
                             set: { newFat in
                                 editedFat = newFat
@@ -1329,7 +1329,7 @@ struct OnboardingView: View {
             }
         } label: {
             VStack(spacing: 6) {
-                Text(label)
+                Text(LocalizedDisplayText.text(label))
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundStyle(.secondary)
                 HStack(spacing: 2) {
@@ -1394,7 +1394,7 @@ struct OnboardingView: View {
     private func healthFeatureRow(icon: String, label: String) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon).font(.system(size: 18)).foregroundStyle(.secondary).frame(width: 28)
-            Text(label).font(.system(.body, design: .rounded)).foregroundStyle(.primary)
+            Text(LocalizedDisplayText.text(label)).font(.system(.body, design: .rounded)).foregroundStyle(.primary)
         }
     }
 

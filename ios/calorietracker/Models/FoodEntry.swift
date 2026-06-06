@@ -1,5 +1,75 @@
 import Foundation
 
+enum LocalizedDisplayText {
+    static func text(_ key: String, polish: String? = nil) -> String {
+        if usesPolish, let polish = polish ?? polishFallbacks[key] {
+            return polish
+        }
+        return String(localized: String.LocalizationValue(key))
+    }
+
+    private static var usesPolish: Bool {
+        let preferred = Bundle.main.preferredLocalizations.first
+            ?? Locale.preferredLanguages.first
+            ?? Locale.autoupdatingCurrent.identifier
+        return preferred.lowercased().hasPrefix("pl")
+    }
+
+    private static let polishFallbacks: [String: String] = [
+        "Calories": "Kalorie",
+        "Protein": "Białko",
+        "Carbs": "Węglowodany",
+        "Fat": "Tłuszcz",
+        "Sugar": "Cukier",
+        "Added Sugar": "Cukier dodany",
+        "Fiber": "Błonnik",
+        "Saturated Fat": "Tłuszcze nasycone",
+        "Mono Unsat. Fat": "Tłuszcze jednonienasycone",
+        "Poly Unsat. Fat": "Tłuszcze wielonienasycone",
+        "Mono Fat": "Tłuszcze mono",
+        "Poly Fat": "Tłuszcze poli",
+        "Cholesterol": "Cholesterol",
+        "Sodium": "Sód",
+        "Potassium": "Potas",
+        "Trans Fat": "Tłuszcze trans",
+        "Calcium": "Wapń",
+        "Iron": "Żelazo",
+        "Magnesium": "Magnez",
+        "Zinc": "Cynk",
+        "Vitamin A": "Witamina A",
+        "Vitamin C": "Witamina C",
+        "Vitamin D": "Witamina D",
+        "Vitamin B12": "Witamina B12",
+        "Vitamin E": "Witamina E",
+        "Vitamin K": "Witamina K",
+        "Folate": "Foliany",
+        "Omega-3": "Omega-3",
+        "Current": "Aktualna",
+        "Goal": "Cel",
+        "Net Change": "Zmiana netto",
+        "Average": "Średnia",
+        "Current Streak": "Aktualna seria",
+        "Best Streak": "Najlepsza seria",
+        "Days on Target": "Dni w celu",
+        "Total Entries": "Wszystkie wpisy",
+        "Log Weight": "Dodaj wagę",
+        "Log Body Fat": "Dodaj pomiar tkanki tłuszczowej",
+        "Name": "Nazwa",
+        "Meal": "Posiłek",
+        "Protein (g)": "Białko (g)",
+        "Carbs (g)": "Węglowodany (g)",
+        "Fat (g)": "Tłuszcz (g)",
+        "Nutrition Data": "Dane żywieniowe",
+        "Weight Sync": "Synchronizacja wagi",
+        "Body Measurements": "Pomiary ciała",
+        "Health Score": "Wynik zdrowia",
+        "Fats": "Tłuszcze",
+        "Height": "Wzrost",
+        "Feet": "Stopy",
+        "Inches": "Cale"
+    ]
+}
+
 enum FoodSource: String, Codable {
     case snapFood
     case nutritionLabel
@@ -17,11 +87,11 @@ enum MealType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .breakfast: "Breakfast"
-        case .lunch: "Lunch"
-        case .dinner: "Dinner"
-        case .snack: "Snack"
-        case .other: "Other"
+        case .breakfast: LocalizedDisplayText.text("Breakfast", polish: "Śniadanie")
+        case .lunch: LocalizedDisplayText.text("Lunch", polish: "Lunch")
+        case .dinner: LocalizedDisplayText.text("Dinner", polish: "Kolacja")
+        case .snack: LocalizedDisplayText.text("Snack", polish: "Przekąska")
+        case .other: LocalizedDisplayText.text("Other", polish: "Inne")
         }
     }
 
@@ -365,9 +435,7 @@ struct FoodEntry: Identifiable, Codable {
     }
 
     var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mma"
-        return formatter.string(from: timestamp).lowercased()
+        DateFormatter.localizedString(from: timestamp, dateStyle: .none, timeStyle: .short)
     }
 
     /// Unique key for favorite deduplication (name + calorie combo)

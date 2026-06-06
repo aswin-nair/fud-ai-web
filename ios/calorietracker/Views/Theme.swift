@@ -18,14 +18,14 @@ enum AppThemeColor: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .fudPink: return "Fud Pink"
-        case .red: return "Red"
-        case .orange: return "Orange"
-        case .green: return "Green"
-        case .mint: return "Mint"
-        case .teal: return "Teal"
-        case .blue: return "Blue"
-        case .purple: return "Purple"
+        case .fudPink: return LocalizedDisplayText.text("Fud Pink", polish: "Róż Fud")
+        case .red: return LocalizedDisplayText.text("Red", polish: "Czerwony")
+        case .orange: return LocalizedDisplayText.text("Orange", polish: "Pomarańczowy")
+        case .green: return LocalizedDisplayText.text("Green", polish: "Zielony")
+        case .mint: return LocalizedDisplayText.text("Mint", polish: "Miętowy")
+        case .teal: return LocalizedDisplayText.text("Teal", polish: "Turkusowy")
+        case .blue: return LocalizedDisplayText.text("Blue", polish: "Niebieski")
+        case .purple: return LocalizedDisplayText.text("Purple", polish: "Fioletowy")
         }
     }
 

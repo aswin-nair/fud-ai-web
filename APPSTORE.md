@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Fud AI v4.3. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Fud AI v4.3 build 24. Each field is in a code block for easy copy-paste.
 
 ## App Name
 ```
@@ -30,13 +30,15 @@ Secondary: Food & Drink
 
 ## What's New (v4.3)
 ```
-Fud AI 4.3 — Apple Intelligence fallback for text, voice-transcribed, and Siri food logging.
+Fud AI 4.3 — Apple Intelligence fallback and Polish localization fixes.
 
 NEW
 • Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback.
 • On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail.
 • Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.
 • Photo scans, nutrition label scans, and Coach continue using the configured AI access path.
+• Polish now covers dynamic nutrient names, meal types, Settings labels, and locale-aware date/time display.
+• Polish "Log" wording has been corrected to "Dodaj" / "Dodaj wagę" where appropriate.
 
 No data migration is required. Existing logs, goals, widgets, Premium, and BYOK settings are preserved.
 ```
@@ -45,7 +47,7 @@ No data migration is required. Existing logs, goals, widgets, Premium, and BYOK 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant calories, macros, and nutrients.
 
-NEW in v4.3: Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback. On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail.
+NEW in v4.3: Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback. On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail. Build 24 also improves Polish localization for dynamic nutrients, meal types, Settings labels, and locale-aware date/time display.
 
 Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Premium for hosted Gemini + Deepgram access with daily safety limits. Premium hides BYOK controls until you switch back.
 
@@ -137,4 +139,5 @@ https://fud-ai.app
 6) BYOK review path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
 7) Premium mode hides BYOK provider, fallback, and speech API key controls to avoid conflicting settings. Switching back to Bring Your Own Key restores those controls and does not delete saved BYOK settings.
 8) v4.3 adds Apple Intelligence as a final on-device fallback for text, voice-transcribed, and Siri food-description analysis on supported iPhones only after Premium Gemini or BYOK provider/fallback attempts fail. Photo scans, Nutrition Label, Coach, and speech transcription still use the configured AI access path.
+9) Build 24 keeps the marketing version at 4.3 and fixes issue #80 follow-up Polish localization gaps: dynamic nutrients, meal types, Settings labels, "Log" wording, and locale-aware date/time formatting.
 ```
