@@ -28,13 +28,28 @@ sealed class SttEvent {
  */
 class NativeSpeechRecognizer(private val context: Context) {
 
+    companion object {
+        private const val ERROR_SERVER_DISCONNECTED = 11
+        private const val ERROR_LANGUAGE_NOT_SUPPORTED = 12
+        private const val ERROR_LANGUAGE_UNAVAILABLE = 13
+
+        fun isRecoverableSessionError(code: Int): Boolean =
+            code == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ||
+                    code == SpeechRecognizer.ERROR_NO_MATCH ||
+                    code == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ||
+                    code == ERROR_SERVER_DISCONNECTED
+
+        fun isLanguageSupportError(code: Int): Boolean =
+            code == ERROR_LANGUAGE_NOT_SUPPORTED || code == ERROR_LANGUAGE_UNAVAILABLE
+    }
+
     fun isAvailable(): Boolean = SpeechRecognizer.isRecognitionAvailable(context)
 
     fun hasMicPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
                 PackageManager.PERMISSION_GRANTED
 
-    fun listen(locale: String? = null): Flow<SttEvent> = callbackFlow {
+    fun listen(locale: String? = null, preferOffline: Boolean = true): Flow<SttEvent> = callbackFlow {
         val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
         val listener = object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) { trySend(SttEvent.Ready) }
@@ -65,7 +80,7 @@ class NativeSpeechRecognizer(private val context: Context) {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale)
             }
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, preferOffline)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
         }
         recognizer.startListening(intent)
@@ -87,6 +102,9 @@ class NativeSpeechRecognizer(private val context: Context) {
         SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognizer busy"
         SpeechRecognizer.ERROR_SERVER -> "Server error"
         SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
+        ERROR_SERVER_DISCONNECTED -> "Speech service disconnected"
+        ERROR_LANGUAGE_NOT_SUPPORTED -> "Speech language is not supported on this device"
+        ERROR_LANGUAGE_UNAVAILABLE -> "Speech language is unavailable on this device"
         else -> "Speech error ($code)"
     }
 }

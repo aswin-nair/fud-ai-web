@@ -75,6 +75,18 @@ import java.io.File
 
 private enum class VoicePhase { IDLE, RECORDING, REVIEWING, TRANSCRIBING }
 
+private enum class NativeRecognitionMode {
+    OFFLINE_LANGUAGE,
+    ONLINE_LANGUAGE,
+    ONLINE_AUTO
+}
+
+private fun NativeRecognitionMode.nextAfterLanguageError(): NativeRecognitionMode? = when (this) {
+    NativeRecognitionMode.OFFLINE_LANGUAGE -> NativeRecognitionMode.ONLINE_LANGUAGE
+    NativeRecognitionMode.ONLINE_LANGUAGE -> NativeRecognitionMode.ONLINE_AUTO
+    NativeRecognitionMode.ONLINE_AUTO -> null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VoiceInputSheet(
@@ -105,6 +117,7 @@ fun VoiceInputSheet(
     val native = remember(ctx) { NativeSpeechRecognizer(ctx) }
     var recordedFile by remember { mutableStateOf<File?>(null) }
     var nativeJob by remember { mutableStateOf<Job?>(null) }
+    var nativeRecognitionMode by remember { mutableStateOf(NativeRecognitionMode.OFFLINE_LANGUAGE) }
 
     // Internal helper: spin up a fresh native recognizer session, appending
     // to [committed] on each Final event so a long pause doesn't end the
@@ -119,8 +132,12 @@ fun VoiceInputSheet(
     // session with the previous one not fully torn down.
     fun launchNativeListenerLoop() {
         nativeJob?.cancel()
+        val recognitionMode = nativeRecognitionMode
         nativeJob = scope.launch {
-            native.listen(locale = speechLanguage.nativeLocaleTag()).collectLatest { event ->
+            native.listen(
+                locale = if (recognitionMode == NativeRecognitionMode.ONLINE_AUTO) null else speechLanguage.nativeLocaleTag(),
+                preferOffline = recognitionMode == NativeRecognitionMode.OFFLINE_LANGUAGE
+            ).collectLatest { event ->
                 when (event) {
                     is SttEvent.Partial -> {
                         transcript = (committed + " " + event.text).trim()
@@ -134,12 +151,24 @@ fun VoiceInputSheet(
                         }
                     }
                     is SttEvent.Error -> {
+                        val fallbackMode = if (NativeSpeechRecognizer.isLanguageSupportError(event.code)) {
+                            recognitionMode.nextAfterLanguageError()
+                        } else {
+                            null
+                        }
+                        if (fallbackMode != null && phase == VoicePhase.RECORDING) {
+                            nativeRecognitionMode = fallbackMode
+                            kotlinx.coroutines.delay(300)
+                            if (phase == VoicePhase.RECORDING) launchNativeListenerLoop()
+                            return@collectLatest
+                        }
+
                         // Codes that mean "session ended, try again" are part
                         // of normal continuous-listening — just re-arm without
                         // showing the user an error or dropping back to IDLE.
                         // 6 = SPEECH_TIMEOUT, 7 = NO_MATCH,
                         // 8 = RECOGNIZER_BUSY, 11 = SERVER_DISCONNECTED.
-                        val recoverable = event.code in setOf(6, 7, 8, 11)
+                        val recoverable = NativeSpeechRecognizer.isRecoverableSessionError(event.code)
                         if (recoverable && phase == VoicePhase.RECORDING) {
                             kotlinx.coroutines.delay(300)
                             if (phase == VoicePhase.RECORDING) launchNativeListenerLoop()
@@ -159,6 +188,7 @@ fun VoiceInputSheet(
         committed = ""
         error = null
         if (provider == SpeechProvider.NATIVE) {
+            nativeRecognitionMode = NativeRecognitionMode.OFFLINE_LANGUAGE
             phase = VoicePhase.RECORDING
             launchNativeListenerLoop()
         } else {

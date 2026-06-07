@@ -664,7 +664,7 @@
     <string name="about_whats_new">What\'s New</string>
     <string name="about_whats_new_version_format">Version %1$s</string>
     <string name="about_whats_new_android_summary">Android changes in this update:</string>
-    <string name="about_whats_new_item_text_keyboard_fix">Text food entry keeps the keyboard open while rotating example placeholders.</string>
+    <string name="about_whats_new_item_text_keyboard_fix">Text food entry keeps the keyboard open, and native voice logging falls back when on-device language support is unavailable.</string>
     <string name="about_whats_new_item_review_toolbar_fit">Review Food now keeps the Log button visible on narrow Android screens.</string>
     <string name="about_whats_new_item_energy_auto_refresh">Energy Burn Goals now refresh automatically once per day when you open the app, using recent Health Connect burn data.</string>
     <string name="about_whats_new_item_adaptive_goals">Adaptive Goals (Experimental) can make a small weekly calorie correction from your weight trend while keeping pinned macros intact.</string>
