@@ -29,6 +29,8 @@ Open-source, privacy-first calorie tracker for iOS and Android. Bring your own A
 
 iOS 4.3 build 24 keeps the Apple Intelligence fallback release and adds Polish localization fixes for dynamic nutrient names, meal types, Settings labels, "Log" wording, and locale-aware date/time display.
 
+Android 2.2.2 build 25 fixes text food entry keyboard focus, adds native speech fallback when Android on-device language support is unavailable, and recommends Groq (Whisper) or Deepgram for more consistent voice transcription across Android phones.
+
 [App Store](https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726) · [Google Play](https://play.google.com/store/apps/details?id=com.apoorvdarshan.calorietracker) · [Website](https://fud-ai.app) · [Report an Issue](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=bug&title=Bug:%20) · [Request a Feature](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=enhancement&title=Feature:%20)
 
 ---
@@ -80,7 +82,7 @@ iOS 4.3 build 24 keeps the Apple Intelligence fallback release and adds Polish l
 - **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support; Experimental Energy Burn Goals can use recent energy data for calorie targets
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
 - **Widgets** — iOS Home Screen has Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget; Lock Screen widgets stay separate, and Android Glance widgets update when you log
-- **Android 2.2.1 update** — Review Food keeps the Log button visible on narrow Android screens
+- **Android 2.2.2 update** — Text food entry keeps the keyboard open while example placeholders rotate; native Android voice logging falls back when on-device language support is unavailable
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 16 iOS languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
@@ -111,16 +113,18 @@ Pick any of the **13 LLM providers** for food analysis, meal what-if suggestions
 
 ## Speech-to-Text Providers
 
-Pick how voice input is transcribed. Native iOS is the default — free, on-device, real-time. Each provider has its own language setting: use Provider Auto, Use iPhone Language, or an explicit language hint where supported.
+Pick how voice input is transcribed. Native iOS / Android is the default — free, on-device where supported, real-time. On Android, native speech first tries the on-device language path, then falls back to Android recognition with network/provider defaults if the phone lacks offline support for that language. Each provider has its own language setting: use Provider Auto, Use Device Language, or an explicit language hint where supported.
 
 | Provider | Notes |
 |----------|-------|
-| Native iOS (On-Device) | Free, offline on modern iPhones, real-time partial results |
+| Native iOS / Android (On-Device) | Free, offline where the phone supports the selected language, real-time partial results |
 | Gemini Audio | Batch audio transcription through Gemini for BYOK users |
 | OpenAI Whisper | Whisper-1 via `/v1/audio/transcriptions` |
 | Groq (Whisper) | Whisper-large-v3, very fast, has a free tier |
 | Deepgram | Nova-3, fast and accurate |
 | AssemblyAI | Universal model, strong accuracy, free tier |
+
+For Android phones where native speech is inconsistent, Groq (Whisper) or Deepgram are recommended alternatives; the developer currently uses Groq.
 
 API keys are stored encrypted on-device: **iOS Keychain** on iOS and **EncryptedSharedPreferences backed by Android Keystore** on Android.
 
@@ -239,7 +243,7 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 | **Language** | Swift 5, SwiftUI, iOS 17.6+ |
 | **Storage** | UserDefaults (local JSON), Keychain (API keys) |
 | **AI** | `GeminiService` for food + label analysis, `ChatService` for multi-turn Coach chat, both route across all 13 providers |
-| **Speech** | Native `SFSpeechRecognizer` or remote providers via `SpeechService` (m4a upload) |
+| **Speech** | Native `SFSpeechRecognizer` / Android `SpeechRecognizer` or remote providers via `SpeechService` (m4a upload) |
 | **Health** | HealthKit / Health Connect read-write paths for body measurements and meal nutrition, with UUID-tagged samples for safe delete |
 | **Pattern** | `@Observable` + `.environment()`, main actor isolation |
 | **Localization** | `Localizable.xcstrings` (String Catalog), 16 iOS languages, auto-selected by iPhone's system language |
@@ -250,7 +254,7 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 ```
 fud-ai/
 ├── ios/          # SwiftUI iOS app (shipping on App Store, v4.3)
-├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2.1)
+├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2.2)
 ├── web/          # Marketing site — https://fud-ai.app (static HTML/CSS, Vercel)
 ├── APPSTORE.md   # App Store Connect listing copy (iOS)
 ├── PLAYSTORE.md  # Google Play Console listing copy (Android)

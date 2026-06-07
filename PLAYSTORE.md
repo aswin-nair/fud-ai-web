@@ -1,6 +1,6 @@
 # Play Store Listing
 
-Google Play Console listing copy for Fud AI Android (current: v2.2.1 / versionCode 24). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
+Google Play Console listing copy for Fud AI Android (current: v2.2.2 / versionCode 25). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
 
 **Where to paste each field in Play Console:**
 - App name / Short description / Full description → Grow → Store presence → **Main store listing** (default English) and Grow → Store presence → **Custom store listings** → Manage translations (per-language overrides)
@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.2.1: Review Food keeps the Log button visible on narrow Android screens.
+NEW in v2.2.2: Text entry keeps the keyboard open. Native Android voice falls back if on-device language support is missing; try Groq (Whisper) or Deepgram.
 
 Open source, privacy-first. Bring your own API key.
 
@@ -56,7 +56,7 @@ HOW TO USE
 • Barcode — look up packaged foods with Open Food Facts
 • From Photos — analyze an existing image
 • From Photos + Note — add context to a library photo
-• Voice — 5 STT engines with language selection
+• Voice — 6 STT engines with language selection
 • Text — describe in plain language, AI parses it
 • Manual Entry — name + calories + macros + meal type
 • Saved Meals — re-log recents, frequent meals, and favorites
@@ -111,69 +111,84 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 
 ---
 
-## 4. What's New (v2.2.1 / versionCode 24)
+## 4. What's New (v2.2.2 / versionCode 25)
 
 **500 char hard cap per language.** Paste the entire block below into Play Console's "Release notes" field — it auto-routes each `<lang-tag>` block to the matching locale.
 
 ```
 <en-US>
-• Review Food keeps the Log button visible on narrow Android screens.
+• Text food entry keeps the keyboard open while examples rotate.
+• Native Android voice now falls back when on-device language support is missing. Try Groq (Whisper) or Deepgram for more consistent transcription.
 </en-US>
 
 <ar>
-• يبقى زر Log ظاهرًا في Review Food على شاشات Android الضيقة.
+• يبقى إدخال الطعام النصي لوحة المفاتيح مفتوحة أثناء تبدّل الأمثلة.
+• يتراجع صوت Android الأصلي عند غياب دعم اللغة على الجهاز. جرّب Groq (Whisper) أو Deepgram لنسخ صوتي أكثر ثباتًا.
 </ar>
 
 <az-AZ>
-• Review Food dar Android ekranlarında Log düyməsini görünən saxlayır.
+• Mətnlə qida girişi nümunələr dəyişərkən klaviaturanı açıq saxlayır.
+• Cihazda dil dəstəyi yoxdursa, yerli Android səsi fallback edir. Daha sabit transkripsiya üçün Groq (Whisper) və ya Deepgram sınayın.
 </az-AZ>
 
 <de-DE>
-• Review Food hält den Log-Button auf schmalen Android-Displays sichtbar.
+• Texteingabe hält die Tastatur offen, während Beispiele wechseln.
+• Native Android-Sprache nutzt ein Fallback, wenn die Gerätesprache nicht verfügbar ist. Für stabilere Transkription Groq (Whisper) oder Deepgram testen.
 </de-DE>
 
 <es-ES>
-• Review Food mantiene visible el botón Log en pantallas Android estrechas.
+• La entrada de comida por texto mantiene el teclado abierto mientras cambian los ejemplos.
+• La voz nativa de Android usa reserva si falta soporte de idioma en el dispositivo. Prueba Groq (Whisper) o Deepgram para una transcripción más estable.
 </es-ES>
 
 <fr-FR>
-• Review Food garde le bouton Log visible sur les écrans Android étroits.
+• La saisie texte garde le clavier ouvert pendant la rotation des exemples.
+• La voix native Android utilise un repli si la langue n'est pas disponible sur l'appareil. Essayez Groq (Whisper) ou Deepgram pour une transcription plus fiable.
 </fr-FR>
 
 <hi-IN>
-• संकरी Android स्क्रीन पर Review Food में Log बटन दिखाई देता रहता है.
+• उदाहरण बदलते समय टेक्स्ट फूड एंट्री कीबोर्ड खुला रखती है.
+• डिवाइस पर भाषा सपोर्ट न हो तो Native Android voice fallback करता है. ज्यादा स्थिर transcription के लिए Groq (Whisper) या Deepgram आज़माएं.
 </hi-IN>
 
 <it-IT>
-• Review Food mantiene visibile il pulsante Log sugli schermi Android stretti.
+• L'inserimento testuale mantiene aperta la tastiera mentre cambiano gli esempi.
+• La voce nativa Android usa un fallback se manca il supporto lingua sul dispositivo. Prova Groq (Whisper) o Deepgram per trascrizioni più stabili.
 </it-IT>
 
 <ja-JP>
-• 狭いAndroid画面でもReview FoodのLogボタンが表示されます。
+• 例文が切り替わっても、テキスト入力のキーボードが閉じなくなりました。
+• 端末上の言語サポートがない場合、Androidネイティブ音声がフォールバックします。より安定した文字起こしにはGroq (Whisper)またはDeepgramをお試しください。
 </ja-JP>
 
 <ko-KR>
-• 좁은 Android 화면에서도 Review Food의 Log 버튼이 계속 보입니다.
+• 예시가 바뀌어도 텍스트 음식 입력의 키보드가 열린 상태로 유지됩니다.
+• 기기 내 언어 지원이 없으면 Android 기본 음성이 대체 경로를 사용합니다. 더 안정적인 전사는 Groq (Whisper) 또는 Deepgram을 사용해 보세요.
 </ko-KR>
 
 <nl-NL>
-• Review Food houdt de Log-knop zichtbaar op smalle Android-schermen.
+• Tekstinvoer houdt het toetsenbord open terwijl voorbeelden wisselen.
+• Native Android-spraak valt terug als taalondersteuning op het apparaat ontbreekt. Probeer Groq (Whisper) of Deepgram voor stabielere transcriptie.
 </nl-NL>
 
 <pt-BR>
-• Review Food mantém o botão Log visível em telas Android estreitas.
+• A entrada de comida por texto mantém o teclado aberto enquanto os exemplos mudam.
+• A voz nativa do Android usa fallback quando falta suporte de idioma no aparelho. Teste Groq (Whisper) ou Deepgram para transcrição mais consistente.
 </pt-BR>
 
 <ro>
-• Review Food păstrează butonul Log vizibil pe ecrane Android înguste.
+• Introducerea text păstrează tastatura deschisă când exemplele se schimbă.
+• Vocea nativă Android folosește fallback dacă limba nu este disponibilă pe dispozitiv. Încercați Groq (Whisper) sau Deepgram pentru transcriere mai stabilă.
 </ro>
 
 <ru-RU>
-• В Review Food кнопка Log остается видимой на узких экранах Android.
+• Текстовый ввод еды больше не закрывает клавиатуру при смене примеров.
+• Нативный голос Android использует резервный режим, если язык недоступен на устройстве. Попробуйте Groq (Whisper) или Deepgram для более стабильной транскрипции.
 </ru-RU>
 
 <zh-CN>
-• Review Food 在窄屏 Android 上也会保持 Log 按钮可见。
+• 文本记录食物时，示例轮换也不会关闭键盘。
+• 当设备缺少本机语言支持时，Android 原生语音会自动回退。可尝试 Groq (Whisper) 或 Deepgram，获得更稳定的转写。
 </zh-CN>
 ```
 
