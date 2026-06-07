@@ -1773,8 +1773,7 @@ private fun AnalysisResultDialog(
 
 @Composable
 private fun TextInputDialog(onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
-    // Verbatim port of TextFoodInputView.swift — no title, rotating placeholder,
-    // multiline text field, full-width pink Analyze + secondary Cancel.
+    // Keep the input composable stable so rotating placeholder examples do not drop IME focus.
     val placeholders = listOf(
         "2 eggs, toast with butter and a coffee",
         "Chipotle burrito bowl with chicken and rice",
@@ -1790,21 +1789,15 @@ private fun TextInputDialog(onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
         }
     }
     FudGlassDialog(onDismissRequest = onDismiss) {
-        androidx.compose.animation.Crossfade(
-            targetState = placeholderIdx,
-            animationSpec = androidx.compose.animation.core.tween(300),
-            label = "placeholder"
-        ) { idx ->
-            FudGlassTextField(
-                value = input,
-                onValueChange = { input = it },
-                placeholder = placeholders[idx],
-                singleLine = false,
-                minLines = 3,
-                maxLines = 5,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        FudGlassTextField(
+            value = input,
+            onValueChange = { input = it },
+            placeholder = placeholders[placeholderIdx],
+            singleLine = false,
+            minLines = 3,
+            maxLines = 5,
+            modifier = Modifier.fillMaxWidth()
+        )
         FudGlassPrimaryButton(
             text = "Analyze",
             onClick = { if (input.isNotBlank()) onSubmit(input.trim()) },

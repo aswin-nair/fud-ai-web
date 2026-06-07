@@ -286,7 +286,7 @@ private fun WhatsNewRow(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
                 )
-                WhatsNewBullet(stringResource(R.string.about_whats_new_item_review_toolbar_fit))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_text_keyboard_fix))
             }
         }
     }

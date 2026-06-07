@@ -29,8 +29,8 @@ android {
         applicationId = "com.apoorvdarshan.calorietracker"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "2.2.1"
+        versionCode = 25
+        versionName = "2.2.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
