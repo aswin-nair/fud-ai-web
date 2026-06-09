@@ -373,6 +373,16 @@ Fud AI is fully free, open source, and privacy-first. If it helps you, consider 
 
 You can also help by [voting on Product Hunt](https://www.producthunt.com/products/fud-ai-calorie-tracker), [checking the TrustMRR listing](https://trustmrr.com/startup/fud-ai-calorie-tracker), [starring the repo](https://github.com/apoorvdarshan/fud-ai), [filing bugs](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=bug&title=Bug:%20), or [requesting features](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=enhancement&title=Feature:%20).
 
+## Star History
+
+<a href="https://star-history.com/#apoorvdarshan/fud-ai&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=apoorvdarshan/fud-ai&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=apoorvdarshan/fud-ai&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=apoorvdarshan/fud-ai&type=Date" />
+  </picture>
+</a>
+
 ## Contributors
 
 Thanks to everyone who has contributed to making Fud AI better:
