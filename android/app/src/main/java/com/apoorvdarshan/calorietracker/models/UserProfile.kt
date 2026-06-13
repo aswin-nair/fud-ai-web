@@ -46,9 +46,9 @@ data class UserProfile(
         return Period.between(birthDate, LocalDate.now()).years.coerceAtLeast(0)
     }
 
-    /** True when BMR currently uses Katch-McArdle. Centralized accessor — read this everywhere
-     *  instead of the raw `useBodyFatInBMR` Bool? so the nil-default-true semantics live in one place. */
-    val usesBodyFatForBMR: Boolean get() = bodyFatPercentage != null && (useBodyFatInBMR ?: true)
+    /** True when BMR uses Katch-McArdle: whenever a body fat % is set it is used directly.
+     *  No manual override — if body fat is unset, BMR falls back to Mifflin-St Jeor. */
+    val usesBodyFatForBMR: Boolean get() = bodyFatPercentage != null
 
     val bmr: Double get() = if (usesBodyFatForBMR) {
         // Katch-McArdle

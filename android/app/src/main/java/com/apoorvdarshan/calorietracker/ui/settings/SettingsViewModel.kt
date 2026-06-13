@@ -665,8 +665,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 )
                 return@launch
             }
-            // Apply the AI calorie target with macros reset to auto-balance (unlocked).
-            val next = current.recalculatedFromFormulas().copy(customCalories = result.calories)
+            // Apply the AI calorie target. Protein is pinned to the activity-multiplier target
+            // (proteinGoal) so it always matches the Activity Level row — never scaled down to fit
+            // a lower calorie goal. Carbs and fat stay auto-balanced (unlocked) and absorb the rest.
+            val next = current.recalculatedFromFormulas().copy(
+                customCalories = result.calories,
+                customProtein = current.proteinGoal
+            )
             val message = "Updated to ${result.calories} kcal." + (result.reason?.let { " $it" } ?: "")
             container.profileRepository.save(next)
             // Goals are now fresh — capture this input baseline so the recalc nudge clears.

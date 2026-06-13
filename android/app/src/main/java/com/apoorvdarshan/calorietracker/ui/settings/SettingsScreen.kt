@@ -330,9 +330,10 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         icon = Icons.Outlined.Percent
                     ) { sheet = SettingsSheet.BODY_FAT }
 
-                    // Goal Body Fat + Use-Body-Fat-for-BMR toggle only render
-                    // when the user actually has a body fat % set — avoids
-                    // surfacing irrelevant controls to users who never opted in.
+                    // Goal Body Fat only renders when the user actually has a body
+                    // fat % set — avoids surfacing irrelevant controls to users who
+                    // never opted in. When body fat is set it is always used for BMR
+                    // (Katch-McArdle); otherwise Mifflin-St Jeor — no manual toggle.
                     if (p.bodyFatPercentage != null) {
                         HorizontalDivider()
                         SettingRow(
@@ -340,24 +341,6 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             p.goalBodyFatPercentage?.let { "${(it * 100).toInt()}%" } ?: stringResource(R.string.settings_not_set),
                             icon = Icons.Outlined.TrackChanges
                         ) { sheet = SettingsSheet.GOAL_BODY_FAT }
-                        HorizontalDivider()
-                        // Editing any profile input — including the BMR formula
-                        // toggle — just saves now. Goals change only via Recalculate
-                        // Goals (AI) or the weekly Adaptive pass.
-                        ToggleRow(
-                            stringResource(R.string.settings_use_body_fat_bmr),
-                            p.useBodyFatInBMR ?: true,
-                            icon = Icons.Outlined.Calculate,
-                            onChange = { newValue ->
-                                vm.updateProfile { it.copy(useBodyFatInBMR = newValue) }
-                            }
-                        )
-                        Text(
-                            stringResource(R.string.settings_use_body_fat_bmr_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
                     }
                 }
             }

@@ -181,7 +181,7 @@ class FoodAnalysisService(
             - BMR (Katch-McArdle, used when body fat is known and enabled): 370 + 21.6 * (1 - bodyFatFraction) * weightKg.
             - TDEE = BMR * activity multiplier. Multipliers: sedentary 1.2, light 1.375, moderate 1.465, active 1.55, very active 1.725, extra active 1.9.
             - Calorie target = TDEE + adjustment. adjustment = 0 for maintain; lose: -(weeklyChangeKg*7000/7); gain: +(weeklyChangeKg*7000/7).
-            - Protein: g/kg by activity (sedentary 0.8, light 1.2, moderate 1.6, active 1.8, very active 2.0, extra active 2.2), +0.2 g/kg if the goal is to lose. Basis = lean mass (weightKg*(1-bodyFatFraction)) if body fat is known, else full bodyweight.
+            - Protein: (activity g/kg: sedentary 0.8, light 1.2, moderate 1.6, active 1.8, very active 2.0, extra active 2.2; +0.2 if the goal is to lose) times full bodyweight in kg. (Shown to the user per lean mass when body fat is known, but the gram total equals this.) Use EXACTLY the formula protein value below — do NOT lower protein to hit the calorie target; adjust carbs and fat instead.
             - Fat: 0.6 g/kg of full bodyweight.
             - Carbs: the calories remaining after protein (4 kcal/g) and fat (9 kcal/g), divided by 4. Keep 4*protein + 4*carbs + 9*fat approximately equal to calories.
             BMR method in effect for this user: $bmrMethod.

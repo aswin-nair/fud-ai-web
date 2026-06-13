@@ -177,12 +177,12 @@ struct UserProfile: Codable, Equatable {
     /// this everywhere instead of the raw `useBodyFatInBMR` Bool? so the
     /// nil-default-true semantics stay in one place.
     var usesBodyFatForBMR: Bool {
-        bodyFatPercentage != nil && (useBodyFatInBMR ?? true)
+        bodyFatPercentage != nil
     }
 
     var bmr: Double {
-        if let bf = bodyFatPercentage, useBodyFatInBMR ?? true {
-            // Katch-McArdle
+        if let bf = bodyFatPercentage {
+            // Katch-McArdle — used automatically whenever body fat is known.
             return 370 + 21.6 * (1 - bf) * weightKg
         }
         // Mifflin-St Jeor

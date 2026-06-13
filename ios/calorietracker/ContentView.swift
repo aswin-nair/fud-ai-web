@@ -2794,32 +2794,6 @@ struct ProfileView: View {
                         ) {
                             activeSheet = .editGoalBodyFat
                         }
-
-                        // Toggle to disable Katch-McArdle without wiping the
-                        // body-fat value — escape hatch for users whose
-                        // reading is stale (weight shifted but they haven't
-                        // re-measured). When off, BMR/TDEE/macros recompute
-                        // from Mifflin-St Jeor (height/weight/age only).
-                        Toggle(isOn: Binding(
-                            get: { profile.useBodyFatInBMR ?? true },
-                            set: { newValue in
-                                profile.useBodyFatInBMR = newValue
-                                saveProfile()
-                            }
-                        )) {
-                            Label {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Use Body Fat for BMR")
-                                    Text("On = Katch-McArdle (uses lean mass for a more accurate BMR). Off = Mifflin-St Jeor (height/weight/age only). Turn off if your body-fat reading is outdated.")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            } icon: {
-                                Image(systemName: "function")
-                                    .foregroundStyle(AppColors.calorie)
-                            }
-                        }
-                        .tint(AppColors.calorie)
                     }
                 }
                 .listRowBackground(AppColors.appCard)
@@ -3974,12 +3948,12 @@ struct ProfileView: View {
         do {
             let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, useMetric: useMetric)
             guard goalInputsUnchanged(snapshot, profile) else { return }
-            // Apply the AI calorie target and reset all macros to auto-balance (unlocked).
-            // Recalculate's contract is "clear pinned macros" — so we never pin protein/fat/carbs
-            // here (that would leave a lock icon). Macros auto-balance from the formula
-            // proportions at the new calorie target, exactly like the formula-recalc path.
+            // Apply the AI calorie target. Protein is pinned to the activity-multiplier target
+            // (UserProfile.proteinGoal) so it always matches what the Activity Level row shows —
+            // it is never scaled down to fit a lower calorie goal. Carbs and fat stay auto-balanced
+            // (unlocked) and absorb the remaining calories.
             profile.customCalories = result.calories
-            profile.customProtein = nil
+            profile.customProtein = profile.proteinGoal
             profile.customFat = nil
             profile.customCarbs = nil
             profile.autoBalanceMacro = nil
