@@ -1,6 +1,6 @@
 # Play Store Listing
 
-Google Play Console listing copy for Fud AI Android (current: v2.2.2 / versionCode 25). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
+Google Play Console listing copy for Fud AI Android (current: v2.3.0 / versionCode 26). Each field is in a code block for easy copy-paste. Char counts are tracked because Play Console enforces hard caps and silently truncates anything over.
 
 **Where to paste each field in Play Console:**
 - App name / Short description / Full description → Grow → Store presence → **Main store listing** (default English) and Grow → Store presence → **Custom store listings** → Manage translations (per-language overrides)
@@ -38,7 +38,7 @@ Snap, speak, or type a meal. AI logs the calories. Open source.
 ```
 Fud AI makes calorie tracking effortless with AI-powered food recognition. Snap a photo, scan a barcode, speak it, or type it — get instant nutrition: calories, protein, carbs, fats, vitamins, minerals, and more.
 
-NEW in v2.2.2: Text entry keeps the keyboard open. Native Android voice falls back if on-device language support is missing; try Groq (Whisper) or Deepgram.
+NEW in v2.3.0: Recalculate Goals is now AI-powered — calories and macros come from your profile plus your logged intake and weight trend (your own provider key; standard formula offline). Onboarding now sets up your AI and builds your starting plan with it.
 
 Open source, privacy-first. Bring your own API key.
 
@@ -111,84 +111,84 @@ English-only on Play Console — non-English Play Store browsers (ar, az-AZ, de-
 
 ---
 
-## 4. What's New (v2.2.2 / versionCode 25)
+## 4. What's New (v2.3.0 / versionCode 26)
 
 **500 char hard cap per language.** Paste the entire block below into Play Console's "Release notes" field — it auto-routes each `<lang-tag>` block to the matching locale.
 
 ```
 <en-US>
-• Text food entry keeps the keyboard open while examples rotate.
-• Native Android voice now falls back when on-device language support is missing. Try Groq (Whisper) or Deepgram for more consistent transcription.
+• Recalculate Goals is now AI-powered — it sets your calories and macros from your profile and refines them from your logged intake and weight trend. Falls back to the standard formula offline.
+• Onboarding now sets up your AI provider and key, then builds your starting plan with AI.
 </en-US>
 
 <ar>
-• يبقى إدخال الطعام النصي لوحة المفاتيح مفتوحة أثناء تبدّل الأمثلة.
-• يتراجع صوت Android الأصلي عند غياب دعم اللغة على الجهاز. جرّب Groq (Whisper) أو Deepgram لنسخ صوتي أكثر ثباتًا.
+• أصبحت ميزة "إعادة حساب الأهداف" مدعومة بالذكاء الاصطناعي الآن — تحدد سعراتك الحرارية وعناصرك الغذائية من ملفك الشخصي وتحسّنها بناءً على ما سجّلته من طعام واتجاه وزنك. وتعود إلى المعادلة القياسية عند عدم الاتصال.
+• يقوم الإعداد الأولي الآن بتهيئة مزوّد الذكاء الاصطناعي والمفتاح، ثم يبني خطتك الأولية بالذكاء الاصطناعي.
 </ar>
 
 <az-AZ>
-• Mətnlə qida girişi nümunələr dəyişərkən klaviaturanı açıq saxlayır.
-• Cihazda dil dəstəyi yoxdursa, yerli Android səsi fallback edir. Daha sabit transkripsiya üçün Groq (Whisper) və ya Deepgram sınayın.
+• Məqsədləri Yenidən Hesabla artıq süni intellektlə işləyir — profilinizə əsasən kalori və makroları təyin edir, qeyd etdiyiniz qida və çəki tendensiyasına görə dəqiqləşdirir. Oflayn rejimdə standart düstura keçir.
+• Tanışlıq mərhələsi indi süni intellekt provayderini və açarını qurur, sonra başlanğıc planınızı süni intellektlə formalaşdırır.
 </az-AZ>
 
 <de-DE>
-• Texteingabe hält die Tastatur offen, während Beispiele wechseln.
-• Native Android-Sprache nutzt ein Fallback, wenn die Gerätesprache nicht verfügbar ist. Für stabilere Transkription Groq (Whisper) oder Deepgram testen.
+• "Ziele neu berechnen" wird jetzt von KI gesteuert: Es legt Kalorien und Makros aus deinem Profil fest und verfeinert sie anhand deiner erfassten Aufnahme und deines Gewichtstrends. Offline gilt die Standardformel.
+• Das Onboarding richtet jetzt deinen KI-Anbieter und Schlüssel ein und erstellt dann deinen Startplan mit KI.
 </de-DE>
 
 <es-ES>
-• La entrada de comida por texto mantiene el teclado abierto mientras cambian los ejemplos.
-• La voz nativa de Android usa reserva si falta soporte de idioma en el dispositivo. Prueba Groq (Whisper) o Deepgram para una transcripción más estable.
+• Recalcular objetivos ahora funciona con IA: establece tus calorías y macros a partir de tu perfil y los ajusta según tu consumo registrado y tu tendencia de peso. Si estás sin conexión, usa la fórmula estándar.
+• La configuración inicial ahora prepara tu proveedor de IA y tu clave, y luego crea tu plan inicial con IA.
 </es-ES>
 
 <fr-FR>
-• La saisie texte garde le clavier ouvert pendant la rotation des exemples.
-• La voix native Android utilise un repli si la langue n'est pas disponible sur l'appareil. Essayez Groq (Whisper) ou Deepgram pour une transcription plus fiable.
+• Le recalcul des objectifs est désormais propulsé par l'IA : il définit vos calories et macros à partir de votre profil, puis les ajuste selon vos apports enregistrés et l'évolution de votre poids. Bascule sur la formule standard hors ligne.
+• L'intégration configure maintenant votre fournisseur d'IA et votre clé, puis crée votre plan de départ avec l'IA.
 </fr-FR>
 
 <hi-IN>
-• उदाहरण बदलते समय टेक्स्ट फूड एंट्री कीबोर्ड खुला रखती है.
-• डिवाइस पर भाषा सपोर्ट न हो तो Native Android voice fallback करता है. ज्यादा स्थिर transcription के लिए Groq (Whisper) या Deepgram आज़माएं.
+• Recalculate Goals अब AI-संचालित है — यह आपकी प्रोफ़ाइल से कैलोरी और मैक्रो तय करता है और आपके दर्ज सेवन व वज़न रुझान से उन्हें बेहतर बनाता है। ऑफ़लाइन होने पर मानक फ़ॉर्मूले पर लौट जाता है।
+• ऑनबोर्डिंग अब आपका AI प्रोवाइडर और key सेट करती है, फिर AI से आपकी शुरुआती योजना बनाती है।
 </hi-IN>
 
 <it-IT>
-• L'inserimento testuale mantiene aperta la tastiera mentre cambiano gli esempi.
-• La voce nativa Android usa un fallback se manca il supporto lingua sul dispositivo. Prova Groq (Whisper) o Deepgram per trascrizioni più stabili.
+• Ricalcola obiettivi ora è basato sull'AI: imposta calorie e macro dal tuo profilo e li perfeziona in base al cibo registrato e all'andamento del peso. Offline usa la formula standard.
+• L'onboarding ora configura il provider AI e la chiave, poi crea il tuo piano iniziale con l'AI.
 </it-IT>
 
 <ja-JP>
-• 例文が切り替わっても、テキスト入力のキーボードが閉じなくなりました。
-• 端末上の言語サポートがない場合、Androidネイティブ音声がフォールバックします。より安定した文字起こしにはGroq (Whisper)またはDeepgramをお試しください。
+• 「目標を再計算」がAI対応になりました。プロフィールからカロリーとマクロを設定し、記録した摂取量と体重の推移をもとに最適化します。オフライン時は標準の計算式に切り替わります。
+• オンボーディングでAIプロバイダーとキーを設定し、AIが最初のプランを作成するようになりました。
 </ja-JP>
 
 <ko-KR>
-• 예시가 바뀌어도 텍스트 음식 입력의 키보드가 열린 상태로 유지됩니다.
-• 기기 내 언어 지원이 없으면 Android 기본 음성이 대체 경로를 사용합니다. 더 안정적인 전사는 Groq (Whisper) 또는 Deepgram을 사용해 보세요.
+• 목표 재계산 기능이 이제 AI로 작동합니다. 프로필을 기반으로 칼로리와 영양소를 설정하고, 기록한 섭취량과 체중 추세를 반영해 더 정확하게 조정합니다. 오프라인에서는 기본 공식으로 전환됩니다.
+• 온보딩에서 이제 AI 제공업체와 키를 설정한 뒤, AI로 시작 플랜을 만들어 줍니다.
 </ko-KR>
 
 <nl-NL>
-• Tekstinvoer houdt het toetsenbord open terwijl voorbeelden wisselen.
-• Native Android-spraak valt terug als taalondersteuning op het apparaat ontbreekt. Probeer Groq (Whisper) of Deepgram voor stabielere transcriptie.
+• Doelen herberekenen werkt nu met AI: het stelt je calorieën en macro's in op basis van je profiel en verfijnt ze aan de hand van je geregistreerde inname en gewichtstrend. Offline valt het terug op de standaardformule.
+• Bij het instellen worden nu je AI-provider en -sleutel geconfigureerd, waarna AI je startplan opbouwt.
 </nl-NL>
 
 <pt-BR>
-• A entrada de comida por texto mantém o teclado aberto enquanto os exemplos mudam.
-• A voz nativa do Android usa fallback quando falta suporte de idioma no aparelho. Teste Groq (Whisper) ou Deepgram para transcrição mais consistente.
+• O Recalcular Metas agora usa IA — define suas calorias e macros a partir do seu perfil e os ajusta com base no consumo registrado e na tendência de peso. Sem internet, volta para a fórmula padrão.
+• A introdução agora configura seu provedor de IA e sua chave e, em seguida, cria seu plano inicial com IA.
 </pt-BR>
 
 <ro>
-• Introducerea text păstrează tastatura deschisă când exemplele se schimbă.
-• Vocea nativă Android folosește fallback dacă limba nu este disponibilă pe dispozitiv. Încercați Groq (Whisper) sau Deepgram pentru transcriere mai stabilă.
+• Recalcularea obiectivelor folosește acum AI — îți stabilește caloriile și macronutrienții din profil și le ajustează în funcție de aportul înregistrat și de evoluția greutății. Offline revine la formula standard.
+• Configurarea inițială îți setează acum furnizorul AI și cheia, apoi creează planul de început cu AI.
 </ro>
 
 <ru-RU>
-• Текстовый ввод еды больше не закрывает клавиатуру при смене примеров.
-• Нативный голос Android использует резервный режим, если язык недоступен на устройстве. Попробуйте Groq (Whisper) или Deepgram для более стабильной транскрипции.
+• Пересчёт целей теперь работает на ИИ — он задаёт калории и макросы по вашему профилю и уточняет их по записанному рациону и динамике веса. Без сети используется стандартная формула.
+• Онбординг теперь настраивает ИИ-провайдера и ключ, а затем строит ваш стартовый план с помощью ИИ.
 </ru-RU>
 
 <zh-CN>
-• 文本记录食物时，示例轮换也不会关闭键盘。
-• 当设备缺少本机语言支持时，Android 原生语音会自动回退。可尝试 Groq (Whisper) 或 Deepgram，获得更稳定的转写。
+• “重新计算目标”现已由 AI 驱动——它会根据你的个人资料设定卡路里和宏量营养素，并依据你记录的摄入量和体重趋势进行优化。离线时回退到标准公式。
+• 引导设置现可配置你的 AI 服务商和密钥，然后用 AI 为你生成初始计划。
 </zh-CN>
 ```
 
