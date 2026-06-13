@@ -112,6 +112,15 @@ struct GeminiService {
         var reason: String?
     }
 
+    /// AI-computed daily targets returned by `calculateGoals`.
+    struct GoalCalculation {
+        var calories: Int
+        var protein: Int
+        var carbs: Int
+        var fat: Int
+        var reason: String?
+    }
+
     private struct MacroTotals {
         var calories: Int
         var protein: Double
@@ -450,6 +459,66 @@ struct GeminiService {
 
         let text = try await callAI(prompt: prompt, image: nil)
         return try parseHealthEnergyGoalSuggestion(from: text)
+    }
+
+    // MARK: - AI Goal Calculation
+
+    /// AI-driven daily target calculation. Sends the app's full formula set plus the user's
+    /// profile / goals / settings and asks the selected provider (BYOK or Premium, transparently)
+    /// to return calorie + macro targets. The deterministic math stays as the caller's fallback
+    /// when AI is unavailable, so a goal is always produced. This is ONLY for goal targets — it
+    /// does not touch food / photo / label calorie estimation.
+    static func calculateGoals(profile: UserProfile, useMetric: Bool) async throws -> GoalCalculation {
+        let weight = useMetric
+            ? String(format: "%.1f kg", profile.weightKg)
+            : String(format: "%.1f lb", profile.weightKg * 2.20462)
+        let height = useMetric
+            ? String(format: "%.0f cm", profile.heightCm)
+            : String(format: "%.1f in", profile.heightCm / 2.54)
+        let bodyFat = profile.bodyFatPercentage.map { "\(Int(($0 * 100).rounded()))%" } ?? "not set"
+        let goalWeight = profile.goalWeightKg.map { kg in
+            useMetric ? String(format: "%.1f kg", kg) : String(format: "%.1f lb", kg * 2.20462)
+        } ?? "not set"
+        let weekly = profile.weeklyChangeKg.map { String(format: "%.2f kg/week", $0) } ?? "not set (maintain)"
+        let bmrMethod = profile.usesBodyFatForBMR ? "Katch-McArdle (body fat known and enabled)" : "Mifflin-St Jeor"
+
+        let prompt = """
+        You are the goal calculator for a calorie & macro tracking app. Using the FORMULAS and the USER PROFILE below, compute the user's daily targets.
+        Return ONLY valid JSON with these exact keys (integers, plus a short reason):
+        {"calories":2000,"protein":150,"carbs":200,"fat":60,"reason":"Short reason under 100 characters"}
+
+        Use the app's formulas as the basis, applying sensible judgment for this individual.
+        FORMULAS
+        - BMR (Mifflin-St Jeor): base = 10*weightKg + 6.25*heightCm - 5*age - 161; if male add 166; female/other use base.
+        - BMR (Katch-McArdle, used when body fat is known and enabled): 370 + 21.6 * (1 - bodyFatFraction) * weightKg.
+        - TDEE = BMR * activity multiplier. Multipliers: sedentary 1.2, light 1.375, moderate 1.465, active 1.55, very active 1.725, extra active 1.9.
+        - Calorie target = TDEE + adjustment. adjustment = 0 for maintain; lose: -(weeklyChangeKg*7000/7); gain: +(weeklyChangeKg*7000/7).
+        - Protein: g/kg by activity (sedentary 0.8, light 1.2, moderate 1.6, active 1.8, very active 2.0, extra active 2.2), +0.2 g/kg if the goal is to lose. Basis = lean mass (weightKg*(1-bodyFatFraction)) if body fat is known, else full bodyweight.
+        - Fat: 0.6 g/kg of full bodyweight.
+        - Carbs: the calories remaining after protein (4 kcal/g) and fat (9 kcal/g), divided by 4. Keep 4*protein + 4*carbs + 9*fat approximately equal to calories.
+        BMR method in effect for this user: \(bmrMethod).
+        Keep calories within 800-6000. Use integers only. Output no keys other than calories, protein, carbs, fat, reason.
+
+        USER PROFILE
+        - Gender: \(profile.gender.displayName)
+        - Age: \(profile.age)
+        - Height: \(height)
+        - Weight: \(weight)
+        - Body fat: \(bodyFat)
+        - Activity level: \(profile.activityLevel.displayName)
+        - Weight goal: \(profile.goal.displayName)
+        - Weekly change preference: \(weekly)
+        - Goal weight: \(goalWeight)
+
+        APP FORMULA REFERENCE (already computed deterministically — use as the anchor)
+        - BMR: \(Int(profile.bmr.rounded())) kcal/day
+        - TDEE: \(Int(profile.tdee.rounded())) kcal/day
+        - Formula calorie target: \(profile.dailyCalories) kcal/day
+        - Formula macros: \(profile.proteinGoal) g protein, \(profile.carbsGoal) g carbs, \(profile.fatGoal) g fat
+        """
+
+        let text = try await callAI(prompt: prompt, image: nil)
+        return try parseGoalCalculation(from: text)
     }
 
     // MARK: - Weight Forecast Insight
@@ -1133,6 +1202,27 @@ struct GeminiService {
 
         return HealthEnergyGoalSuggestion(
             calories: min(max(calories, 800), 6_000),
+            reason: json["reason"] as? String
+        )
+    }
+
+    private static func parseGoalCalculation(from text: String) throws -> GoalCalculation {
+        let jsonString = extractJSON(from: text)
+        guard let data = jsonString.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let calories = (json["calories"] as? NSNumber)?.intValue
+        else { throw AnalysisError.invalidResponse }
+
+        func macroValue(_ key: String, cap: Int) -> Int {
+            let raw = (json[key] as? NSNumber)?.intValue ?? 0
+            return min(Swift.max(raw, 0), cap)
+        }
+
+        return GoalCalculation(
+            calories: min(Swift.max(calories, 800), 6_000),
+            protein: macroValue("protein", cap: 500),
+            carbs: macroValue("carbs", cap: 1_200),
+            fat: macroValue("fat", cap: 400),
             reason: json["reason"] as? String
         )
     }

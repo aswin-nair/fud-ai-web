@@ -2670,6 +2670,7 @@ struct ProfileView: View {
     @State private var showHealthEnergyGoalsInfo = false
     @State private var showAdaptiveGoalsInfo = false
     @State private var isApplyingHealthEnergyGoals = false
+    @State private var isRecalculatingGoals = false
     @State private var isApplyingAdaptiveGoals = false
     @State private var showHealthEnergyGoalAlert = false
     @State private var showAdaptiveGoalAlert = false
@@ -3022,13 +3023,20 @@ struct ProfileView: View {
                         showRecalculateConfirm = true
                     } label: {
                         Label {
-                            Text("Recalculate Goals")
+                            HStack {
+                                Text("Recalculate Goals")
+                                if isRecalculatingGoals {
+                                    Spacer()
+                                    ProgressView()
+                                }
+                            }
                         } icon: {
                             Image(systemName: "arrow.clockwise")
                                 .foregroundStyle(AppColors.calorie)
                         }
                     }
                     .tint(.primary)
+                    .disabled(isRecalculatingGoals)
 
                     Button {
                         showCalculationMethods = true
@@ -3993,8 +4001,30 @@ struct ProfileView: View {
             Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
             return
         }
-        profile.recalculateGoalsFromFormulas()
-        saveProfile()
+        Task { await recalculateGoalsWithAI() }
+    }
+
+    /// AI-driven goal recalculation. Sends the profile + the app's formulas to the user's
+    /// selected provider (BYOK or Premium, transparently) and applies the returned calorie
+    /// and protein/fat targets; carbs auto-balances so totals stay consistent. Falls back to
+    /// the deterministic formula when AI is unavailable (no key / Premium inactive / offline /
+    /// bad response) so a valid goal is always produced. Food calorie estimation is untouched.
+    private func recalculateGoalsWithAI() async {
+        guard !isRecalculatingGoals else { return }
+        isRecalculatingGoals = true
+        defer { isRecalculatingGoals = false }
+        do {
+            let result = try await GeminiService.calculateGoals(profile: profile, useMetric: useMetric)
+            profile.customCalories = result.calories
+            profile.customProtein = result.protein
+            profile.customFat = result.fat
+            profile.customCarbs = nil          // carbs auto-balances to hit the calorie target
+            profile.autoBalanceMacro = nil
+            saveProfile()
+        } catch {
+            profile.recalculateGoalsFromFormulas()
+            saveProfile()
+        }
         _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
     }
 
