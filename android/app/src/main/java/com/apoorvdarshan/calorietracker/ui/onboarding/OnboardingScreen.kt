@@ -1196,8 +1196,11 @@ private fun ProviderStep(
 ) {
     // iOS aiProviderStep: sparkles icon in circle, "Bring Your Own AI" title,
     // recommended-provider Gemini card with star icon, 3-step setup guide, footer.
+    // Scrollable — the BYOK card (provider + model + key) can overflow shorter screens.
     Column(
-        Modifier.fillMaxSize(),
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
