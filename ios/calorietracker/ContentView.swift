@@ -384,17 +384,17 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
-        "Text, voice, and Siri food logging now keep your selected AI provider first, then your configured fallback provider.",
-        "On supported iPhones, Apple Intelligence can run as a final on-device fallback only after provider attempts fail.",
-        "The Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.",
-        "Photo scans, nutrition label scans, and Coach still use your selected AI access path.",
-        "Polish localization now covers dynamic nutrients, meal types, Settings labels, corrected Log wording, and locale-aware dates and times."
+        "Recalculate Goals now uses AI to set your calories and macros from your profile, then refines them from your logged intake and weight trend. It falls back to the standard formula when AI isn't available.",
+        "Recalculate also refreshes your optional nutrient targets like fiber, sugar, and sodium.",
+        "Onboarding now sets up your AI — Fud AI Premium or your own provider key — and builds your starting plan with it.",
+        "Energy Burn Goals is now part of a single Adaptive Goals toggle that factors your Apple Health calories burned into the weekly correction.",
+        "Various refinements and fixes."
     ]
 
     private var whatsNewRow: some View {
         DisclosureGroup(isExpanded: $showWhatsNew) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Fud AI 4.3")
+                Text("Fud AI 4.4")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
 
