@@ -967,31 +967,11 @@ fun OptionalNutrientGoalsScreen(
             }
 
             item {
-                FudGlassPrimaryButton(
-                    text = "Estimate with AI",
-                    enabled = !ui.estimatingOptionalNutrientGoals,
-                    onClick = vm::estimateOptionalNutrientGoals
-                ) {
-                    if (ui.estimatingOptionalNutrientGoals) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text("Estimating...", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    } else {
-                        Text("Estimate with AI", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    }
-                }
-                ui.optionalNutrientGoalError?.takeIf { it.isNotBlank() }?.let { message ->
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFFF453A)
-                    )
-                }
+                Text(
+                    "Recalculate Goals updates these automatically with AI. Tap any value to adjust it yourself.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
+                )
             }
 
             item {
@@ -1398,10 +1378,7 @@ private fun SettingsSheets(
                 )
                 SettingsSheet.OPTIONAL_NUTRIENTS -> OptionalNutrientGoalsSheet(
                     goals = ui.optionalNutrientGoals,
-                    estimating = ui.estimatingOptionalNutrientGoals,
-                    error = ui.optionalNutrientGoalError,
                     onChange = vm::setOptionalNutrientGoals,
-                    onEstimate = vm::estimateOptionalNutrientGoals,
                     onDismiss = onDismiss
                 )
             }
@@ -1413,10 +1390,7 @@ private fun SettingsSheets(
 @Composable
 private fun OptionalNutrientGoalsSheet(
     goals: OptionalNutrientGoals,
-    estimating: Boolean,
-    error: String?,
     onChange: (OptionalNutrientGoals) -> Unit,
-    onEstimate: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var editing by remember { mutableStateOf<OptionalNutrient?>(null) }
@@ -1451,34 +1425,6 @@ private fun OptionalNutrientGoalsSheet(
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     )
-    Spacer(Modifier.height(12.dp))
-    FudGlassPrimaryButton(
-        text = "Estimate with AI",
-        onClick = onEstimate,
-        enabled = !estimating,
-        modifier = Modifier.fillMaxWidth(),
-        height = 50.dp
-    ) {
-        if (estimating) {
-            CircularProgressIndicator(
-                color = Color.White,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(Modifier.width(10.dp))
-            Text("Estimating...")
-        } else {
-            Text("Estimate with AI", color = Color.White, fontWeight = FontWeight.SemiBold)
-        }
-    }
-    if (!error.isNullOrBlank()) {
-        Spacer(Modifier.height(8.dp))
-        Text(
-            error,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFFD32F2F)
-        )
-    }
     Spacer(Modifier.height(12.dp))
     LazyColumn(
         Modifier.fillMaxWidth().heightIn(max = 420.dp),
