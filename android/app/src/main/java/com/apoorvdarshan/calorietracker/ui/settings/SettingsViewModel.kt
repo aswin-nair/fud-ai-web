@@ -43,6 +43,7 @@ data class SettingsUiState(
     val adaptiveGoalsEnabled: Boolean = false,
     val applyingHealthEnergyGoals: Boolean = false,
     val applyingAdaptiveGoals: Boolean = false,
+    val recalculatingGoals: Boolean = false,
     val healthEnergyGoalAlertTitle: String? = null,
     val healthEnergyGoalAlertMessage: String? = null,
     val adaptiveGoalAlertTitle: String? = null,
@@ -654,7 +655,9 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
 
     fun recalculateGoals() {
         viewModelScope.launch {
+            if (_ui.value.recalculatingGoals) return@launch
             val current = container.profileRepository.current() ?: return@launch
+            _ui.value = _ui.value.copy(recalculatingGoals = true)
             val useMetric = container.prefs.useMetric.first()
             // Empirical signal: recent logged intake + observed weight trend, so the AI can
             // estimate true maintenance (hit-and-trial) instead of trusting the formula alone.
@@ -665,10 +668,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             )
             // AI calorie target with macros reset to auto-balance (unlocked); fall back to the
             // deterministic formula when AI is unavailable so a valid goal is always produced.
+            var message: String
             val next = try {
                 val result = container.foodAnalysis.calculateGoals(current, forecast, useMetric)
+                message = "Updated to ${result.calories} kcal." + (result.reason?.let { " $it" } ?: "")
                 current.recalculatedFromFormulas().copy(customCalories = result.calories)
             } catch (e: Throwable) {
+                message = "Used the standard formula — AI unavailable (${e.localizedMessage ?: "check your AI provider key in Settings"})."
                 current.recalculatedFromFormulas()
             }
             container.profileRepository.save(next)
@@ -679,7 +685,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 _ui.value = _ui.value.copy(optionalNutrientGoals = goals)
             } catch (_: Throwable) { /* keep existing nutrient goals */ }
             val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
-            _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
+            val adaptiveNote = adaptiveResult?.takeIf { it.changed }?.let { "\n\n${it.message}" } ?: ""
+            _ui.value = _ui.value.copy(
+                recalculatingGoals = false,
+                profile = adaptiveResult?.profile ?: next,
+                adaptiveGoalAlertTitle = "Goals Recalculated",
+                adaptiveGoalAlertMessage = message + adaptiveNote
+            )
         }
     }
 

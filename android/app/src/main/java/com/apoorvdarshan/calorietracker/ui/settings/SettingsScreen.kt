@@ -440,7 +440,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable { showRecalcDialog = true }
+                            .clickable(enabled = !ui.recalculatingGoals) { showRecalcDialog = true }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -448,10 +448,18 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         Spacer(Modifier.width(14.dp))
                         Text(
                             stringResource(R.string.settings_recalculate_goals),
-                            color = AppColors.Calorie,
+                            color = if (ui.recalculatingGoals) {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f)
+                            } else {
+                                AppColors.Calorie
+                            },
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )
+                        if (ui.recalculatingGoals) {
+                            Spacer(Modifier.weight(1f))
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        }
                     }
                 }
             }
