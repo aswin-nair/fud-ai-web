@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Fud AI v4.3 build 24. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Fud AI v4.4 build 25. Each field is in a code block for easy copy-paste.
 
 ## App Name
 ```
@@ -28,17 +28,18 @@ Primary: Health & Fitness
 Secondary: Food & Drink
 ```
 
-## What's New (v4.3)
+## What's New (v4.4)
 ```
-Fud AI 4.3 — Apple Intelligence fallback and Polish localization fixes.
+Fud AI 4.4 — Smarter, AI-powered goals.
 
 NEW
-• Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback.
-• On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail.
-• Apple Intelligence fallback keeps the existing serving-unit review behavior and skips unsupported scripts.
-• Photo scans, nutrition label scans, and Coach continue using the configured AI access path.
-• Polish now covers dynamic nutrient names, meal types, Settings labels, and locale-aware date/time display.
-• Polish "Log" wording has been corrected to "Dodaj" / "Dodaj wagę" where appropriate.
+• Recalculate Goals now uses AI. It sets your daily calories and macros from your profile — and as you keep logging, refines them from your real intake and weight trend (a true "hit and trial" estimate of your maintenance). Works with Fud AI Premium or your own provider key, and falls back to the standard formula when AI isn't available.
+• Recalculate also refreshes your optional nutrient targets — fiber, sugar, sodium, and more.
+• Onboarding now sets up your AI up front (Premium, or bring your own provider, model, and key) and builds your starting plan with AI.
+
+IMPROVED
+• Energy Burn Goals is now part of Adaptive Goals — one simpler toggle. When Apple Health is connected, your weekly auto-correction also factors the calories you actually burned.
+• General refinements and fixes.
 
 No data migration is required. Existing logs, goals, widgets, Premium, and BYOK settings are preserved.
 ```
@@ -47,7 +48,7 @@ No data migration is required. Existing logs, goals, widgets, Premium, and BYOK 
 ```
 Effortless calorie tracking with AI-powered food recognition. Snap, scan, speak, or type a meal — get instant calories, macros, and nutrients.
 
-NEW in v4.3: Text, voice-transcribed, and Siri food logging now try the active AI access path first: Premium Gemini, or your BYOK provider plus configured fallback. On supported iPhones, Apple Intelligence can run as a final on-device fallback when those provider attempts fail. Build 24 also improves Polish localization for dynamic nutrients, meal types, Settings labels, and locale-aware date/time display.
+NEW in v4.4: Recalculate Goals is now AI-powered — it sets your daily calories and macros from your profile and refines them from your real logged intake and weight trend (Fud AI Premium or your own provider key; falls back to the standard formula offline), and also refreshes your optional nutrient targets. Onboarding now sets up your AI and builds your plan with it. Energy Burn Goals is now folded into a single Adaptive Goals toggle that factors your Apple Health calories burned.
 
 Free, open source, privacy-first. Bring your own API key, or use optional Fud AI Premium for hosted Gemini + Deepgram access. Premium hides BYOK controls until you switch back.
 
