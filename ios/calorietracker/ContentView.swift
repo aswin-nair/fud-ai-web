@@ -384,7 +384,7 @@ private struct AboutView: View {
     }
 
     private static let whatsNewItems = [
-        "Recalculate Goals now uses AI to set your calories and macros from your profile, then refines them from your logged intake and weight trend. It falls back to the standard formula when AI isn't available.",
+        "Recalculate Goals uses AI to set your calories and macros from your profile, logged intake, and weight trend. Your goals now stay put when you edit details like weight or pace — they only change when you tap Recalculate (or the weekly Adaptive check).",
         "Recalculate also refreshes your optional nutrient targets like fiber, sugar, and sodium.",
         "Onboarding now sets up your AI — Fud AI Premium or your own provider key — and builds your starting plan with it.",
         "Energy Burn Goals is now part of a single Adaptive Goals toggle that factors your Apple Health calories burned into the weekly correction.",
@@ -2761,7 +2761,7 @@ struct ProfileView: View {
                     }
                     .pickerStyle(.menu)
                     .tint(.secondary)
-                    .onChange(of: profile.gender) { _, _ in resetCustomGoalsAndSave() }
+                    .onChange(of: profile.gender) { _, _ in saveProfile() }
 
                     ProfileInfoRow(icon: "birthday.cake", label: "Birthday", value: birthdayDisplay) {
                         activeSheet = .editBirthday
@@ -2805,7 +2805,7 @@ struct ProfileView: View {
                             get: { profile.useBodyFatInBMR ?? true },
                             set: { newValue in
                                 profile.useBodyFatInBMR = newValue
-                                resetCustomGoalsAndSave()
+                                saveProfile()
                             }
                         )) {
                             Label {
@@ -2859,7 +2859,7 @@ struct ProfileView: View {
                                 }
                             }
                         }
-                        resetCustomGoalsAndSave()
+                        saveProfile()
                     }
 
                     Picker(selection: profileBinding.activityLevel) {
@@ -2876,12 +2876,12 @@ struct ProfileView: View {
                     }
                     .pickerStyle(.menu)
                     .tint(.secondary)
-                    .onChange(of: profile.activityLevel) { _, _ in resetCustomGoalsAndSave() }
+                    .onChange(of: profile.activityLevel) { _, _ in saveProfile() }
 
                     if profile.goal != .maintain {
                         Picker(selection: Binding(
                             get: { profile.weeklyChangeKg ?? 0.5 },
-                            set: { profile.weeklyChangeKg = $0; resetCustomGoalsAndSave() }
+                            set: { profile.weeklyChangeKg = $0; saveProfile() }
                         )) {
                             Text("Slow (0.25 kg/wk)").tag(0.25)
                             Text("Moderate (0.5 kg/wk)").tag(0.5)
@@ -2970,6 +2970,13 @@ struct ProfileView: View {
                         Label {
                             HStack {
                                 Text("Recalculate Goals")
+                                if goalsNeedRecalc && !isRecalculatingGoals {
+                                    // Soft nudge: a goal input changed since the last recalc.
+                                    // The button stays enabled — this only suggests, never blocks.
+                                    Circle()
+                                        .fill(AppColors.calorie)
+                                        .frame(width: 7, height: 7)
+                                }
                                 if isRecalculatingGoals {
                                     Spacer()
                                     ProgressView()
@@ -2982,6 +2989,13 @@ struct ProfileView: View {
                     }
                     .tint(.primary)
                     .disabled(isRecalculatingGoals)
+
+                    if goalsNeedRecalc && !isRecalculatingGoals {
+                        Text("Your profile changed — recalculate to refresh your calories and macros.")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.calorie)
+                            .listRowSeparator(.hidden)
+                    }
 
                     Button {
                         showCalculationMethods = true
@@ -3687,7 +3701,7 @@ struct ProfileView: View {
                         currentHeightCm: profile.heightCm
                     ) { newHeight in
                         profile.heightCm = newHeight
-                        resetCustomGoalsAndSave()
+                        saveProfile()
                     }
 
                 case .editWeight:
@@ -3702,7 +3716,7 @@ struct ProfileView: View {
                                         || (profile.goal == .gain && gw <= newWeight)
                             if mismatch { profile.goalWeightKg = nil }
                         }
-                        resetCustomGoalsAndSave()
+                        saveProfile()
                         weightStore.addEntry(WeightEntry(weightKg: newWeight))
                     }
 
@@ -3715,14 +3729,12 @@ struct ProfileView: View {
                         // value — clear it whenever the current is cleared so
                         // a stale goal doesn't linger on a user who's opted out.
                         if newValue == nil { profile.goalBodyFatPercentage = nil }
-                        resetCustomGoalsAndSave()
+                        saveProfile()
                     }
 
                 case .editGoalBodyFat:
                     // Goal body fat is purely cosmetic — does NOT participate
-                    // in BMR / TDEE / macro math. Use a plain saveProfile()
-                    // path (not resetCustomGoalsAndSave) so editing the goal
-                    // never silently wipes a user's pinned macros.
+                    // in BMR / TDEE / macro math, so editing it just saves.
                     GoalBodyFatPickerSheet(
                         currentGoal: profile.goalBodyFatPercentage,
                         currentBodyFat: profile.bodyFatPercentage
@@ -3822,6 +3834,12 @@ struct ProfileView: View {
             }
             .onAppear {
                 selectedAccessMode = AIAccessSettings.mode
+                // Existing users (and anyone who has never recalculated) start with no baseline.
+                // Seed it to the current inputs so the "recalculate suggested" nudge only appears
+                // after a genuine change from here on, instead of firing on first launch.
+                if UserDefaults.standard.string(forKey: Self.lastRecalcGoalSignatureKey) == nil {
+                    markGoalsRecalculated()
+                }
             }
             .alert("Auto-balanced", isPresented: $showAutoMacroEditAlert) {
                 Button("OK", role: .cancel) { }
@@ -3878,13 +3896,19 @@ struct ProfileView: View {
         profile.save()
     }
 
-    /// Clear all custom goal overrides so calories + macros recompute from the current
-    /// weight / activity / goal formulas. Triggered automatically when those underlying
-    /// inputs change (gender, activity, weight, etc.) and via the Recalculate button.
-    private func resetCustomGoalsAndSave() {
-        profile.recalculateGoalsFromFormulas()
-        saveProfile()
-        Task { _ = await applyAdaptiveGoalsIfDue(force: false, showAlert: false) }
+    private static let lastRecalcGoalSignatureKey = "lastRecalcGoalSignature"
+
+    /// True when a goal-relevant input (weight, activity, goal, pace, …) has changed since the
+    /// last Recalculate. Recalculate stays tappable at all times — this only drives a soft
+    /// "your profile changed, recalculate to refresh" nudge, never disables the button.
+    private var goalsNeedRecalc: Bool {
+        guard let stored = UserDefaults.standard.string(forKey: Self.lastRecalcGoalSignatureKey) else { return false }
+        return stored != profile.goalInputSignature
+    }
+
+    /// Capture the current goal inputs as the "last recalculated" baseline so the nudge clears.
+    private func markGoalsRecalculated() {
+        UserDefaults.standard.set(profile.goalInputSignature, forKey: Self.lastRecalcGoalSignatureKey)
     }
 
     /// Macro row. Tap to open the picker (which lets the user enter a value to pin, or reset to auto).
@@ -3934,12 +3958,13 @@ struct ProfileView: View {
 
     /// AI-driven goal recalculation. Sends the profile + the app's formulas to the user's
     /// selected provider (BYOK or Premium, transparently) and applies the returned calorie
-    /// and protein/fat targets; carbs auto-balances so totals stay consistent. Falls back to
-    /// the deterministic formula when AI is unavailable (no key / Premium inactive / offline /
-    /// bad response) so a valid goal is always produced. Then recomputes the optional
-    /// "Other Nutrients" (fiber/sugar/sodium/…) via AI, leaving them untouched if that call
-    /// fails (no clobbering of user customizations). The whole recalc is aborted if the user
-    /// edits a goal input mid-call. Food calorie estimation is untouched.
+    /// and protein/fat targets; carbs auto-balances so totals stay consistent. AI-only — when
+    /// the provider is unavailable (no key / Premium inactive / offline / bad response) the
+    /// existing goals are left unchanged and the user is told to fix their provider/key, with
+    /// NO silent formula fallback. Then recomputes the optional "Other Nutrients"
+    /// (fiber/sugar/sodium/…) via AI, leaving them untouched if that call fails (no clobbering
+    /// of user customizations). The whole recalc is aborted if the user edits a goal input
+    /// mid-call. Food calorie estimation is untouched.
     private func recalculateGoalsWithAI() async {
         guard !isRecalculatingGoals else { return }
         isRecalculatingGoals = true
@@ -3966,10 +3991,16 @@ struct ProfileView: View {
             profile.customCarbs = nil
             profile.autoBalanceMacro = nil
             saveProfile()
+            markGoalsRecalculated()
         } catch {
             guard goalInputsUnchanged(snapshot, profile) else { return }
-            profile.recalculateGoalsFromFormulas()
-            saveProfile()
+            // Goals are AI-only now — no formula fallback. Leave the existing goals
+            // untouched and tell the user so they can fix their provider/key and retry.
+            showAdaptiveGoalAlert(
+                title: "Couldn't Recalculate",
+                message: "Fud AI couldn't reach your AI provider, so your goals are unchanged. Check your AI provider and API key in Settings, then try Recalculate again."
+            )
+            return
         }
 
         // Also recompute the optional "Other Nutrients" (fiber, sugar, sodium, …) via AI,

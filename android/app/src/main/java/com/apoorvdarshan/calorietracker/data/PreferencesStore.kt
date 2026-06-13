@@ -281,6 +281,14 @@ class PreferencesStore(private val context: Context) {
         }
     }
 
+    // -- Recalculate nudge -----------------------------------------------
+    // Fingerprint of the goal inputs at the last Recalculate. When it differs from the current
+    // profile, Settings shows a soft "recalculate suggested" hint. null = no baseline yet.
+    val lastRecalcGoalSignature: Flow<String?> = ds.data.map { it[Keys.LAST_RECALC_GOAL_SIGNATURE] }
+    suspend fun setLastRecalcGoalSignature(value: String) {
+        ds.edit { it[Keys.LAST_RECALC_GOAL_SIGNATURE] = value }
+    }
+
     // -- Fallback AI Provider --------------------------------------------
     val fallbackEnabled: Flow<Boolean> = ds.data.map { it[Keys.FALLBACK_ENABLED] ?: false }
     suspend fun setFallbackEnabled(v: Boolean) { ds.edit { it[Keys.FALLBACK_ENABLED] = v } }
@@ -435,6 +443,7 @@ class PreferencesStore(private val context: Context) {
 
     private object Keys {
         val USER_PROFILE = stringPreferencesKey("userProfile")
+        val LAST_RECALC_GOAL_SIGNATURE = stringPreferencesKey("lastRecalcGoalSignature")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("hasCompletedOnboarding")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notificationsEnabled")
         val STREAK_ENABLED = booleanPreferencesKey("streakReminderEnabled")

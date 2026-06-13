@@ -342,16 +342,15 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             icon = Icons.Outlined.TrackChanges
                         ) { sheet = SettingsSheet.GOAL_BODY_FAT }
                         HorizontalDivider()
-                        // Use saveProfile (not recompute) for the toggle since
-                        // BMR formula switching is precisely what should
-                        // recompute calories + macros — handled inline via
-                        // recalculatedFromFormulas after the copy.
+                        // Editing any profile input — including the BMR formula
+                        // toggle — just saves now. Goals change only via Recalculate
+                        // Goals (AI) or the weekly Adaptive pass.
                         ToggleRow(
                             stringResource(R.string.settings_use_body_fat_bmr),
                             p.useBodyFatInBMR ?: true,
                             icon = Icons.Outlined.Calculate,
                             onChange = { newValue ->
-                                vm.updateProfileAndRecompute { it.copy(useBodyFatInBMR = newValue) }
+                                vm.updateProfile { it.copy(useBodyFatInBMR = newValue) }
                             }
                         )
                         Text(
@@ -456,10 +455,29 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )
+                        if (ui.goalsNeedRecalc && !ui.recalculatingGoals) {
+                            // Soft nudge: a goal input changed since the last recalc. The row
+                            // stays tappable — this only suggests, never blocks recalculating.
+                            Spacer(Modifier.width(8.dp))
+                            Box(
+                                Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Calorie)
+                            )
+                        }
                         if (ui.recalculatingGoals) {
                             Spacer(Modifier.weight(1f))
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                         }
+                    }
+                    if (ui.goalsNeedRecalc && !ui.recalculatingGoals) {
+                        Text(
+                            "Your profile changed — recalculate to refresh your calories and macros.",
+                            color = AppColors.Calorie,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                        )
                     }
                 }
             }
@@ -1167,7 +1185,7 @@ private fun SettingsSheets(
                     items = Gender.values().toList(),
                     label = { stringResource(it.displayNameRes) },
                     selected = { it == ui.profile?.gender },
-                    onSelect = { g -> vm.updateProfileAndRecompute { it.copy(gender = g) }; onDismiss() },
+                    onSelect = { g -> vm.updateProfile { it.copy(gender = g) }; onDismiss() },
                     icon = { genderIcon(it) }
                 )
                 SettingsSheet.HEIGHT -> {
@@ -1175,7 +1193,7 @@ private fun SettingsSheets(
                     HeightSheet(
                         current = cm,
                         useMetric = ui.useMetric,
-                        onSave = { newCm -> vm.updateProfileAndRecompute { it.copy(heightCm = newCm.toDouble()) }; onDismiss() }
+                        onSave = { newCm -> vm.updateProfile { it.copy(heightCm = newCm.toDouble()) }; onDismiss() }
                     )
                 }
                 SettingsSheet.WEIGHT -> {
@@ -1193,7 +1211,7 @@ private fun SettingsSheets(
                     // goal doesn't linger on someone who opted out of the
                     // body-fat track entirely.
                     onSave = { bf ->
-                        vm.updateProfileAndRecompute {
+                        vm.updateProfile {
                             it.copy(
                                 bodyFatPercentage = bf,
                                 goalBodyFatPercentage = if (bf == null) null else it.goalBodyFatPercentage
@@ -1216,7 +1234,7 @@ private fun SettingsSheets(
                     label = { activityLevelLabelWithProtein(it, ui.profile?.bodyFatPercentage) },
                     subtitle = { stringResource(it.subtitleRes) },
                     selected = { it == ui.profile?.activityLevel },
-                    onSelect = { a -> vm.updateProfileAndRecompute { it.copy(activityLevel = a) }; onDismiss() },
+                    onSelect = { a -> vm.updateProfile { it.copy(activityLevel = a) }; onDismiss() },
                     icon = { activityIcon(it) }
                 )
                 SettingsSheet.GOAL -> ListSheet(
@@ -1231,7 +1249,7 @@ private fun SettingsSheets(
                         //   - Switching to LOSE/GAIN seeds weeklyChangeKg if missing and
                         //     clears goalWeightKg if it now contradicts the new direction.
                         // Then recompute calories+macros from the new goal.
-                        vm.updateProfileAndRecompute { p ->
+                        vm.updateProfile { p ->
                             when (g) {
                                 WeightGoal.MAINTAIN ->
                                     p.copy(goal = g, weeklyChangeKg = null, goalWeightKg = null)
@@ -1287,7 +1305,7 @@ private fun SettingsSheets(
                     current = ui.profile?.weeklyChangeKg ?: 0.5,
                     goal = ui.profile?.goal ?: WeightGoal.MAINTAIN,
                     useMetric = ui.useMetric,
-                    onSave = { kg -> vm.updateProfileAndRecompute { it.copy(weeklyChangeKg = kg) }; onDismiss() }
+                    onSave = { kg -> vm.updateProfile { it.copy(weeklyChangeKg = kg) }; onDismiss() }
                 )
                 SettingsSheet.BIRTHDAY -> BirthdaySheet(
                     current = ui.profile?.birthday ?: Instant.now(),

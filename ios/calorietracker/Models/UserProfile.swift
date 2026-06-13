@@ -300,6 +300,26 @@ struct UserProfile: Codable, Equatable {
         return mySharedKcal / macro.kcalPerGram
     }
 
+    /// Stable fingerprint of the inputs that feed goal calculation. When this differs from the
+    /// value captured at the last Recalculate, the UI nudges the user to recalculate. Editing a
+    /// profile input no longer recomputes goals automatically, so this is how we surface "your
+    /// profile changed — your goals may be stale." Must stay in sync with `goalInputsUnchanged`.
+    var goalInputSignature: String {
+        let parts: [String] = [
+            "\(gender)",
+            "\(birthday.timeIntervalSince1970)",
+            "\(heightCm)",
+            "\(weightKg)",
+            "\(activityLevel)",
+            "\(goal)",
+            weeklyChangeKg.map { "\($0)" } ?? "nil",
+            goalWeightKg.map { "\($0)" } ?? "nil",
+            bodyFatPercentage.map { "\($0)" } ?? "nil",
+            useBodyFatInBMR.map { "\($0)" } ?? "nil"
+        ]
+        return parts.joined(separator: "|")
+    }
+
     /// Recompute calories from weight/activity/goal formulas and reset all three macros to auto.
     /// User can pin individual macros afterwards (max 2).
     mutating func recalculateGoalsFromFormulas() {

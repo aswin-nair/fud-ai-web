@@ -58,12 +58,22 @@ data class SettingsUiState(
     val fallbackProvider: AIProvider = AIProvider.GEMINI,
     val fallbackModel: String = AIProvider.GEMINI.defaultModel,
     val fallbackApiKeyMasked: String = "",
-    val optionalNutrientGoals: OptionalNutrientGoals = OptionalNutrientGoals.Default
+    val optionalNutrientGoals: OptionalNutrientGoals = OptionalNutrientGoals.Default,
+    /** A goal-relevant input changed since the last Recalculate. Drives a soft nudge on the
+     *  Recalculate row; the button stays tappable at all times — this never disables it. */
+    val goalsNeedRecalc: Boolean = false
 )
 
 class SettingsViewModel(val container: AppContainer) : ViewModel() {
     private val _ui = MutableStateFlow(SettingsUiState())
     val ui: StateFlow<SettingsUiState> = _ui.asStateFlow()
+
+    /** Goal-input fingerprint captured at the last Recalculate (or seeded on first load). */
+    private var lastRecalcSignature: String? = null
+
+    /** True when [profile]'s goal inputs differ from the last-recalculated baseline. */
+    private fun needsRecalc(profile: com.apoorvdarshan.calorietracker.models.UserProfile?): Boolean =
+        lastRecalcSignature != null && profile != null && lastRecalcSignature != profile.goalInputSignature
 
     init {
         viewModelScope.launch {
@@ -100,6 +110,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val fbModel = fbProvider.supportedModelOrDefault(container.prefs.selectedFallbackModel.first())
             val fbMasked = maskKey(container.keyStore.apiKey(fbProvider))
             val optionalGoals = container.prefs.optionalNutrientGoals.first()
+            // Seed the recalc baseline for existing users / first launch so the nudge only fires
+            // after a genuine change from here on, never immediately on open.
+            val storedSignature = container.prefs.lastRecalcGoalSignature.first()
+            lastRecalcSignature = storedSignature ?: profile?.goalInputSignature
+            if (storedSignature == null && profile != null) {
+                container.prefs.setLastRecalcGoalSignature(profile.goalInputSignature)
+            }
             _ui.value = SettingsUiState(
                 selectedAI = provider,
                 selectedModel = model,
@@ -127,7 +144,8 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 fallbackProvider = fbProvider,
                 fallbackModel = fbModel,
                 fallbackApiKeyMasked = fbMasked,
-                optionalNutrientGoals = optionalGoals
+                optionalNutrientGoals = optionalGoals,
+                goalsNeedRecalc = needsRecalc(profile)
             )
         }
     }
@@ -635,18 +653,25 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 foods = container.foodRepository.entries.first(),
                 profile = current
             )
-            // AI calorie target with macros reset to auto-balance (unlocked); fall back to the
-            // deterministic formula when AI is unavailable so a valid goal is always produced.
-            var message: String
-            val next = try {
-                val result = container.foodAnalysis.calculateGoals(current, forecast, useMetric)
-                message = "Updated to ${result.calories} kcal." + (result.reason?.let { " $it" } ?: "")
-                current.recalculatedFromFormulas().copy(customCalories = result.calories)
+            // AI-only — no formula fallback. If the AI provider is unavailable, leave the
+            // existing goals untouched and tell the user so they can fix their key and retry.
+            val result = try {
+                container.foodAnalysis.calculateGoals(current, forecast, useMetric)
             } catch (e: Throwable) {
-                message = "Used the standard formula — AI unavailable (${e.localizedMessage ?: "check your AI provider key in Settings"})."
-                current.recalculatedFromFormulas()
+                _ui.value = _ui.value.copy(
+                    recalculatingGoals = false,
+                    adaptiveGoalAlertTitle = "Couldn't Recalculate",
+                    adaptiveGoalAlertMessage = "Fud AI couldn't reach your AI provider, so your goals are unchanged. Check your AI provider and API key in Settings, then try again. (${e.localizedMessage ?: "no response"})"
+                )
+                return@launch
             }
+            // Apply the AI calorie target with macros reset to auto-balance (unlocked).
+            val next = current.recalculatedFromFormulas().copy(customCalories = result.calories)
+            val message = "Updated to ${result.calories} kcal." + (result.reason?.let { " $it" } ?: "")
             container.profileRepository.save(next)
+            // Goals are now fresh — capture this input baseline so the recalc nudge clears.
+            lastRecalcSignature = next.goalInputSignature
+            container.prefs.setLastRecalcGoalSignature(next.goalInputSignature)
             // Also AI-refresh the optional Other Nutrients; keep existing values on failure.
             try {
                 val goals = container.foodAnalysis.estimateOptionalNutrientGoals(next)
@@ -659,17 +684,18 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 recalculatingGoals = false,
                 profile = adaptiveResult?.profile ?: next,
                 adaptiveGoalAlertTitle = "Goals Recalculated",
-                adaptiveGoalAlertMessage = message + adaptiveNote
+                adaptiveGoalAlertMessage = message + adaptiveNote,
+                goalsNeedRecalc = false
             )
         }
     }
 
     /**
      * Settings → Weight save: writes a WeightEntry (so the chart, Coach forecast,
-     * and Health Connect sync see the change), clears goalWeightKg if the new
-     * current weight makes the goal direction impossible, and recomputes calories
-     * + macros from formulas (since BMR/TDEE depend on weight). Mirrors iOS
-     * ContentView.swift `case .editWeight` which also calls resetCustomGoalsAndSave.
+     * and Health Connect sync see the change) and clears goalWeightKg if the new
+     * current weight makes the goal direction impossible. Does NOT recompute calorie
+     * or macro goals — those change only via Recalculate Goals (AI) or the weekly
+     * Adaptive pass. Mirrors iOS ContentView.swift `case .editWeight`.
      */
     fun saveCurrentWeight(newKg: Double) {
         viewModelScope.launch {
@@ -684,10 +710,9 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val refreshed = container.profileRepository.current() ?: return@launch
             val next = refreshed.copy(
                 goalWeightKg = if (mismatch) null else refreshed.goalWeightKg
-            ).recalculatedFromFormulas()
+            )
             container.profileRepository.save(next)
-            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
-            _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
+            _ui.value = _ui.value.copy(profile = next, goalsNeedRecalc = needsRecalc(next))
         }
     }
 
@@ -696,22 +721,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val current = container.profileRepository.current() ?: return@launch
             val next = update(current)
             container.profileRepository.save(next)
-            _ui.value = _ui.value.copy(profile = next)
-        }
-    }
-
-    /**
-     * Like [updateProfile] but also resets custom calories + macros to formula defaults.
-     * Use this for changes to inputs that feed BMR/TDEE/protein formulas (gender, height,
-     * body fat, activity level, goal, weekly change). Mirrors iOS resetCustomGoalsAndSave.
-     */
-    fun updateProfileAndRecompute(update: (com.apoorvdarshan.calorietracker.models.UserProfile) -> com.apoorvdarshan.calorietracker.models.UserProfile) {
-        viewModelScope.launch {
-            val current = container.profileRepository.current() ?: return@launch
-            val next = update(current).recalculatedFromFormulas()
-            container.profileRepository.save(next)
-            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
-            _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
+            _ui.value = _ui.value.copy(profile = next, goalsNeedRecalc = needsRecalc(next))
         }
     }
 

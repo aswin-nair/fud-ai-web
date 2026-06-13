@@ -131,6 +131,18 @@ data class UserProfile(
     }
 
     /**
+     * Stable fingerprint of the inputs that feed goal calculation. When this differs from the
+     * value captured at the last Recalculate, the UI nudges the user to recalculate. Editing a
+     * profile input no longer recomputes goals automatically, so this is how we surface "your
+     * profile changed — your goals may be stale." Must stay in sync with the fields the AI/formula
+     * actually consume (see [dailyCalories], [bmr], [proteinGoal]).
+     */
+    val goalInputSignature: String get() = listOf(
+        gender, birthday.epochSecond, heightCm, weightKg, activityLevel, goal,
+        weeklyChangeKg, goalWeightKg, bodyFatPercentage, useBodyFatInBMR
+    ).joinToString("|")
+
+    /**
      * Returns a copy with calories recomputed from formulas and all three macros reset to auto.
      * User can pin individual macros afterwards (max 2).
      */

@@ -664,7 +664,7 @@
     <string name="about_whats_new">What\'s New</string>
     <string name="about_whats_new_version_format">Version %1$s</string>
     <string name="about_whats_new_android_summary">Android changes in this update:</string>
-    <string name="about_whats_new_item_ai_goals">Recalculate Goals now uses AI to set your calories and macros from your profile, then refines them from your logged intake and weight trend. It falls back to the standard formula when AI isn\'t available.</string>
+    <string name="about_whats_new_item_ai_goals">Recalculate Goals uses AI to set your calories and macros from your profile, logged intake, and weight trend. Your goals now stay put when you edit details like weight or pace — they only change when you tap Recalculate (or the weekly Adaptive check).</string>
     <string name="about_whats_new_item_ai_nutrients">Recalculate also refreshes your optional nutrient targets like fiber, sugar, and sodium.</string>
     <string name="about_whats_new_item_onboarding_ai">Onboarding now sets up your AI provider and key, then builds your starting plan with AI.</string>
     <string name="about_whats_new_item_adaptive_merge">Energy Burn Goals is now part of a single Adaptive Goals toggle that factors your Health Connect calories burned into the weekly correction.</string>
