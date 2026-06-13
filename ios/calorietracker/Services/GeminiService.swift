@@ -1208,21 +1208,23 @@ struct GeminiService {
 
     private static func parseGoalCalculation(from text: String) throws -> GoalCalculation {
         let jsonString = extractJSON(from: text)
+        // Require calories AND the macros the caller actually applies (protein, fat) to be
+        // present and positive. A missing/null/zero macro means the model didn't follow the
+        // schema — throw so the caller falls back to the deterministic formula instead of
+        // silently saving a 0 g protein/fat target. (carbs is derived by auto-balance.)
         guard let data = jsonString.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let calories = (json["calories"] as? NSNumber)?.intValue
+              let calories = (json["calories"] as? NSNumber)?.intValue,
+              let protein = (json["protein"] as? NSNumber)?.intValue, protein > 0,
+              let fat = (json["fat"] as? NSNumber)?.intValue, fat > 0
         else { throw AnalysisError.invalidResponse }
 
-        func macroValue(_ key: String, cap: Int) -> Int {
-            let raw = (json[key] as? NSNumber)?.intValue ?? 0
-            return min(Swift.max(raw, 0), cap)
-        }
-
+        let carbs = (json["carbs"] as? NSNumber)?.intValue ?? 0
         return GoalCalculation(
             calories: min(Swift.max(calories, 800), 6_000),
-            protein: macroValue("protein", cap: 500),
-            carbs: macroValue("carbs", cap: 1_200),
-            fat: macroValue("fat", cap: 400),
+            protein: min(protein, 500),
+            carbs: min(Swift.max(carbs, 0), 1_200),
+            fat: min(fat, 400),
             reason: json["reason"] as? String
         )
     }

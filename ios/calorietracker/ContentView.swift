@@ -4013,8 +4013,15 @@ struct ProfileView: View {
         guard !isRecalculatingGoals else { return }
         isRecalculatingGoals = true
         defer { isRecalculatingGoals = false }
+
+        // Snapshot the inputs the AI computes against. The profile is shared (ProfileStore)
+        // and can be reloaded/edited on the main actor during the await, so we apply results
+        // only if the calc-relevant inputs are still unchanged — otherwise the concurrent
+        // edit (which already reset goals) wins, avoiding a stale/lost-update.
+        let snapshot = profile
         do {
-            let result = try await GeminiService.calculateGoals(profile: profile, useMetric: useMetric)
+            let result = try await GeminiService.calculateGoals(profile: snapshot, useMetric: useMetric)
+            guard goalInputsUnchanged(snapshot, profile) else { return }
             profile.customCalories = result.calories
             profile.customProtein = result.protein
             profile.customFat = result.fat
@@ -4022,10 +4029,27 @@ struct ProfileView: View {
             profile.autoBalanceMacro = nil
             saveProfile()
         } catch {
+            guard goalInputsUnchanged(snapshot, profile) else { return }
             profile.recalculateGoalsFromFormulas()
             saveProfile()
         }
         _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
+    }
+
+    /// True when the fields that drive the goal calculation are identical between two profile
+    /// snapshots. Used to discard an in-flight AI recalc result if the user changed an input
+    /// (weight, activity, goal, etc.) mid-call.
+    private func goalInputsUnchanged(_ a: UserProfile, _ b: UserProfile) -> Bool {
+        a.gender == b.gender
+            && a.birthday == b.birthday
+            && a.heightCm == b.heightCm
+            && a.weightKg == b.weightKg
+            && a.activityLevel == b.activityLevel
+            && a.goal == b.goal
+            && a.weeklyChangeKg == b.weeklyChangeKg
+            && a.goalWeightKg == b.goalWeightKg
+            && a.bodyFatPercentage == b.bodyFatPercentage
+            && a.useBodyFatInBMR == b.useBodyFatInBMR
     }
 
     private func handleHealthKitToggle(_ enabled: Bool) {
