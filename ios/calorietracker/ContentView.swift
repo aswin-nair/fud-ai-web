@@ -2660,7 +2660,6 @@ struct ProfileView: View {
     @State private var activeSheet: ActiveSheet?
     @State private var showDeleteConfirmation = false
     @State private var showClearFoodLogConfirmation = false
-    @State private var showRecalculateConfirm = false
     @State private var showCalculationMethods = false
     @State private var showAutoMacroEditAlert = false
     @State private var showMaxPinnedAlert = false
@@ -2965,7 +2964,7 @@ struct ProfileView: View {
                     }
 
                     Button {
-                        showRecalculateConfirm = true
+                        recalculateGoalsNow()
                     } label: {
                         Label {
                             HStack {
@@ -3804,12 +3803,6 @@ struct ProfileView: View {
                 }
             } message: {
                 Text("This will permanently delete all your logged food entries. Your profile, weight entries, and favorites will be kept. This action cannot be undone.")
-            }
-            .alert("Recalculate Goals", isPresented: $showRecalculateConfirm) {
-                Button("Cancel", role: .cancel) { }
-                Button("Recalculate") { recalculateGoalsNow() }
-            } message: {
-                Text("Recompute calories, protein, carbs, and fat from your current weight, activity, and goal? Your custom values will be replaced and Auto-balance will reset to Carbs.")
             }
             .alert("Default to Grams", isPresented: $showDefaultGramsInfo) {
                 Button("OK", role: .cancel) { }

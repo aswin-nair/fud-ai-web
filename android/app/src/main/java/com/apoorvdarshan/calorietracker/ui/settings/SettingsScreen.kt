@@ -185,7 +185,6 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
     var sheet by remember { mutableStateOf<SettingsSheet?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showClearFoodDialog by remember { mutableStateOf(false) }
-    var showRecalcDialog by remember { mutableStateOf(false) }
     var invalidGoalWeightMessage by remember { mutableStateOf<String?>(null) }
     var showMaxPinnedAlert by remember { mutableStateOf(false) }
     var permissionDeniedMessage by remember { mutableStateOf<String?>(null) }
@@ -439,7 +438,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable(enabled = !ui.recalculatingGoals) { showRecalcDialog = true }
+                            .clickable(enabled = !ui.recalculatingGoals) { vm.recalculateGoals() }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -743,25 +742,6 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
             FudGlassDialogActions(
                 primaryText = stringResource(R.string.action_ok),
                 onPrimary = { showMaxPinnedAlert = false }
-            )
-        }
-    }
-
-    if (showRecalcDialog) {
-        FudGlassDialog(onDismissRequest = { showRecalcDialog = false }) {
-            Text(stringResource(R.string.settings_recalc_title), fontSize = 21.sp, fontWeight = FontWeight.Bold)
-            Text(
-                stringResource(R.string.settings_recalc_message),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
-            )
-            FudGlassDialogActions(
-                primaryText = stringResource(R.string.settings_recalc_confirm),
-                onPrimary = {
-                    vm.recalculateGoals()
-                    showRecalcDialog = false
-                },
-                dismissText = stringResource(R.string.action_cancel),
-                onDismiss = { showRecalcDialog = false }
             )
         }
     }
