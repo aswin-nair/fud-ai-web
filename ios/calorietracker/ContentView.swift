@@ -3223,7 +3223,8 @@ struct ProfileView: View {
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
                                 .onChange(of: apiKeyText) { _, newValue in
-                                    AIProviderSettings.setAPIKey(newValue.isEmpty ? nil : newValue, for: selectedProvider)
+                                    let t = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    AIProviderSettings.setAPIKey(t.isEmpty ? nil : t, for: selectedProvider)
                                 }
                                 Button {
                                     showAPIKey.toggle()
@@ -3257,7 +3258,8 @@ struct ProfileView: View {
                                     .textInputAutocapitalization(.never)
                                     .keyboardType(.URL)
                                     .onChange(of: customBaseURL) { _, newValue in
-                                        AIProviderSettings.setCustomBaseURL(newValue.isEmpty ? nil : newValue, for: selectedProvider)
+                                        let t = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                                        AIProviderSettings.setCustomBaseURL(t.isEmpty ? nil : t, for: selectedProvider)
                                     }
                             }
                         }

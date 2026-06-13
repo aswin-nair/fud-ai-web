@@ -1031,7 +1031,8 @@ struct OnboardingView: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .onChange(of: byokApiKey) { _, k in
-                        AIProviderSettings.setAPIKey(k.isEmpty ? nil : k, for: byokProvider)
+                        let t = k.trimmingCharacters(in: .whitespacesAndNewlines)
+                        AIProviderSettings.setAPIKey(t.isEmpty ? nil : t, for: byokProvider)
                     }
                     Button { showByokKey.toggle() } label: {
                         Image(systemName: showByokKey ? "eye.fill" : "eye.slash.fill")
@@ -1059,7 +1060,8 @@ struct OnboardingView: View {
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
                     .onChange(of: byokBaseURL) { _, u in
-                        AIProviderSettings.setCustomBaseURL(u.isEmpty ? nil : u, for: byokProvider)
+                        let t = u.trimmingCharacters(in: .whitespacesAndNewlines)
+                        AIProviderSettings.setCustomBaseURL(t.isEmpty ? nil : t, for: byokProvider)
                     }
                 }
             }
