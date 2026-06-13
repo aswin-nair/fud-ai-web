@@ -391,36 +391,6 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         ) { sheet = SettingsSheet.GOAL_WEIGHT }
                     }
                     HorizontalDivider()
-                    EnergyBurnGoalsRow(
-                        checked = ui.healthEnergyGoalsEnabled,
-                        applying = ui.applyingHealthEnergyGoals,
-                        onInfo = { showHealthEnergyGoalsInfo = true },
-                        onChange = ::onHealthEnergyGoalsToggle
-                    )
-                    if (ui.healthEnergyGoalsEnabled) {
-                        HorizontalDivider()
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable(enabled = !ui.applyingHealthEnergyGoals) { vm.refreshHealthEnergyGoals() }
-                                .padding(horizontal = 16.dp, vertical = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            FudIconBubble(icon = Icons.Outlined.Refresh, size = 22.dp, iconSize = 14.dp)
-                            Spacer(Modifier.width(14.dp))
-                            Text(
-                                stringResource(R.string.settings_refresh_energy_goals),
-                                color = if (ui.applyingHealthEnergyGoals) {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f)
-                                } else {
-                                    AppColors.Calorie
-                                },
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                    HorizontalDivider()
                     AdaptiveGoalsRow(
                         checked = ui.adaptiveGoalsEnabled,
                         applying = ui.applyingAdaptiveGoals,

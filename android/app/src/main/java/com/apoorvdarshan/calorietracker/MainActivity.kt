@@ -24,8 +24,8 @@ open class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         lifecycleScope.launch {
+            // Adaptive Goals now folds in Health Connect burn (Energy Burn merged in).
             val container = (application as FudAIApp).container
-            container.refreshHealthEnergyGoalsIfNeeded()
             container.refreshAdaptiveGoalsIfNeeded()
         }
     }

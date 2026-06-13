@@ -18,6 +18,7 @@ import com.apoorvdarshan.calorietracker.services.ai.ChatService
 import com.apoorvdarshan.calorietracker.services.ai.FoodAnalysisService
 import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import com.apoorvdarshan.calorietracker.services.speech.SpeechService
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -166,10 +167,20 @@ class AppContainer(app: FudAIApp) {
             }
 
             val profile = profileRepository.current() ?: return null
+            // Burn-aware (Energy Burn folded in): use Health Connect measured energy as the
+            // maintenance basis when connected; otherwise the weight-trend correction stands alone.
+            val measuredTdee: Int? = runCatching {
+                if (prefs.healthConnectEnabled.first() && health.isAvailable() && health.hasAllPermissions()) {
+                    health.readRecentEnergySummary(days = 14)?.let { s ->
+                        s.totalAverageCalories ?: (profile.bmr.roundToInt() + s.activeAverageCalories)
+                    }
+                } else null
+            }.getOrNull()
             val result = AdaptiveGoalService.apply(
                 profile = profile,
                 weights = weightRepository.entries.first(),
-                foods = foodRepository.entries.first()
+                foods = foodRepository.entries.first(),
+                measuredTdee = measuredTdee
             )
             prefs.setAdaptiveGoalsLastCheckDay(today.toString())
             if (result.changed) {

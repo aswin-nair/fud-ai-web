@@ -53,44 +53,57 @@ object AdaptiveGoalService {
     private const val MAXIMUM_DAILY_ADJUSTMENT = 150
     private const val CALORIES_PER_KG = 7_700.0
 
+    /**
+     * [measuredTdee] (Health Connect active + basal energy, kcal/day) is preferred over the
+     * formula TDEE when available: it sets the safety ceiling and, when there isn't yet enough
+     * weight-trend data, drives a burn-based correction toward measured maintenance + the goal
+     * pace. The weight-trend correction stays primary whenever enough logs/weigh-ins exist.
+     */
     fun apply(
         profile: UserProfile,
         weights: List<WeightEntry>,
-        foods: List<FoodEntry>
+        foods: List<FoodEntry>,
+        measuredTdee: Int? = null
     ): AdaptiveGoalResult {
         val forecast = WeightAnalysisService.compute(weights = weights, foods = foods, profile = profile)
         val observedWeeklyChangeKg = forecast.observedWeeklyChangeKg
+        val targetWeeklyChangeKg = targetWeeklyChangeKg(profile)
+        val currentCalories = profile.effectiveCalories
+        val safetyFloor = max(profile.bmr.roundToInt(), 1_200)
+        // Prefer Health Connect measured burn for the maintenance/ceiling basis when available.
+        val maintenanceTdee = measuredTdee ?: profile.tdee.roundToInt()
+        val safetyCeiling = max(safetyFloor, (maintenanceTdee * 1.25).roundToInt())
 
-        if (forecast.daysOfFoodData < MINIMUM_FOOD_DAYS ||
-            forecast.weightEntriesUsed < MINIMUM_WEIGHT_ENTRIES ||
-            observedWeeklyChangeKg == null
-        ) {
+        val hasWeightTrend = forecast.daysOfFoodData >= MINIMUM_FOOD_DAYS &&
+            forecast.weightEntriesUsed >= MINIMUM_WEIGHT_ENTRIES &&
+            observedWeeklyChangeKg != null
+
+        val limitedAdjustment: Int = if (hasWeightTrend && observedWeeklyChangeKg != null) {
+            // Primary: correct from the real weight trend vs the target pace.
+            val raw = (targetWeeklyChangeKg - observedWeeklyChangeKg) * CALORIES_PER_KG / 7.0
+            raw.roundToInt().coerceIn(-MAXIMUM_DAILY_ADJUSTMENT, MAXIMUM_DAILY_ADJUSTMENT)
+        } else if (measuredTdee != null) {
+            // Not enough weigh-ins/food yet, but Health Connect gives measured burn: steer the
+            // target toward measured maintenance + the goal pace.
+            val targetCalories = measuredTdee + (targetWeeklyChangeKg * CALORIES_PER_KG / 7.0).roundToInt()
+            (targetCalories - currentCalories).coerceIn(-MAXIMUM_DAILY_ADJUSTMENT, MAXIMUM_DAILY_ADJUSTMENT)
+        } else {
             return AdaptiveGoalResult(
                 profile = profile,
                 changed = false,
                 updatedCalories = null,
-                message = "Adaptive Goals is on. It needs at least $MINIMUM_FOOD_DAYS logged food days and $MINIMUM_WEIGHT_ENTRIES recent weight entries before making a weekly correction."
+                message = "Adaptive Goals is on. It needs at least $MINIMUM_FOOD_DAYS logged food days and $MINIMUM_WEIGHT_ENTRIES recent weight entries — or Health Connect energy data — before making a correction."
             )
         }
-
-        val targetWeeklyChangeKg = targetWeeklyChangeKg(profile)
-        val rawDailyAdjustment = (targetWeeklyChangeKg - observedWeeklyChangeKg) * CALORIES_PER_KG / 7.0
-        val limitedAdjustment = rawDailyAdjustment
-            .roundToInt()
-            .coerceIn(-MAXIMUM_DAILY_ADJUSTMENT, MAXIMUM_DAILY_ADJUSTMENT)
 
         if (abs(limitedAdjustment) < MINIMUM_DAILY_ADJUSTMENT) {
             return AdaptiveGoalResult(
                 profile = profile,
                 changed = false,
                 updatedCalories = null,
-                message = "Your recent weight trend is close to your selected goal pace, so Adaptive Goals did not change calories this week."
+                message = "Your recent trend is close to your selected goal pace, so Adaptive Goals did not change calories this week."
             )
         }
-
-        val currentCalories = profile.effectiveCalories
-        val safetyFloor = max(profile.bmr.roundToInt(), 1_200)
-        val safetyCeiling = max(safetyFloor, (profile.tdee * 1.25).roundToInt())
 
         if (limitedAdjustment < 0 && currentCalories <= safetyFloor) {
             return AdaptiveGoalResult(
@@ -128,11 +141,12 @@ object AdaptiveGoalService {
         val nextProfile = profile.copy(customCalories = adjustedCalories)
         val signedAdjustment = adjustedCalories - currentCalories
         val sign = if (signedAdjustment > 0) "+" else ""
+        val basis = if (hasWeightTrend) "your recent weight trend" else "your Health Connect energy burn"
         return AdaptiveGoalResult(
             profile = nextProfile,
             changed = true,
             updatedCalories = adjustedCalories,
-            message = "Adaptive Goals adjusted calories by $sign$signedAdjustment kcal to $adjustedCalories kcal based on your recent weight trend. Pinned macros stay pinned; unlocked macros auto-balance."
+            message = "Adaptive Goals adjusted calories by $sign$signedAdjustment kcal to $adjustedCalories kcal based on $basis. Pinned macros stay pinned; unlocked macros auto-balance."
         )
     }
 
