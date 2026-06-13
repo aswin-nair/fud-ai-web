@@ -463,12 +463,13 @@ struct GeminiService {
 
     // MARK: - AI Goal Calculation
 
-    /// AI-driven daily target calculation. Sends the app's full formula set plus the user's
-    /// profile / goals / settings and asks the selected provider (BYOK or Premium, transparently)
-    /// to return calorie + macro targets. The deterministic math stays as the caller's fallback
-    /// when AI is unavailable, so a goal is always produced. This is ONLY for goal targets — it
-    /// does not touch food / photo / label calorie estimation.
-    static func calculateGoals(profile: UserProfile, useMetric: Bool) async throws -> GoalCalculation {
+    /// AI-driven daily target calculation. Sends the app's full formula set, the user's
+    /// profile / goals / settings, AND — when available — their recent logged-calorie average
+    /// and observed weight trend, so the model can estimate true maintenance empirically
+    /// (hit-and-trial / adaptive) rather than trusting the formula alone. Routes through the
+    /// selected provider (BYOK or Premium). The deterministic math stays as the caller's
+    /// fallback when AI is unavailable. ONLY for goal targets — does not touch food estimation.
+    static func calculateGoals(profile: UserProfile, forecast: WeightForecast?, useMetric: Bool) async throws -> GoalCalculation {
         let weight = useMetric
             ? String(format: "%.1f kg", profile.weightKg)
             : String(format: "%.1f lb", profile.weightKg * 2.20462)
@@ -482,12 +483,34 @@ struct GeminiService {
         let weekly = profile.weeklyChangeKg.map { String(format: "%.2f kg/week", $0) } ?? "not set (maintain)"
         let bmrMethod = profile.usesBodyFatForBMR ? "Katch-McArdle (body fat known and enabled)" : "Mifflin-St Jeor"
 
+        // Observed-data block: derive an empirical maintenance estimate from real logs when there
+        // is enough history. Only included when the forecast says the data is meaningful.
+        var observedSection = ""
+        if let f = forecast, f.hasEnoughData {
+            var lines: [String] = ["", "OBSERVED DATA — from the user's OWN logs (prefer this over the formula when reliable):"]
+            lines.append("- Logged intake: avg \(f.avgDailyCalories) kcal/day across \(f.daysOfFoodData) logged days")
+            if let obs = f.observedWeeklyChangeKg {
+                let obsStr = useMetric ? String(format: "%+.2f kg/week", obs) : String(format: "%+.2f lb/week", obs * 2.20462)
+                let empiricalTDEE = f.avgDailyCalories - Int((obs * 7_700.0 / 7.0).rounded())
+                lines.append("- Observed weight trend: \(obsStr) from \(f.weightEntriesUsed) weigh-ins")
+                lines.append("- Implied actual maintenance (logged intake minus the weekly change): ~\(empiricalTDEE) kcal/day")
+            } else {
+                lines.append("- Observed weight trend: not enough weigh-ins yet to measure")
+            }
+            lines.append("- Formula TDEE for comparison: \(f.tdee) kcal/day")
+            if f.trendsDisagree {
+                lines.append("- WARNING: logged intake and the real weight trend DISAGREE — the user is likely under-logging. Trust the weight trend over raw logged calories.")
+            }
+            lines.append("HIT-AND-TRIAL: when this observed data is reliable (enough logged days + weigh-ins), estimate the user's true maintenance from their intake and real weight trend, then apply their goal and weekly-change target to THAT maintenance — not the formula TDEE. If the data is thin or trends disagree, lean on the formula / weight trend accordingly. Always keep calories within 800-6000.")
+            observedSection = lines.joined(separator: "\n")
+        }
+
         let prompt = """
-        You are the goal calculator for a calorie & macro tracking app. Using the FORMULAS and the USER PROFILE below, compute the user's daily targets.
+        You are the goal calculator for a calorie & macro tracking app. Using the FORMULAS, the USER PROFILE, and any OBSERVED DATA below, compute the user's daily targets.
         Return ONLY valid JSON with these exact keys (integers, plus a short reason):
         {"calories":2000,"protein":150,"carbs":200,"fat":60,"reason":"Short reason under 100 characters"}
 
-        Use the app's formulas as the basis, applying sensible judgment for this individual.
+        Use the app's formulas as the basis. When OBSERVED DATA is present and reliable, prefer the empirical maintenance estimate it implies over the formula TDEE.
         FORMULAS
         - BMR (Mifflin-St Jeor): base = 10*weightKg + 6.25*heightCm - 5*age - 161; if male add 166; female/other use base.
         - BMR (Katch-McArdle, used when body fat is known and enabled): 370 + 21.6 * (1 - bodyFatFraction) * weightKg.
@@ -515,6 +538,7 @@ struct GeminiService {
         - TDEE: \(Int(profile.tdee.rounded())) kcal/day
         - Formula calorie target: \(profile.dailyCalories) kcal/day
         - Formula macros: \(profile.proteinGoal) g protein, \(profile.carbsGoal) g carbs, \(profile.fatGoal) g fat
+        \(observedSection)
         """
 
         let text = try await callAI(prompt: prompt, image: nil)

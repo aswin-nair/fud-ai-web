@@ -4022,8 +4022,11 @@ struct ProfileView: View {
         // only if the calc-relevant inputs are still unchanged — otherwise the concurrent
         // edit (which already reset goals) wins, avoiding a stale/lost-update.
         let snapshot = profile
+        // Empirical signal: recent logged intake + observed weight trend, so the AI can estimate
+        // true maintenance by hit-and-trial instead of trusting the formula TDEE alone.
+        let forecast = WeightAnalysisService.compute(weights: weightStore.entries, foods: foodStore.entries, profile: snapshot)
         do {
-            let result = try await GeminiService.calculateGoals(profile: snapshot, useMetric: useMetric)
+            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, useMetric: useMetric)
             guard goalInputsUnchanged(snapshot, profile) else { return }
             // Apply the AI calorie target and reset all macros to auto-balance (unlocked).
             // Recalculate's contract is "clear pinned macros" — so we never pin protein/fat/carbs
