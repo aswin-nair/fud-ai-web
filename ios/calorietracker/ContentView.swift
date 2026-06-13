@@ -4008,9 +4008,10 @@ struct ProfileView: View {
     /// selected provider (BYOK or Premium, transparently) and applies the returned calorie
     /// and protein/fat targets; carbs auto-balances so totals stay consistent. Falls back to
     /// the deterministic formula when AI is unavailable (no key / Premium inactive / offline /
-    /// bad response) so a valid goal is always produced. Also recomputes the optional
-    /// "Other Nutrients" (fiber/sugar/sodium/…) via AI, falling back to the standard defaults.
-    /// Food calorie estimation is untouched.
+    /// bad response) so a valid goal is always produced. Then recomputes the optional
+    /// "Other Nutrients" (fiber/sugar/sodium/…) via AI, leaving them untouched if that call
+    /// fails (no clobbering of user customizations). The whole recalc is aborted if the user
+    /// edits a goal input mid-call. Food calorie estimation is untouched.
     private func recalculateGoalsWithAI() async {
         guard !isRecalculatingGoals else { return }
         isRecalculatingGoals = true
@@ -4051,7 +4052,9 @@ struct ProfileView: View {
             )
             OptionalNutrientGoals.save(suggested)
         } catch {
-            OptionalNutrientGoals.save(.defaults)
+            // AI unavailable — leave the existing Other Nutrients goals untouched rather than
+            // clobbering any user customizations with defaults. (Calories/macros above already
+            // fell back to the formula since they must always have a value.)
         }
 
         _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
