@@ -160,37 +160,54 @@ enum AdaptiveGoalService {
     private static let maximumDailyAdjustment = 150
     private static let caloriesPerKg = 7_700.0
 
-    static func apply(profile: UserProfile, weights: [WeightEntry], foods: [FoodEntry]) -> AdaptiveGoalResult {
+    /// `measuredTDEE`, when provided, is the user's maintenance estimated from Apple Health
+    /// active + basal energy (calories burned). When present it's preferred over the formula
+    /// TDEE: it sets the safety ceiling and, if there isn't yet enough weight-trend data, drives
+    /// a burn-based correction toward measured maintenance + the goal pace. The weight-trend
+    /// correction stays primary whenever enough logs/weigh-ins exist.
+    static func apply(profile: UserProfile, weights: [WeightEntry], foods: [FoodEntry], measuredTDEE: Int? = nil) -> AdaptiveGoalResult {
         let forecast = WeightAnalysisService.compute(weights: weights, foods: foods, profile: profile)
 
-        guard forecast.daysOfFoodData >= minimumFoodDays,
-              forecast.weightEntriesUsed >= minimumWeightEntries,
-              let observedWeeklyChangeKg = forecast.observedWeeklyChangeKg else {
+        let targetWeeklyChangeKg = targetWeeklyChangeKg(for: profile)
+        let currentCalories = profile.effectiveCalories
+        let safetyFloor = max(Int(profile.bmr.rounded()), 1_200)
+        // Prefer Apple Health measured burn for the maintenance/ceiling basis when available.
+        let maintenanceTDEE = measuredTDEE ?? Int(profile.tdee.rounded())
+        let safetyCeiling = max(safetyFloor, Int((Double(maintenanceTDEE) * 1.25).rounded()))
+
+        let hasWeightTrend = forecast.daysOfFoodData >= minimumFoodDays
+            && forecast.weightEntriesUsed >= minimumWeightEntries
+            && forecast.observedWeeklyChangeKg != nil
+
+        let limitedAdjustment: Int
+        if hasWeightTrend, let observedWeeklyChangeKg = forecast.observedWeeklyChangeKg {
+            // Primary: correct from the real weight trend vs the target pace.
+            let rawDailyAdjustment = (targetWeeklyChangeKg - observedWeeklyChangeKg) * caloriesPerKg / 7.0
+            limitedAdjustment = Int(rawDailyAdjustment.rounded())
+                .clamped(to: -maximumDailyAdjustment...maximumDailyAdjustment)
+        } else if let measuredTDEE {
+            // Not enough weigh-ins/food yet, but Apple Health gives us measured burn: steer the
+            // target toward measured maintenance + the goal pace.
+            let targetCalories = measuredTDEE + Int((targetWeeklyChangeKg * caloriesPerKg / 7.0).rounded())
+            limitedAdjustment = (targetCalories - currentCalories)
+                .clamped(to: -maximumDailyAdjustment...maximumDailyAdjustment)
+        } else {
             return AdaptiveGoalResult(
                 profile: profile,
                 changed: false,
                 updatedCalories: nil,
-                message: "Adaptive Goals is on. It needs at least \(minimumFoodDays) logged food days and \(minimumWeightEntries) recent weight entries before making a weekly correction."
+                message: "Adaptive Goals is on. It needs at least \(minimumFoodDays) logged food days and \(minimumWeightEntries) recent weight entries — or Apple Health energy data — before making a correction."
             )
         }
-
-        let targetWeeklyChangeKg = targetWeeklyChangeKg(for: profile)
-        let rawDailyAdjustment = (targetWeeklyChangeKg - observedWeeklyChangeKg) * caloriesPerKg / 7.0
-        let limitedAdjustment = Int(rawDailyAdjustment.rounded())
-            .clamped(to: -maximumDailyAdjustment...maximumDailyAdjustment)
 
         guard abs(limitedAdjustment) >= minimumDailyAdjustment else {
             return AdaptiveGoalResult(
                 profile: profile,
                 changed: false,
                 updatedCalories: nil,
-                message: "Your recent weight trend is close to your selected goal pace, so Adaptive Goals did not change calories this week."
+                message: "Your recent trend is close to your selected goal pace, so Adaptive Goals did not change calories this week."
             )
         }
-
-        let currentCalories = profile.effectiveCalories
-        let safetyFloor = max(Int(profile.bmr.rounded()), 1_200)
-        let safetyCeiling = max(safetyFloor, Int((profile.tdee * 1.25).rounded()))
 
         if limitedAdjustment < 0, currentCalories <= safetyFloor {
             return AdaptiveGoalResult(
@@ -228,11 +245,12 @@ enum AdaptiveGoalService {
 
         let signedAdjustment = adjustedCalories - currentCalories
         let sign = signedAdjustment > 0 ? "+" : ""
+        let basis = hasWeightTrend ? "your recent weight trend" : "your Apple Health energy burn"
         return AdaptiveGoalResult(
             profile: nextProfile,
             changed: true,
             updatedCalories: adjustedCalories,
-            message: "Adaptive Goals adjusted calories by \(sign)\(signedAdjustment) kcal to \(adjustedCalories) kcal based on your recent weight trend. Pinned macros stay pinned; unlocked macros auto-balance."
+            message: "Adaptive Goals adjusted calories by \(sign)\(signedAdjustment) kcal to \(adjustedCalories) kcal based on \(basis). Pinned macros stay pinned; unlocked macros auto-balance."
         )
     }
 

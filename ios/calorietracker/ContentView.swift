@@ -2648,7 +2648,6 @@ struct ProfileView: View {
     @AppStorage("useMetric") private var useMetric = false
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("healthKitEnabled") private var healthKitEnabled = false
-    @AppStorage(HealthEnergyGoalSettings.enabledKey) private var healthEnergyGoalsEnabled = false
     @AppStorage(AdaptiveGoalSettings.enabledKey) private var adaptiveGoalsEnabled = false
     @AppStorage("weekStartsOnMonday") private var weekStartsOnMonday = false
     @AppStorage(FoodMeasurementSettings.preferGramsByDefaultKey) private var preferGramsByDefault = false
@@ -2667,15 +2666,10 @@ struct ProfileView: View {
     @State private var showMaxPinnedAlert = false
     @State private var showInvalidGoalWeightAlert = false
     @State private var showDefaultGramsInfo = false
-    @State private var showHealthEnergyGoalsInfo = false
     @State private var showAdaptiveGoalsInfo = false
-    @State private var isApplyingHealthEnergyGoals = false
     @State private var isRecalculatingGoals = false
     @State private var isApplyingAdaptiveGoals = false
-    @State private var showHealthEnergyGoalAlert = false
     @State private var showAdaptiveGoalAlert = false
-    @State private var healthEnergyGoalAlertTitle = ""
-    @State private var healthEnergyGoalAlertMessage = ""
     @State private var adaptiveGoalAlertTitle = ""
     @State private var adaptiveGoalAlertMessage = ""
     @State private var invalidGoalWeightMessage = ""
@@ -2910,55 +2904,6 @@ struct ProfileView: View {
                         ) {
                             activeSheet = .editGoalWeight
                         }
-                    }
-
-                    HStack {
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Energy Burn Goals")
-                                Text("Experimental")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: "flame.fill")
-                                .foregroundStyle(AppColors.calorie)
-                        }
-                        Spacer()
-                        if isApplyingHealthEnergyGoals {
-                            ProgressView()
-                        }
-                        Button {
-                            showHealthEnergyGoalsInfo = true
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("About Energy Burn Goals")
-
-                        Toggle("", isOn: $healthEnergyGoalsEnabled)
-                            .labelsHidden()
-                            .tint(AppColors.calorie)
-                            .disabled(isApplyingHealthEnergyGoals)
-                            .onChange(of: healthEnergyGoalsEnabled) { oldValue, enabled in
-                                handleHealthEnergyGoalsToggle(enabled, wasEnabled: oldValue)
-                            }
-                    }
-
-                    if healthEnergyGoalsEnabled {
-                        Button {
-                            Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
-                        } label: {
-                            Label {
-                                Text("Refresh Energy Burn Goals")
-                            } icon: {
-                                Image(systemName: "arrow.clockwise")
-                                    .foregroundStyle(AppColors.calorie)
-                            }
-                        }
-                        .disabled(isApplyingHealthEnergyGoals)
-                        .tint(.primary)
                     }
 
                     HStack {
@@ -3857,20 +3802,10 @@ struct ProfileView: View {
             } message: {
                 Text("When enabled, new food results open with grams selected even if the AI detects cups, portions, or servings. You can still switch units for each food.")
             }
-            .alert("Energy Burn Goals", isPresented: $showHealthEnergyGoalsInfo) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Experimental. Uses recent Apple Health Active Energy and Basal Energy with your selected AI provider to estimate your calorie target. Workout calories are estimates, so Fud AI treats them cautiously and keeps energy-burn adjustments separate from normal goal formulas where possible. It refreshes automatically once per day when you open the app, using completed days from the last 14 days, and you can still refresh manually. Protein, carbs, and fat stay unlocked on auto-balance unless you lock them manually. Turning this off restores your previous targets.")
-            }
             .alert("Adaptive Goals", isPresented: $showAdaptiveGoalsInfo) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Experimental. Once per week, Fud AI compares your recent weight trend with your target pace and makes a small local calorie correction. Pinned macros stay pinned; unlocked macros auto-balance. If Energy Burn Goals is also enabled, Adaptive Goals uses weight trend as a weekly correction on top of energy-burn targets. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice.")
-            }
-            .alert(healthEnergyGoalAlertTitle, isPresented: $showHealthEnergyGoalAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(healthEnergyGoalAlertMessage)
             }
             .alert(adaptiveGoalAlertTitle, isPresented: $showAdaptiveGoalAlert) {
                 Button("OK", role: .cancel) { }
@@ -3945,14 +3880,9 @@ struct ProfileView: View {
     /// weight / activity / goal formulas. Triggered automatically when those underlying
     /// inputs change (gender, activity, weight, etc.) and via the Recalculate button.
     private func resetCustomGoalsAndSave() {
-        if healthEnergyGoalsEnabled {
-            saveProfile()
-            Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
-            return
-        }
         profile.recalculateGoalsFromFormulas()
         saveProfile()
-        _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
+        Task { _ = await applyAdaptiveGoalsIfDue(force: false, showAlert: false) }
     }
 
     /// Macro row. Tap to open the picker (which lets the user enter a value to pin, or reset to auto).
@@ -3997,10 +3927,6 @@ struct ProfileView: View {
     }
 
     private func recalculateGoalsNow() {
-        if healthEnergyGoalsEnabled {
-            Task { await applyHealthEnergyGoals(saveExistingTargets: false) }
-            return
-        }
         Task { await recalculateGoalsWithAI() }
     }
 
@@ -4060,7 +3986,7 @@ struct ProfileView: View {
             // fell back to the formula since they must always have a value.)
         }
 
-        _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
+        _ = await applyAdaptiveGoalsIfDue(force: false, showAlert: false)
     }
 
     /// True when the fields that drive the goal calculation are identical between two profile
@@ -4120,26 +4046,13 @@ struct ProfileView: View {
                 }
             }
         } else {
-            if healthEnergyGoalsEnabled {
-                healthEnergyGoalsEnabled = false
-            }
             healthKitManager.stopObserver()
-        }
-    }
-
-    private func handleHealthEnergyGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
-        if enabled {
-            Task { await applyHealthEnergyGoals(saveExistingTargets: !wasEnabled) }
-        } else {
-            HealthEnergyGoalSettings.restorePreviousTargets(to: &profile)
-            HealthEnergyGoalSettings.clearPreviousTargets()
-            saveProfile()
         }
     }
 
     private func handleAdaptiveGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
         if enabled {
-            _ = applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true)
+            Task { _ = await applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true) }
         } else {
             if AdaptiveGoalSettings.restorePreviousTargets(to: &profile) {
                 saveProfile()
@@ -4148,16 +4061,28 @@ struct ProfileView: View {
         }
     }
 
+    /// Weekly Adaptive correction. Primary signal is the observed weight trend; when Apple
+    /// Health is connected it also pulls measured Active + Basal energy (calories burned) and
+    /// passes it as the maintenance basis (the folded-in Energy Burn capability). Async because
+    /// the Health fetch is async.
     @discardableResult
-    private func applyAdaptiveGoalsIfDue(force: Bool, showAlert: Bool) -> AdaptiveGoalResult? {
+    private func applyAdaptiveGoalsIfDue(force: Bool, showAlert: Bool) async -> AdaptiveGoalResult? {
         guard adaptiveGoalsEnabled, !isApplyingAdaptiveGoals else { return nil }
         guard force || AdaptiveGoalSettings.shouldCheckThisWeek() else { return nil }
 
         isApplyingAdaptiveGoals = true
+        defer { isApplyingAdaptiveGoals = false }
+
+        var measuredTDEE: Int? = nil
+        if healthKitEnabled, let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) {
+            measuredTDEE = summary.totalAverageCalories ?? (Int(profile.bmr.rounded()) + summary.activeAverageCalories)
+        }
+
         let result = AdaptiveGoalService.apply(
             profile: profile,
             weights: weightStore.entries,
-            foods: foodStore.entries
+            foods: foodStore.entries,
+            measuredTDEE: measuredTDEE
         )
         AdaptiveGoalSettings.markCheckedToday()
         if result.changed {
@@ -4165,81 +4090,11 @@ struct ProfileView: View {
             profile = result.profile
             saveProfile()
         }
-        isApplyingAdaptiveGoals = false
 
         if showAlert {
             showAdaptiveGoalAlert(title: "Adaptive Goals", message: result.message)
         }
         return result
-    }
-
-    private func applyHealthEnergyGoals(saveExistingTargets: Bool) async {
-        guard !isApplyingHealthEnergyGoals else { return }
-        isApplyingHealthEnergyGoals = true
-        defer { isApplyingHealthEnergyGoals = false }
-
-        if saveExistingTargets {
-            HealthEnergyGoalSettings.savePreviousTargetsIfNeeded(from: profile)
-        }
-
-        let authorized = await healthKitManager.requestAuthorization()
-        guard authorized else {
-            healthEnergyGoalsEnabled = false
-            showHealthEnergyGoalsAlert(
-                title: "Apple Health Needed",
-                message: "Allow Fud AI to read Active Energy and Basal Energy in Apple Health, then try again."
-            )
-            return
-        }
-        if !healthKitEnabled {
-            healthKitEnabled = true
-        }
-
-        guard let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) else {
-            healthEnergyGoalsEnabled = false
-            showHealthEnergyGoalsAlert(
-                title: "Not Enough Energy Data",
-                message: "Fud AI needs at least 3 recent days of Apple Health energy data to estimate goals."
-            )
-            return
-        }
-
-        do {
-            let suggestion = try await GeminiService.suggestHealthEnergyGoals(
-                profile: profile,
-                energy: summary,
-                useMetric: useMetric
-            )
-            profile.customCalories = suggestion.calories
-            profile.customProtein = nil
-            profile.customCarbs = nil
-            profile.customFat = nil
-            profile.autoBalanceMacro = nil
-            saveProfile()
-            HealthEnergyGoalSettings.markAutoRefreshAttemptedToday()
-            let adaptiveResult = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
-
-            let reason = suggestion.reason.map { "\n\n\($0)" } ?? ""
-            let adaptiveMessage = adaptiveResult?.changed == true
-                ? "\n\n\(adaptiveResult?.message ?? "")"
-                : ""
-            showHealthEnergyGoalsAlert(
-                title: "Goals Updated",
-                message: "Updated to \(suggestion.calories) kcal using \(summary.daysUsed) days of Apple Health energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.\(reason)\(adaptiveMessage)"
-            )
-        } catch {
-            healthEnergyGoalsEnabled = false
-            showHealthEnergyGoalsAlert(
-                title: "AI Estimate Failed",
-                message: (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            )
-        }
-    }
-
-    private func showHealthEnergyGoalsAlert(title: String, message: String) {
-        healthEnergyGoalAlertTitle = title
-        healthEnergyGoalAlertMessage = message
-        showHealthEnergyGoalAlert = true
     }
 
     private func showAdaptiveGoalAlert(title: String, message: String) {
