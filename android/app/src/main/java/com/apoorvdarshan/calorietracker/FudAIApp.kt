@@ -13,7 +13,8 @@ import com.apoorvdarshan.calorietracker.services.NotificationService
 import com.apoorvdarshan.calorietracker.services.TestDataSeeder
 import com.apoorvdarshan.calorietracker.services.WidgetSnapshotWriter
 import com.apoorvdarshan.calorietracker.services.AdaptiveGoalResult
-import com.apoorvdarshan.calorietracker.services.AdaptiveGoalService
+import com.apoorvdarshan.calorietracker.services.WeightAnalysisService
+import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.services.ai.ChatService
 import com.apoorvdarshan.calorietracker.services.ai.FoodAnalysisService
 import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
@@ -115,46 +116,28 @@ class AppContainer(app: FudAIApp) {
      */
     val analyzingFood: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private var healthEnergyGoalsRefreshInFlight = false
     private var adaptiveGoalsRefreshInFlight = false
 
-    suspend fun refreshHealthEnergyGoalsIfNeeded() {
-        if (healthEnergyGoalsRefreshInFlight) return
-        healthEnergyGoalsRefreshInFlight = true
-        try {
-            if (!prefs.healthEnergyGoalsEnabled.first()) return
-            if (!prefs.healthConnectEnabled.first()) return
-            if (!health.isAvailable() || !health.hasAllPermissions()) return
-
-            val today = LocalDate.now().toString()
-            if (prefs.healthEnergyGoalsLastAutoRefreshDay.first() == today) return
-
-            val profile = profileRepository.current() ?: return
-            prefs.setHealthEnergyGoalsLastAutoRefreshDay(today)
-
-            val summary = health.readRecentEnergySummary(days = 14) ?: return
-            val suggestion = foodAnalysis.suggestHealthEnergyGoals(
-                profile = profile,
-                energy = summary,
-                useMetric = prefs.useMetric.first()
-            )
-            profileRepository.save(
-                profile.copy(
-                    customCalories = suggestion.calories,
-                    customProtein = null,
-                    customCarbs = null,
-                    customFat = null,
-                    autoBalanceMacro = null
-                )
-            )
-        } catch (_: Exception) {
-            // Auto-refresh is opportunistic; Settings keeps the visible manual
-            // Refresh path for errors and retries.
-        } finally {
-            healthEnergyGoalsRefreshInFlight = false
-        }
+    /**
+     * Energy Burn toggle resolved to a number: the user's measured maintenance from Health Connect
+     * (14-day active + basal average), or null when Energy Burn is off, Health is unavailable, or
+     * there isn't enough data. Single source consulted by both manual Recalculate and Adaptive.
+     */
+    suspend fun measuredEnergyTdeeIfEnabled(profile: UserProfile): Int? {
+        if (!prefs.healthEnergyGoalsEnabled.first()) return null
+        if (!prefs.healthConnectEnabled.first()) return null
+        if (!health.isAvailable() || !health.hasAllPermissions()) return null
+        val summary = runCatching { health.readRecentEnergySummary(days = 14) }.getOrNull() ?: return null
+        return summary.totalAverageCalories ?: (profile.bmr.roundToInt() + summary.activeAverageCalories)
     }
 
+    /**
+     * Adaptive Goals: automatically re-runs the FULL AI goal calculation (the same one the
+     * Recalculate button uses) about once a week, from the latest logged food + weight trend
+     * (hit-and-trial) and — when Energy Burn is on — the measured Health maintenance anchor.
+     * Silent and non-destructive on AI failure (keeps existing goals; marks checked so it does not
+     * retry on every app open). Protein is pinned to the activity multiplier, like manual recalc.
+     */
     suspend fun refreshAdaptiveGoalsIfNeeded(force: Boolean = false): AdaptiveGoalResult? {
         if (adaptiveGoalsRefreshInFlight) return null
         adaptiveGoalsRefreshInFlight = true
@@ -167,27 +150,33 @@ class AppContainer(app: FudAIApp) {
             }
 
             val profile = profileRepository.current() ?: return null
-            // Burn-aware (Energy Burn folded in): use Health Connect measured energy as the
-            // maintenance basis when connected; otherwise the weight-trend correction stands alone.
-            val measuredTdee: Int? = runCatching {
-                if (prefs.healthConnectEnabled.first() && health.isAvailable() && health.hasAllPermissions()) {
-                    health.readRecentEnergySummary(days = 14)?.let { s ->
-                        s.totalAverageCalories ?: (profile.bmr.roundToInt() + s.activeAverageCalories)
-                    }
-                } else null
-            }.getOrNull()
-            val result = AdaptiveGoalService.apply(
-                profile = profile,
+            val useMetric = prefs.useMetric.first()
+            val measuredTdee = measuredEnergyTdeeIfEnabled(profile)
+            val forecast = WeightAnalysisService.compute(
                 weights = weightRepository.entries.first(),
                 foods = foodRepository.entries.first(),
-                measuredTdee = measuredTdee
+                profile = profile
             )
+            val result = runCatching {
+                foodAnalysis.calculateGoals(profile, forecast, useMetric, measuredTdee)
+            }.getOrNull()
+            // Mark checked on success OR AI failure so a misconfigured provider isn't hit on every
+            // foreground; the weekly cadence simply resumes next week.
             prefs.setAdaptiveGoalsLastCheckDay(today.toString())
-            if (result.changed) {
-                prefs.saveAdaptiveGoalPreviousTargetsIfNeeded(profile)
-                profileRepository.save(result.profile)
-            }
-            return result
+            if (result == null) return null
+
+            prefs.saveAdaptiveGoalPreviousTargetsIfNeeded(profile)
+            val next = profile.recalculatedFromFormulas().copy(
+                customCalories = result.calories,
+                customProtein = result.protein
+            )
+            profileRepository.save(next)
+            return AdaptiveGoalResult(
+                profile = next,
+                changed = true,
+                updatedCalories = result.calories,
+                message = "Updated to ${result.calories} kcal from your latest data." + (result.reason?.let { " $it" } ?: "")
+            )
         } finally {
             adaptiveGoalsRefreshInFlight = false
         }

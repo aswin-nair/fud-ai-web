@@ -350,7 +350,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                 profile?.let { p ->
                     SettingRow(stringResource(R.string.settings_weight_goal), stringResource(p.goal.displayNameRes), icon = Icons.Outlined.Equalizer, inlineMenu = true) { sheet = SettingsSheet.GOAL }
                     HorizontalDivider()
-                    ActivityLevelSettingRow(p.activityLevel, p.bodyFatPercentage) { sheet = SettingsSheet.ACTIVITY }
+                    ActivityLevelSettingRow(p.activityLevel) { sheet = SettingsSheet.ACTIVITY }
                     if (p.goal != WeightGoal.MAINTAIN) {
                         HorizontalDivider()
                         SettingRow(
@@ -377,6 +377,13 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         applying = ui.applyingAdaptiveGoals,
                         onInfo = { showAdaptiveGoalsInfo = true },
                         onChange = vm::setAdaptiveGoalsEnabled
+                    )
+                    HorizontalDivider()
+                    EnergyBurnGoalsRow(
+                        checked = ui.healthEnergyGoalsEnabled,
+                        applying = ui.recalculatingGoals,
+                        onInfo = { showHealthEnergyGoalsInfo = true },
+                        onChange = ::onHealthEnergyGoalsToggle
                     )
                     HorizontalDivider()
                     // iOS shows "2452 kcal" with no chevron suffix on the Calories row.
@@ -1194,7 +1201,7 @@ private fun SettingsSheets(
                 SettingsSheet.ACTIVITY -> ListSheet(
                     title = stringResource(R.string.sheet_activity_level),
                     items = ActivityLevel.values().toList(),
-                    label = { activityLevelLabelWithProtein(it, ui.profile?.bodyFatPercentage) },
+                    label = { stringResource(it.displayNameRes) },
                     subtitle = { stringResource(it.subtitleRes) },
                     selected = { it == ui.profile?.activityLevel },
                     onSelect = { a -> vm.updateProfile { it.copy(activityLevel = a) }; onDismiss() },
@@ -2021,7 +2028,6 @@ private fun SettingRow(
 @Composable
 private fun ActivityLevelSettingRow(
     level: ActivityLevel,
-    bodyFatPercentage: Double?,
     onClick: () -> Unit
 ) {
     Row(
@@ -2042,13 +2048,6 @@ private fun ActivityLevelSettingRow(
                 stringResource(R.string.settings_activity_level),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                activityLevelProteinDetail(level, bodyFatPercentage),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.58f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -2415,17 +2414,6 @@ private fun genderIcon(g: Gender): ImageVector = when (g) {
     Gender.MALE -> Icons.Outlined.Male
     Gender.FEMALE -> Icons.Outlined.Female
     Gender.OTHER -> Icons.Outlined.Wc
-}
-
-@Composable
-private fun activityLevelLabelWithProtein(level: ActivityLevel, bodyFatPercentage: Double?): String {
-    return "${stringResource(level.displayNameRes)} (${activityLevelProteinDetail(level, bodyFatPercentage)})"
-}
-
-private fun activityLevelProteinDetail(level: ActivityLevel, bodyFatPercentage: Double?): String {
-    val basis = if (bodyFatPercentage == null) "bodyweight" else "lean mass"
-    val multiplier = level.proteinRequirementPerKg(bodyFatPercentage)
-    return String.format(Locale.US, "%.1f g/kg %s protein", multiplier, basis)
 }
 
 private fun activityIcon(a: ActivityLevel): ImageVector = when (a) {

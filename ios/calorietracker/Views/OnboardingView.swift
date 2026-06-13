@@ -450,7 +450,7 @@ struct OnboardingView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(ActivityLevel.allCases, id: \.self) { level in
-                        selectionCard(icon: level.icon, title: level.displayNameWithProteinRequirement(bodyFatPercentage: knowsBodyFat ? Double(bodyFatPercentage) / 100.0 : nil), subtitle: level.subtitle, isSelected: activityLevel == level) {
+                        selectionCard(icon: level.icon, title: level.displayName, subtitle: level.subtitle, isSelected: activityLevel == level) {
                             withAnimation(.spring(response: 0.3)) { activityLevel = level }
                         }
                     }

@@ -189,7 +189,6 @@ fun OnboardingScreen(container: AppContainer, onComplete: () -> Unit) {
                 )
                 OnboardingStep.ACTIVITY -> ActivityStep(
                     selected = ui.activity,
-                    bodyFatPercentage = ui.bodyFatPercentage,
                     onSelect = vm::setActivity
                 )
                 OnboardingStep.GOAL -> GoalStep(selected = ui.goal, onSelect = vm::setGoal)
@@ -626,7 +625,7 @@ private fun WheeledColumn(
 }
 
 @Composable
-private fun ActivityStep(selected: ActivityLevel, bodyFatPercentage: Double?, onSelect: (ActivityLevel) -> Unit) {
+private fun ActivityStep(selected: ActivityLevel, onSelect: (ActivityLevel) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         StepHeader(
             stringResource(R.string.onboarding_activity_title),
@@ -635,20 +634,13 @@ private fun ActivityStep(selected: ActivityLevel, bodyFatPercentage: Double?, on
         for (a in ActivityLevel.values()) {
             SelectionCard(
                 icon = activityIcon(a),
-                title = activityLevelLabelWithProtein(a, bodyFatPercentage),
+                title = stringResource(a.displayNameRes),
                 subtitle = stringResource(a.subtitleRes),
                 selected = a == selected
             ) { onSelect(a) }
             Spacer(Modifier.height(12.dp))
         }
     }
-}
-
-@Composable
-private fun activityLevelLabelWithProtein(level: ActivityLevel, bodyFatPercentage: Double?): String {
-    val basis = if (bodyFatPercentage == null) "bodyweight" else "lean mass"
-    val multiplier = level.proteinRequirementPerKg(bodyFatPercentage)
-    return "${stringResource(level.displayNameRes)} (${String.format(Locale.US, "%.1f g/kg %s protein", multiplier, basis)})"
 }
 
 private fun activityIcon(level: ActivityLevel): ImageVector = when (level) {

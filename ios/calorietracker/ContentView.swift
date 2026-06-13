@@ -2649,6 +2649,7 @@ struct ProfileView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("healthKitEnabled") private var healthKitEnabled = false
     @AppStorage(AdaptiveGoalSettings.enabledKey) private var adaptiveGoalsEnabled = false
+    @AppStorage(EnergyBurnSettings.enabledKey) private var energyBurnEnabled = false
     @AppStorage("weekStartsOnMonday") private var weekStartsOnMonday = false
     @AppStorage(FoodMeasurementSettings.preferGramsByDefaultKey) private var preferGramsByDefault = false
     @AppStorage(AppThemeColor.storageKey) private var appThemeColorRaw = AppThemeColor.defaultColor.rawValue
@@ -2666,6 +2667,7 @@ struct ProfileView: View {
     @State private var showInvalidGoalWeightAlert = false
     @State private var showDefaultGramsInfo = false
     @State private var showAdaptiveGoalsInfo = false
+    @State private var showEnergyBurnInfo = false
     @State private var isRecalculatingGoals = false
     @State private var isApplyingAdaptiveGoals = false
     @State private var showAdaptiveGoalAlert = false
@@ -2837,7 +2839,7 @@ struct ProfileView: View {
 
                     Picker(selection: profileBinding.activityLevel) {
                         ForEach(ActivityLevel.allCases, id: \.self) { level in
-                            Text(level.displayNameWithProteinRequirement(bodyFatPercentage: profile.bodyFatPercentage)).tag(level)
+                            Text(level.displayName).tag(level)
                         }
                     } label: {
                         Label {
@@ -2910,6 +2912,37 @@ struct ProfileView: View {
                             .disabled(isApplyingAdaptiveGoals)
                             .onChange(of: adaptiveGoalsEnabled) { oldValue, enabled in
                                 handleAdaptiveGoalsToggle(enabled, wasEnabled: oldValue)
+                            }
+                    }
+
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Energy Burn")
+                                Text(healthKitEnabled ? "Experimental" : "Experimental · needs Apple Health")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "flame")
+                                .foregroundStyle(AppColors.calorie)
+                        }
+                        Spacer()
+                        Button {
+                            showEnergyBurnInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("About Energy Burn")
+
+                        Toggle("", isOn: $energyBurnEnabled)
+                            .labelsHidden()
+                            .tint(AppColors.calorie)
+                            .disabled(isRecalculatingGoals)
+                            .onChange(of: energyBurnEnabled) { _, enabled in
+                                handleEnergyBurnToggle(enabled)
                             }
                     }
 
@@ -3786,7 +3819,12 @@ struct ProfileView: View {
             .alert("Adaptive Goals", isPresented: $showAdaptiveGoalsInfo) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("Experimental. About once a week, Fud AI checks your recent weight trend against your target pace and makes a small calorie correction. When Apple Health is connected, it also factors your measured energy burned (Active + Basal). Pinned macros stay pinned; unlocked macros auto-balance. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice.")
+                Text("Experimental. About once a week when you open the app, Fud AI automatically re-runs the full goal calculation — the same one the Recalculate button uses — from your profile, recent logged food, and weight trend. If Energy Burn is on, it uses your measured burn as the maintenance anchor. It skips silently if the AI is unavailable. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice.")
+            }
+            .alert("Energy Burn", isPresented: $showEnergyBurnInfo) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Experimental. When on, Fud AI uses your measured calories burned from Apple Health — a 14-day average of Active + Basal energy — as your maintenance (TDEE) anchor when calculating goals, instead of the formula estimate. No AI is used to read your burn. Requires Apple Health. Works with the Recalculate button and with Adaptive Goals.")
             }
             .alert(adaptiveGoalAlertTitle, isPresented: $showAdaptiveGoalAlert) {
                 Button("OK", role: .cancel) { }
@@ -3945,15 +3983,16 @@ struct ProfileView: View {
         // Empirical signal: recent logged intake + observed weight trend, so the AI can estimate
         // true maintenance by hit-and-trial instead of trusting the formula TDEE alone.
         let forecast = WeightAnalysisService.compute(weights: weightStore.entries, foods: foodStore.entries, profile: snapshot)
+        // Energy Burn toggle: when on, anchor maintenance to the user's measured Apple Health burn.
+        let measuredTdee = await measuredEnergyTdee(for: snapshot)
         do {
-            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, useMetric: useMetric)
+            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, measuredTdee: measuredTdee, useMetric: useMetric)
             guard goalInputsUnchanged(snapshot, profile) else { return }
-            // Apply the AI calorie target. Protein is pinned to the activity-multiplier target
-            // (UserProfile.proteinGoal) so it always matches what the Activity Level row shows —
-            // it is never scaled down to fit a lower calorie goal. Carbs and fat stay auto-balanced
-            // (unlocked) and absorb the remaining calories.
+            // Apply the AI's calorie + protein targets. Protein is the AI's choice within a range
+            // near the activity multiplier (it can flex with the goal + history), not a rigid lock.
+            // Carbs and fat stay auto-balanced (unlocked) and absorb the remaining calories.
             profile.customCalories = result.calories
-            profile.customProtein = profile.proteinGoal
+            profile.customProtein = result.protein
             profile.customFat = nil
             profile.customCarbs = nil
             profile.autoBalanceMacro = nil
@@ -3982,11 +4021,10 @@ struct ProfileView: View {
             OptionalNutrientGoals.save(suggested)
         } catch {
             // AI unavailable — leave the existing Other Nutrients goals untouched rather than
-            // clobbering any user customizations with defaults. (Calories/macros above already
-            // fell back to the formula since they must always have a value.)
+            // clobbering any user customizations with defaults.
         }
-
-        _ = await applyAdaptiveGoalsIfDue(force: false, showAlert: false)
+        // Note: we do NOT chain Adaptive here. Adaptive Goals now *is* this same calculation on a
+        // weekly timer, so chaining would fire a second identical AI call.
     }
 
     /// True when the fields that drive the goal calculation are identical between two profile
@@ -4052,7 +4090,7 @@ struct ProfileView: View {
 
     private func handleAdaptiveGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
         if enabled {
-            Task { _ = await applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true) }
+            Task { await applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true) }
         } else {
             if AdaptiveGoalSettings.restorePreviousTargets(to: &profile) {
                 saveProfile()
@@ -4061,40 +4099,60 @@ struct ProfileView: View {
         }
     }
 
-    /// Weekly Adaptive correction. Primary signal is the observed weight trend; when Apple
-    /// Health is connected it also pulls measured Active + Basal energy (calories burned) and
-    /// passes it as the maintenance basis (the folded-in Energy Burn capability). Async because
-    /// the Health fetch is async.
-    @discardableResult
-    private func applyAdaptiveGoalsIfDue(force: Bool, showAlert: Bool) async -> AdaptiveGoalResult? {
-        guard adaptiveGoalsEnabled, !isApplyingAdaptiveGoals else { return nil }
-        guard force || AdaptiveGoalSettings.shouldCheckThisWeek() else { return nil }
+    /// Energy Burn is just an input switch for the goal calc — re-run the calc now so the new
+    /// (or removed) measured anchor takes effect immediately, exactly like tapping Recalculate.
+    /// With Apple Health not connected the calc simply falls back to the formula anchor.
+    private func handleEnergyBurnToggle(_ enabled: Bool) {
+        Task { await recalculateGoalsWithAI() }
+    }
+
+    /// Energy Burn toggle resolved to a number: the user's measured maintenance from Apple Health
+    /// (14-day Active + Basal average), or nil when Energy Burn is off, Health is disconnected, or
+    /// there isn't enough data. Single source used by both manual Recalculate and Adaptive.
+    private func measuredEnergyTdee(for profile: UserProfile) async -> Int? {
+        guard energyBurnEnabled, healthKitEnabled else { return nil }
+        guard let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) else { return nil }
+        return summary.totalAverageCalories ?? (Int(profile.bmr.rounded()) + summary.activeAverageCalories)
+    }
+
+    /// Adaptive Goals: automatically re-runs the FULL AI goal calculation (the same one the
+    /// Recalculate button uses) about once a week, from the latest logged food + weight trend
+    /// (hit-and-trial) and — when Energy Burn is on — the measured Health maintenance anchor.
+    /// Silent and non-destructive on AI failure (keeps existing goals; marks checked so it doesn't
+    /// retry every app open).
+    private func applyAdaptiveGoalsIfDue(force: Bool, showAlert: Bool) async {
+        guard adaptiveGoalsEnabled, !isApplyingAdaptiveGoals else { return }
+        guard force || AdaptiveGoalSettings.shouldCheckThisWeek() else { return }
 
         isApplyingAdaptiveGoals = true
         defer { isApplyingAdaptiveGoals = false }
 
-        var measuredTDEE: Int? = nil
-        if healthKitEnabled, let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) {
-            measuredTDEE = summary.totalAverageCalories ?? (Int(profile.bmr.rounded()) + summary.activeAverageCalories)
-        }
-
-        let result = AdaptiveGoalService.apply(
-            profile: profile,
-            weights: weightStore.entries,
-            foods: foodStore.entries,
-            measuredTDEE: measuredTDEE
-        )
-        AdaptiveGoalSettings.markCheckedToday()
-        if result.changed {
+        let snapshot = profile
+        let measuredTdee = await measuredEnergyTdee(for: snapshot)
+        let forecast = WeightAnalysisService.compute(weights: weightStore.entries, foods: foodStore.entries, profile: snapshot)
+        do {
+            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, measuredTdee: measuredTdee, useMetric: useMetric)
+            guard goalInputsUnchanged(snapshot, profile) else { return }
             AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
-            profile = result.profile
+            profile.customCalories = result.calories
+            profile.customProtein = result.protein
+            profile.customFat = nil
+            profile.customCarbs = nil
+            profile.autoBalanceMacro = nil
             saveProfile()
+            markGoalsRecalculated()
+            AdaptiveGoalSettings.markCheckedToday()
+            if showAlert {
+                showAdaptiveGoalAlert(title: "Adaptive Goals", message: "Updated to \(result.calories) kcal from your latest data." + (result.reason.map { " \($0)" } ?? ""))
+            }
+        } catch {
+            // AI unavailable — keep existing goals. Mark checked so the auto-run doesn't hammer a
+            // misconfigured provider on every app open; the user can still Recalculate manually.
+            AdaptiveGoalSettings.markCheckedToday()
+            if showAlert {
+                showAdaptiveGoalAlert(title: "Adaptive Goals", message: "Couldn't reach your AI provider — your goals are unchanged. Check your AI provider and API key in Settings.")
+            }
         }
-
-        if showAlert {
-            showAdaptiveGoalAlert(title: "Adaptive Goals", message: result.message)
-        }
-        return result
     }
 
     private func showAdaptiveGoalAlert(title: String, message: String) {

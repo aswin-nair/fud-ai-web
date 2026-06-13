@@ -446,30 +446,40 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         return granted
     }
 
+    /**
+     * Energy Burn toggle. It owns no targets — it just flips a flag that the goal calc consults:
+     * when on, the calc anchors maintenance to the measured Health Connect burn instead of the
+     * formula TDEE. Turning it on requires Health Connect with enough energy data. Either way we
+     * re-run the calc so the new (or removed) anchor applies immediately.
+     */
     fun setHealthEnergyGoalsEnabled(v: Boolean) {
         viewModelScope.launch {
-            if (!v) {
-                val current = container.profileRepository.current()
-                val restored = current?.let { container.prefs.restoreHealthEnergyGoalPreviousTargets(it) }
-                if (restored != null) {
-                    container.profileRepository.save(restored)
+            if (v) {
+                val granted = container.health.isAvailable() && container.health.hasAllPermissions()
+                if (!granted) {
+                    showHealthEnergyGoalAlert(
+                        title = "Health Connect Needed",
+                        message = "Allow Fud AI to read your Active and Total Calories in Health Connect, then turn Energy Burn on again."
+                    )
+                    return@launch
                 }
-                container.prefs.clearHealthEnergyGoalPreviousTargets()
-                container.prefs.setHealthEnergyGoalsEnabled(false)
-                _ui.value = _ui.value.copy(
-                    profile = restored ?: _ui.value.profile,
-                    healthEnergyGoalsEnabled = false,
-                    applyingHealthEnergyGoals = false
-                )
-                return@launch
+                container.prefs.setHealthConnectEnabled(true)
+                container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
+                if (container.health.readRecentEnergySummary(days = 14) == null) {
+                    showHealthEnergyGoalAlert(
+                        title = "Not Enough Energy Data",
+                        message = "Fud AI needs at least 3 recent days of Health Connect energy data before it can use your measured burn."
+                    )
+                    return@launch
+                }
             }
-            applyHealthEnergyGoals(saveExistingTargets = !_ui.value.healthEnergyGoalsEnabled)
-        }
-    }
-
-    fun refreshHealthEnergyGoals() {
-        viewModelScope.launch {
-            applyHealthEnergyGoals(saveExistingTargets = false)
+            container.prefs.setHealthEnergyGoalsEnabled(v)
+            _ui.value = _ui.value.copy(
+                healthEnergyGoalsEnabled = v,
+                healthConnectEnabled = if (v) true else _ui.value.healthConnectEnabled
+            )
+            // Re-run the goal calc so the new (or removed) measured anchor takes effect now.
+            recalculateGoals()
         }
     }
 
@@ -519,85 +529,6 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             adaptiveGoalAlertTitle = null,
             adaptiveGoalAlertMessage = null
         )
-    }
-
-    private suspend fun applyHealthEnergyGoals(saveExistingTargets: Boolean) {
-        if (_ui.value.applyingHealthEnergyGoals) return
-        _ui.value = _ui.value.copy(applyingHealthEnergyGoals = true)
-        try {
-            val profile = container.profileRepository.current()
-            if (profile == null) {
-                container.prefs.setHealthEnergyGoalsEnabled(false)
-                showHealthEnergyGoalAlert(
-                    title = "Profile Needed",
-                    message = "Finish your profile before using Health Connect energy goals."
-                )
-                return
-            }
-
-            val granted = container.health.isAvailable() && container.health.hasAllPermissions()
-            if (!granted) {
-                container.prefs.setHealthEnergyGoalsEnabled(false)
-                showHealthEnergyGoalAlert(
-                    title = "Health Connect Needed",
-                    message = "Allow Fud AI to read Active Calories and Total Calories in Health Connect, then try again."
-                )
-                return
-            }
-
-            if (saveExistingTargets) {
-                container.prefs.saveHealthEnergyGoalPreviousTargetsIfNeeded(profile)
-            }
-
-            container.prefs.setHealthConnectEnabled(true)
-            container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
-            val summary = container.health.readRecentEnergySummary(days = 14)
-            if (summary == null) {
-                container.prefs.setHealthEnergyGoalsEnabled(false)
-                showHealthEnergyGoalAlert(
-                    title = "Not Enough Energy Data",
-                    message = "Fud AI needs at least 3 recent days of Health Connect energy data to estimate goals."
-                )
-                return
-            }
-
-            val suggestion = container.foodAnalysis.suggestHealthEnergyGoals(
-                profile = profile,
-                energy = summary,
-                useMetric = container.prefs.useMetric.first()
-            )
-            val next = profile.copy(
-                customCalories = suggestion.calories,
-                customProtein = null,
-                customCarbs = null,
-                customFat = null,
-                autoBalanceMacro = null
-            )
-            container.profileRepository.save(next)
-            container.prefs.setHealthEnergyGoalsEnabled(true)
-            container.prefs.setHealthEnergyGoalsLastAutoRefreshDay(LocalDate.now().toString())
-            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
-            val reason = suggestion.reason?.takeIf { it.isNotBlank() }?.let { "\n\n$it" }.orEmpty()
-            val adaptiveMessage = adaptiveResult
-                ?.takeIf { it.changed }
-                ?.let { "\n\n${it.message}" }
-                .orEmpty()
-            _ui.value = _ui.value.copy(
-                profile = adaptiveResult?.profile ?: next,
-                healthConnectEnabled = true,
-                healthEnergyGoalsEnabled = true,
-                healthEnergyGoalAlertTitle = "Goals Updated",
-                healthEnergyGoalAlertMessage = "Updated to ${suggestion.calories} kcal using ${summary.daysUsed} days of Health Connect energy. Protein, carbs, and fat remain unlocked on auto-balance so you can lock them manually later.$reason$adaptiveMessage"
-            )
-        } catch (e: Throwable) {
-            container.prefs.setHealthEnergyGoalsEnabled(false)
-            showHealthEnergyGoalAlert(
-                title = "AI Estimate Failed",
-                message = e.localizedMessage ?: "AI estimate failed. Please try again."
-            )
-        } finally {
-            _ui.value = _ui.value.copy(applyingHealthEnergyGoals = false)
-        }
     }
 
     private fun showHealthEnergyGoalAlert(title: String, message: String) {
@@ -653,10 +584,12 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 foods = container.foodRepository.entries.first(),
                 profile = current
             )
+            // Energy Burn toggle: anchor maintenance to the user's measured Health Connect burn.
+            val measuredTdee = container.measuredEnergyTdeeIfEnabled(current)
             // AI-only — no formula fallback. If the AI provider is unavailable, leave the
             // existing goals untouched and tell the user so they can fix their key and retry.
             val result = try {
-                container.foodAnalysis.calculateGoals(current, forecast, useMetric)
+                container.foodAnalysis.calculateGoals(current, forecast, useMetric, measuredTdee)
             } catch (e: Throwable) {
                 _ui.value = _ui.value.copy(
                     recalculatingGoals = false,
@@ -665,12 +598,12 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 )
                 return@launch
             }
-            // Apply the AI calorie target. Protein is pinned to the activity-multiplier target
-            // (proteinGoal) so it always matches the Activity Level row — never scaled down to fit
-            // a lower calorie goal. Carbs and fat stay auto-balanced (unlocked) and absorb the rest.
+            // Apply the AI's calorie + protein targets. Protein is the AI's choice within a range
+            // near the activity multiplier (it can flex with the goal + history), not a rigid lock.
+            // Carbs and fat stay auto-balanced (unlocked) and absorb the rest.
             val next = current.recalculatedFromFormulas().copy(
                 customCalories = result.calories,
-                customProtein = current.proteinGoal
+                customProtein = result.protein
             )
             val message = "Updated to ${result.calories} kcal." + (result.reason?.let { " $it" } ?: "")
             container.profileRepository.save(next)

@@ -322,25 +322,34 @@ struct calorietrackerApp: App {
 
         isAutoRefreshingAdaptiveGoals = true
         let healthOn = UserDefaults.standard.bool(forKey: "healthKitEnabled")
+        let energyBurnOn = UserDefaults.standard.bool(forKey: EnergyBurnSettings.enabledKey)
+        let useMetric = UserDefaults.standard.bool(forKey: "useMetric")
+        let weights = weightStore.entries
+        let foods = foodStore.entries
         Task {
             defer { Task { @MainActor in isAutoRefreshingAdaptiveGoals = false } }
 
-            // Burn-aware: fold in Apple Health measured energy when connected.
-            var measuredTDEE: Int? = nil
-            if healthOn, let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) {
-                measuredTDEE = summary.totalAverageCalories ?? (Int(profile.bmr.rounded()) + summary.activeAverageCalories)
+            // Adaptive Goals = the same AI calculation the Recalculate button runs, on a weekly
+            // timer. Energy Burn (when on) anchors maintenance to measured Apple Health burn.
+            var measuredTdee: Int? = nil
+            if energyBurnOn, healthOn, let summary = await healthKitManager.fetchRecentEnergySummary(days: 14) {
+                measuredTdee = summary.totalAverageCalories ?? (Int(profile.bmr.rounded()) + summary.activeAverageCalories)
             }
-
-            let result = AdaptiveGoalService.apply(
-                profile: profile,
-                weights: weightStore.entries,
-                foods: foodStore.entries,
-                measuredTDEE: measuredTDEE
-            )
-            AdaptiveGoalSettings.markCheckedToday()
-            if result.changed {
+            let forecast = WeightAnalysisService.compute(weights: weights, foods: foods, profile: profile)
+            do {
+                let result = try await GeminiService.calculateGoals(profile: profile, forecast: forecast, measuredTdee: measuredTdee, useMetric: useMetric)
                 AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
-                result.profile.save()
+                var next = profile
+                next.customCalories = result.calories
+                next.customProtein = result.protein
+                next.customFat = nil
+                next.customCarbs = nil
+                next.autoBalanceMacro = nil
+                next.save()
+                AdaptiveGoalSettings.markCheckedToday()
+            } catch {
+                // AI unavailable — keep existing goals; mark checked so we don't retry every open.
+                AdaptiveGoalSettings.markCheckedToday()
             }
         }
     }

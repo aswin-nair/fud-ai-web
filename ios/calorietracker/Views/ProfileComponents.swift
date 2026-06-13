@@ -460,7 +460,7 @@ struct ActivityLevelSelectionView: View {
                             .frame(width: 32)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(level.displayNameWithProteinRequirement())
+                            Text(level.displayName)
                                 .font(.system(.body, design: .rounded, weight: .medium))
                                 .foregroundStyle(.primary)
                             Text(level.subtitle)

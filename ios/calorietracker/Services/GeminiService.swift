@@ -407,7 +407,7 @@ struct GeminiService {
     /// (hit-and-trial / adaptive) rather than trusting the formula alone. Routes through the
     /// selected provider (BYOK or Premium). The deterministic math stays as the caller's
     /// fallback when AI is unavailable. ONLY for goal targets — does not touch food estimation.
-    static func calculateGoals(profile: UserProfile, forecast: WeightForecast?, useMetric: Bool) async throws -> GoalCalculation {
+    static func calculateGoals(profile: UserProfile, forecast: WeightForecast?, measuredTdee: Int? = nil, useMetric: Bool) async throws -> GoalCalculation {
         let weight = useMetric
             ? String(format: "%.1f kg", profile.weightKg)
             : String(format: "%.1f lb", profile.weightKg * 2.20462)
@@ -443,6 +443,15 @@ struct GeminiService {
             observedSection = lines.joined(separator: "\n")
         }
 
+        // Energy Burn toggle: when the user has it on (and Apple Health has enough data), this is
+        // their REAL measured maintenance and replaces the formula TDEE as the calorie anchor.
+        let measuredSection: String
+        if let measuredTdee {
+            measuredSection = "\nMEASURED ENERGY BURN — the user's REAL maintenance from Apple Health (14-day average of active + basal calories). Use THIS as the maintenance/TDEE anchor INSTEAD of the formula TDEE: \(measuredTdee) kcal/day. Apply the weight goal and weekly-change adjustment to this measured maintenance. Still sanity-check it against the observed weight trend. Keep protein at the formula value."
+        } else {
+            measuredSection = ""
+        }
+
         let prompt = """
         You are the goal calculator for a calorie & macro tracking app. Using the FORMULAS, the USER PROFILE, and any OBSERVED DATA below, compute the user's daily targets.
         Return ONLY valid JSON with these exact keys (integers, plus a short reason):
@@ -454,7 +463,7 @@ struct GeminiService {
         - BMR (Katch-McArdle, used when body fat is known and enabled): 370 + 21.6 * (1 - bodyFatFraction) * weightKg.
         - TDEE = BMR * activity multiplier. Multipliers: sedentary 1.2, light 1.375, moderate 1.465, active 1.55, very active 1.725, extra active 1.9.
         - Calorie target = TDEE + adjustment. adjustment = 0 for maintain; lose: -(weeklyChangeKg*7000/7); gain: +(weeklyChangeKg*7000/7).
-        - Protein: (activity g/kg: sedentary 0.8, light 1.2, moderate 1.6, active 1.8, very active 2.0, extra active 2.2; +0.2 if the goal is to lose) times full bodyweight in kg. (Shown to the user per lean mass when body fat is known, but the gram total equals this.) Use EXACTLY the formula protein value below — do NOT lower protein to hit the calorie target; adjust carbs and fat instead.
+        - Protein: aim NEAR the formula protein value shown below — that value is the activity multiplier (sedentary 0.8, light 1.2, moderate 1.6, active 1.8, very active 2.0, extra active 2.2 g/kg; +0.2 if losing) applied to the user's \(profile.bodyFatPercentage != nil ? "lean body mass" : "full bodyweight"). You may choose a value within about ±15% of it based on the weight goal and the observed history (lean toward the higher end during a calorie deficit to preserve muscle). Do NOT scale protein down just to fit a lower calorie target.
         - Fat: 0.6 g/kg of full bodyweight.
         - Carbs: the calories remaining after protein (4 kcal/g) and fat (9 kcal/g), divided by 4. Keep 4*protein + 4*carbs + 9*fat approximately equal to calories.
         BMR method in effect for this user: \(bmrMethod).
@@ -476,6 +485,7 @@ struct GeminiService {
         - TDEE: \(Int(profile.tdee.rounded())) kcal/day
         - Formula calorie target: \(profile.dailyCalories) kcal/day
         - Formula macros: \(profile.proteinGoal) g protein, \(profile.carbsGoal) g carbs, \(profile.fatGoal) g fat
+        \(measuredSection)
         \(observedSection)
         """
 

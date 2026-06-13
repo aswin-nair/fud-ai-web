@@ -49,16 +49,6 @@ enum ActivityLevel: String, Codable, CaseIterable {
         return bodyweightEquivalent / leanMassFraction
     }
 
-    func displayNameWithProteinRequirement(bodyFatPercentage: Double? = nil) -> String {
-        let multiplier = proteinRequirementPerKg(bodyFatPercentage: bodyFatPercentage)
-        if Locale.preferredLanguages.first?.lowercased().hasPrefix("pl") == true
-            || Bundle.main.preferredLocalizations.first?.lowercased().hasPrefix("pl") == true {
-            let basis = bodyFatPercentage == nil ? "masy ciała" : "beztłuszczowej masy ciała"
-            return "\(displayName) (\(String(format: "%.1f g/kg %@ białka", multiplier, basis)))"
-        }
-        let basis = bodyFatPercentage == nil ? "bodyweight" : "lean mass"
-        return "\(displayName) (\(String(format: "%.1f g/kg %@ protein", multiplier, basis)))"
-    }
 
     var subtitle: String {
         switch self {
@@ -365,6 +355,14 @@ struct UserProfile: Codable, Equatable {
             NotificationCenter.default.post(name: .userProfileDidChange, object: nil)
         }
     }
+}
+
+/// Energy Burn toggle. Purely an input source: when on (and Apple Health has enough data), the
+/// goal calculation anchors maintenance to the user's measured Active + Basal burn instead of the
+/// formula TDEE. It owns no targets and no cadence of its own — it just flips this flag, which the
+/// manual Recalculate and the Adaptive auto-run both consult. Fresh key so it starts OFF.
+enum EnergyBurnSettings {
+    static let enabledKey = "energyBurnEnabledV2"
 }
 
 struct AdaptiveGoalSettings {
