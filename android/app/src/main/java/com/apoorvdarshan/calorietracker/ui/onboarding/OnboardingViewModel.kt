@@ -45,6 +45,7 @@ data class OnboardingState(
     val notificationsEnabled: Boolean = false,
     val healthConnectEnabled: Boolean = false,
     val aiProvider: AIProvider = AIProvider.GEMINI,
+    val aiModel: String = AIProvider.GEMINI.defaultModel,
     val apiKey: String = "",
     val submitting: Boolean = false,
     /** Manual overrides applied on the Plan Ready step. Null = use formula default. */
@@ -124,13 +125,18 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
     }
     fun setAiProvider(p: AIProvider) {
         // Persist immediately so the Building Plan AI call (which runs before onboarding
-        // completes) can resolve the provider/model. Reload that provider's stored key.
+        // completes) can resolve the provider/model. Reset to the provider's default model and
+        // reload that provider's stored key.
         viewModelScope.launch {
             container.prefs.setSelectedAIProvider(p)
             container.prefs.setSelectedAIModel(p.defaultModel)
             val existing = container.keyStore.apiKey(p) ?: ""
-            _ui.value = _ui.value.copy(aiProvider = p, apiKey = existing)
+            _ui.value = _ui.value.copy(aiProvider = p, aiModel = p.defaultModel, apiKey = existing)
         }
+    }
+    fun setAiModel(m: String) {
+        _ui.value = _ui.value.copy(aiModel = m)
+        viewModelScope.launch { container.prefs.setSelectedAIModel(m) }
     }
     fun setApiKey(key: String) {
         _ui.value = _ui.value.copy(apiKey = key)
@@ -198,7 +204,7 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
             container.prefs.setNotificationsEnabled(state.notificationsEnabled)
             container.prefs.setHealthConnectEnabled(state.healthConnectEnabled)
             container.prefs.setSelectedAIProvider(state.aiProvider)
-            container.prefs.setSelectedAIModel(state.aiProvider.defaultModel)
+            container.prefs.setSelectedAIModel(state.aiModel)
             if (state.apiKey.isNotBlank()) {
                 container.keyStore.setApiKey(state.aiProvider, state.apiKey.trim())
             }

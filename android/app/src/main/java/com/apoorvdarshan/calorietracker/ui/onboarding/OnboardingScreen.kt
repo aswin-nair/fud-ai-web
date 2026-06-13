@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Accessibility
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Cancel
@@ -54,6 +55,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -217,8 +219,10 @@ fun OnboardingScreen(container: AppContainer, onComplete: () -> Unit) {
                 )
                 OnboardingStep.PROVIDER -> ProviderStep(
                     provider = ui.aiProvider,
+                    model = ui.aiModel,
                     apiKey = ui.apiKey,
                     onProviderChange = vm::setAiProvider,
+                    onModelChange = vm::setAiModel,
                     onKeyChange = vm::setApiKey
                 )
                 OnboardingStep.BUILDING_PLAN -> BuildingPlanStep(vm = vm, onComplete = vm::next)
@@ -1184,8 +1188,10 @@ private fun ToggleCard(label: String, subtitle: String, enabled: Boolean, onTogg
 @Composable
 private fun ProviderStep(
     provider: AIProvider,
+    model: String,
     apiKey: String,
     onProviderChange: (AIProvider) -> Unit,
+    onModelChange: (String) -> Unit,
     onKeyChange: (String) -> Unit
 ) {
     // iOS aiProviderStep: sparkles icon in circle, "Bring Your Own AI" title,
@@ -1280,37 +1286,61 @@ private fun ProviderStep(
             }
         }
         Spacer(Modifier.height(10.dp))
-        // BYOK setup: provider + API key. AI drives goal calculation, so a key is required to
-        // continue (gated via OnboardingState.canAdvance). Persisted immediately by the VM.
+        // BYOK setup: provider, model, and API key. AI drives goal calculation, so a key is
+        // required to continue (gated via OnboardingState.canAdvance). Persisted by the VM.
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(vertical = 4.dp)) {
+                // Provider
                 var providerMenuOpen by remember { mutableStateOf(false) }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.settings_ai_provider),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
+                Box {
+                    OnboardingSelectorRow(
+                        label = stringResource(R.string.settings_ai_provider),
+                        value = stringResource(provider.displayNameRes),
+                        onClick = { providerMenuOpen = true }
                     )
-                    Spacer(Modifier.weight(1f))
-                    Box {
-                        TextButton(onClick = { providerMenuOpen = true }) {
-                            Text(stringResource(provider.displayNameRes), color = AppColors.Calorie)
+                    DropdownMenu(expanded = providerMenuOpen, onDismissRequest = { providerMenuOpen = false }) {
+                        AIProvider.values().forEach { p ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(p.displayNameRes)) },
+                                onClick = { onProviderChange(p); providerMenuOpen = false }
+                            )
                         }
-                        DropdownMenu(expanded = providerMenuOpen, onDismissRequest = { providerMenuOpen = false }) {
-                            AIProvider.values().forEach { p ->
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(p.displayNameRes)) },
-                                    onClick = { onProviderChange(p); providerMenuOpen = false }
-                                )
+                    }
+                }
+                HorizontalDivider(Modifier.padding(horizontal = 14.dp))
+                // Model
+                if (provider.supportsCustomModelName) {
+                    OutlinedTextField(
+                        value = model,
+                        onValueChange = onModelChange,
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.settings_ai_model)) },
+                        placeholder = { Text("e.g. gpt-4o-mini") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    )
+                } else {
+                    var modelMenuOpen by remember { mutableStateOf(false) }
+                    Box {
+                        OnboardingSelectorRow(
+                            label = stringResource(R.string.settings_ai_model),
+                            value = model,
+                            onClick = { modelMenuOpen = true }
+                        )
+                        DropdownMenu(expanded = modelMenuOpen, onDismissRequest = { modelMenuOpen = false }) {
+                            provider.models.forEach { m ->
+                                DropdownMenuItem(text = { Text(m) }, onClick = { onModelChange(m); modelMenuOpen = false })
                             }
                         }
                     }
                 }
                 if (provider.requiresApiKey) {
+                    HorizontalDivider(Modifier.padding(horizontal = 14.dp))
                     OutlinedTextField(
                         value = apiKey,
                         onValueChange = onKeyChange,
@@ -1318,7 +1348,9 @@ private fun ProviderStep(
                         visualTransformation = PasswordVisualTransformation(),
                         label = { Text(stringResource(R.string.settings_api_key)) },
                         placeholder = { Text(stringResource(provider.apiKeyPlaceholderRes)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
                     )
                 }
             }
@@ -1354,6 +1386,42 @@ private fun AiSetupRow(number: String, text: String) {
         Text(
             text,
             style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+/**
+ * Settings-style tappable selector row used by the BYOK provider/model pickers in
+ * onboarding: label on the left, the current value in the accent colour, and a
+ * trailing chevron. Tapping opens the DropdownMenu anchored to it.
+ */
+@Composable
+private fun OnboardingSelectorRow(label: String, value: String, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppColors.Calorie,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.width(4.dp))
+        Icon(
+            imageVector = Icons.Outlined.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
+            modifier = Modifier.size(20.dp)
         )
     }
 }
