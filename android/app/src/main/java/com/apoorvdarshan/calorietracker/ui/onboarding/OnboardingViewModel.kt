@@ -56,6 +56,13 @@ data class OnboardingState(
     /** REVIEW (Rate fud) is the actual final step. */
     val isLastStep: Boolean get() = step == OnboardingStep.REVIEW
 
+    /** AI is required for goal calculation, so BYOK users must enter an API key before leaving
+     *  the provider step (Ollama needs none). All other steps advance freely. */
+    val canAdvance: Boolean get() = when (step) {
+        OnboardingStep.PROVIDER -> !aiProvider.requiresApiKey || apiKey.trim().isNotEmpty()
+        else -> true
+    }
+
     fun buildProfile(): UserProfile = UserProfile(
         gender = gender,
         birthday = birthday.atStartOfDay(ZoneId.systemDefault()).toInstant(),
@@ -116,10 +123,21 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
         _ui.value = _ui.value.copy(healthConnectEnabled = v)
     }
     fun setAiProvider(p: AIProvider) {
-        _ui.value = _ui.value.copy(aiProvider = p)
+        // Persist immediately so the Building Plan AI call (which runs before onboarding
+        // completes) can resolve the provider/model. Reload that provider's stored key.
+        viewModelScope.launch {
+            container.prefs.setSelectedAIProvider(p)
+            container.prefs.setSelectedAIModel(p.defaultModel)
+            val existing = container.keyStore.apiKey(p) ?: ""
+            _ui.value = _ui.value.copy(aiProvider = p, apiKey = existing)
+        }
     }
     fun setApiKey(key: String) {
         _ui.value = _ui.value.copy(apiKey = key)
+        // Persist immediately so the in-onboarding AI plan calc can use it.
+        viewModelScope.launch {
+            container.keyStore.setApiKey(_ui.value.aiProvider, key.trim().takeIf { it.isNotBlank() })
+        }
     }
     fun setUseMetric(v: Boolean) {
         _ui.value = _ui.value.copy(useMetric = v)
@@ -130,6 +148,28 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
     fun setCustomProtein(v: Int?) { _ui.value = _ui.value.copy(customProtein = v) }
     fun setCustomCarbs(v: Int?) { _ui.value = _ui.value.copy(customCarbs = v) }
     fun setCustomFat(v: Int?) { _ui.value = _ui.value.copy(customFat = v) }
+
+    /** Building Plan step: compute calorie + macro targets with AI (forecast is null for a new
+     *  user). On success seeds the custom targets the Plan Ready screen shows; on failure leaves
+     *  them null so the formula values are used. Calls [onDone] either way. */
+    fun buildPlanWithAI(onDone: () -> Unit) {
+        viewModelScope.launch {
+            val state = _ui.value
+            val result = runCatching {
+                container.foodAnalysis.calculateGoals(state.buildProfile(), forecast = null, useMetric = state.useMetric)
+            }.getOrNull()
+            if (result != null) {
+                val carbs = maxOf(0, (result.calories - result.protein * 4 - result.fat * 9) / 4)
+                _ui.value = _ui.value.copy(
+                    customCalories = result.calories,
+                    customProtein = result.protein,
+                    customFat = result.fat,
+                    customCarbs = carbs
+                )
+            }
+            onDone()
+        }
+    }
 
     fun next() {
         if (_ui.value.step == OnboardingStep.REVIEW) return

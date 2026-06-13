@@ -122,6 +122,15 @@ data class HealthEnergyGoalSuggestion(
     val reason: String? = null
 )
 
+/** AI-computed daily targets returned by FoodAnalysisService.calculateGoals. */
+data class GoalCalculation(
+    val calories: Int,
+    val protein: Int,
+    val carbs: Int,
+    val fat: Int,
+    val reason: String? = null
+)
+
 internal object FoodJsonParser {
 
     fun extractJson(text: String): String {
@@ -296,6 +305,25 @@ internal object FoodJsonParser {
         } ?: throw AiError.InvalidResponse
         return HealthEnergyGoalSuggestion(
             calories = calories.coerceIn(800, 6000),
+            reason = json.optString("reason").takeIf { it.isNotBlank() }
+        )
+    }
+
+    fun parseGoalCalculation(text: String): GoalCalculation {
+        val json = runCatching { JSONObject(extractJson(text)) }.getOrNull()
+            ?: throw AiError.InvalidResponse
+        fun intOf(key: String): Int? = when (val value = json.opt(key)) {
+            is Number -> value.toDouble().roundToInt()
+            is String -> value.toDoubleOrNull()?.roundToInt()
+            else -> null
+        }
+        val calories = intOf("calories") ?: throw AiError.InvalidResponse
+        fun macro(key: String, cap: Int): Int = (intOf(key) ?: 0).coerceIn(0, cap)
+        return GoalCalculation(
+            calories = calories.coerceIn(800, 6000),
+            protein = macro("protein", 500),
+            carbs = macro("carbs", 1200),
+            fat = macro("fat", 400),
             reason = json.optString("reason").takeIf { it.isNotBlank() }
         )
     }

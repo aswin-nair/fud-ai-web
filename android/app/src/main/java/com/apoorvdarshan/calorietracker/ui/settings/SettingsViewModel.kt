@@ -12,6 +12,7 @@ import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.models.WeightEntry
 import com.apoorvdarshan.calorietracker.models.WeightGoal
 import com.apoorvdarshan.calorietracker.services.AndroidAppIconManager
+import com.apoorvdarshan.calorietracker.services.WeightAnalysisService
 import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import com.apoorvdarshan.calorietracker.ui.theme.AppThemeColor
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -654,14 +655,31 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
     fun recalculateGoals() {
         viewModelScope.launch {
             val current = container.profileRepository.current() ?: return@launch
-            if (container.prefs.healthEnergyGoalsEnabled.first()) {
-                applyHealthEnergyGoals(saveExistingTargets = false)
-            } else {
-                val next = current.recalculatedFromFormulas()
-                container.profileRepository.save(next)
-                val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
-                _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
+            val useMetric = container.prefs.useMetric.first()
+            // Empirical signal: recent logged intake + observed weight trend, so the AI can
+            // estimate true maintenance (hit-and-trial) instead of trusting the formula alone.
+            val forecast = WeightAnalysisService.compute(
+                weights = container.weightRepository.entries.first(),
+                foods = container.foodRepository.entries.first(),
+                profile = current
+            )
+            // AI calorie target with macros reset to auto-balance (unlocked); fall back to the
+            // deterministic formula when AI is unavailable so a valid goal is always produced.
+            val next = try {
+                val result = container.foodAnalysis.calculateGoals(current, forecast, useMetric)
+                current.recalculatedFromFormulas().copy(customCalories = result.calories)
+            } catch (e: Throwable) {
+                current.recalculatedFromFormulas()
             }
+            container.profileRepository.save(next)
+            // Also AI-refresh the optional Other Nutrients; keep existing values on failure.
+            try {
+                val goals = container.foodAnalysis.estimateOptionalNutrientGoals(next)
+                container.prefs.setOptionalNutrientGoals(goals)
+                _ui.value = _ui.value.copy(optionalNutrientGoals = goals)
+            } catch (_: Throwable) { /* keep existing nutrient goals */ }
+            val adaptiveResult = container.refreshAdaptiveGoalsIfNeeded(force = false)
+            _ui.value = _ui.value.copy(profile = adaptiveResult?.profile ?: next)
         }
     }
 

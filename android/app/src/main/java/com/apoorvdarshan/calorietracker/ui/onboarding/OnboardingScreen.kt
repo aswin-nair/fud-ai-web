@@ -52,6 +52,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -218,7 +221,7 @@ fun OnboardingScreen(container: AppContainer, onComplete: () -> Unit) {
                     onProviderChange = vm::setAiProvider,
                     onKeyChange = vm::setApiKey
                 )
-                OnboardingStep.BUILDING_PLAN -> BuildingPlanStep(onComplete = vm::next)
+                OnboardingStep.BUILDING_PLAN -> BuildingPlanStep(vm = vm, onComplete = vm::next)
                 OnboardingStep.PLAN_READY -> PlanReadyStep(state = ui, vm = vm)
                 OnboardingStep.REVIEW -> ReviewStep()
             }
@@ -351,6 +354,7 @@ fun OnboardingScreen(container: AppContainer, onComplete: () -> Unit) {
                 // iOS continueButton: full-width inverse-coloured capsule.
                 Button(
                     onClick = { vm.next() },
+                    enabled = ui.canAdvance,
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.onBackground,
@@ -1275,6 +1279,50 @@ private fun ProviderStep(
                 AiSetupRow("3", stringResource(R.string.onboarding_provider_step_3))
             }
         }
+        Spacer(Modifier.height(10.dp))
+        // BYOK setup: provider + API key. AI drives goal calculation, so a key is required to
+        // continue (gated via OnboardingState.canAdvance). Persisted immediately by the VM.
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                var providerMenuOpen by remember { mutableStateOf(false) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.settings_ai_provider),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Box {
+                        TextButton(onClick = { providerMenuOpen = true }) {
+                            Text(stringResource(provider.displayNameRes), color = AppColors.Calorie)
+                        }
+                        DropdownMenu(expanded = providerMenuOpen, onDismissRequest = { providerMenuOpen = false }) {
+                            AIProvider.values().forEach { p ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(p.displayNameRes)) },
+                                    onClick = { onProviderChange(p); providerMenuOpen = false }
+                                )
+                            }
+                        }
+                    }
+                }
+                if (provider.requiresApiKey) {
+                    OutlinedTextField(
+                        value = apiKey,
+                        onValueChange = onKeyChange,
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        label = { Text(stringResource(R.string.settings_api_key)) },
+                        placeholder = { Text(stringResource(provider.apiKeyPlaceholderRes)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(14.dp))
         Text(
             stringResource(R.string.onboarding_provider_footer),
@@ -1315,7 +1363,7 @@ private fun AiSetupRow(number: String, text: String) {
  * and a five-item checklist that ticks off over ~4 seconds, then auto-advances.
  */
 @Composable
-private fun BuildingPlanStep(onComplete: () -> Unit) {
+private fun BuildingPlanStep(vm: OnboardingViewModel, onComplete: () -> Unit) {
     val items = listOf(
         stringResource(R.string.onboarding_building_calories) to Icons.Outlined.LocalFireDepartment,
         stringResource(R.string.onboarding_building_carbs) to Icons.Outlined.Restaurant,
@@ -1325,12 +1373,17 @@ private fun BuildingPlanStep(onComplete: () -> Unit) {
     )
     var checkedCount by remember { mutableIntStateOf(0) }
     var percent by remember { mutableIntStateOf(0) }
+    var aiDone by remember { mutableStateOf(false) }
     val targetProgress = checkedCount / items.size.toFloat()
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
         animationSpec = tween(durationMillis = 400),
         label = "plan_progress"
     )
+
+    // Compute the plan with AI in parallel with the animation (seeds the Plan Ready targets;
+    // leaves them null on failure so the formula values are used).
+    LaunchedEffect(Unit) { vm.buildPlanWithAI { aiDone = true } }
 
     LaunchedEffect(Unit) {
         val percentSteps = listOf(20, 40, 60, 80, 100)
@@ -1340,6 +1393,8 @@ private fun BuildingPlanStep(onComplete: () -> Unit) {
             percent = percentSteps[i]
         }
         kotlinx.coroutines.delay(400)
+        // Advance only once the AI plan calc has also finished.
+        while (!aiDone) kotlinx.coroutines.delay(100)
         onComplete()
     }
 
