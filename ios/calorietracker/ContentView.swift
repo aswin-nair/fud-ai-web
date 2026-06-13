@@ -4022,10 +4022,14 @@ struct ProfileView: View {
         do {
             let result = try await GeminiService.calculateGoals(profile: snapshot, useMetric: useMetric)
             guard goalInputsUnchanged(snapshot, profile) else { return }
+            // Apply the AI calorie target and reset all macros to auto-balance (unlocked).
+            // Recalculate's contract is "clear pinned macros" — so we never pin protein/fat/carbs
+            // here (that would leave a lock icon). Macros auto-balance from the formula
+            // proportions at the new calorie target, exactly like the formula-recalc path.
             profile.customCalories = result.calories
-            profile.customProtein = result.protein
-            profile.customFat = result.fat
-            profile.customCarbs = nil          // carbs auto-balances to hit the calorie target
+            profile.customProtein = nil
+            profile.customFat = nil
+            profile.customCarbs = nil
             profile.autoBalanceMacro = nil
             saveProfile()
         } catch {
