@@ -7,47 +7,10 @@ struct OptionalNutrientGoalsSettingsView: View {
     @AppStorage(OptionalNutrientGoals.storageKey) private var storedGoalsData = Data()
     @State private var goals: OptionalNutrientGoals = .current
     @State private var editingNutrient: OptionalNutrient?
-    @State private var isSuggesting = false
-    @State private var errorMessage: String?
 
     var body: some View {
         List {
             Section {
-                Button {
-                    Task { await suggestGoals() }
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(AppColors.calorie)
-                            .frame(width: 22)
-                        Text(isSuggesting ? "Analyzing" : "Suggest with AI")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        if isSuggesting {
-                            ProgressView()
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-                .disabled(isSuggesting)
-
-                Button {
-                    save(.defaults)
-                } label: {
-                    Label {
-                        Text("Reset Defaults")
-                    } icon: {
-                        Image(systemName: "arrow.counterclockwise")
-                            .foregroundStyle(AppColors.calorie)
-                    }
-                }
-                .buttonStyle(.plain)
-            } footer: {
-                Text("Separate from calorie, protein, carb, and fat goals.")
-            }
-            .listRowBackground(AppColors.appCard)
-
-            Section("Other Nutrients") {
                 ForEach(OptionalNutrient.allCases) { nutrient in
                     Button {
                         editingNutrient = nutrient
@@ -73,6 +36,10 @@ struct OptionalNutrientGoalsSettingsView: View {
                     }
                     .buttonStyle(.plain)
                 }
+            } header: {
+                Text("Other Nutrients")
+            } footer: {
+                Text("Separate from calorie, protein, carb, and fat goals.")
             }
             .listRowBackground(AppColors.appCard)
         }
@@ -97,37 +64,11 @@ struct OptionalNutrientGoalsSettingsView: View {
                 save(goals.settingGoal(value, for: nutrient))
             }
         }
-        .alert("AI Suggestion Failed", isPresented: Binding(
-            get: { errorMessage != nil },
-            set: { if !$0 { errorMessage = nil } }
-        )) {
-            Button("OK", role: .cancel) { errorMessage = nil }
-        } message: {
-            Text(errorMessage ?? "")
-        }
     }
 
     private func save(_ newGoals: OptionalNutrientGoals) {
         let normalized = newGoals.mergedWithDefaults()
         goals = normalized
         storedGoalsData = normalized.encodedData
-    }
-
-    @MainActor
-    private func suggestGoals() async {
-        guard !isSuggesting else { return }
-        isSuggesting = true
-        defer { isSuggesting = false }
-
-        do {
-            let suggested = try await GeminiService.suggestOptionalNutrientGoals(
-                profile: profile,
-                currentGoals: goals,
-                useMetric: useMetric
-            )
-            save(suggested)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
     }
 }

@@ -4008,7 +4008,9 @@ struct ProfileView: View {
     /// selected provider (BYOK or Premium, transparently) and applies the returned calorie
     /// and protein/fat targets; carbs auto-balances so totals stay consistent. Falls back to
     /// the deterministic formula when AI is unavailable (no key / Premium inactive / offline /
-    /// bad response) so a valid goal is always produced. Food calorie estimation is untouched.
+    /// bad response) so a valid goal is always produced. Also recomputes the optional
+    /// "Other Nutrients" (fiber/sugar/sodium/…) via AI, falling back to the standard defaults.
+    /// Food calorie estimation is untouched.
     private func recalculateGoalsWithAI() async {
         guard !isRecalculatingGoals else { return }
         isRecalculatingGoals = true
@@ -4037,6 +4039,21 @@ struct ProfileView: View {
             profile.recalculateGoalsFromFormulas()
             saveProfile()
         }
+
+        // Also recompute the optional "Other Nutrients" (fiber, sugar, sodium, …) via AI,
+        // falling back to the standard defaults when AI is unavailable. These live in a
+        // separate store from the calorie/macro goals.
+        do {
+            let suggested = try await GeminiService.suggestOptionalNutrientGoals(
+                profile: profile,
+                currentGoals: OptionalNutrientGoals.current,
+                useMetric: useMetric
+            )
+            OptionalNutrientGoals.save(suggested)
+        } catch {
+            OptionalNutrientGoals.save(.defaults)
+        }
+
         _ = applyAdaptiveGoalsIfDue(force: false, showAlert: false)
     }
 
