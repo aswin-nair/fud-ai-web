@@ -107,11 +107,6 @@ struct GeminiService {
         }
     }
 
-    struct HealthEnergyGoalSuggestion {
-        var calories: Int
-        var reason: String?
-    }
-
     /// AI-computed daily targets returned by `calculateGoals`.
     struct GoalCalculation {
         var calories: Int
@@ -402,63 +397,6 @@ struct GeminiService {
 
         let text = try await callAI(prompt: prompt, image: nil)
         return try parseOptionalNutrientGoals(from: text, fallback: currentGoals)
-    }
-
-    static func suggestHealthEnergyGoals(
-        profile: UserProfile,
-        energy: HealthEnergySummary,
-        useMetric: Bool
-    ) async throws -> HealthEnergyGoalSuggestion {
-        let weight = useMetric
-            ? String(format: "%.1f kg", profile.weightKg)
-            : String(format: "%.1f lb", profile.weightKg * 2.20462)
-        let height = useMetric
-            ? String(format: "%.0f cm", profile.heightCm)
-            : String(format: "%.1f in", profile.heightCm / 2.54)
-        let bodyFat = profile.bodyFatPercentage.map { "\(Int(($0 * 100).rounded()))%" } ?? "not set"
-        let goalWeight = profile.goalWeightKg.map { kg in
-            useMetric ? String(format: "%.1f kg", kg) : String(format: "%.1f lb", kg * 2.20462)
-        } ?? "not set"
-        let healthTotalLine = energy.totalAverageCalories
-            .map { "\($0) kcal/day from active + basal energy" }
-            ?? "basal energy unavailable; estimate total burn from app BMR + Apple Health active energy"
-
-        let prompt = """
-        You are setting a daily calorie target for a food tracking app.
-        Return ONLY valid JSON with these exact keys:
-        {"calories":2000,"reason":"Short reason under 100 characters"}
-
-        Use Apple Health energy as the primary activity signal, but keep the app's existing formula as a sanity check.
-        If Apple Health basal energy is unavailable, estimate total daily burn from app BMR plus Apple Health active energy.
-        Apply the user's weight goal and weekly change preference to choose the calorie target.
-        Keep calories practical for a consumer food tracker: 800-6000 kcal.
-        Do not set protein, carbs, or fat; the app keeps macros unlocked on auto-balance unless the user manually locks them.
-        Use integers only for calories. Do not include any other keys.
-
-        User profile:
-        - Gender: \(profile.gender.displayName)
-        - Age: \(profile.age)
-        - Height: \(height)
-        - Weight: \(weight)
-        - Activity level setting: \(profile.activityLevel.displayName)
-        - Weight goal: \(profile.goal.displayName)
-        - Weekly change preference: \(profile.weeklyChangeKg.map { String(format: "%.2f kg/week", $0) } ?? "maintain")
-        - Goal weight: \(goalWeight)
-        - Body fat: \(bodyFat)
-
-        Existing app formula:
-        - BMR: \(Int(profile.bmr.rounded())) kcal/day
-        - TDEE: \(Int(profile.tdee.rounded())) kcal/day
-        - Formula calorie target: \(profile.dailyCalories) kcal/day
-
-        Apple Health energy from \(energy.daysUsed) of the last \(energy.requestedDays) completed days:
-        - Active energy average: \(energy.activeAverageCalories) kcal/day
-        - Basal energy average: \(energy.basalAverageCalories.map { "\($0) kcal/day" } ?? "not available")
-        - Health total: \(healthTotalLine)
-        """
-
-        let text = try await callAI(prompt: prompt, image: nil)
-        return try parseHealthEnergyGoalSuggestion(from: text)
     }
 
     // MARK: - AI Goal Calculation
@@ -1215,19 +1153,6 @@ struct GeminiService {
 
         guard parsedAnyValue else { throw AnalysisError.invalidResponse }
         return goals.mergedWithDefaults()
-    }
-
-    private static func parseHealthEnergyGoalSuggestion(from text: String) throws -> HealthEnergyGoalSuggestion {
-        let jsonString = extractJSON(from: text)
-        guard let data = jsonString.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let calories = (json["calories"] as? NSNumber)?.intValue
-        else { throw AnalysisError.invalidResponse }
-
-        return HealthEnergyGoalSuggestion(
-            calories: min(max(calories, 800), 6_000),
-            reason: json["reason"] as? String
-        )
     }
 
     private static func parseGoalCalculation(from text: String) throws -> GoalCalculation {

@@ -8803,18 +8803,96 @@
         }
       }
     },
-    "Experimental. Once per week, Fud AI compares your recent weight trend with your target pace and makes a small local calorie correction. Pinned macros stay pinned; unlocked macros auto-balance. If Energy Burn Goals is also enabled, Adaptive Goals uses weight trend as a weekly correction on top of energy-burn targets. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice." : {
+    "Experimental. About once a week, Fud AI checks your recent weight trend against your target pace and makes a small calorie correction. When Apple Health is connected, it also factors your measured energy burned (Active + Basal). Pinned macros stay pinned; unlocked macros auto-balance. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice." : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجريبي. يتحقق تطبيق Fud AI مرة واحدة أسبوعيًا تقريبًا من اتجاه وزنك الأخير مقارنةً بالوتيرة المستهدفة، ويُجري تصحيحًا بسيطًا للسعرات الحرارية. وعند ربط تطبيق صحة Apple، يأخذ أيضًا في الاعتبار الطاقة المقاسة التي حرقتها (النشطة + الأساسية). تبقى العناصر الغذائية المثبّتة مثبّتة؛ أما العناصر غير المقفلة فتتوازن تلقائيًا. يؤدي إيقاف هذه الميزة إلى استعادة الأهداف كما كانت قبل أن تغيّرها ميزة الأهداف التكيّفية لأول مرة. هذه ليست نصيحة طبية."
+          }
+        },
+        "az" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimental. Təxminən həftədə bir dəfə Fud AI son çəki meyilinizi hədəf tempinizlə müqayisə edir və kalorilərə kiçik düzəliş edir. Apple Health qoşulduqda, ölçülmüş yandırılan enerjini də (Aktiv + Bazal) nəzərə alır. Sabitlənmiş makrolar sabit qalır; kiliddən çıxarılmış makrolar avtomatik tarazlaşır. Bunu söndürmək Adaptiv Məqsədlər ilk dəfə dəyişməzdən əvvəlki hədəfləri bərpa edir. Bu, tibbi məsləhət deyil."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimentell. Etwa einmal pro Woche vergleicht Fud AI deinen jüngsten Gewichtstrend mit deinem Zieltempo und nimmt eine kleine Kalorienkorrektur vor. Wenn Apple Health verbunden ist, wird auch dein gemessener Energieverbrauch (Aktiv + Grundumsatz) berücksichtigt. Angeheftete Makros bleiben angeheftet; nicht gesperrte Makros gleichen sich automatisch aus. Wenn du dies deaktivierst, werden die Ziele wiederhergestellt, die vor der ersten Änderung durch die adaptiven Ziele galten. Dies ist keine medizinische Beratung."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Aproximadamente una vez por semana, Fud AI compara tu tendencia de peso reciente con tu ritmo objetivo y realiza una pequeña corrección de calorías. Cuando Salud de Apple está conectada, también tiene en cuenta la energía gastada medida (activa + basal). Los macros fijados permanecen fijados; los macros desbloqueados se reequilibran automáticamente. Al desactivar esta opción se restauran los objetivos que tenías antes de que las metas adaptables los modificaran por primera vez. Esto no es asesoramiento médico."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expérimental. Environ une fois par semaine, Fud AI compare votre tendance de poids récente à votre rythme cible et applique une petite correction calorique. Lorsque Apple Santé est connecté, il prend aussi en compte l'énergie dépensée mesurée (active + de base). Les macros épinglées restent épinglées ; les macros déverrouillées s'équilibrent automatiquement. Désactiver cette option rétablit les objectifs tels qu'ils étaient avant que les objectifs adaptatifs ne les modifient pour la première fois. Ceci ne constitue pas un avis médical."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रायोगिक। लगभग हफ्ते में एक बार, Fud AI आपके हाल के वजन के रुझान की तुलना आपकी लक्ष्य गति से करता है और कैलोरी में एक छोटा सुधार करता है। जब Apple Health कनेक्ट होता है, तो यह आपके द्वारा खर्च की गई मापी गई ऊर्जा (सक्रिय + बेसल) को भी ध्यान में रखता है। पिन किए गए मैक्रोज़ पिन किए हुए रहते हैं; अनलॉक किए गए मैक्रोज़ अपने आप संतुलित हो जाते हैं। इसे बंद करने पर वे लक्ष्य बहाल हो जाते हैं जो Adaptive Goals द्वारा उन्हें पहली बार बदलने से पहले थे। यह चिकित्सकीय सलाह नहीं है।"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sperimentale. Circa una volta a settimana, Fud AI confronta il tuo recente andamento del peso con il ritmo prefissato ed effettua una piccola correzione delle calorie. Quando Apple Salute è collegato, considera anche l'energia consumata misurata (attiva + basale). I macro fissati restano fissati; i macro sbloccati si bilanciano automaticamente. Disattivando questa opzione vengono ripristinati gli obiettivi precedenti alla prima modifica degli Obiettivi adattivi. Questo non è un consiglio medico."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "試験的な機能です。Fud AI はおよそ週に1回、最近の体重の推移を目標ペースと照らし合わせ、カロリーをわずかに補正します。ヘルスケアと連携している場合は、計測された消費エネルギー（アクティブ＋安静時）も考慮します。固定したマクロ栄養素はそのまま固定され、固定を解除したマクロ栄養素は自動で調整されます。これをオフにすると、アダプティブゴールが最初に変更する前の目標値に戻ります。これは医療上のアドバイスではありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실험적 기능입니다. Fud AI는 대략 일주일에 한 번, 최근 체중 추세를 목표 속도와 비교하여 칼로리를 소폭 조정합니다. 건강 앱이 연결되어 있으면 측정된 소모 에너지(활동 + 기초대사량)도 함께 반영합니다. 고정한 영양소는 고정된 상태로 유지되고, 잠금 해제된 영양소는 자동으로 조정됩니다. 이 기능을 끄면 적응형 목표가 처음 변경하기 이전의 목표값으로 복원됩니다. 의학적 조언이 아닙니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimenteel. Ongeveer eens per week vergelijkt Fud AI je recente gewichtstrend met je beoogde tempo en past de calorieën licht aan. Wanneer Apple Health is verbonden, wordt ook je gemeten verbruikte energie meegerekend (actief + basaal). Vastgezette macro's blijven vastgezet; ontgrendelde macro's balanceren automatisch. Als je dit uitschakelt, worden de doelen hersteld van vóór de eerste wijziging door Adaptieve doelen. Dit is geen medisch advies."
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eksperymentalne. Raz w tygodniu Fud AI porównuje Twój ostatni trend wagi z docelowym tempem i wprowadza małą lokalną korektę kalorii. Przypięte makra pozostają przypięte; odblokowane makra są automatycznie równoważone. Jeśli Cele spalania energii też są włączone, Cele adaptacyjne używają trendu wagi jako cotygodniowej korekty nałożonej na cele energii. Wyłączenie przywraca cele sprzed pierwszej zmiany przez Cele adaptacyjne. To nie jest porada medyczna."
+            "value" : "Eksperymentalne. Mniej więcej raz w tygodniu Fud AI porównuje ostatni trend Twojej wagi z docelowym tempem i wprowadza niewielką korektę kalorii. Gdy aplikacja Zdrowie jest połączona, uwzględnia również zmierzony wydatek energetyczny (aktywny + spoczynkowy). Przypięte makroskładniki pozostają przypięte; odblokowane makroskładniki równoważą się automatycznie. Wyłączenie tej opcji przywraca cele sprzed pierwszej zmiany wprowadzonej przez Cele adaptacyjne. To nie jest porada medyczna."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Cerca de uma vez por semana, o Fud AI compara sua tendência de peso recente com o ritmo desejado e faz uma pequena correção de calorias. Quando o Saúde da Apple está conectado, ele também leva em conta sua energia gasta medida (Ativa + Basal). Os macros fixados permanecem fixados; os macros desbloqueados se reequilibram automaticamente. Desativar isso restaura as metas de antes de as Metas Adaptáveis as alterarem pela primeira vez. Isto não é aconselhamento médico."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental. Aproximativ o dată pe săptămână, Fud AI compară tendința recentă a greutății tale cu ritmul vizat și face o mică ajustare a caloriilor. Când aplicația Sănătate este conectată, ține cont și de energia consumată măsurată (activă + de repaus). Macronutrienții fixați rămân fixați; cei deblocați se echilibrează automat. Dezactivarea acestei opțiuni restabilește obiectivele de dinainte ca Obiectivele adaptive să le fi modificat prima dată. Acestea nu constituie sfaturi medicale."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Экспериментально. Раз в неделю Fud AI сравнивает недавний тренд веса с целевым темпом и вносит небольшую локальную корректировку калорий. Закрепленные макронутриенты остаются закрепленными; незакрепленные автоматически балансируются. Если также включены цели сжигания энергии, адаптивные цели используют тренд веса как еженедельную корректировку поверх целей по расходу энергии. Отключение восстановит цели, которые были до первого изменения адаптивными целями. Это не медицинский совет."
+            "value" : "Экспериментально. Примерно раз в неделю Fud AI сверяет вашу недавнюю динамику веса с целевым темпом и вносит небольшую корректировку калорий. Когда подключено приложение «Здоровье», он также учитывает измеренный расход энергии (активный + основной обмен). Закреплённые макросы остаются закреплёнными; незакреплённые балансируются автоматически. Отключение этой функции восстанавливает цели, которые были до того, как «Адаптивные цели» впервые их изменили. Это не является медицинской рекомендацией."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实验性功能。Fud AI 大约每周一次，将你近期的体重趋势与目标进度对比，并对热量做出小幅调整。连接 Apple 健康后，它还会参考你实测消耗的能量（活动能量 + 静息能量）。已锁定的宏量营养素保持锁定；未锁定的会自动平衡。关闭此功能将恢复到自适应目标首次修改之前的目标值。这不构成医疗建议。"
           }
         }
       }

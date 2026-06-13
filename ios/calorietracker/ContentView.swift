@@ -3805,7 +3805,7 @@ struct ProfileView: View {
             .alert("Adaptive Goals", isPresented: $showAdaptiveGoalsInfo) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("Experimental. Once per week, Fud AI compares your recent weight trend with your target pace and makes a small local calorie correction. Pinned macros stay pinned; unlocked macros auto-balance. If Energy Burn Goals is also enabled, Adaptive Goals uses weight trend as a weekly correction on top of energy-burn targets. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice.")
+                Text("Experimental. About once a week, Fud AI checks your recent weight trend against your target pace and makes a small calorie correction. When Apple Health is connected, it also factors your measured energy burned (Active + Basal). Pinned macros stay pinned; unlocked macros auto-balance. Turning this off restores the targets from before Adaptive Goals first changed them. This is not medical advice.")
             }
             .alert(adaptiveGoalAlertTitle, isPresented: $showAdaptiveGoalAlert) {
                 Button("OK", role: .cancel) { }
