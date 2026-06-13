@@ -50,6 +50,14 @@ struct OnboardingView: View {
     @State private var editingField: EditableField?
     @State private var showCalculationSources = false
     @State private var hasAcceptedTerms = false
+    // BYOK setup captured in onboarding (step 11) so AI is ready for the plan calc.
+    @State private var byokProvider: AIProvider = AIProviderSettings.selectedProvider
+    @State private var byokModel: String = AIProviderSettings.selectedModel
+    @State private var byokApiKey: String = AIProviderSettings.currentAPIKey ?? ""
+    @State private var byokBaseURL: String = AIProviderSettings.customBaseURL(for: AIProviderSettings.selectedProvider) ?? ""
+    @State private var showByokKey = false
+    /// AI-computed targets from the Building Plan step; seeds the Plan Ready screen.
+    @State private var aiGoal: GeminiService.GoalCalculation?
 
     private enum EditableField: String, Identifiable {
         case calories, protein, fat, carbs
@@ -852,6 +860,11 @@ struct OnboardingView: View {
                     }
                     .padding(.horizontal, 24)
 
+                    if selectedAccessMode == .bringYourOwnKey {
+                        byokConfigSection
+                            .padding(.horizontal, 24)
+                    }
+
                     VStack(alignment: .leading, spacing: 12) {
                         aiNoticeRow(
                             icon: "photo.fill",
@@ -906,13 +919,9 @@ struct OnboardingView: View {
             }
 
             Button {
-                if selectedAccessMode == .fudAIPremium && !storeManager.isSubscribed {
-                    beginPremiumUpgrade()
-                } else {
-                    completeAIChoiceAndAdvance()
-                }
+                completeAIChoiceAndAdvance()
             } label: {
-                Text(selectedAccessMode == .fudAIPremium && !storeManager.isSubscribed ? "Upgrade to Premium" : "Accept & Continue")
+                Text("Accept & Continue")
                     .font(.system(.body, design: .rounded, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -923,11 +932,140 @@ struct OnboardingView: View {
                     )
                     .shadow(color: AppColors.calorie.opacity(0.3), radius: 8, y: 4)
             }
-            .disabled(!hasAcceptedTerms)
-            .opacity(hasAcceptedTerms ? 1 : 0.45)
+            .disabled(!canAdvanceAI)
+            .opacity(canAdvanceAI ? 1 : 0.45)
             .padding(.horizontal, 24)
             .padding(.bottom, 36)
         }
+    }
+
+    /// Step 11 can advance when terms are accepted AND a usable AI mode is set up:
+    /// Premium (just go forward) OR BYOK with a model + key (+ base URL for custom endpoints).
+    private var canAdvanceAI: Bool {
+        guard hasAcceptedTerms else { return false }
+        if selectedAccessMode == .fudAIPremium { return true }
+        let modelOK = !byokModel.trimmingCharacters(in: .whitespaces).isEmpty
+        let keyOK = !byokProvider.requiresAPIKey || !byokApiKey.trimmingCharacters(in: .whitespaces).isEmpty
+        let urlOK = !byokProvider.requiresCustomEndpoint || !byokBaseURL.trimmingCharacters(in: .whitespaces).isEmpty
+        return modelOK && keyOK && urlOK
+    }
+
+    @ViewBuilder
+    private var byokConfigSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // Provider
+            HStack {
+                Label { Text("Provider") } icon: {
+                    Image(systemName: "cpu").foregroundStyle(AppColors.calorie)
+                }
+                Spacer()
+                Picker("", selection: $byokProvider) {
+                    ForEach(AIProvider.allCases) { provider in
+                        Text(provider.rawValue).tag(provider)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .tint(.secondary)
+                .onChange(of: byokProvider) { _, newProvider in
+                    AIProviderSettings.selectedProvider = newProvider
+                    byokModel = newProvider.defaultModel
+                    AIProviderSettings.selectedModel = newProvider.defaultModel
+                    byokApiKey = AIProviderSettings.apiKey(for: newProvider) ?? ""
+                    byokBaseURL = AIProviderSettings.customBaseURL(for: newProvider) ?? ""
+                }
+            }
+
+            Divider()
+
+            // Model
+            HStack {
+                Label { Text("Model") } icon: {
+                    Image(systemName: "brain").foregroundStyle(AppColors.calorie)
+                }
+                Spacer()
+                if byokProvider.supportsCustomModelName {
+                    TextField("e.g. gpt-4o-mini", text: $byokModel)
+                        .textFieldStyle(.plain)
+                        .multilineTextAlignment(.trailing)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .onChange(of: byokModel) { _, m in AIProviderSettings.selectedModel = m }
+                    if !byokProvider.models.isEmpty {
+                        Menu {
+                            ForEach(byokProvider.models, id: \.self) { model in
+                                Button(model) { byokModel = model; AIProviderSettings.selectedModel = model }
+                            }
+                        } label: {
+                            Image(systemName: "list.bullet.circle").foregroundStyle(AppColors.calorie)
+                        }
+                    }
+                } else {
+                    Picker("", selection: $byokModel) {
+                        ForEach(byokProvider.models, id: \.self) { model in Text(model).tag(model) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .tint(.secondary)
+                    .onChange(of: byokModel) { _, m in AIProviderSettings.selectedModel = m }
+                }
+            }
+
+            // API Key
+            if byokProvider.requiresAPIKey {
+                Divider()
+                HStack {
+                    Label { Text("API Key") } icon: {
+                        Image(systemName: "key.fill").foregroundStyle(AppColors.calorie)
+                    }
+                    Spacer()
+                    Group {
+                        if showByokKey {
+                            TextField(byokProvider.apiKeyPlaceholder, text: $byokApiKey)
+                        } else {
+                            SecureField(byokProvider.apiKeyPlaceholder, text: $byokApiKey)
+                        }
+                    }
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.trailing)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onChange(of: byokApiKey) { _, k in
+                        AIProviderSettings.setAPIKey(k.isEmpty ? nil : k, for: byokProvider)
+                    }
+                    Button { showByokKey.toggle() } label: {
+                        Image(systemName: showByokKey ? "eye.fill" : "eye.slash.fill")
+                            .foregroundStyle(.secondary).font(.system(size: 14))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Base / Server URL
+            if byokProvider == .ollama || byokProvider.requiresCustomEndpoint {
+                Divider()
+                HStack {
+                    Label { Text(byokProvider.requiresCustomEndpoint ? "Base URL" : "Server URL") } icon: {
+                        Image(systemName: "link").foregroundStyle(AppColors.calorie)
+                    }
+                    Spacer()
+                    TextField(
+                        byokProvider.requiresCustomEndpoint ? "https://your-endpoint.com/v1" : byokProvider.baseURL,
+                        text: $byokBaseURL
+                    )
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.trailing)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                    .onChange(of: byokBaseURL) { _, u in
+                        AIProviderSettings.setCustomBaseURL(u.isEmpty ? nil : u, for: byokProvider)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func beginPremiumUpgrade() {
@@ -1141,7 +1279,8 @@ struct OnboardingView: View {
     // MARK: - 12: Building Plan
 
     private var buildingPlanStep: some View {
-        BuildingPlanStepView(profile: profile) {
+        BuildingPlanStepView(profile: profile, useMetric: useMetric) { result in
+            aiGoal = result
             withAnimation(.snappy) { step += 1 }
         }
     }
@@ -1154,7 +1293,14 @@ struct OnboardingView: View {
     private var planCarbs: Int { editedCarbs ?? profile.carbsGoal }
 
     private func initPlanValues() {
-        if editedCalories == nil && editedProtein == nil && editedFat == nil && editedCarbs == nil {
+        guard editedCalories == nil && editedProtein == nil && editedFat == nil && editedCarbs == nil else { return }
+        if let g = aiGoal {
+            // AI-computed plan (carbs derived as the residual to stay consistent with calories).
+            editedCalories = g.calories
+            editedProtein = g.protein
+            editedFat = g.fat
+            editedCarbs = max(0, (g.calories - g.protein * 4 - g.fat * 9) / 4)
+        } else {
             editedCalories = profile.dailyCalories
             editedProtein = profile.proteinGoal
             editedFat = profile.fatGoal
@@ -1410,11 +1556,15 @@ struct OnboardingView: View {
 
 struct BuildingPlanStepView: View {
     let profile: UserProfile
-    let onComplete: () -> Void
+    let useMetric: Bool
+    let onComplete: (GeminiService.GoalCalculation?) -> Void
 
     @State private var progress: Double = 0
     @State private var percent = 0
     @State private var checkItem = 0
+    @State private var aiResult: GeminiService.GoalCalculation?
+    @State private var aiDone = false
+    @State private var animationDone = false
 
     private let items = [
         ("Calories", "flame.fill"),
@@ -1488,7 +1638,10 @@ struct BuildingPlanStepView: View {
 
             Spacer()
         }
-        .onAppear { startAnimation() }
+        .onAppear {
+            startAnimation()
+            startAICalc()
+        }
     }
 
     private func startAnimation() {
@@ -1501,7 +1654,27 @@ struct BuildingPlanStepView: View {
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-            onComplete()
+            animationDone = true
+            finishIfReady()
         }
+    }
+
+    private func startAICalc() {
+        Task {
+            // New user → no logs yet, so forecast is nil; AI computes from profile + formulas.
+            let result = try? await GeminiService.calculateGoals(profile: profile, forecast: nil, useMetric: useMetric)
+            await MainActor.run {
+                aiResult = result
+                aiDone = true
+                finishIfReady()
+            }
+        }
+    }
+
+    /// Advance only once BOTH the animation and the AI call have finished, so the plan reflects
+    /// the AI targets (or the formula fallback when the call returns nil).
+    private func finishIfReady() {
+        guard animationDone, aiDone else { return }
+        onComplete(aiResult)
     }
 }
