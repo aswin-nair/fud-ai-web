@@ -14,7 +14,7 @@ Food & Macro Tracker
 
 ## Promotional Text (170 chars max)
 ```
-Food-description analysis can fall back to Apple Intelligence on supported iPhones after Premium/BYOK provider attempts fail.
+Goals are now AI-powered: Recalculate and onboarding set your calories and macros from your profile, logged intake, and weight trend. Bring your own key or use Premium.
 ```
 
 ## Keywords (100 chars max)
@@ -142,6 +142,6 @@ https://fud-ai.app
 5) Premium review path: during onboarding choose Fud AI Premium, or after onboarding go to Settings → AI Access → Fud AI Premium. The paywall uses RevenueCat and falls back to StoreKit products if RevenueCat offerings are unavailable, so App Store sandbox purchase testing should be available.
 6) BYOK review path: go to Settings → AI Access → Bring Your Own Key → enter any valid Gemini API key. A free key can be obtained at https://aistudio.google.com/apikey
 7) Premium mode hides BYOK provider, fallback, and speech API key controls to avoid conflicting settings. Switching back to Bring Your Own Key restores those controls and does not delete saved BYOK settings.
-8) v4.3 adds Apple Intelligence as a final on-device fallback for text, voice-transcribed, and Siri food-description analysis on supported iPhones only after Premium Gemini or BYOK provider/fallback attempts fail. Photo scans, Nutrition Label, Coach, and speech transcription still use the configured AI access path.
-9) Build 24 keeps the marketing version at 4.3 and fixes issue #80 follow-up Polish localization gaps: dynamic nutrients, meal types, Settings labels, "Log" wording, and locale-aware date/time formatting.
+8) Apple Intelligence is a final on-device fallback for text, voice-transcribed, and Siri food-description analysis on supported iPhones, used only after Premium Gemini or BYOK provider/fallback attempts fail. Photo scans, Nutrition Label, Coach, and speech transcription still use the configured AI access path.
+9) v4.4 (build 25) makes goal-setting AI-powered: onboarding and Settings → Goals → Recalculate Goals compute calories and macros through the selected AI access path (Premium or BYOK), refined from logged intake and weight trend, with a standard-formula fallback when AI is unavailable. To review, set up Premium or a BYOK key (steps 5–6), then tap Recalculate Goals in Goal Settings. New optional body measurements live in Settings → Personal Info and feed Recalculate and the Coach; no test account is required.
 ```
