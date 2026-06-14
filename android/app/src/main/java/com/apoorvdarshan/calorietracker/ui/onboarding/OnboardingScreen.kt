@@ -53,8 +53,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import com.apoorvdarshan.calorietracker.ui.components.OptionPickerSheet
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
@@ -1190,6 +1189,7 @@ private fun ProviderStep(
     // iOS aiProviderStep: sparkles icon in circle, "Bring Your Own AI" title,
     // recommended-provider Gemini card with star icon, 3-step setup guide, footer.
     // Scrollable — the BYOK card (provider + model + key) can overflow shorter screens.
+    var selectorSheet by remember { mutableStateOf<ProviderSelectorSheet?>(null) }
     Column(
         Modifier
             .fillMaxSize()
@@ -1290,51 +1290,19 @@ private fun ProviderStep(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(Modifier.padding(vertical = 4.dp)) {
-                // Provider
-                var providerMenuOpen by remember { mutableStateOf(false) }
-                Box {
-                    OnboardingSelectorRow(
-                        label = stringResource(R.string.settings_ai_provider),
-                        value = stringResource(provider.displayNameRes),
-                        onClick = { providerMenuOpen = true }
-                    )
-                    DropdownMenu(expanded = providerMenuOpen, onDismissRequest = { providerMenuOpen = false }) {
-                        AIProvider.values().forEach { p ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(p.displayNameRes)) },
-                                onClick = { onProviderChange(p); providerMenuOpen = false }
-                            )
-                        }
-                    }
-                }
+                // Provider — opens the shared polished picker sheet (matches Settings).
+                OnboardingSelectorRow(
+                    label = stringResource(R.string.settings_ai_provider),
+                    value = stringResource(provider.displayNameRes),
+                    onClick = { selectorSheet = ProviderSelectorSheet.PROVIDER }
+                )
                 HorizontalDivider(Modifier.padding(horizontal = 14.dp))
-                // Model
-                if (provider.supportsCustomModelName) {
-                    OutlinedTextField(
-                        value = model,
-                        onValueChange = onModelChange,
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.settings_ai_model)) },
-                        placeholder = { Text("e.g. gpt-4o-mini") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
-                    )
-                } else {
-                    var modelMenuOpen by remember { mutableStateOf(false) }
-                    Box {
-                        OnboardingSelectorRow(
-                            label = stringResource(R.string.settings_ai_model),
-                            value = model,
-                            onClick = { modelMenuOpen = true }
-                        )
-                        DropdownMenu(expanded = modelMenuOpen, onDismissRequest = { modelMenuOpen = false }) {
-                            provider.models.forEach { m ->
-                                DropdownMenuItem(text = { Text(m) }, onClick = { onModelChange(m); modelMenuOpen = false })
-                            }
-                        }
-                    }
-                }
+                // Model — same picker; providers that allow a custom model id get a custom field.
+                OnboardingSelectorRow(
+                    label = stringResource(R.string.settings_ai_model),
+                    value = model.ifEmpty { stringResource(R.string.settings_ai_model_unset) },
+                    onClick = { selectorSheet = ProviderSelectorSheet.MODEL }
+                )
                 if (provider.requiresApiKey) {
                     HorizontalDivider(Modifier.padding(horizontal = 14.dp))
                     OutlinedTextField(
@@ -1359,7 +1327,35 @@ private fun ProviderStep(
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
+
+    when (selectorSheet) {
+        ProviderSelectorSheet.PROVIDER -> OptionPickerSheet(
+            title = stringResource(R.string.sheet_ai_provider),
+            items = AIProvider.values().toList(),
+            label = { stringResource(it.displayNameRes) },
+            selected = { it == provider },
+            onSelect = { onProviderChange(it); selectorSheet = null },
+            onDismiss = { selectorSheet = null }
+        )
+        ProviderSelectorSheet.MODEL -> OptionPickerSheet(
+            title = stringResource(R.string.sheet_model),
+            items = provider.models,
+            label = { it },
+            selected = { it == model },
+            onSelect = { onModelChange(it); selectorSheet = null },
+            onDismiss = { selectorSheet = null },
+            footer = if (provider.supportsCustomModelName) stringResource(R.string.sheet_model_footer) else null,
+            customPlaceholder = if (provider.supportsCustomModelName) stringResource(R.string.sheet_any_model_id) else null,
+            onCustomSubmit = if (provider.supportsCustomModelName) {
+                { onModelChange(it); selectorSheet = null }
+            } else null
+        )
+        null -> Unit
+    }
 }
+
+/** Which onboarding BYOK picker sheet is open. */
+private enum class ProviderSelectorSheet { PROVIDER, MODEL }
 
 @Composable
 private fun AiSetupRow(number: String, text: String) {
@@ -1389,7 +1385,7 @@ private fun AiSetupRow(number: String, text: String) {
 /**
  * Settings-style tappable selector row used by the BYOK provider/model pickers in
  * onboarding: label on the left, the current value in the accent colour, and a
- * trailing chevron. Tapping opens the DropdownMenu anchored to it.
+ * trailing chevron. Tapping opens the shared [OptionPickerSheet] bottom sheet.
  */
 @Composable
 private fun OnboardingSelectorRow(label: String, value: String, onClick: () -> Unit) {
