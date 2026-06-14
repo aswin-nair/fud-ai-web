@@ -71,6 +71,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -567,13 +574,19 @@ private fun Bubble(content: String, isUser: Boolean, attachmentImageBase64: Stri
                     Spacer(Modifier.height(8.dp))
                 }
             }
-            Text(
-                content,
-                fontSize = 17.sp,
-                color = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface,
-                lineHeight = 22.sp,
-                style = TextStyle(fontWeight = FontWeight.Normal)
-            )
+            if (isUser) {
+                // User's own typed text — show verbatim, no markdown.
+                Text(
+                    content,
+                    fontSize = 17.sp,
+                    color = Color.White,
+                    lineHeight = 22.sp,
+                    style = TextStyle(fontWeight = FontWeight.Normal)
+                )
+            } else {
+                // Coach replies often use markdown — render it.
+                MarkdownText(content = content, color = MaterialTheme.colorScheme.onSurface)
+            }
         }
     }
 }
@@ -856,5 +869,154 @@ private fun resizedJpeg(bytes: ByteArray, maxDimension: Int, quality: Int): Byte
     return ByteArrayOutputStream().use { out ->
         scaled.compress(Bitmap.CompressFormat.JPEG, quality.coerceIn(1, 100), out)
         out.toByteArray()
+    }
+}
+
+// ── Markdown rendering for Coach replies ────────────────────────────────
+// Lightweight renderer for the formatting the Coach actually emits: #/##/### headings,
+// "- / * / 1." lists, ``` code fences ```, `inline code`, **bold**, *italic*, [links](url).
+// Block layout here; inline styling via AnnotatedString. No third-party dependency.
+
+private sealed class MdBlock {
+    data class Heading(val level: Int, val text: String) : MdBlock()
+    data class Bullet(val text: String) : MdBlock()
+    data class Numbered(val number: String, val text: String) : MdBlock()
+    data class Code(val text: String) : MdBlock()
+    data class Paragraph(val text: String) : MdBlock()
+}
+
+private fun parseMarkdownBlocks(raw: String): List<MdBlock> {
+    val blocks = mutableListOf<MdBlock>()
+    val lines = raw.replace("\r\n", "\n").split("\n")
+    var i = 0
+    while (i < lines.size) {
+        val trimmed = lines[i].trim()
+        when {
+            trimmed.startsWith("```") -> {
+                val code = mutableListOf<String>()
+                i++
+                while (i < lines.size && !lines[i].trim().startsWith("```")) {
+                    code.add(lines[i]); i++
+                }
+                i++ // skip closing fence
+                blocks.add(MdBlock.Code(code.joinToString("\n")))
+            }
+            trimmed.isEmpty() -> i++
+            headingLevel(trimmed) != null -> {
+                val level = headingLevel(trimmed)!!
+                blocks.add(MdBlock.Heading(level, trimmed.trimStart('#').trim()))
+                i++
+            }
+            trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("+ ") -> {
+                blocks.add(MdBlock.Bullet(trimmed.drop(2).trim())); i++
+            }
+            numberedItem(trimmed) != null -> {
+                val (num, rest) = numberedItem(trimmed)!!
+                blocks.add(MdBlock.Numbered(num, rest)); i++
+            }
+            else -> { blocks.add(MdBlock.Paragraph(trimmed)); i++ }
+        }
+    }
+    return blocks
+}
+
+private fun headingLevel(s: String): Int? {
+    val hashes = s.takeWhile { it == '#' }.length
+    if (hashes in 1..3 && s.getOrNull(hashes) == ' ') return hashes
+    return null
+}
+
+private fun numberedItem(s: String): Pair<String, String>? {
+    val dot = s.indexOf('.')
+    if (dot <= 0) return null
+    val num = s.substring(0, dot)
+    if (!num.all { it.isDigit() } || s.getOrNull(dot + 1) != ' ') return null
+    return num to s.substring(dot + 1).trim()
+}
+
+/** Inline markdown → AnnotatedString: **bold**, *italic* / _italic_, `code`, [text](url). */
+private fun inlineMarkdown(text: String, linkColor: Color, codeBg: Color): AnnotatedString = buildAnnotatedString {
+    var i = 0
+    val n = text.length
+    while (i < n) {
+        val c = text[i]
+        when {
+            c == '*' && i + 1 < n && text[i + 1] == '*' -> {
+                val end = text.indexOf("**", i + 2)
+                if (end != -1) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(text.substring(i + 2, end)) }
+                    i = end + 2
+                } else { append(c); i++ }
+            }
+            (c == '*' || c == '_') -> {
+                val end = text.indexOf(c, i + 1)
+                if (end > i + 1) {
+                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(text.substring(i + 1, end)) }
+                    i = end + 1
+                } else { append(c); i++ }
+            }
+            c == '`' -> {
+                val end = text.indexOf('`', i + 1)
+                if (end != -1) {
+                    withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = codeBg)) {
+                        append(text.substring(i + 1, end))
+                    }
+                    i = end + 1
+                } else { append(c); i++ }
+            }
+            c == '[' -> {
+                val close = text.indexOf(']', i + 1)
+                val open = if (close != -1) close + 1 else -1
+                if (close != -1 && text.getOrNull(open) == '(') {
+                    val urlEnd = text.indexOf(')', open + 1)
+                    if (urlEnd != -1) {
+                        withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
+                            append(text.substring(i + 1, close))
+                        }
+                        i = urlEnd + 1
+                    } else { append(c); i++ }
+                } else { append(c); i++ }
+            }
+            else -> { append(c); i++ }
+        }
+    }
+}
+
+@Composable
+private fun MarkdownText(content: String, color: Color) {
+    val linkColor = AppColors.Calorie
+    val codeBg = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
+    val blocks = remember(content) { parseMarkdownBlocks(content) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        blocks.forEach { block ->
+            when (block) {
+                is MdBlock.Heading -> Text(
+                    inlineMarkdown(block.text, linkColor, codeBg),
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = when (block.level) { 1 -> 20.sp; 2 -> 18.sp; else -> 16.sp },
+                    lineHeight = 24.sp
+                )
+                is MdBlock.Bullet -> Row {
+                    Text("•", color = color, fontSize = 17.sp, lineHeight = 22.sp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(inlineMarkdown(block.text, linkColor, codeBg), color = color, fontSize = 17.sp, lineHeight = 22.sp)
+                }
+                is MdBlock.Numbered -> Row {
+                    Text("${block.number}.", color = color, fontSize = 17.sp, fontWeight = FontWeight.Medium, lineHeight = 22.sp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(inlineMarkdown(block.text, linkColor, codeBg), color = color, fontSize = 17.sp, lineHeight = 22.sp)
+                }
+                is MdBlock.Code -> Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(codeBg).padding(10.dp)
+                ) {
+                    Text(block.text, color = color, fontFamily = FontFamily.Monospace, fontSize = 14.sp, lineHeight = 20.sp)
+                }
+                is MdBlock.Paragraph -> Text(
+                    inlineMarkdown(block.text, linkColor, codeBg),
+                    color = color, fontSize = 17.sp, lineHeight = 22.sp
+                )
+            }
+        }
     }
 }

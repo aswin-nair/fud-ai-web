@@ -490,6 +490,117 @@ struct ChatView: View {
 
 // MARK: - Supporting views
 
+/// Lightweight Markdown renderer for assistant chat bubbles — handles the formatting the Coach
+/// actually emits: #/##/### headings, "- / * / 1." lists, ``` code fences ```, `inline code`,
+/// **bold**, *italic*, and [links](url). Block layout is done here; inline styling uses
+/// AttributedString's inline-only markdown so no third-party dependency is needed.
+private struct MarkdownMessageText: View {
+    let text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(parse(text)) { block in
+                switch block.kind {
+                case .heading(let level):
+                    Text(inline(block.text))
+                        .font(.system(headingStyle(level), design: .rounded, weight: .bold))
+                case .bullet:
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text("•").font(.system(.body, design: .rounded))
+                        Text(inline(block.text)).font(.system(.body, design: .rounded))
+                    }
+                case .numbered(let number):
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text("\(number).").font(.system(.body, design: .rounded, weight: .medium))
+                        Text(inline(block.text)).font(.system(.body, design: .rounded))
+                    }
+                case .code:
+                    Text(block.text)
+                        .font(.system(.callout, design: .monospaced))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(10)
+                        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                case .paragraph:
+                    Text(inline(block.text)).font(.system(.body, design: .rounded))
+                }
+            }
+        }
+    }
+
+    private func headingStyle(_ level: Int) -> Font.TextStyle {
+        switch level {
+        case 1: return .title3
+        case 2: return .headline
+        default: return .subheadline
+        }
+    }
+
+    private func inline(_ string: String) -> AttributedString {
+        (try? AttributedString(markdown: string, options: .init(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace,
+            failurePolicy: .returnPartiallyParsedIfPossible
+        ))) ?? AttributedString(string)
+    }
+
+    private struct Block: Identifiable {
+        enum Kind: Equatable { case heading(Int), bullet, numbered(String), code, paragraph }
+        let id = UUID()
+        let kind: Kind
+        let text: String
+    }
+
+    private func parse(_ raw: String) -> [Block] {
+        var blocks: [Block] = []
+        let lines = raw.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+        var index = 0
+        while index < lines.count {
+            let trimmed = lines[index].trimmingCharacters(in: .whitespaces)
+
+            if trimmed.hasPrefix("```") {
+                var codeLines: [String] = []
+                index += 1
+                while index < lines.count, !lines[index].trimmingCharacters(in: .whitespaces).hasPrefix("```") {
+                    codeLines.append(lines[index])
+                    index += 1
+                }
+                index += 1 // skip the closing fence
+                blocks.append(Block(kind: .code, text: codeLines.joined(separator: "\n")))
+                continue
+            }
+
+            if trimmed.isEmpty { index += 1; continue }
+
+            if let level = headingLevel(trimmed) {
+                let content = String(trimmed.drop(while: { $0 == "#" })).trimmingCharacters(in: .whitespaces)
+                blocks.append(Block(kind: .heading(level), text: content))
+            } else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("+ ") {
+                blocks.append(Block(kind: .bullet, text: String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)))
+            } else if let (number, rest) = numberedItem(trimmed) {
+                blocks.append(Block(kind: .numbered(number), text: rest))
+            } else {
+                blocks.append(Block(kind: .paragraph, text: trimmed))
+            }
+            index += 1
+        }
+        return blocks
+    }
+
+    private func headingLevel(_ string: String) -> Int? {
+        let hashes = string.prefix(while: { $0 == "#" }).count
+        guard hashes >= 1, hashes <= 3, string.dropFirst(hashes).first == " " else { return nil }
+        return hashes
+    }
+
+    private func numberedItem(_ string: String) -> (String, String)? {
+        guard let dotIndex = string.firstIndex(of: ".") else { return nil }
+        let numberPart = string[string.startIndex..<dotIndex]
+        guard !numberPart.isEmpty, numberPart.allSatisfy(\.isNumber),
+              string[string.index(after: dotIndex)...].first == " " else { return nil }
+        let rest = String(string[string.index(after: dotIndex)...]).trimmingCharacters(in: .whitespaces)
+        return (String(numberPart), rest)
+    }
+}
+
 private struct MessageBubble: View {
     let message: ChatMessage
 
@@ -544,10 +655,18 @@ private struct MessageBubble: View {
                     )
             }
 
-            Text(message.content)
-                .font(.system(.body, design: .rounded))
-                .textSelection(.enabled)
-                .foregroundStyle(isUser ? .white : .primary)
+            if isUser {
+                // User's own typed text — show verbatim, no markdown.
+                Text(message.content)
+                    .font(.system(.body, design: .rounded))
+                    .textSelection(.enabled)
+                    .foregroundStyle(.white)
+            } else {
+                // Coach replies often use markdown — render it.
+                MarkdownMessageText(text: message.content)
+                    .textSelection(.enabled)
+                    .foregroundStyle(.primary)
+            }
         }
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
