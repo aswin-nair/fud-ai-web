@@ -34,16 +34,22 @@ struct WeekEnergyStrip: View {
         return (0..<7).map { cal.date(byAdding: .day, value: $0, to: startOfWeek)! }
     }
 
+    /// Start of the week (respecting the Mon/Sun setting) containing `date`.
+    private func weekStart(for date: Date) -> Date {
+        let cal = calendar
+        let day = cal.startOfDay(for: date)
+        let weekday = cal.component(.weekday, from: day)
+        let daysBack = (weekday - cal.firstWeekday + 7) % 7
+        return cal.date(byAdding: .day, value: -daysBack, to: day)!
+    }
+
     private func weekIndex(for date: Date) -> Int {
         let cal = calendar
-        let today = cal.startOfDay(for: .now)
-        let weekday = cal.component(.weekday, from: today)
-        let firstWeekday = cal.firstWeekday
-        let daysBack = (weekday - firstWeekday + 7) % 7
-        let startOfCurrentWeek = cal.date(byAdding: .day, value: -daysBack, to: today)!
-        let components = cal.dateComponents([.weekOfYear], from: startOfCurrentWeek, to: cal.startOfDay(for: date))
-        let weekDiff = components.weekOfYear ?? 0
-        return Self.currentWeekIndex + weekDiff
+        // Count days between the two WEEK-STARTS (an exact multiple of 7, possibly negative) and
+        // divide by 7. Diffing against a mid-week date with `.weekOfYear` truncates and would keep
+        // returning the current week for any day in an adjacent week less than 7 days away.
+        let days = cal.dateComponents([.day], from: weekStart(for: .now), to: weekStart(for: date)).day ?? 0
+        return Self.currentWeekIndex + Int((Double(days) / 7.0).rounded())
     }
 
     var body: some View {
