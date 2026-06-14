@@ -86,10 +86,11 @@ struct HeightPickerSheet: View {
         self.useMetric = useMetric
         self.currentHeightCm = currentHeightCm
         self.onSave = onSave
-        let totalInches = currentHeightCm / 2.54
+        // Round to the nearest inch — truncating shows 5'6" for a 170 cm / 5'7" pick.
+        let totalInches = Int((currentHeightCm / 2.54).rounded())
         _cm = State(initialValue: Int(currentHeightCm.rounded()))
-        _feet = State(initialValue: Int(totalInches) / 12)
-        _inches = State(initialValue: Int(totalInches) % 12)
+        _feet = State(initialValue: totalInches / 12)
+        _inches = State(initialValue: totalInches % 12)
     }
 
     var body: some View {

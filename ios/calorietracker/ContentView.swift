@@ -2738,9 +2738,10 @@ struct ProfileView: View {
         if useMetric {
             return "\(Int(profile.heightCm)) cm"
         }
-        let totalInches = profile.heightCm / 2.54
-        let feet = Int(totalInches) / 12
-        let inches = Int(totalInches) % 12
+        // Round to the nearest inch — truncating shows 5'6" for a 170 cm / 5'7" pick.
+        let totalInches = Int((profile.heightCm / 2.54).rounded())
+        let feet = totalInches / 12
+        let inches = totalInches % 12
         return "\(feet)'\(inches)\""
     }
 

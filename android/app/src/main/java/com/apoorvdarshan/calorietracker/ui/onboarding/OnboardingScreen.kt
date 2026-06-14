@@ -562,7 +562,8 @@ private fun HeightWeightImperialWheels(
     onHeightChange: (Int) -> Unit,
     onWeightChange: (Double) -> Unit
 ) {
-    val totalInches = (cm / 2.54).toInt().coerceIn(36, 96)
+    // Round to nearest inch both ways, or 5'7" (170 cm) snaps back to 5'6".
+    val totalInches = Math.round(cm / 2.54).toInt().coerceIn(36, 96)
     val feet = (totalInches / 12).coerceIn(3, 8)
     val inches = (totalInches % 12).coerceIn(0, 11)
     val lbs = (kg * 2.20462).coerceIn(60.0, 500.0)
@@ -572,7 +573,7 @@ private fun HeightWeightImperialWheels(
             NumericWheelPicker(
                 value = feet,
                 onValueChange = { newFt ->
-                    val newCm = ((newFt * 12 + inches) * 2.54).toInt()
+                    val newCm = Math.round((newFt * 12 + inches) * 2.54).toInt()
                     onHeightChange(newCm)
                 },
                 min = 3,
@@ -584,7 +585,7 @@ private fun HeightWeightImperialWheels(
             NumericWheelPicker(
                 value = inches,
                 onValueChange = { newIn ->
-                    val newCm = ((feet * 12 + newIn) * 2.54).toInt()
+                    val newCm = Math.round((feet * 12 + newIn) * 2.54).toInt()
                     onHeightChange(newCm)
                 },
                 min = 0,

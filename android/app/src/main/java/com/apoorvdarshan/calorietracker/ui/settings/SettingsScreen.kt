@@ -2594,7 +2594,8 @@ private fun AdaptiveGoalsRow(
 }
 
 private fun feetInchesLabel(cm: Int): String {
-    val totalInches = (cm / 2.54).toInt()
+    // Round to the nearest inch — truncating shows 5'6" for a 170 cm / 5'7" pick.
+    val totalInches = Math.round(cm / 2.54).toInt()
     val feet = totalInches / 12
     val inches = totalInches % 12
     return "$feet' $inches\""
