@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.apoorvdarshan.calorietracker.AppContainer
 import com.apoorvdarshan.calorietracker.models.BodyFatEntry
+import com.apoorvdarshan.calorietracker.models.BodyMeasurement
 import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.models.WeightEntry
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import java.util.UUID
 data class ProgressUiState(
     val entries: List<WeightEntry> = emptyList(),
     val bodyFatEntries: List<BodyFatEntry> = emptyList(),
+    val bodyMeasurements: List<BodyMeasurement> = emptyList(),
     val profile: UserProfile? = null,
     val goalReached: Boolean = false
 )
@@ -32,9 +34,10 @@ class ProgressViewModel(private val container: AppContainer) : ViewModel() {
         combine(
             container.profileRepository.profile,
             container.weightRepository.entries,
-            container.bodyFatRepository.entries
-        ) { p, weights, bodyFats ->
-            _ui.value.copy(profile = p, entries = weights, bodyFatEntries = bodyFats)
+            container.bodyFatRepository.entries,
+            container.bodyMeasurementRepository.entries
+        ) { p, weights, bodyFats, measurements ->
+            _ui.value.copy(profile = p, entries = weights, bodyFatEntries = bodyFats, bodyMeasurements = measurements)
         }.onEach { _ui.value = it }.launchIn(viewModelScope)
     }
 
@@ -64,6 +67,14 @@ class ProgressViewModel(private val container: AppContainer) : ViewModel() {
 
     fun deleteBodyFat(id: UUID) {
         viewModelScope.launch { container.bodyFatRepository.deleteEntry(id) }
+    }
+
+    fun addBodyMeasurement(entry: BodyMeasurement) {
+        viewModelScope.launch { container.bodyMeasurementRepository.addEntry(entry) }
+    }
+
+    fun deleteBodyMeasurement(id: UUID) {
+        viewModelScope.launch { container.bodyMeasurementRepository.deleteEntry(id) }
     }
 
     fun dismissGoalReached() {

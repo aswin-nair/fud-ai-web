@@ -14,6 +14,7 @@ struct calorietrackerApp: App {
     @State private var foodStore = FoodStore()
     @State private var weightStore = WeightStore()
     @State private var bodyFatStore = BodyFatStore()
+    @State private var bodyMeasurementStore = BodyMeasurementStore()
     @State private var notificationManager = NotificationManager()
     @State private var healthKitManager = HealthKitManager()
     @State private var profileStore = ProfileStore()
@@ -50,6 +51,7 @@ struct calorietrackerApp: App {
                         .environment(foodStore)
                         .environment(weightStore)
                         .environment(bodyFatStore)
+                        .environment(bodyMeasurementStore)
                         .environment(notificationManager)
                         .environment(healthKitManager)
                         .environment(profileStore)
@@ -61,6 +63,7 @@ struct calorietrackerApp: App {
                         .environment(foodStore)
                         .environment(weightStore)
                         .environment(bodyFatStore)
+                        .environment(bodyMeasurementStore)
                         .environment(healthKitManager)
                         .environment(profileStore)
                         .environment(chatStore)
@@ -337,7 +340,7 @@ struct calorietrackerApp: App {
             }
             let forecast = WeightAnalysisService.compute(weights: weights, foods: foods, profile: profile)
             do {
-                let result = try await GeminiService.calculateGoals(profile: profile, forecast: forecast, measuredTdee: measuredTdee, useMetric: useMetric)
+                let result = try await GeminiService.calculateGoals(profile: profile, forecast: forecast, measuredTdee: measuredTdee, measurement: bodyMeasurementStore.latestEntry, useMetric: useMetric)
                 AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
                 var next = profile
                 next.customCalories = result.calories

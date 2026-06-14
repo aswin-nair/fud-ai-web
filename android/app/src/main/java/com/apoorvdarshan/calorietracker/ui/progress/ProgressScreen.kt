@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
@@ -35,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -59,8 +63,11 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import com.apoorvdarshan.calorietracker.models.BodyMeasurement
+import com.apoorvdarshan.calorietracker.models.Gender
 import com.apoorvdarshan.calorietracker.ui.components.DecimalWheelPicker
 import com.apoorvdarshan.calorietracker.ui.components.FudGlassDialog
 import com.apoorvdarshan.calorietracker.ui.components.FudGlassDialogActions
@@ -129,6 +136,8 @@ fun ProgressScreen(container: AppContainer) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showAddBodyFatDialog by remember { mutableStateOf(false) }
     var showAllWeights by remember { mutableStateOf(false) }
+    var showAddMeasurements by remember { mutableStateOf(false) }
+    var showAllMeasurements by remember { mutableStateOf(false) }
     var bodyMetric by remember { mutableStateOf(BodyMetric.WEIGHT) }
 
     // Filter weights + body fats to range
@@ -233,6 +242,19 @@ fun ProgressScreen(container: AppContainer) {
                 }
             }
 
+            // 3b. Body Measurements — optional tape-measure tracking that feeds the AI
+            item {
+                BodyMeasurementsCard(
+                    latest = ui.bodyMeasurements.maxByOrNull { it.date },
+                    totalCount = ui.bodyMeasurements.size,
+                    gender = ui.profile?.gender ?: Gender.MALE,
+                    heightCm = ui.profile?.heightCm ?: 0.0,
+                    useMetric = useMetric,
+                    onLog = { showAddMeasurements = true },
+                    onHistory = { showAllMeasurements = true }
+                )
+            }
+
             // 4. Calorie chart section
             item {
                 CardSection {
@@ -287,6 +309,26 @@ fun ProgressScreen(container: AppContainer) {
             useMetric = useMetric,
             onDelete = vm::deleteWeight,
             onDismiss = { showAllWeights = false }
+        )
+    }
+    if (showAddMeasurements) {
+        AddBodyMeasurementsSheet(
+            latest = ui.bodyMeasurements.maxByOrNull { it.date },
+            gender = ui.profile?.gender ?: Gender.MALE,
+            heightCm = ui.profile?.heightCm ?: 0.0,
+            useMetric = useMetric,
+            onDismiss = { showAddMeasurements = false },
+            onSave = { m -> vm.addBodyMeasurement(m); showAddMeasurements = false }
+        )
+    }
+    if (showAllMeasurements) {
+        BodyMeasurementsHistorySheet(
+            entries = ui.bodyMeasurements.sortedByDescending { it.date },
+            gender = ui.profile?.gender ?: Gender.MALE,
+            heightCm = ui.profile?.heightCm ?: 0.0,
+            useMetric = useMetric,
+            onDelete = vm::deleteBodyMeasurement,
+            onDismiss = { showAllMeasurements = false }
         )
     }
     if (ui.goalReached) {
@@ -1275,4 +1317,254 @@ private fun formatPercentChange(deltaPercent: Double): String {
     val roundedValue = if (Math.abs(deltaPercent) < 0.05) 0.0 else deltaPercent
     val sign = if (roundedValue > 0) "+" else ""
     return String.format(Locale.US, "%s%.1f%%", sign, roundedValue)
+}
+
+// ── Body Measurements (optional tape-measure tracking) ──────────────────
+
+private val measurementHistoryFmt: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US).withZone(ZoneId.systemDefault())
+
+private fun displayLengthCm(cm: Double, useMetric: Boolean): String =
+    if (useMetric) String.format(Locale.US, "%.1f cm", cm)
+    else String.format(Locale.US, "%.1f in", cm / 2.54)
+
+/** Logged sites in display order, skipping any that weren't entered. */
+private fun measurementSiteList(m: BodyMeasurement): List<Pair<String, Double>> = buildList {
+    m.neckCm?.let { add("Neck" to it) }
+    m.waistCm?.let { add("Waist" to it) }
+    m.hipsCm?.let { add("Hips" to it) }
+    m.chestCm?.let { add("Chest" to it) }
+    m.upperArmCm?.let { add("Upper arm" to it) }
+    m.thighCm?.let { add("Thigh" to it) }
+    m.calfCm?.let { add("Calf" to it) }
+    m.wristCm?.let { add("Wrist" to it) }
+}
+
+/** Derived metrics computable from this entry + profile, skipping any missing their inputs. */
+private fun derivedMetricList(m: BodyMeasurement, gender: Gender, heightCm: Double): List<Pair<String, String>> = buildList {
+    m.waistToHipRatio?.let { add("Waist-to-hip" to String.format(Locale.US, "%.2f", it)) }
+    m.waistToHeightRatio(heightCm)?.let { add("Waist-to-height" to String.format(Locale.US, "%.2f", it)) }
+    m.usNavyBodyFatPercent(gender, heightCm)?.let { add("Body fat" to String.format(Locale.US, "%.0f%%", it)) }
+    m.wristFrame(gender, heightCm)?.let { add("Frame" to it.label) }
+}
+
+private fun measurementHistorySummary(m: BodyMeasurement, gender: Gender, heightCm: Double, useMetric: Boolean): String {
+    val sites = measurementSiteList(m).map { "${it.first} ${displayLengthCm(it.second, useMetric)}" }
+    val bf = m.usNavyBodyFatPercent(gender, heightCm)?.let { "BF ${String.format(Locale.US, "%.0f%%", it)}" }
+    return (sites + listOfNotNull(bf)).joinToString(" · ")
+}
+
+@Composable
+private fun BodyMeasurementsCard(
+    latest: BodyMeasurement?,
+    totalCount: Int,
+    gender: Gender,
+    heightCm: Double,
+    useMetric: Boolean,
+    onLog: () -> Unit,
+    onHistory: () -> Unit
+) {
+    CardSection {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Body Measurements", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.weight(1f))
+                Row(modifier = Modifier.clickable(onClick = onLog), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.AddCircle, null, tint = AppColors.Calorie, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (latest == null) "Log" else "Update", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = AppColors.Calorie)
+                }
+            }
+            if (latest == null) {
+                Text(
+                    "Log tape-measure sizes — waist, hips, neck, and more. Fud AI turns them into waist-to-hip, waist-to-height, body-fat %, and frame size, and reads them when it recalculates your goals and in Coach.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            } else {
+                derivedMetricList(latest, gender, heightCm).chunked(2).forEach { StatBadgeRow(it) }
+                val sites = measurementSiteList(latest)
+                if (sites.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        sites.chunked(2).forEach { pair ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                pair.forEach { (label, cm) ->
+                                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                        Spacer(Modifier.weight(1f))
+                                        Text(displayLengthCm(cm, useMetric), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                    }
+                                }
+                                if (pair.size == 1) Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Logged ${measurementHistoryFmt.format(latest.date)}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Spacer(Modifier.weight(1f))
+                    if (totalCount > 1) {
+                        Text("History", modifier = Modifier.clickable(onClick = onHistory), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.Calorie)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MeasurementField(label: String, unit: String, value: String, onChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text("$label ($unit)") },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddBodyMeasurementsSheet(
+    latest: BodyMeasurement?,
+    gender: Gender,
+    heightCm: Double,
+    useMetric: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (BodyMeasurement) -> Unit
+) {
+    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val sheetSurface = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFAF3EE)
+    val unit = if (useMetric) "cm" else "in"
+
+    fun seed(cm: Double?): String {
+        if (cm == null) return ""
+        val v = if (useMetric) cm else cm / 2.54
+        return String.format(Locale.US, "%.1f", v)
+    }
+    var neck by remember { mutableStateOf(seed(latest?.neckCm)) }
+    var waist by remember { mutableStateOf(seed(latest?.waistCm)) }
+    var hips by remember { mutableStateOf(seed(latest?.hipsCm)) }
+    var chest by remember { mutableStateOf(seed(latest?.chestCm)) }
+    var upperArm by remember { mutableStateOf(seed(latest?.upperArmCm)) }
+    var thigh by remember { mutableStateOf(seed(latest?.thighCm)) }
+    var calf by remember { mutableStateOf(seed(latest?.calfCm)) }
+    var wrist by remember { mutableStateOf(seed(latest?.wristCm)) }
+
+    fun toCm(text: String): Double? {
+        val v = text.replace(",", ".").trim().toDoubleOrNull() ?: return null
+        if (v <= 0) return null
+        return if (useMetric) v else v * 2.54
+    }
+    val draft = BodyMeasurement(
+        neckCm = toCm(neck), waistCm = toCm(waist), hipsCm = toCm(hips), chestCm = toCm(chest),
+        upperArmCm = toCm(upperArm), thighCm = toCm(thigh), calfCm = toCm(calf), wristCm = toCm(wrist)
+    )
+    val derived = derivedMetricList(draft, gender, heightCm)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = state,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = sheetSurface
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(if (latest == null) "Log Measurements" else "Update Measurements", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                }
+            }
+            Text(
+                "Everything is optional — log only what you measure ($unit).",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+            MeasurementField("Neck", unit, neck) { neck = it }
+            MeasurementField("Waist", unit, waist) { waist = it }
+            MeasurementField("Hips", unit, hips) { hips = it }
+            MeasurementField("Chest", unit, chest) { chest = it }
+            MeasurementField("Upper arm", unit, upperArm) { upperArm = it }
+            MeasurementField("Thigh", unit, thigh) { thigh = it }
+            MeasurementField("Calf", unit, calf) { calf = it }
+            MeasurementField("Wrist", unit, wrist) { wrist = it }
+
+            if (derived.isNotEmpty()) {
+                Spacer(Modifier.height(2.dp))
+                derived.chunked(2).forEach { StatBadgeRow(it) }
+            }
+
+            FudGlassPrimaryButton(
+                text = stringResource(R.string.action_save),
+                onClick = { if (draft.hasAnyValue) onSave(draft) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BodyMeasurementsHistorySheet(
+    entries: List<BodyMeasurement>,
+    gender: Gender,
+    heightCm: Double,
+    useMetric: Boolean,
+    onDelete: (java.util.UUID) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val sheetSurface = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFAF3EE)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = state,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = sheetSurface
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Measurement History", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_done), color = AppColors.Calorie) }
+            }
+            Spacer(Modifier.height(12.dp))
+            FudGlassSurface(modifier = Modifier.fillMaxWidth(), cornerRadius = 22.dp, padding = 0.dp) {
+                LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp).padding(vertical = 4.dp)) {
+                    items(entries, key = { it.id }) { entry ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(measurementHistoryFmt.format(entry.date), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    measurementHistorySummary(entry, gender, heightCm, useMetric),
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                                )
+                            }
+                            IconButton(onClick = { onDelete(entry.id) }) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = stringResource(R.string.action_delete),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Box(Modifier.padding(start = 16.dp).fillMaxWidth().height(0.5.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)))
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
 }

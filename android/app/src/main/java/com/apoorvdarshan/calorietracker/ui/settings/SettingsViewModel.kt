@@ -597,7 +597,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             // AI-only — no formula fallback. If the AI provider is unavailable, leave the
             // existing goals untouched and tell the user so they can fix their key and retry.
             val result = try {
-                container.foodAnalysis.calculateGoals(current, forecast, useMetric, measuredTdee)
+                container.foodAnalysis.calculateGoals(current, forecast, useMetric, measuredTdee, container.bodyMeasurementRepository.latestSnapshot())
             } catch (e: Throwable) {
                 _ui.value = _ui.value.copy(
                     recalculatingGoals = false,

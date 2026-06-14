@@ -407,7 +407,7 @@ struct GeminiService {
     /// (hit-and-trial / adaptive) rather than trusting the formula alone. Routes through the
     /// selected provider (BYOK or Premium). The deterministic math stays as the caller's
     /// fallback when AI is unavailable. ONLY for goal targets — does not touch food estimation.
-    static func calculateGoals(profile: UserProfile, forecast: WeightForecast?, measuredTdee: Int? = nil, useMetric: Bool) async throws -> GoalCalculation {
+    static func calculateGoals(profile: UserProfile, forecast: WeightForecast?, measuredTdee: Int? = nil, measurement: BodyMeasurement? = nil, useMetric: Bool) async throws -> GoalCalculation {
         let weight = useMetric
             ? String(format: "%.1f kg", profile.weightKg)
             : String(format: "%.1f lb", profile.weightKg * 2.20462)
@@ -452,6 +452,15 @@ struct GeminiService {
             measuredSection = ""
         }
 
+        // Optional tape-measure circumferences + derived metrics. Extra signal only — never overrides
+        // the formulas. A shrinking waist alongside flat/declining weight implies recomposition.
+        let measurementsSection: String
+        if let summary = measurement?.promptSummary(gender: profile.gender, heightCm: profile.heightCm) {
+            measurementsSection = "\nBODY MEASUREMENTS — the user's latest tape-measure circumferences and the metrics derived from them. Use as extra signal: a shrinking waist with steady or falling weight suggests recomposition, so keep protein high and don't over-cut. Treat the US-Navy body-fat figure as a rough estimate, not exact.\n\(summary)"
+        } else {
+            measurementsSection = ""
+        }
+
         let prompt = """
         You are the goal calculator for a calorie & macro tracking app. Using the FORMULAS, the USER PROFILE, and any OBSERVED DATA below, compute the user's daily targets.
         Return ONLY valid JSON with these exact keys (integers, plus a short reason):
@@ -486,6 +495,7 @@ struct GeminiService {
         - Formula calorie target: \(profile.dailyCalories) kcal/day
         - Formula macros: \(profile.proteinGoal) g protein, \(profile.carbsGoal) g carbs, \(profile.fatGoal) g fat
         \(measuredSection)
+        \(measurementsSection)
         \(observedSection)
         """
 

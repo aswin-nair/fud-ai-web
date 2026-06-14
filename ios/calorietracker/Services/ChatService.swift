@@ -44,6 +44,7 @@ struct ChatService {
         profile: UserProfile,
         weights: [WeightEntry],
         bodyFats: [BodyFatEntry],
+        measurements: [BodyMeasurement] = [],
         foods: [FoodEntry],
         useMetric: Bool
     ) async throws -> String {
@@ -51,6 +52,7 @@ struct ChatService {
             profile: profile,
             weights: weights,
             bodyFats: bodyFats,
+            measurements: measurements,
             foods: foods,
             useMetric: useMetric
         )
@@ -86,7 +88,7 @@ struct ChatService {
     /// gone — Coach calls tools when it actually needs older data, so token
     /// cost per message stays low and Coach can reach **all** of the user's
     /// history (not just the previously-hardcoded last 10/14 entries).
-    private static func buildSystemPrompt(profile: UserProfile, weights: [WeightEntry], bodyFats: [BodyFatEntry], foods: [FoodEntry], useMetric: Bool) -> String {
+    private static func buildSystemPrompt(profile: UserProfile, weights: [WeightEntry], bodyFats: [BodyFatEntry], measurements: [BodyMeasurement] = [], foods: [FoodEntry], useMetric: Bool) -> String {
         let forecast = WeightAnalysisService.compute(weights: weights, foods: foods, profile: profile)
         let currentDateFormatter = DateFormatter()
         currentDateFormatter.dateFormat = "yyyy-MM-dd"
@@ -173,6 +175,13 @@ struct ChatService {
         lines.append("")
         lines.append("## Data available")
         lines.append("- \(weights.count) weight entries, \(bodyFats.count) body-fat readings, \(foods.count) food entries logged total. Use get_data_summary to see exact date ranges.")
+        if let latest = measurements.max(by: { $0.date < $1.date }),
+           let summary = latest.promptSummary(gender: profile.gender, heightCm: profile.heightCm) {
+            lines.append("")
+            lines.append("## Body measurements (latest)")
+            lines.append("- \(summary)")
+            lines.append("A shrinking waist alongside steady or rising weight is recomposition (fat down, muscle up) — read it that way instead of calling a flat scale a plateau. Treat the US-Navy body-fat figure as an estimate.")
+        }
         lines.append("")
         lines.append("When the user asks how to lose or gain, give a concrete calorie target and at least one actionable food or activity change. When they ask expected weight, reference the forecast numbers above.")
         if let userContext = AIProviderSettings.currentUserContext {

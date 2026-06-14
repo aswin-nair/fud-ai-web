@@ -3,6 +3,7 @@ package com.apoorvdarshan.calorietracker.services.ai
 import com.apoorvdarshan.calorietracker.data.KeyStore
 import com.apoorvdarshan.calorietracker.data.PreferencesStore
 import com.apoorvdarshan.calorietracker.models.AIProvider
+import com.apoorvdarshan.calorietracker.models.BodyMeasurement
 import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.OptionalNutrientGoals
 import com.apoorvdarshan.calorietracker.models.UserProfile
@@ -135,7 +136,8 @@ class FoodAnalysisService(
         profile: UserProfile,
         forecast: WeightForecast?,
         useMetric: Boolean,
-        measuredTdee: Int? = null
+        measuredTdee: Int? = null,
+        measurement: BodyMeasurement? = null
     ): GoalCalculation {
         val weight = if (useMetric) String.format(Locale.US, "%.1f kg", profile.weightKg)
             else String.format(Locale.US, "%.1f lb", profile.weightKg * 2.20462)
@@ -177,6 +179,13 @@ class FoodAnalysisService(
             "\nMEASURED ENERGY BURN — the user's REAL maintenance from Health Connect (14-day average of active + basal calories). Use THIS as the maintenance/TDEE anchor INSTEAD of the formula TDEE: $measuredTdee kcal/day. Apply the weight goal and weekly-change adjustment to this measured maintenance. Still sanity-check it against the observed weight trend."
         } else ""
 
+        // Optional tape-measure circumferences + derived metrics. Extra signal only — never overrides
+        // the formulas. A shrinking waist alongside flat/declining weight implies recomposition.
+        val measurementsSummary = measurement?.promptSummary(profile.gender, profile.heightCm)
+        val measurementsSection = if (measurementsSummary != null) {
+            "\nBODY MEASUREMENTS — the user's latest tape-measure circumferences and the metrics derived from them. Use as extra signal: a shrinking waist with steady or falling weight suggests recomposition, so keep protein high and don't over-cut. Treat the US-Navy body-fat figure as a rough estimate, not exact.\n$measurementsSummary"
+        } else ""
+
         val prompt = """
             You are the goal calculator for a calorie & macro tracking app. Using the FORMULAS, the USER PROFILE, and any OBSERVED DATA below, compute the user's daily targets.
             Return ONLY valid JSON with these exact keys (integers, plus a short reason):
@@ -211,6 +220,7 @@ class FoodAnalysisService(
             - Formula calorie target: ${profile.dailyCalories} kcal/day
             - Formula macros: ${profile.proteinGoal} g protein, ${profile.carbsGoal} g carbs, ${profile.fatGoal} g fat
             $measuredSection
+            $measurementsSection
             $observedSection
         """.trimIndent()
         return FoodJsonParser.parseGoalCalculation(callAi(prompt, imageBytes = null))

@@ -5,6 +5,7 @@ import com.apoorvdarshan.calorietracker.data.PreferencesStore
 import com.apoorvdarshan.calorietracker.models.AIProvider
 import com.apoorvdarshan.calorietracker.models.ActivityLevel
 import com.apoorvdarshan.calorietracker.models.BodyFatEntry
+import com.apoorvdarshan.calorietracker.models.BodyMeasurement
 import com.apoorvdarshan.calorietracker.models.ChatMessage
 import com.apoorvdarshan.calorietracker.models.WeightGoal
 import com.apoorvdarshan.calorietracker.models.FoodEntry
@@ -48,11 +49,12 @@ class ChatService(
         profile: UserProfile,
         weights: List<WeightEntry>,
         bodyFats: List<BodyFatEntry>,
+        measurements: List<BodyMeasurement> = emptyList(),
         foods: List<FoodEntry>,
         useMetric: Boolean,
         imageBytes: ByteArray? = null
     ): String {
-        val baseSystemPrompt = buildSystemPrompt(profile, weights, bodyFats, foods, useMetric)
+        val baseSystemPrompt = buildSystemPrompt(profile, weights, bodyFats, measurements, foods, useMetric)
         val userContext = prefs.userContext.first()
         val systemPrompt = if (userContext.isNotBlank())
             "$baseSystemPrompt\n\n## User-provided context\n$userContext"
@@ -80,6 +82,7 @@ class ChatService(
         profile: UserProfile,
         weights: List<WeightEntry>,
         bodyFats: List<BodyFatEntry>,
+        measurements: List<BodyMeasurement> = emptyList(),
         foods: List<FoodEntry>,
         useMetric: Boolean
     ): String {
@@ -157,6 +160,12 @@ class ChatService(
         lines.add("")
         lines.add("## Data available")
         lines.add("- ${weights.size} weight entries, ${bodyFats.size} body-fat readings, ${foods.size} food entries logged total. Use get_data_summary to see exact date ranges.")
+        measurements.maxByOrNull { it.date }?.promptSummary(profile.gender, profile.heightCm)?.let { summary ->
+            lines.add("")
+            lines.add("## Body measurements (latest)")
+            lines.add("- $summary")
+            lines.add("A shrinking waist alongside steady or rising weight is recomposition (fat down, muscle up) — read it that way instead of calling a flat scale a plateau. Treat the US-Navy body-fat figure as an estimate.")
+        }
         lines.add("")
         lines.add("When the user asks how to lose or gain, give a concrete calorie target and at least one actionable food or activity change. When they ask expected weight, reference the forecast numbers above.")
         return lines.joinToString("\n")

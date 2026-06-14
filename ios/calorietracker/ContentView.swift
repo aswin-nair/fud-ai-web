@@ -2465,6 +2465,7 @@ struct ProgressTabView: View {
     @Environment(FoodStore.self) private var foodStore
     @Environment(WeightStore.self) private var weightStore
     @Environment(BodyFatStore.self) private var bodyFatStore
+    @Environment(BodyMeasurementStore.self) private var bodyMeasurementStore
     @Environment(ProfileStore.self) private var profileStore
     @AppStorage("useMetric") private var useMetric = false
     @State private var timeRange: TimeRange = .week
@@ -2472,6 +2473,8 @@ struct ProgressTabView: View {
     @State private var showLogBodyFat = false
     @State private var showGoalReached = false
     @State private var showAllWeights = false
+    @State private var showLogMeasurements = false
+    @State private var showAllMeasurements = false
 
     private var userProfile: UserProfile { profileStore.profile }
 
@@ -2567,6 +2570,18 @@ struct ProgressTabView: View {
                         .padding(.horizontal)
                     }
 
+                    // Body Measurements — optional tape-measure tracking that feeds the AI
+                    BodyMeasurementsSection(
+                        latest: bodyMeasurementStore.latestEntry,
+                        totalCount: bodyMeasurementStore.entries.count,
+                        gender: userProfile.gender,
+                        heightCm: userProfile.heightCm,
+                        useMetric: useMetric,
+                        onLog: { showLogMeasurements = true },
+                        onHistory: { showAllMeasurements = true }
+                    )
+                    .padding(.horizontal)
+
                     // Calorie Trend
                     CalorieChartSection(
                         dailyCalories: dailyCalories,
@@ -2623,6 +2638,24 @@ struct ProgressTabView: View {
                     onDelete: { entry in weightStore.deleteEntry(entry) }
                 )
             }
+            .sheet(isPresented: $showLogMeasurements) {
+                LogBodyMeasurementsSheet(
+                    latest: bodyMeasurementStore.latestEntry,
+                    gender: userProfile.gender,
+                    heightCm: userProfile.heightCm
+                ) { measurement in
+                    bodyMeasurementStore.addEntry(measurement)
+                }
+            }
+            .sheet(isPresented: $showAllMeasurements) {
+                AllBodyMeasurementsHistoryView(
+                    entries: bodyMeasurementStore.sortedEntries,
+                    gender: userProfile.gender,
+                    heightCm: userProfile.heightCm,
+                    useMetric: useMetric,
+                    onDelete: { entry in bodyMeasurementStore.deleteEntry(entry) }
+                )
+            }
         }
     }
 
@@ -2634,6 +2667,7 @@ struct ProfileView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(WeightStore.self) private var weightStore
     @Environment(FoodStore.self) private var foodStore
+    @Environment(BodyMeasurementStore.self) private var bodyMeasurementStore
     @Environment(NotificationManager.self) private var notificationManager
     @Environment(HealthKitManager.self) private var healthKitManager
     @Environment(StoreManager.self) private var storeManager
@@ -4019,7 +4053,7 @@ struct ProfileView: View {
         // Energy Burn toggle: when on, anchor maintenance to the user's measured Apple Health burn.
         let measuredTdee = await measuredEnergyTdee(for: snapshot)
         do {
-            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, measuredTdee: measuredTdee, useMetric: useMetric)
+            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, measuredTdee: measuredTdee, measurement: bodyMeasurementStore.latestEntry, useMetric: useMetric)
             guard goalInputsUnchanged(snapshot, profile) else { return }
             // Apply the AI's calorie + protein targets. Protein is the AI's choice within a range
             // near the activity multiplier (it can flex with the goal + history), not a rigid lock.
@@ -4192,7 +4226,7 @@ struct ProfileView: View {
         let measuredTdee = await measuredEnergyTdee(for: snapshot)
         let forecast = WeightAnalysisService.compute(weights: weightStore.entries, foods: foodStore.entries, profile: snapshot)
         do {
-            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, measuredTdee: measuredTdee, useMetric: useMetric)
+            let result = try await GeminiService.calculateGoals(profile: snapshot, forecast: forecast, measuredTdee: measuredTdee, measurement: bodyMeasurementStore.latestEntry, useMetric: useMetric)
             guard goalInputsUnchanged(snapshot, profile) else { return }
             AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
             profile.customCalories = result.calories

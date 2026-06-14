@@ -2,6 +2,7 @@ package com.apoorvdarshan.calorietracker
 
 import android.app.Application
 import com.apoorvdarshan.calorietracker.data.BodyFatRepository
+import com.apoorvdarshan.calorietracker.data.BodyMeasurementRepository
 import com.apoorvdarshan.calorietracker.data.ChatRepository
 import com.apoorvdarshan.calorietracker.data.FoodRepository
 import com.apoorvdarshan.calorietracker.data.KeyStore
@@ -99,6 +100,7 @@ class AppContainer(app: FudAIApp) {
     val foodRepository = FoodRepository(prefs, health)
     val weightRepository = WeightRepository(prefs, profileRepository, health)
     val bodyFatRepository = BodyFatRepository(prefs, profileRepository, health)
+    val bodyMeasurementRepository = BodyMeasurementRepository(prefs)
     val chatRepository = ChatRepository(prefs)
 
     val foodAnalysis = FoodAnalysisService(prefs, keyStore)
@@ -158,7 +160,7 @@ class AppContainer(app: FudAIApp) {
                 profile = profile
             )
             val result = runCatching {
-                foodAnalysis.calculateGoals(profile, forecast, useMetric, measuredTdee)
+                foodAnalysis.calculateGoals(profile, forecast, useMetric, measuredTdee, bodyMeasurementRepository.latestSnapshot())
             }.getOrNull()
             // Mark checked on success OR AI failure so a misconfigured provider isn't hit on every
             // foreground; the weekly cadence simply resumes next week.

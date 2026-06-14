@@ -10,6 +10,7 @@ struct ChatView: View {
     @Environment(ProfileStore.self) private var profileStore
     @Environment(WeightStore.self) private var weightStore
     @Environment(BodyFatStore.self) private var bodyFatStore
+    @Environment(BodyMeasurementStore.self) private var bodyMeasurementStore
     @Environment(FoodStore.self) private var foodStore
     @AppStorage("useMetric") private var useMetric = false
 
@@ -449,6 +450,7 @@ struct ChatView: View {
                     profile: userProfile,
                     weights: weightStore.entries,
                     bodyFats: bodyFatStore.entries,
+                    measurements: bodyMeasurementStore.entries,
                     foods: foodStore.entries,
                     useMetric: useMetric
                 )

@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.apoorvdarshan.calorietracker.models.AIProvider
 import com.apoorvdarshan.calorietracker.models.AutoBalanceMacro
 import com.apoorvdarshan.calorietracker.models.BodyFatEntry
+import com.apoorvdarshan.calorietracker.models.BodyMeasurement
 import com.apoorvdarshan.calorietracker.models.ChatMessage
 import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.HomeTopNutrient
@@ -401,6 +402,17 @@ class PreferencesStore(private val context: Context) {
         ds.edit { it[Keys.BODY_FAT_ENTRIES] = json.encodeToString(ListSerializer(BodyFatEntry.serializer()), entries) }
     }
 
+    // -- Body measurement (circumference) entries --------------------------
+    val bodyMeasurements: Flow<List<BodyMeasurement>> = ds.data.map { prefs ->
+        prefs[Keys.BODY_MEASUREMENTS]?.let {
+            runCatching { json.decodeFromString(ListSerializer(BodyMeasurement.serializer()), it) }.getOrNull()
+        } ?: emptyList()
+    }
+
+    suspend fun setBodyMeasurements(entries: List<BodyMeasurement>) {
+        ds.edit { it[Keys.BODY_MEASUREMENTS] = json.encodeToString(ListSerializer(BodyMeasurement.serializer()), entries) }
+    }
+
     // -- Coach chat history ----------------------------------------------
     val chatHistory: Flow<List<ChatMessage>> = ds.data.map { prefs ->
         prefs[Keys.CHAT_HISTORY]?.let {
@@ -487,6 +499,7 @@ class PreferencesStore(private val context: Context) {
         val PENDING_FOOD_ANALYSIS_DRAFT = stringPreferencesKey("pendingFoodAnalysisDraft")
         val WEIGHT_ENTRIES = stringPreferencesKey("weightEntries")
         val BODY_FAT_ENTRIES = stringPreferencesKey("bodyFatEntries")
+        val BODY_MEASUREMENTS = stringPreferencesKey("bodyMeasurements")
         val CHAT_HISTORY = stringPreferencesKey("coachChatHistory")
         val WIDGET_SNAPSHOT = stringPreferencesKey("widget_snapshot_v1")
         val TEST_SEED_BACKUP = stringPreferencesKey("test_seed_backup_v1")
