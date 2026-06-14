@@ -7,7 +7,9 @@ struct WeekEnergyStrip: View {
     let caloriesForDate: (Date) -> Int
     let calorieGoal: Int
     @AppStorage("weekStartsOnMonday") private var weekStartsOnMonday = false
-    @State private var hasScrolledToInitial = false
+    /// Two-way scroll position (the visible week's index). Driven programmatically when the selected
+    /// day moves to another week, and updated by the user's own paging.
+    @State private var scrolledWeek: Int?
 
     private static let totalWeeks = 53 // ~1 year of history
     private static let currentWeekIndex = totalWeeks - 1
@@ -45,33 +47,35 @@ struct WeekEnergyStrip: View {
     }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 0) {
-                    ForEach(0..<Self.totalWeeks, id: \.self) { weekIndex in
-                        weekRow(for: weekIndex)
-                            .containerRelativeFrame(.horizontal)
-                            .id(weekIndex)
-                    }
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 0) {
+                ForEach(0..<Self.totalWeeks, id: \.self) { weekIndex in
+                    weekRow(for: weekIndex)
+                        .containerRelativeFrame(.horizontal)
+                        .id(weekIndex)
                 }
-                .scrollTargetLayout()
             }
-            .scrollTargetBehavior(.paging)
-            .onAppear {
-                guard !hasScrolledToInitial else { return }
-                hasScrolledToInitial = true
-                let targetWeek = weekIndex(for: selectedDate)
-                proxy.scrollTo(targetWeek, anchor: .trailing)
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.paging)
+        // Start anchored at the most recent week so the strip shows the current week before the
+        // first layout pass; `scrolledWeek` then takes over for programmatic + user paging.
+        .defaultScrollAnchor(.trailing)
+        .scrollPosition(id: $scrolledWeek)
+        .onAppear {
+            if scrolledWeek == nil {
+                scrolledWeek = weekIndex(for: selectedDate)
             }
-            .onChange(of: weekStartsOnMonday) { _, _ in
-                proxy.scrollTo(Self.currentWeekIndex, anchor: .trailing)
-            }
-            // Follow the selected day when it moves to a different week (e.g. the Home swipe steps
-            // across a week boundary), so the strip always shows the highlighted day.
-            .onChange(of: selectedDate) { _, newValue in
-                withAnimation(.snappy) {
-                    proxy.scrollTo(weekIndex(for: newValue), anchor: .trailing)
-                }
+        }
+        .onChange(of: weekStartsOnMonday) { _, _ in
+            scrolledWeek = Self.currentWeekIndex
+        }
+        // Follow the selected day when it moves to a different week (e.g. the Home swipe steps
+        // across a week boundary), so the strip always shows the highlighted day.
+        .onChange(of: selectedDate) { _, newValue in
+            let target = weekIndex(for: newValue)
+            if scrolledWeek != target {
+                withAnimation(.snappy) { scrolledWeek = target }
             }
         }
     }
