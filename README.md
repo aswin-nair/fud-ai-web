@@ -27,9 +27,9 @@
 
 Open-source, privacy-first calorie tracker for iOS and Android. Bring your own AI provider — 13 supported including Gemini, OpenAI, Claude, Grok, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, and any custom OpenAI-compatible endpoint — or use optional Fud AI Premium on iOS for hosted Gemini + Deepgram access. Snap a meal, share a food photo into Fud AI, scan a barcode, combine two camera shots, add a note to a camera or library photo, ask your AI coach how to hit your goal, speak your lunch, or use Siri Shortcuts on iOS to log food and weight. On supported iPhones, food-description analysis for text, voice-transcribed, and Siri food logs can use Apple Intelligence on-device as the final fallback after Premium Gemini or BYOK provider/fallback attempts fail. No accounts, no cloud sync, no tracking.
 
-iOS 4.4 build 25 makes goal calculation AI-powered — Recalculate Goals and onboarding compute your calories and macros via AI, refined from your logged intake and weight trend with a formula fallback — and merges Energy Burn Goals into a single Apple Health–aware Adaptive Goals toggle.
+iOS 4.4 build 25 makes goal calculation AI-powered — Recalculate Goals and onboarding compute your calories and macros via AI, refined from your logged intake and weight trend with a formula fallback — and merges Energy Burn Goals into a single Apple Health–aware Adaptive Goals toggle. It also adds goal locks, optional body-circumference measurements that feed Recalculate and the Coach, swipe-between-days on Home, formatted (markdown) Coach replies, dual-labelled weight goals (Cutting / Recomp / Bulking), new-version notifications, and 12/24-hour log times.
 
-Android 2.2.2 build 25 fixes text food entry keyboard focus, adds native speech fallback when Android on-device language support is unavailable, and recommends Groq (Whisper) or Deepgram for more consistent voice transcription across Android phones.
+Android 2.3.0 build 26 brings the same AI-driven goals, goal locks, body measurements, and onboarding AI setup, plus an in-camera flash toggle, Health Connect now reading your weight and body fat (read-only is enough to sync), a new "Fud AI Today" all-in-one widget, fixes for widgets stuck loading, and a feet/inches height fix.
 
 [App Store](https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726) · [Google Play](https://play.google.com/store/apps/details?id=com.apoorvdarshan.calorietracker) · [Website](https://fud-ai.app) · [Report an Issue](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=bug&title=Bug:%20) · [Request a Feature](https://github.com/apoorvdarshan/fud-ai/issues/new?labels=enhancement&title=Feature:%20)
 
@@ -81,8 +81,8 @@ Android 2.2.2 build 25 fixes text food entry keyboard focus, adds native speech 
 - **Apple Health** — bidirectional sync for body measurements + nutrition types written per meal; Siri food/weight logs write through the same HealthKit paths, and Experimental Energy Burn Goals can estimate calorie targets from active/total energy while macros stay editable
 - **Health Connect** — Android sync for nutrition, weight, and body fat, with permission reconciliation and backfill support; Experimental Energy Burn Goals can use recent energy data for calorie targets
 - **Apple Watch** — watchOS app and complications show calories and macros at a glance
-- **Widgets** — iOS Home Screen has Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget; Lock Screen widgets stay separate, and Android Glance widgets update when you log
-- **Android 2.2.2 update** — Text food entry keeps the keyboard open while example placeholders rotate; native Android voice logging falls back when on-device language support is unavailable
+- **Widgets** — iOS Home Screen has Fud AI in Small, Medium, and Large plus a small-only Fud AI Protein widget; Lock Screen widgets stay separate, and Android Glance widgets (including a new "Fud AI Today" all-in-one calories + macros widget) update when you log
+- **Android 2.3.0 update** — AI-driven goals, goal locks, optional body measurements, and onboarding AI setup; an in-camera flash toggle; Health Connect now reads weight + body fat (read-only is enough to sync); a new "Fud AI Today" widget; fixes for widgets stuck loading; and a feet/inches height fix
 - **Share the App** — native iOS share sheet from About → forwards App Store URL plus a personalized message and `fud-ai.app` link; message body localized into all 16 iOS languages
 - **Update check** — About shows the installed app version, opens the App Store / Play Store when a newer version is available, and shows a tab dot for pending updates
 - **Theme color** — iOS and Android Settings let users change the app accent, with matching home screen / launcher icons
@@ -253,8 +253,8 @@ All values can be manually overridden in Settings, with a **Recalculate Goals** 
 
 ```
 fud-ai/
-├── ios/          # SwiftUI iOS app (shipping on App Store, v4.3)
-├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.2.2)
+├── ios/          # SwiftUI iOS app (shipping on App Store, v4.4)
+├── android/      # Kotlin + Jetpack Compose app (min SDK 26 / Android 8.0, v2.3.0)
 ├── web/          # Marketing site — https://fud-ai.app (static HTML/CSS, Vercel)
 ├── APPSTORE.md   # App Store Connect listing copy (iOS)
 ├── PLAYSTORE.md  # Google Play Console listing copy (Android)

@@ -674,6 +674,17 @@
     <string name="about_whats_new_item_ai_nutrients">Recalculate also refreshes your optional nutrient targets like fiber, sugar, and sodium.</string>
     <string name="about_whats_new_item_onboarding_ai">Onboarding now sets up your AI provider and key, then builds your starting plan with AI.</string>
     <string name="about_whats_new_item_adaptive_merge">Energy Burn Goals is now part of a single Adaptive Goals toggle that factors your Health Connect calories burned into the weekly correction.</string>
+    <string name="about_whats_new_item_goal_locks">Lock any calculated calorie or macro target so Recalculate and Adaptive keep it fixed; reset to auto-balance anytime.</string>
+    <string name="about_whats_new_item_body_measurements">New optional body measurements (waist, hips, neck, and more) in Settings → Personal Info feed Recalculate Goals and the Coach.</string>
+    <string name="about_whats_new_item_health_connect_read">Fud AI now reads your weight and body fat from Health Connect (like a Withings scale), and read-only access is enough to sync.</string>
+    <string name="about_whats_new_item_camera_flash">The in-app food camera now has a flash toggle for clearer photos in low light.</string>
+    <string name="about_whats_new_item_all_metrics_widget">New “Fud AI Today” widget shows calories and all macros in one, and widgets no longer get stuck loading.</string>
+    <string name="about_whats_new_item_swipe_days">Swipe left or right on the calorie area of Home to move between days; the week strip follows.</string>
+    <string name="about_whats_new_item_coach_markdown">Coach replies now render formatted text — headings, bold, and bullet lists — so guidance is easier to read.</string>
+    <string name="about_whats_new_item_goal_dual_labels">Weight goals are clearer: Lose / Cutting, Maintain / Recomp, and Gain / Bulking.</string>
+    <string name="about_whats_new_item_app_updates">Get notified when a new version is available, with an App Updates toggle in Notifications.</string>
+    <string name="about_whats_new_item_clock_format">Food log times now follow your phone\'s 12- or 24-hour clock.</string>
+    <string name="about_whats_new_item_height_fix">Fixed height showing one inch short when set in feet and inches.</string>
     <string name="about_whats_new_item_text_keyboard_fix">Text food entry keeps the keyboard open, and native voice logging falls back when on-device language support is unavailable.</string>
     <string name="about_whats_new_item_speech_provider_tip">For more consistent voice transcription across Android phones, try Groq (Whisper) or Deepgram in Speech Engine settings. The developer personally uses Groq.</string>
     <string name="about_whats_new_item_review_toolbar_fit">Review Food now keeps the Log button visible on narrow Android screens.</string>

@@ -36,9 +36,16 @@ NEW
 • Recalculate Goals now uses AI. It sets your daily calories and macros from your profile — and as you keep logging, refines them from your real intake and weight trend (a true "hit and trial" estimate of your maintenance). Works with Fud AI Premium or your own provider key, and falls back to the standard formula when AI isn't available.
 • Recalculate also refreshes your optional nutrient targets — fiber, sugar, sodium, and more.
 • Onboarding now sets up your AI up front (Premium, or bring your own provider, model, and key) and builds your starting plan with AI.
+• Lock any calculated calorie or macro target so Recalculate and Adaptive keep it fixed — reset to auto-balance anytime.
+• New optional body measurements (waist, hips, neck, and more) in Settings → Personal Info feed Recalculate Goals and the Coach.
 
 IMPROVED
 • Energy Burn Goals is now part of Adaptive Goals — one simpler toggle. When Apple Health is connected, your weekly auto-correction also factors the calories you actually burned.
+• Swipe left or right on the calorie area of Home to move between days; the week strip follows along.
+• Coach replies now render formatted text — headings, bold, and bullet lists — so guidance is easier to read.
+• Weight goals read clearer: Lose / Cutting, Maintain / Recomp, and Gain / Bulking.
+• Get notified when a new version is available, with an App Updates toggle in Notifications.
+• Food log times now follow your phone's 12- or 24-hour clock.
 • General refinements and fixes.
 
 No data migration is required. Existing logs, goals, widgets, Premium, and BYOK settings are preserved.

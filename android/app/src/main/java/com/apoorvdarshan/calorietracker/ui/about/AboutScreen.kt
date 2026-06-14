@@ -290,6 +290,17 @@ private fun WhatsNewRow(
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_ai_nutrients))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_onboarding_ai))
                 WhatsNewBullet(stringResource(R.string.about_whats_new_item_adaptive_merge))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_goal_locks))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_body_measurements))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_health_connect_read))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_camera_flash))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_all_metrics_widget))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_swipe_days))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_coach_markdown))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_goal_dual_labels))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_app_updates))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_clock_format))
+                WhatsNewBullet(stringResource(R.string.about_whats_new_item_height_fix))
             }
         }
     }
