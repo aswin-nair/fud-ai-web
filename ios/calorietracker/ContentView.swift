@@ -554,70 +554,6 @@ struct ActivityShareSheet: UIViewControllerRepresentable {
 }
 
 // MARK: - Home View (Main Dashboard)
-// MARK: - Delts cross-promo card (Home)
-// A tasteful, dismissible card promoting the developer's workout app, shown below the
-// food log so everyone sees it. Uses the bundled Delts logo (offline-safe) and links
-// straight to the App Store.
-private struct DeltsPromoCard: View {
-    let onDismiss: () -> Void
-    private let appStoreURL = URL(string: "https://apps.apple.com/us/app/delts-workout-tracker/id6778653288")!
-
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Link(destination: appStoreURL) {
-                HStack(spacing: 14) {
-                    Image("DeltsLogo")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 52, height: 52)
-                        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Delts Workout Tracker")
-                            .font(.system(.subheadline, design: .rounded, weight: .bold))
-                            .foregroundStyle(.primary)
-                        Text("Plan, time & log every set — by the same developer")
-                            .font(.system(.caption, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: 3) {
-                            Text("Get it on the App Store")
-                            Image(systemName: "arrow.up.right")
-                        }
-                        .font(.system(.caption, design: .rounded, weight: .semibold))
-                        .foregroundStyle(AppColors.calorie)
-                        .padding(.top, 1)
-                    }
-
-                    Spacer(minLength: 28)
-                }
-                .padding(14)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            Button(action: onDismiss) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .padding(7)
-                    .background(Circle().fill(.ultraThinMaterial))
-            }
-            .buttonStyle(.plain)
-            .padding(8)
-            .accessibilityLabel("Dismiss")
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(AppColors.appCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(AppColors.calorie.opacity(0.18), lineWidth: 1)
-                )
-        )
-    }
-}
-
 struct HomeView: View {
     @Environment(FoodStore.self) private var foodStore
     @Environment(\.scenePhase) private var scenePhase
@@ -654,7 +590,6 @@ struct HomeView: View {
     @State private var currentFoodSource: FoodSource = .snapFood
     @State private var showNutritionDetail = false
     @AppStorage("useMetric") private var useMetric = false
-    @AppStorage("deltsPromoDismissed") private var deltsPromoDismissed = false
     @AppStorage(FoodLogSortOrder.storageKey) private var foodLogSortOrderRaw = FoodLogSortOrder.defaultOrder.rawValue
     @AppStorage(HomeTopNutrient.storageKey) private var homeTopNutrientsRaw = HomeTopNutrient.storageValue(for: HomeTopNutrient.defaultSelection)
     @AppStorage(OptionalNutrientGoals.storageKey) private var optionalNutrientGoalsData = Data()
@@ -879,19 +814,6 @@ struct HomeView: View {
                                 }
                             }
                         }
-                    }
-                }
-
-                // Cross-promo for the developer's other app (Delts). Dismissible — once
-                // dismissed it stays hidden. Last section, so it sits below the food log.
-                if !deltsPromoDismissed {
-                    Section {
-                        DeltsPromoCard {
-                            withAnimation(.snappy) { deltsPromoDismissed = true }
-                        }
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 20, trailing: 16))
-                        .listRowSeparator(.hidden)
                     }
                 }
             }
