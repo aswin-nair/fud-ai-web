@@ -2953,12 +2953,6 @@ struct ProfileView: View {
                     lockableGoalRow(icon: "c.circle", label: "Carbs", valueText: "\(profile.effectiveCarbs)g", macro: .carbs, sheet: .editCarbs)
                     lockableGoalRow(icon: "f.circle", label: "Fat", valueText: "\(profile.effectiveFat)g", macro: .fat, sheet: .editFat)
 
-                    if adaptiveGoalsEnabled {
-                        Text("Adaptive Goals is on — turn it off to lock or set your own calories and macros.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
                     NavigationLink {
                         OptionalNutrientGoalsSettingsView(profile: profile, useMetric: useMetric)
                     } label: {
@@ -2981,16 +2975,15 @@ struct ProfileView: View {
                         Label {
                             HStack {
                                 Text("Recalculate Goals")
-                                if goalsNeedRecalc && !isRecalculatingGoals {
-                                    // Soft nudge: a goal input changed since the last recalc.
-                                    // The button stays enabled — this only suggests, never blocks.
-                                    Circle()
-                                        .fill(AppColors.calorie)
-                                        .frame(width: 7, height: 7)
-                                }
+                                Spacer()
                                 if isRecalculatingGoals {
-                                    Spacer()
                                     ProgressView()
+                                } else if goalsNeedRecalc {
+                                    // Soft nudge: a goal input changed since the last recalc. Sits on
+                                    // the row's right edge instead of wrapping to its own line.
+                                    Text("Profile changed")
+                                        .font(.caption)
+                                        .foregroundStyle(AppColors.calorie)
                                 }
                             }
                         } icon: {
@@ -3000,15 +2993,6 @@ struct ProfileView: View {
                     }
                     .tint(.primary)
                     .disabled(isRecalculatingGoals)
-
-                    if goalsNeedRecalc && !isRecalculatingGoals {
-                        Text("Profile changed — recalculate to refresh goals.")
-                            .font(.caption)
-                            .foregroundStyle(AppColors.calorie)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .listRowSeparator(.hidden)
-                    }
 
                     Button {
                         showCalculationMethods = true

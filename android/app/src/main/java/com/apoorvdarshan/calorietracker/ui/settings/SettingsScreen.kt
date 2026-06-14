@@ -432,14 +432,6 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         lockEnabled = lockEnabled,
                         onClick = { openGoal(SettingsSheet.FAT) }
                     )
-                    if (ui.adaptiveGoalsEnabled) {
-                        Text(
-                            stringResource(R.string.settings_adaptive_locks_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                        )
-                    }
                     HorizontalDivider()
                     SettingRow(
                         "Other Nutrient Goals",
@@ -466,30 +458,18 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )
-                        if (ui.goalsNeedRecalc && !ui.recalculatingGoals) {
-                            // Soft nudge: a goal input changed since the last recalc. The row
-                            // stays tappable — this only suggests, never blocks recalculating.
-                            Spacer(Modifier.width(8.dp))
-                            Box(
-                                Modifier
-                                    .size(7.dp)
-                                    .clip(CircleShape)
-                                    .background(AppColors.Calorie)
+                        Spacer(Modifier.weight(1f))
+                        if (ui.recalculatingGoals) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else if (ui.goalsNeedRecalc) {
+                            // Soft nudge: a goal input changed since the last recalc. Sits on the
+                            // row's right edge instead of wrapping to its own line.
+                            Text(
+                                "Profile changed",
+                                color = AppColors.Calorie,
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
-                        if (ui.recalculatingGoals) {
-                            Spacer(Modifier.weight(1f))
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        }
-                    }
-                    if (ui.goalsNeedRecalc && !ui.recalculatingGoals) {
-                        Text(
-                            "Profile changed — recalculate to refresh goals.",
-                            color = AppColors.Calorie,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
-                        )
                     }
                 }
             }
