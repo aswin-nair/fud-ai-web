@@ -105,9 +105,10 @@ fun WeekEnergyStrip(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = targetIndex)
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    // .onAppear { proxy.scrollTo(targetWeek, anchor: .trailing) } — only on first frame
-    LaunchedEffect(Unit) {
-        listState.scrollToItem(targetIndex)
+    // Scroll to the week containing the selected day — on first frame and whenever the selection
+    // crosses into another week (e.g. the Home day-swipe steps past a week boundary).
+    LaunchedEffect(targetIndex) {
+        listState.animateScrollToItem(targetIndex)
     }
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {

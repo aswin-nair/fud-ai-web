@@ -467,33 +467,10 @@ fun HomeScreen(container: AppContainer) {
             )
         }
     ) { padding ->
-      Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            // Swipe left/right to step to the next/previous day. The detector only claims
-            // horizontal drags, so the LazyColumn's vertical scroll underneath is unaffected.
-            .pointerInput(selectedDate) {
-                var accum = 0f
-                val threshold = 80.dp.toPx()
-                detectHorizontalDragGestures(
-                    onDragStart = { accum = 0f },
-                    onDragCancel = { accum = 0f },
-                    onHorizontalDrag = { change, amount -> accum += amount; change.consume() },
-                    onDragEnd = {
-                        if (accum > threshold) {
-                            vm.setSelectedDate(selectedDate.minusDays(1))
-                        } else if (accum < -threshold) {
-                            val next = selectedDate.plusDays(1)
-                            if (!next.isAfter(today)) vm.setSelectedDate(next)
-                        }
-                        accum = 0f
-                    }
-                )
-            }
-      ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = BottomNavScrollPadding)
         ) {
             // Week strip — verbatim port of WeekEnergyStrip in HomeComponents.swift,
@@ -508,39 +485,58 @@ fun HomeScreen(container: AppContainer) {
                 }
             }
 
-            // Calorie hero
-            item { Spacer(Modifier.height(4.dp)) }
-            item { CalorieHero(current = ui.caloriesToday, goal = ui.profile?.effectiveCalories ?: 2000) }
-
-            // Macro trio
-            item { Spacer(Modifier.height(20.dp)) }
+            // Calorie hero + macros + View More — grouped so the day-swipe gesture covers only
+            // this top region, not the food log below "View More". Swipe left/right to change day;
+            // the horizontal-only detector lets the LazyColumn keep scrolling vertically.
             item {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    ui.homeTopNutrients.forEach { nutrient ->
-                        MacroCard(
-                            label = nutrient.displayName,
-                            current = nutrient.current(ui.todayEntries),
-                            goal = nutrient.goal(ui.profile, ui.optionalNutrientGoals),
-                            unit = nutrient.unit,
-                            modifier = Modifier.weight(1f)
+                Column(
+                    modifier = Modifier.pointerInput(selectedDate) {
+                        var accum = 0f
+                        val threshold = 80.dp.toPx()
+                        detectHorizontalDragGestures(
+                            onDragStart = { accum = 0f },
+                            onDragCancel = { accum = 0f },
+                            onHorizontalDrag = { change, amount -> accum += amount; change.consume() },
+                            onDragEnd = {
+                                if (accum > threshold) {
+                                    vm.setSelectedDate(selectedDate.minusDays(1))
+                                } else if (accum < -threshold) {
+                                    val next = selectedDate.plusDays(1)
+                                    if (!next.isAfter(today)) vm.setSelectedDate(next)
+                                }
+                                accum = 0f
+                            }
                         )
                     }
-                }
-            }
-            item {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
                 ) {
-                    Box(modifier = Modifier.clickable { showNutritionDetail = true }) {
-                        ViewMoreButton()
+                    Spacer(Modifier.height(4.dp))
+                    CalorieHero(current = ui.caloriesToday, goal = ui.profile?.effectiveCalories ?: 2000)
+                    Spacer(Modifier.height(20.dp))
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        ui.homeTopNutrients.forEach { nutrient ->
+                            MacroCard(
+                                label = nutrient.displayName,
+                                current = nutrient.current(ui.todayEntries),
+                                goal = nutrient.goal(ui.profile, ui.optionalNutrientGoals),
+                                unit = nutrient.unit,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(modifier = Modifier.clickable { showNutritionDetail = true }) {
+                            ViewMoreButton()
+                        }
                     }
                 }
             }
@@ -601,7 +597,6 @@ fun HomeScreen(container: AppContainer) {
                 }
             }
         }
-      }
     }
 
     if (showText) {

@@ -66,6 +66,13 @@ struct WeekEnergyStrip: View {
             .onChange(of: weekStartsOnMonday) { _, _ in
                 proxy.scrollTo(Self.currentWeekIndex, anchor: .trailing)
             }
+            // Follow the selected day when it moves to a different week (e.g. the Home swipe steps
+            // across a week boundary), so the strip always shows the highlighted day.
+            .onChange(of: selectedDate) { _, newValue in
+                withAnimation(.snappy) {
+                    proxy.scrollTo(weekIndex(for: newValue), anchor: .trailing)
+                }
+            }
         }
     }
 

@@ -609,6 +609,20 @@ struct HomeView: View {
         return selectedDate.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
     }
 
+    /// Horizontal swipe → previous/next day. Attached only to the top section (calorie hero +
+    /// macros), not the food log below "View More", so it never competes with the food rows'
+    /// own swipe actions or vertical scrolling there. `.simultaneousGesture` lets the List still
+    /// scroll; we act only on a clearly horizontal flick.
+    private var daySwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onEnded { value in
+                let dx = value.translation.width
+                let dy = value.translation.height
+                guard abs(dx) > 60, abs(dx) > abs(dy) * 1.5 else { return }
+                changeDay(by: dx < 0 ? 1 : -1)
+            }
+    }
+
     /// Step the selected day by `delta` (−1 previous, +1 next), from the swipe gesture. Won't move
     /// past today, and gives a light haptic on a successful change. Animates with the existing
     /// `.animation(.snappy, value: selectedDate)` on the List.
@@ -694,6 +708,8 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
+                    .contentShape(Rectangle())
+                    .simultaneousGesture(daySwipeGesture)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 }
@@ -712,6 +728,8 @@ struct HomeView: View {
                         }
                     }
                     .padding(.vertical, 8)
+                    .contentShape(Rectangle())
+                    .simultaneousGesture(daySwipeGesture)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
 
@@ -795,18 +813,6 @@ struct HomeView: View {
             .scrollContentBackground(.hidden)
             .background(AppColors.appBackground)
             .animation(.snappy, value: selectedDate)
-            // Swipe left/right anywhere on the day to step to the next/previous day. Runs alongside
-            // the List's vertical scroll (simultaneous) and only acts on a clearly horizontal flick,
-            // so scrolling the food log is unaffected.
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 24)
-                    .onEnded { value in
-                        let dx = value.translation.width
-                        let dy = value.translation.height
-                        guard abs(dx) > 60, abs(dx) > abs(dy) * 1.5 else { return }
-                        changeDay(by: dx < 0 ? 1 : -1)
-                    }
-            )
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
