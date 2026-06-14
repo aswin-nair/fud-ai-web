@@ -4,6 +4,10 @@ const DEFAULT_TASK_LIMITS = {
   coach: 25,
 };
 const DEFAULT_GLOBAL_LIMIT = 70;
+// Tasks that count ONLY against the global daily safety cap, never a per-task bucket.
+// Goal calculation (onboarding / Recalculate / Adaptive) is low-frequency and must not
+// eat into the food (meal-logging) allowance — so it shares only the global ceiling.
+const GLOBAL_ONLY_TASKS = new Set(["goals"]);
 const MODEL_ALIASES = {
   "gemini-3.1-flash-lite-preview": "gemini-3.1-flash-lite",
 };
@@ -91,24 +95,26 @@ export default async function handler(request, response) {
 }
 
 function normalizeTask(task) {
-  if (task === "food" || task === "coach" || task === "speech") {
+  if (task === "food" || task === "coach" || task === "speech" || task === "goals") {
     return task;
   }
   return null;
 }
 
 function configuredModels(task) {
+  // Goal calculations are text-only like food — reuse the food model list.
+  const modelTask = task === "goals" ? "food" : task;
   const envKey = {
     food: "GEMINI_FOOD_MODELS",
     coach: "GEMINI_COACH_MODELS",
-  }[task];
+  }[modelTask];
 
   const configured = process.env[envKey]
     ?.split(",")
     .map((model) => model.trim())
     .filter(Boolean);
 
-  return uniqueModels(configured?.length ? configured : FALLBACK_MODELS[task]);
+  return uniqueModels(configured?.length ? configured : FALLBACK_MODELS[modelTask]);
 }
 
 function uniqueModels(models) {
@@ -189,7 +195,8 @@ function parseDeepgramTranscript(text) {
 
 async function checkQuota(installID, task) {
   const usage = await readUsage(installID, task);
-  if (usage.taskCount >= usage.taskLimit) {
+  // Global-only tasks (e.g. goal calc) bypass the per-task bucket — only the global cap gates them.
+  if (!GLOBAL_ONLY_TASKS.has(task) && usage.taskCount >= usage.taskLimit) {
     return {
       allowed: false,
       ...usage,
@@ -208,9 +215,17 @@ async function checkQuota(installID, task) {
 
 async function readUsage(installID, task) {
   const globalKey = quotaKey(installID);
+  const globalLimit = globalDailyLimit();
+
+  // Global-only task: no per-task bucket. Mirror the global counter so quota math + headers
+  // stay coherent without ever gating on (or incrementing) a task bucket.
+  if (GLOBAL_ONLY_TASKS.has(task)) {
+    const globalCount = await readCount(globalKey);
+    return { taskCount: globalCount, globalCount, taskLimit: globalLimit, globalLimit };
+  }
+
   const taskKey = quotaKey(installID, task);
   const taskLimit = taskDailyLimit(task);
-  const globalLimit = globalDailyLimit();
 
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
     const [taskCount, globalCount] = await Promise.all([
@@ -274,6 +289,22 @@ async function readCount(key) {
 
 async function recordSuccessfulUsage(installID, task) {
   const globalKey = quotaKey(installID);
+
+  // Global-only task: increment ONLY the global counter, never a per-task bucket.
+  if (GLOBAL_ONLY_TASKS.has(task)) {
+    const globalLimit = globalDailyLimit();
+    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+      const globalCount = await kvCommand(["INCR", globalKey]);
+      if (globalCount === 1) {
+        await kvCommand(["EXPIRE", globalKey, secondsUntilTomorrow() + 3600]);
+      }
+      return { taskCount: globalCount, globalCount, taskLimit: globalLimit, globalLimit };
+    }
+    const globalCount = (memoryUsage.get(globalKey) || 0) + 1;
+    memoryUsage.set(globalKey, globalCount);
+    return { taskCount: globalCount, globalCount, taskLimit: globalLimit, globalLimit };
+  }
+
   const taskKey = quotaKey(installID, task);
 
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
@@ -347,6 +378,8 @@ function taskLabel(task) {
       return "Speech-to-text";
     case "coach":
       return "Coach";
+    case "goals":
+      return "Goal calculation";
     default:
       return "Fud AI Premium";
   }

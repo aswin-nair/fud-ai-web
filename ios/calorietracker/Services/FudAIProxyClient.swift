@@ -5,6 +5,9 @@ enum FudAIProxyClient {
         case food
         case coach
         case speech
+        // Goal calculation (onboarding / Recalculate / Adaptive). Counts only against the
+        // global daily cap server-side, not the food bucket — so it never eats meal-logging quota.
+        case goals
     }
 
     enum ProxyError: LocalizedError {

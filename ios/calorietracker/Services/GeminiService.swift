@@ -395,7 +395,7 @@ struct GeminiService {
         \(currentGoalLines)
         """
 
-        let text = try await callAI(prompt: prompt, image: nil)
+        let text = try await callAI(prompt: prompt, image: nil, proxyTask: .goals)
         return try parseOptionalNutrientGoals(from: text, fallback: currentGoals)
     }
 
@@ -499,7 +499,7 @@ struct GeminiService {
         \(observedSection)
         """
 
-        let text = try await callAI(prompt: prompt, image: nil)
+        let text = try await callAI(prompt: prompt, image: nil, proxyTask: .goals)
         return try parseGoalCalculation(from: text)
     }
 
@@ -599,8 +599,8 @@ struct GeminiService {
 
     // MARK: - Unified AI Call Router
 
-    private static func callAI(prompt: String, image: UIImage?) async throws -> String {
-        try await callAI(prompt: prompt, images: image.map { [$0] } ?? [])
+    private static func callAI(prompt: String, image: UIImage?, proxyTask: FudAIProxyClient.ProxyTask = .food) async throws -> String {
+        try await callAI(prompt: prompt, images: image.map { [$0] } ?? [], proxyTask: proxyTask)
     }
 
     private static func callTextFoodAnalysis(prompt: String) async throws -> FoodAnalysis {
@@ -685,7 +685,7 @@ struct GeminiService {
         return nil
     }
 
-    private static func callAI(prompt: String, images: [UIImage]) async throws -> String {
+    private static func callAI(prompt: String, images: [UIImage], proxyTask: FudAIProxyClient.ProxyTask = .food) async throws -> String {
         let usingPremium = AIAccessSettings.isUsingFudAIPremium
         if usingPremium, !AIAccessSettings.hasActivePremiumEntitlement {
             throw AnalysisError.subscriptionRequired
@@ -707,7 +707,8 @@ struct GeminiService {
                 baseURL: AIProvider.gemini.baseURL,
                 apiKey: nil,
                 prompt: prompt,
-                imageDataList: imageDataList
+                imageDataList: imageDataList,
+                proxyTask: proxyTask
             )
         }
 
@@ -792,14 +793,14 @@ struct GeminiService {
         }
     }
 
-    private static func dispatch(provider: AIProvider, model: String, baseURL: String, apiKey: String?, prompt: String, imageDataList: [Data]) async throws -> String {
+    private static func dispatch(provider: AIProvider, model: String, baseURL: String, apiKey: String?, prompt: String, imageDataList: [Data], proxyTask: FudAIProxyClient.ProxyTask = .food) async throws -> String {
         switch provider.apiFormat {
         case .gemini:
             if AIAccessSettings.isUsingFudAIPremium {
-                return try await callGemini(baseURL: baseURL, model: model, apiKey: nil, prompt: prompt, imageDataList: imageDataList)
+                return try await callGemini(baseURL: baseURL, model: model, apiKey: nil, prompt: prompt, imageDataList: imageDataList, proxyTask: proxyTask)
             }
             guard let key = apiKey else { throw AnalysisError.noAPIKey }
-            return try await callGemini(baseURL: baseURL, model: model, apiKey: key, prompt: prompt, imageDataList: imageDataList)
+            return try await callGemini(baseURL: baseURL, model: model, apiKey: key, prompt: prompt, imageDataList: imageDataList, proxyTask: proxyTask)
         case .openaiCompatible:
             return try await callOpenAICompatible(baseURL: baseURL, model: model, apiKey: apiKey, provider: provider, prompt: prompt, imageDataList: imageDataList)
         case .anthropic:
@@ -810,7 +811,7 @@ struct GeminiService {
 
     // MARK: - Gemini Format
 
-    private static func callGemini(baseURL: String, model: String, apiKey: String?, prompt: String, imageDataList: [Data]) async throws -> String {
+    private static func callGemini(baseURL: String, model: String, apiKey: String?, prompt: String, imageDataList: [Data], proxyTask: FudAIProxyClient.ProxyTask = .food) async throws -> String {
         // Send the API key in the X-goog-api-key header, not the URL query string,
         // so it doesn't end up in server logs / proxies (CodeQL: cleartext transmission).
         var parts: [[String: Any]] = []
@@ -833,7 +834,7 @@ struct GeminiService {
 
         let data: Data
         if AIAccessSettings.isUsingFudAIPremium {
-            data = try await FudAIProxyClient.generateContent(task: .food, body: body)
+            data = try await FudAIProxyClient.generateContent(task: proxyTask, body: body)
         } else {
             guard let apiKey else { throw AnalysisError.noAPIKey }
             guard let url = URL(string: "\(baseURL)/models/\(model):generateContent") else {
