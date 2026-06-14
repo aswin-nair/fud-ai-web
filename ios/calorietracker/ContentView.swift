@@ -609,6 +609,17 @@ struct HomeView: View {
         return selectedDate.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
     }
 
+    /// Step the selected day by `delta` (−1 previous, +1 next), from the swipe gesture. Won't move
+    /// past today, and gives a light haptic on a successful change. Animates with the existing
+    /// `.animation(.snappy, value: selectedDate)` on the List.
+    private func changeDay(by delta: Int) {
+        let calendar = Calendar.current
+        guard let newDate = calendar.date(byAdding: .day, value: delta, to: selectedDate) else { return }
+        if delta > 0 && calendar.startOfDay(for: newDate) > calendar.startOfDay(for: .now) { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        selectedDate = newDate
+    }
+
     private func logDate(on day: Date, now: Date = .now) -> Date {
         let calendar = Calendar.current
         if calendar.isDateInToday(day) { return now }
@@ -784,6 +795,18 @@ struct HomeView: View {
             .scrollContentBackground(.hidden)
             .background(AppColors.appBackground)
             .animation(.snappy, value: selectedDate)
+            // Swipe left/right anywhere on the day to step to the next/previous day. Runs alongside
+            // the List's vertical scroll (simultaneous) and only acts on a clearly horizontal flick,
+            // so scrolling the food log is unaffected.
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 24)
+                    .onEnded { value in
+                        let dx = value.translation.width
+                        let dy = value.translation.height
+                        guard abs(dx) > 60, abs(dx) > abs(dy) * 1.5 else { return }
+                        changeDay(by: dx < 0 ? 1 : -1)
+                    }
+            )
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

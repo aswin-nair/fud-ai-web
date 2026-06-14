@@ -104,6 +104,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import com.apoorvdarshan.calorietracker.ui.util.clockTimePattern
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -466,10 +467,33 @@ fun HomeScreen(container: AppContainer) {
             )
         }
     ) { padding ->
+      Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            // Swipe left/right to step to the next/previous day. The detector only claims
+            // horizontal drags, so the LazyColumn's vertical scroll underneath is unaffected.
+            .pointerInput(selectedDate) {
+                var accum = 0f
+                val threshold = 80.dp.toPx()
+                detectHorizontalDragGestures(
+                    onDragStart = { accum = 0f },
+                    onDragCancel = { accum = 0f },
+                    onHorizontalDrag = { change, amount -> accum += amount; change.consume() },
+                    onDragEnd = {
+                        if (accum > threshold) {
+                            vm.setSelectedDate(selectedDate.minusDays(1))
+                        } else if (accum < -threshold) {
+                            val next = selectedDate.plusDays(1)
+                            if (!next.isAfter(today)) vm.setSelectedDate(next)
+                        }
+                        accum = 0f
+                    }
+                )
+            }
+      ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = BottomNavScrollPadding)
         ) {
             // Week strip — verbatim port of WeekEnergyStrip in HomeComponents.swift,
@@ -577,6 +601,7 @@ fun HomeScreen(container: AppContainer) {
                 }
             }
         }
+      }
     }
 
     if (showText) {
@@ -1302,8 +1327,8 @@ private fun FoodRow(
     isFavorite: Boolean = false,
     rowShape: RoundedCornerShape = RoundedCornerShape(22.dp)
 ) {
-    val timeFmt = DateTimeFormatter.ofPattern("h:mma", Locale.US).withZone(ZoneId.systemDefault())
     val ctx = LocalContext.current
+    val timeFmt = DateTimeFormatter.ofPattern(clockTimePattern(ctx), Locale.US).withZone(ZoneId.systemDefault())
     val container = (ctx.applicationContext as com.apoorvdarshan.calorietracker.FudAIApp).container
     val bitmap = remember(entry.imageFilename) {
         entry.imageFilename?.let { container.imageStore.loadThumbnail(it) }
