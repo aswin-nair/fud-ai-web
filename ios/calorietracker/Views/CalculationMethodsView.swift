@@ -18,14 +18,14 @@ struct CalculationMethodsView: View {
                     section(title: "Resting metabolism (BMR)") {
                         formulaCard(
                             name: "Mifflin-St Jeor equation",
-                            usedWhen: "Default formula. Used when body fat % is not entered, or when “Use Body Fat for BMR” is off in Settings.",
+                            usedWhen: "Default formula for resting metabolism. Used when you haven’t entered a body fat %.",
                             formula: "Men: 10×weight(kg) + 6.25×height(cm) − 5×age + 5\nWomen: 10×weight(kg) + 6.25×height(cm) − 5×age − 161",
                             citation: "Mifflin MD, St Jeor ST, et al. (1990). “A new predictive equation for resting energy expenditure in healthy individuals.” Am J Clin Nutr 51(2):241–247.",
                             url: URL(string: "https://pubmed.ncbi.nlm.nih.gov/2305711/")
                         )
                         formulaCard(
                             name: "Katch-McArdle equation",
-                            usedWhen: "Used automatically when body fat % is set AND “Use Body Fat for BMR” is on. More accurate for lean and athletic users since it derives BMR from lean body mass instead of total weight.",
+                            usedWhen: "Used automatically when you’ve entered a body fat %. More accurate for lean and athletic users since it derives BMR from lean body mass instead of total weight.",
                             formula: "BMR = 370 + 21.6 × LBM(kg)\nLBM = weight × (1 − bodyFat%)",
                             citation: "McArdle WD, Katch FI, Katch VL. Exercise Physiology: Nutrition, Energy, and Human Performance, 7th ed. Lippincott Williams & Wilkins, 2010.",
                             url: nil
@@ -35,8 +35,8 @@ struct CalculationMethodsView: View {
                     section(title: "Daily energy expenditure (TDEE)") {
                         formulaCard(
                             name: "Activity-multiplier method",
-                            usedWhen: "TDEE = BMR × activity multiplier. Multipliers correspond to the user-selected activity level.",
-                            formula: "Sedentary: 1.2  ·  Light: 1.375  ·  Moderate: 1.55  ·  Very Active: 1.725  ·  Extra Active: 1.9",
+                            usedWhen: "TDEE = BMR × activity multiplier. The multiplier corresponds to your selected activity level. This is the maintenance baseline the AI starts from (unless Energy Burn supplies a measured one).",
+                            formula: "Sedentary: 1.2  ·  Light: 1.375  ·  Moderate: 1.465  ·  Active: 1.55  ·  Very Active: 1.725  ·  Extra Active: 1.9",
                             citation: "Standard PAL (Physical Activity Level) coefficients from FAO/WHO/UNU joint expert consultation on human energy requirements (2001). Also widely used by ACSM and USDA Dietary Guidelines.",
                             url: URL(string: "https://www.fao.org/3/y5686e/y5686e00.htm")
                         )
@@ -44,9 +44,9 @@ struct CalculationMethodsView: View {
 
                     section(title: "Calorie target for goal") {
                         formulaCard(
-                            name: "Energy-balance adjustment",
-                            usedWhen: "Daily calorie goal = TDEE adjusted for chosen weekly weight-change rate. Used for Lose / Gain / Maintain goals.",
-                            formula: "1 lb of body fat ≈ 3,500 kcal · 1 kg ≈ 7,700 kcal\nWeekly deficit / surplus is divided across 7 days and added to (or subtracted from) TDEE to produce the daily calorie target.",
+                            name: "Maintenance & goal adjustment",
+                            usedWhen: "Maintenance starts from your TDEE — or, when Energy Burn is on, your measured Apple Health burn (a 14-day Active + Basal average) instead of the formula estimate. The AI refines maintenance against your logged intake and weight trend, then applies your goal: a weekly weight-change rate becomes a daily calorie deficit (Lose) or surplus (Gain).",
+                            formula: "1 lb of body fat ≈ 3,500 kcal · 1 kg ≈ 7,700 kcal\nYour weekly rate ÷ 7 is subtracted from (Lose) or added to (Gain) maintenance to set the daily calorie target.",
                             citation: "Hall KD, et al. (2011). “Quantification of the effect of energy imbalance on bodyweight.” Lancet 378(9793):826–837. The classic 3,500-kcal-per-pound rule originates from Wishnofsky M (1958), Am J Clin Nutr 6:542–546.",
                             url: URL(string: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(11)60812-X/fulltext")
                         )
@@ -55,8 +55,8 @@ struct CalculationMethodsView: View {
                     section(title: "Macronutrient split") {
                         formulaCard(
                             name: "Protein, carbs, fat targets",
-                            usedWhen: "Defaults derived from current calorie target. Each macro is fully overridable in onboarding and Settings.",
-                            formula: "Protein: ~1.6 g per kg body weight (Morton 2018 meta-analysis; raised for active users)\nFat: ~25% of total calories\nCarbs: remaining calories ÷ 4 kcal/g",
+                            usedWhen: "The AI fits protein, carbs, and fat to your calorie target, using these references as a guide. Protein scales with your activity level (and is based on lean body mass when a body fat % is set); fat is set from bodyweight; carbs fill the rest. You can lock any value or edit it yourself in Settings.",
+                            formula: "Protein: ~0.8–2.2 g per kg by activity level (raised slightly when losing)\nFat: ~0.6 g per kg bodyweight\nCarbs: remaining calories ÷ 4 kcal/g",
                             citation: "Morton RW, et al. (2018). “A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength.” Br J Sports Med 52(6):376–384.",
                             url: URL(string: "https://bjsm.bmj.com/content/52/6/376")
                         )
@@ -94,9 +94,9 @@ struct CalculationMethodsView: View {
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("How Fud AI calculates your numbers")
+            Text("How Fud AI sets your numbers")
                 .font(.system(.title3, design: .rounded, weight: .bold))
-            Text("Every metabolism, calorie target, and macro split shown in the app comes from peer-reviewed equations. Your AI provider only estimates the per-meal nutrition; the daily targets are pure math from your profile.")
+            Text("Your daily calorie and macro targets are set by AI. When you tap Recalculate Goals — or automatically about once a week if Adaptive Goals is on — Fud AI sends your profile, the reference equations below, your recently logged food, and your weight trend to your AI provider. It starts from these peer-reviewed formulas, then adjusts them to your real data to estimate your true maintenance and targets.")
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

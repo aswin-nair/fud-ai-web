@@ -978,29 +978,6 @@ fun OptionalNutrientGoalsScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "Separate from calories, protein, carbs, and fat. These targets are only used for the extra nutrient cards and details.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.62f)
-                )
-            }
-
-            item {
-                Text(
-                    "Recalculate Goals updates these automatically with AI. Tap any value to adjust it yourself.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                )
-            }
-
-            item {
-                Text(
-                    "Nutrients",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f),
-                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
-                )
             }
             item {
                 FudGlassSurface(
@@ -1024,11 +1001,11 @@ fun OptionalNutrientGoalsScreen(
             }
 
             item {
-                FudGlassTextButton(
-                    text = "Reset to Defaults",
-                    onClick = { vm.setOptionalNutrientGoals(OptionalNutrientGoals.Default) },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f)
+                Text(
+                    "Separate from calorie, protein, carb, and fat goals.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f),
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
                 )
             }
         }
