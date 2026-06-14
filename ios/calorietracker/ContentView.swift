@@ -2979,9 +2979,9 @@ struct ProfileView: View {
                                 if isRecalculatingGoals {
                                     ProgressView()
                                 } else if goalsNeedRecalc {
-                                    // Soft nudge: a goal input changed since the last recalc. Sits on
-                                    // the row's right edge instead of wrapping to its own line.
-                                    Text("Profile changed")
+                                    // Soft nudge: a goal input changed since the last recalc. A CTA
+                                    // on the row's right edge, not a wrapped line below it.
+                                    Text("Tap to update")
                                         .font(.caption)
                                         .foregroundStyle(AppColors.calorie)
                                 }

@@ -462,10 +462,10 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         if (ui.recalculatingGoals) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                         } else if (ui.goalsNeedRecalc) {
-                            // Soft nudge: a goal input changed since the last recalc. Sits on the
-                            // row's right edge instead of wrapping to its own line.
+                            // Soft nudge: a goal input changed since the last recalc. A CTA on the
+                            // row's right edge, not a wrapped line below it.
                             Text(
-                                "Profile changed",
+                                "Tap to update",
                                 color = AppColors.Calorie,
                                 style = MaterialTheme.typography.bodySmall
                             )
