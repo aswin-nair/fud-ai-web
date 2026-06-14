@@ -101,9 +101,9 @@ enum WeightGoal: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .lose: LocalizedDisplayText.text("Lose Weight", polish: "Schudnąć")
-        case .maintain: LocalizedDisplayText.text("Maintain", polish: "Utrzymać")
-        case .gain: LocalizedDisplayText.text("Gain Weight", polish: "Przybrać na wadze")
+        case .lose: LocalizedDisplayText.text("Lose Weight / Cutting", polish: "Schudnąć / Cutting")
+        case .maintain: LocalizedDisplayText.text("Maintain / Recomp", polish: "Utrzymać / Recomp")
+        case .gain: LocalizedDisplayText.text("Gain Weight / Bulking", polish: "Przybrać na wadze / Bulking")
         }
     }
 

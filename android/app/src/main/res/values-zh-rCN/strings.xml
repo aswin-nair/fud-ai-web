@@ -88,9 +88,9 @@
     <string name="activity_extra_active_subtitle">每天高强度运动，或体力劳动</string>
 
     <!-- Weight Goal -->
-    <string name="goal_lose">减重</string>
-    <string name="goal_maintain">维持</string>
-    <string name="goal_gain">增重</string>
+    <string name="goal_lose">减重 / Cutting</string>
+    <string name="goal_maintain">维持 / Recomp</string>
+    <string name="goal_gain">增重 / Bulking</string>
 
     <!-- Meal Type -->
     <string name="meal_breakfast">早餐</string>

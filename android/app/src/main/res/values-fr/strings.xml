@@ -88,9 +88,9 @@
     <string name="activity_extra_active_subtitle">Très intense au quotidien, ou métier physique</string>
 
     <!-- Weight Goal -->
-    <string name="goal_lose">Perdre du poids</string>
-    <string name="goal_maintain">Maintenir</string>
-    <string name="goal_gain">Prendre du poids</string>
+    <string name="goal_lose">Perdre du poids / Cutting</string>
+    <string name="goal_maintain">Maintenir / Recomp</string>
+    <string name="goal_gain">Prendre du poids / Bulking</string>
 
     <!-- Meal Type -->
     <string name="meal_breakfast">Petit-déjeuner</string>

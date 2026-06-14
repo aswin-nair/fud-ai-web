@@ -88,9 +88,9 @@
     <string name="activity_extra_active_subtitle">毎日の非常に激しい運動、または肉体労働</string>
 
     <!-- Weight Goal -->
-    <string name="goal_lose">減量</string>
-    <string name="goal_maintain">維持</string>
-    <string name="goal_gain">増量</string>
+    <string name="goal_lose">減量 / Cutting</string>
+    <string name="goal_maintain">維持 / Recomp</string>
+    <string name="goal_gain">増量 / Bulking</string>
 
     <!-- Meal Type -->
     <string name="meal_breakfast">朝食</string>

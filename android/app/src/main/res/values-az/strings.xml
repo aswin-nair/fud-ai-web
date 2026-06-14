@@ -88,9 +88,9 @@
     <string name="activity_extra_active_subtitle">Çox intensiv gündəlik və ya fiziki iş</string>
 
     <!-- Weight Goal -->
-    <string name="goal_lose">Çəki Azalt</string>
-    <string name="goal_maintain">Saxla</string>
-    <string name="goal_gain">Çəki Artır</string>
+    <string name="goal_lose">Çəki Azalt / Cutting</string>
+    <string name="goal_maintain">Saxla / Recomp</string>
+    <string name="goal_gain">Çəki Artır / Bulking</string>
 
     <!-- Meal Type -->
     <string name="meal_breakfast">Səhər yeməyi</string>

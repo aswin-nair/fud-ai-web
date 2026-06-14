@@ -88,9 +88,9 @@
     <string name="activity_extra_active_subtitle">रोज़ाना बहुत तीव्र, या शारीरिक काम</string>
 
     <!-- Weight Goal -->
-    <string name="goal_lose">वज़न घटाएँ</string>
-    <string name="goal_maintain">बनाए रखें</string>
-    <string name="goal_gain">वज़न बढ़ाएँ</string>
+    <string name="goal_lose">वज़न घटाएँ / Cutting</string>
+    <string name="goal_maintain">बनाए रखें / Recomp</string>
+    <string name="goal_gain">वज़न बढ़ाएँ / Bulking</string>
 
     <!-- Meal Type -->
     <string name="meal_breakfast">नाश्ता</string>

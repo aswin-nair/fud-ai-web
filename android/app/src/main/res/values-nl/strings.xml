@@ -88,9 +88,9 @@
     <string name="activity_extra_active_subtitle">Zeer intensief dagelijks of fysieke baan</string>
 
     <!-- Weight Goal -->
-    <string name="goal_lose">Afvallen</string>
-    <string name="goal_maintain">Op gewicht blijven</string>
-    <string name="goal_gain">Aankomen</string>
+    <string name="goal_lose">Afvallen / Cutting</string>
+    <string name="goal_maintain">Op gewicht blijven / Recomp</string>
+    <string name="goal_gain">Aankomen / Bulking</string>
 
     <!-- Meal Type -->
     <string name="meal_breakfast">Ontbijt</string>
