@@ -45,10 +45,11 @@ class ProteinAppWidget : GlanceAppWidget() {
     )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val prefs = PreferencesStore(context)
-        val snapshot = prefs.widgetSnapshot.first()
-            ?.takeUnless { it.isStale }
-            ?: WidgetSnapshot.empty()
+        // Never let a data-read failure leave the widget stuck on the loading layout — fall back to
+        // an empty snapshot so provideContent always runs and the widget renders.
+        val snapshot = runCatching {
+            PreferencesStore(context).widgetSnapshot.first()?.takeUnless { it.isStale }
+        }.getOrNull() ?: WidgetSnapshot.empty()
 
         provideContent {
             GlanceTheme {

@@ -176,7 +176,7 @@
 
         <receiver
             android:name=".widget.CalorieWidgetReceiver"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/widget_calorie_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -188,7 +188,7 @@
 
         <receiver
             android:name=".widget.ProteinWidgetReceiver"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/widget_protein_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
