@@ -123,7 +123,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.apoorvdarshan.calorietracker.R
 import androidx.compose.ui.unit.sp
@@ -471,6 +473,12 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             )
                         }
                     }
+                    HorizontalDivider()
+                    SettingRow(
+                        "Calculation Methods",
+                        "",
+                        icon = Icons.Outlined.Calculate
+                    ) { nav.navigate(FudAIRoutes.CALCULATION_METHODS) }
                 }
             }
 
@@ -1030,6 +1038,241 @@ fun OptionalNutrientGoalsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f)
             )
+        }
+    }
+}
+
+/**
+ * Port of iOS CalculationMethodsView. Documents every formula Fud AI uses as the reference its AI
+ * goal calculation starts from (BMR, TDEE, calorie target, macro split) plus per-meal estimates,
+ * with peer-reviewed sources. Styled to match the rest of Android Settings (glass cards, back row,
+ * 28sp title). Reachable from Settings → Goals & Nutrition → Calculation Methods.
+ */
+@Composable
+fun CalculationMethodsScreen(
+    onBack: () -> Unit
+) {
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                top = 14.dp,
+                bottom = BottomNavScrollPadding
+            ),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            item {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onBack() }
+                            .padding(horizontal = 2.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = AppColors.Calorie,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Settings", color = AppColors.Calorie, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+
+            item {
+                Text(
+                    "Calculation Methods",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Your daily calorie and macro targets are set by AI. When you tap Recalculate Goals — or automatically about once a week if Adaptive Goals is on — Fud AI sends your profile, the reference equations below, your recently logged food, and your weight trend to your AI provider. It starts from these peer-reviewed formulas, then adjusts them to your real data to estimate your true maintenance and targets.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.62f)
+                )
+            }
+
+            item {
+                CalcMethodSection("Resting metabolism (BMR)") {
+                    CalcFormulaCard(
+                        name = "Mifflin-St Jeor equation",
+                        usedWhen = "Default formula for resting metabolism. Used when you haven't entered a body fat %.",
+                        formula = "Men: 10×weight(kg) + 6.25×height(cm) − 5×age + 5\nWomen: 10×weight(kg) + 6.25×height(cm) − 5×age − 161",
+                        citation = "Mifflin MD, St Jeor ST, et al. (1990). \"A new predictive equation for resting energy expenditure in healthy individuals.\" Am J Clin Nutr 51(2):241–247.",
+                        url = "https://pubmed.ncbi.nlm.nih.gov/2305711/"
+                    )
+                    CalcFormulaCard(
+                        name = "Katch-McArdle equation",
+                        usedWhen = "Used automatically when you've entered a body fat %. More accurate for lean and athletic users since it derives BMR from lean body mass instead of total weight.",
+                        formula = "BMR = 370 + 21.6 × LBM(kg)\nLBM = weight × (1 − bodyFat%)",
+                        citation = "McArdle WD, Katch FI, Katch VL. Exercise Physiology: Nutrition, Energy, and Human Performance, 7th ed. Lippincott Williams & Wilkins, 2010.",
+                        url = null
+                    )
+                }
+            }
+
+            item {
+                CalcMethodSection("Daily energy expenditure (TDEE)") {
+                    CalcFormulaCard(
+                        name = "Activity-multiplier method",
+                        usedWhen = "TDEE = BMR × activity multiplier. The multiplier corresponds to your selected activity level. This is the maintenance baseline the AI starts from (unless Energy Burn supplies a measured one).",
+                        formula = "Sedentary: 1.2 · Light: 1.375 · Moderate: 1.465 · Active: 1.55 · Very Active: 1.725 · Extra Active: 1.9",
+                        citation = "Standard PAL (Physical Activity Level) coefficients from FAO/WHO/UNU joint expert consultation on human energy requirements (2001). Also widely used by ACSM and USDA Dietary Guidelines.",
+                        url = "https://www.fao.org/3/y5686e/y5686e00.htm"
+                    )
+                }
+            }
+
+            item {
+                CalcMethodSection("Calorie target for goal") {
+                    CalcFormulaCard(
+                        name = "Maintenance & goal adjustment",
+                        usedWhen = "Maintenance starts from your TDEE — or, when Energy Burn is on, your measured Health Connect burn (a 14-day Active + Basal average) instead of the formula estimate. The AI refines maintenance against your logged intake and weight trend, then applies your goal: a weekly weight-change rate becomes a daily calorie deficit (Lose) or surplus (Gain).",
+                        formula = "1 lb of body fat ≈ 3,500 kcal · 1 kg ≈ 7,700 kcal\nYour weekly rate ÷ 7 is subtracted from (Lose) or added to (Gain) maintenance to set the daily calorie target.",
+                        citation = "Hall KD, et al. (2011). \"Quantification of the effect of energy imbalance on bodyweight.\" Lancet 378(9793):826–837. The classic 3,500-kcal-per-pound rule originates from Wishnofsky M (1958), Am J Clin Nutr 6:542–546.",
+                        url = "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(11)60812-X/fulltext"
+                    )
+                }
+            }
+
+            item {
+                CalcMethodSection("Macronutrient split") {
+                    CalcFormulaCard(
+                        name = "Protein, carbs, fat targets",
+                        usedWhen = "The AI fits protein, carbs, and fat to your calorie target, using these references as a guide. Protein scales with your activity level (and is based on lean body mass when a body fat % is set); fat is set from bodyweight; carbs fill the rest. You can lock any value or edit it yourself in Settings.",
+                        formula = "Protein: ~0.8–2.2 g per kg by activity level (raised slightly when losing)\nFat: ~0.6 g per kg bodyweight\nCarbs: remaining calories ÷ 4 kcal/g",
+                        citation = "Morton RW, et al. (2018). \"A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength.\" Br J Sports Med 52(6):376–384.",
+                        url = "https://bjsm.bmj.com/content/52/6/376"
+                    )
+                }
+            }
+
+            item {
+                CalcMethodSection("Micronutrient values") {
+                    CalcFormulaCard(
+                        name = "Per-meal estimates",
+                        usedWhen = "Calorie, macro, fiber, sugar, saturated fat, cholesterol, sodium, potassium and other micronutrient values returned per meal are AI-generated estimates from the food image, voice transcript, or text description, using the AI provider you selected.",
+                        formula = null,
+                        citation = "Estimates rely on the underlying AI model's training data (USDA FoodData Central, manufacturer panels, scientific literature). Accuracy varies by food, portion-size visibility, and provider model. Always cross-check labels for foods you log frequently.",
+                        url = "https://fdc.nal.usda.gov/"
+                    )
+                }
+            }
+
+            item {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFFF9800).copy(alpha = 0.09f))
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        "Not medical advice",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        "Fud AI is an estimation tool, not a clinical instrument. Predictive equations carry inherent error (typically ±10% for BMR). Consult a registered dietitian, physician, or sports medicine professional before significant diet changes — especially if you have a medical condition, are pregnant or breastfeeding, are under 18, or are managing an eating disorder.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalcMethodSection(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(start = 4.dp)
+        )
+        content()
+    }
+}
+
+@Composable
+private fun CalcFormulaCard(
+    name: String,
+    usedWhen: String,
+    formula: String?,
+    citation: String,
+    url: String?
+) {
+    val uriHandler = LocalUriHandler.current
+    FudGlassSurface(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = 18.dp,
+        padding = 14.dp
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                usedWhen,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f)
+            )
+            if (formula != null) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                        .padding(10.dp)
+                ) {
+                    Text(
+                        formula,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "SOURCE",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                )
+                Text(
+                    citation,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                if (url != null) {
+                    Text(
+                        "Open source ↗",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = AppColors.Calorie,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { uriHandler.openUri(url) }
+                            .padding(vertical = 2.dp)
+                    )
+                }
+            }
         }
     }
 }
