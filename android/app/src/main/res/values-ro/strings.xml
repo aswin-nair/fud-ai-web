@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">Furnizor de rezervă</string>
     <string name="settings_enable_fallback">Activează rezerva</string>
     <string name="settings_fallback_footer">Dacă furnizorul principal eșuează (suprasolicitare, limită de rată, eroare de rețea), aplicația reîncearcă automat cu această rezervă. Este permis același furnizor ca cel principal — doar alege un model diferit.</string>
+    <string name="widget_all_metrics_label">Fud AI Astăzi</string>
+    <string name="widget_all_metrics_description">Vezi caloriile, proteinele, carbohidrații și grăsimile de azi într-un singur widget.</string>
 </resources>

@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">Proveedor de respaldo</string>
     <string name="settings_enable_fallback">Activar respaldo</string>
     <string name="settings_fallback_footer">Si tu proveedor principal falla (sobrecarga, límite de tasa, error de red), la app reintenta automáticamente con este respaldo. Se permite el mismo proveedor que el principal — solo elige un modelo diferente.</string>
+    <string name="widget_all_metrics_label">Fud AI Hoy</string>
+    <string name="widget_all_metrics_description">Mira las calorías, proteínas, carbohidratos y grasas de hoy en un widget.</string>
 </resources>

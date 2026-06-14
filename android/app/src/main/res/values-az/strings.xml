@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">Ehtiyat Provayder</string>
     <string name="settings_enable_fallback">Ehtiyatı aktivləşdir</string>
     <string name="settings_fallback_footer">Əsas provayderin uğursuz olarsa (yüklənmə, sürət limiti, şəbəkə xətası), tətbiq avtomatik olaraq bu ehtiyat provayderlə yenidən cəhd edir. Əsas ilə eyni provayder seçilə bilər — sadəcə fərqli model seç.</string>
+    <string name="widget_all_metrics_label">Fud AI Bu gün</string>
+    <string name="widget_all_metrics_description">Bu günün kalorilərini, zülalını, karbohidratını və yağını bir vidcetdə görün.</string>
 </resources>

@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">Fournisseur de secours</string>
     <string name="settings_enable_fallback">Activer le fournisseur de secours</string>
     <string name="settings_fallback_footer">Si ton fournisseur principal échoue (surcharge, limite de débit, erreur réseau), l\'app réessaie automatiquement avec ce fournisseur de secours. Le même fournisseur que le principal est autorisé — choisis simplement un modèle différent.</string>
+    <string name="widget_all_metrics_label">Fud AI Aujourd\'hui</string>
+    <string name="widget_all_metrics_description">Voyez les calories, protéines, glucides et lipides du jour dans un seul widget.</string>
 </resources>

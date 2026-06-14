@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">备用提供商</string>
     <string name="settings_enable_fallback">启用备用</string>
     <string name="settings_fallback_footer">如果主提供商失败（过载、速率限制、网络错误），应用会自动使用此备用提供商重试。允许与主提供商相同——只需选择不同的模型即可。</string>
+    <string name="widget_all_metrics_label">Fud AI 今天</string>
+    <string name="widget_all_metrics_description">在一个小部件中查看今天的卡路里、蛋白质、碳水和脂肪。</string>
 </resources>

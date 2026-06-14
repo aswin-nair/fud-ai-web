@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">المزود الاحتياطي</string>
     <string name="settings_enable_fallback">تفعيل الاحتياطي</string>
     <string name="settings_fallback_footer">إذا فشل المزود الأساسي (تحميل زائد، تجاوز الحد، خطأ في الشبكة)، يُعيد التطبيق المحاولة تلقائياً باستخدام هذا الاحتياطي. يُسمح بنفس المزود الأساسي — فقط اختر طرازاً مختلفاً.</string>
+    <string name="widget_all_metrics_label">Fud AI اليوم</string>
+    <string name="widget_all_metrics_description">شاهد سعرات اليوم والبروتين والكربوهيدرات والدهون في أداة واحدة.</string>
 </resources>

@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">फ़ॉलबैक प्रदाता</string>
     <string name="settings_enable_fallback">फ़ॉलबैक चालू करें</string>
     <string name="settings_fallback_footer">यदि आपका प्राथमिक प्रदाता विफल हो जाता है (ओवरलोड, रेट लिमिट, नेटवर्क त्रुटि), तो ऐप स्वचालित रूप से इस फ़ॉलबैक के साथ पुनः प्रयास करता है। प्राथमिक के समान प्रदाता की अनुमति है — बस एक अलग मॉडल चुनें।</string>
+    <string name="widget_all_metrics_label">Fud AI आज</string>
+    <string name="widget_all_metrics_description">आज की कैलोरी, प्रोटीन, कार्ब्स और फैट एक ही विजेट में देखें।</string>
 </resources>

@@ -9,6 +9,7 @@ import com.apoorvdarshan.calorietracker.data.ProfileRepository
 import com.apoorvdarshan.calorietracker.models.FoodEntry
 import com.apoorvdarshan.calorietracker.models.UserProfile
 import com.apoorvdarshan.calorietracker.models.WidgetSnapshot
+import com.apoorvdarshan.calorietracker.widget.AllMetricsAppWidget
 import com.apoorvdarshan.calorietracker.widget.CalorieAppWidget
 import com.apoorvdarshan.calorietracker.widget.ProteinAppWidget
 import kotlinx.coroutines.flow.combine
@@ -62,6 +63,8 @@ class WidgetSnapshotWriter(
             .onFailure { Log.e(TAG, "CalorieAppWidget.updateAll failed", it) }
         runCatching { ProteinAppWidget().updateAll(context) }
             .onFailure { Log.e(TAG, "ProteinAppWidget.updateAll failed", it) }
+        runCatching { AllMetricsAppWidget().updateAll(context) }
+            .onFailure { Log.e(TAG, "AllMetricsAppWidget.updateAll failed", it) }
     }
 
     private companion object {

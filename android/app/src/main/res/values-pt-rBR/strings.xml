@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">Provedor de fallback</string>
     <string name="settings_enable_fallback">Ativar fallback</string>
     <string name="settings_fallback_footer">Se o seu provedor principal falhar (sobrecarga, limite de taxa, erro de rede), o app tenta novamente automaticamente com este fallback. É permitido o mesmo provedor do principal — basta escolher um modelo diferente.</string>
+    <string name="widget_all_metrics_label">Fud AI Hoje</string>
+    <string name="widget_all_metrics_description">Veja calorias, proteínas, carboidratos e gordura de hoje em um widget.</string>
 </resources>

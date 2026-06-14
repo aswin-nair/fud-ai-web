@@ -633,4 +633,6 @@
     <string name="settings_section_fallback">Fallback-Anbieter</string>
     <string name="settings_enable_fallback">Fallback aktivieren</string>
     <string name="settings_fallback_footer">Wenn dein primärer Anbieter ausfällt (Überlastung, Rate-Limit, Netzwerkfehler), versucht die App es automatisch erneut mit diesem Fallback. Derselbe Anbieter wie der primäre ist erlaubt — wähle einfach ein anderes Modell.</string>
+    <string name="widget_all_metrics_label">Fud AI Heute</string>
+    <string name="widget_all_metrics_description">Sieh Kalorien, Protein, Kohlenhydrate und Fett von heute in einem Widget.</string>
 </resources>
