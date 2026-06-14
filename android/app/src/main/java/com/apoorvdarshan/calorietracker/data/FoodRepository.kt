@@ -159,7 +159,7 @@ class FoodRepository(
 
     private suspend fun shouldSyncHealth(): Boolean {
         val manager = health ?: return false
-        return prefs.healthConnectEnabled.first() && manager.hasAllPermissions()
+        return prefs.healthConnectEnabled.first() && manager.hasNutritionWrite()
     }
 
     // -- Recents / Frequent ---------------------------------------------

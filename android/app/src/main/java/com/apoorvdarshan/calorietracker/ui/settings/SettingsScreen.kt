@@ -216,14 +216,15 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
         else permissionDeniedMessage = notifDeniedMsg
     }
 
-    // Health Connect: only flip app prefs true if the user grants the full
-    // sync + energy-goal permission set.
+    // Health Connect honors partial grants: any granted permission connects the app, and
+    // each direction is gated on its own permission downstream (issue #91). The SYNC toggle
+    // accepts any grant; ENERGY_GOALS still needs the energy reads, which its VM re-checks.
     val healthConnectLauncher = rememberLauncherForActivityResult(
         contract = container.health.permissionRequestContract()
     ) { granted ->
         val action = pendingHealthPermissionAction ?: HealthConnectPermissionAction.SYNC
         pendingHealthPermissionAction = null
-        if (granted.containsAll(container.health.permissions)) {
+        if (granted.any { it in container.health.permissions }) {
             when (action) {
                 HealthConnectPermissionAction.SYNC -> vm.setHealthConnectEnabled(true)
                 HealthConnectPermissionAction.ENERGY_GOALS -> vm.setHealthEnergyGoalsEnabled(true)

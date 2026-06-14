@@ -1,6 +1,7 @@
 package com.apoorvdarshan.calorietracker.data
 
 import com.apoorvdarshan.calorietracker.models.WeightEntry
+import com.apoorvdarshan.calorietracker.services.health.ExternalWeight
 import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -94,8 +95,52 @@ class WeightRepository(
         }
     }
 
+    /**
+     * Merge externally-sourced weigh-ins (e.g. a Withings scale via Health Connect)
+     * into local history. Idempotent: each external record maps to a deterministic id
+     * so repeated imports upsert in place instead of duplicating, the user's own manual
+     * entries (random ids) are preserved, and records Fud AI itself wrote are skipped.
+     */
+    suspend fun importExternalWeights(external: List<ExternalWeight>) {
+        val manager = health ?: return
+        val incoming = external
+            .filterNot { manager.isOwnRecord(it.clientRecordId) }
+            .map {
+                WeightEntry(
+                    id = externalId(it.clientRecordId, it.recordId, it.time),
+                    date = it.time,
+                    weightKg = it.weightKg
+                )
+            }
+        if (incoming.isEmpty()) return
+        val byId = prefs.weightEntries.first().associateBy { it.id }.toMutableMap()
+        var changed = false
+        for (entry in incoming) {
+            val existing = byId[entry.id]
+            if (existing == null || abs(existing.weightKg - entry.weightKg) > 0.0001 || existing.date != entry.date) {
+                byId[entry.id] = entry
+                changed = true
+            }
+        }
+        if (!changed) return
+        prefs.setWeightEntries(byId.values.sortedBy { it.date })
+        syncProfileWeightToLatest()
+    }
+
+    /** Stable id for an external record: prefer the source's clientRecordId, then the
+     *  Health Connect record id, then the timestamp. Crucially the VALUE is never part of
+     *  the seed, so an in-place correction (same record, new weight) upserts in place
+     *  instead of leaving an orphaned duplicate. */
+    private fun externalId(clientRecordId: String?, recordId: String, time: Instant): UUID {
+        val seed = clientRecordId?.takeIf { it.isNotBlank() }
+            ?: recordId.takeIf { it.isNotBlank() }
+            ?: "hc-weight:${time.toEpochMilli()}"
+        return UUID.nameUUIDFromBytes(seed.toByteArray())
+    }
+
+    /** Write gate — only push to Health Connect when the user granted weight WRITE. */
     private suspend fun shouldSyncHealth(): Boolean {
         val manager = health ?: return false
-        return prefs.healthConnectEnabled.first() && manager.hasAllPermissions()
+        return prefs.healthConnectEnabled.first() && manager.hasWeightWrite()
     }
 }

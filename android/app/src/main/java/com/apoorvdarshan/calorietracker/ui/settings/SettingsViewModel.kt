@@ -414,10 +414,11 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 return@launch
             }
 
-            val enabled = container.health.isAvailable() && container.health.hasAllPermissions()
+            val enabled = container.health.isAvailable() && container.health.hasAnyPermission()
             container.prefs.setHealthConnectEnabled(enabled)
             if (enabled) {
                 backfillHealthConnect()
+                container.syncHealthConnectReads()
                 container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
             }
             if (!enabled) container.prefs.setHealthEnergyGoalsEnabled(false)
@@ -434,7 +435,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             return false
         }
 
-        val granted = container.health.hasAllPermissions()
+        val granted = container.health.hasAnyPermission()
         val stored = container.prefs.healthConnectEnabled.first()
         val version = container.prefs.healthPermissionsVersion.first()
         container.prefs.setHealthConnectEnabled(granted)
@@ -449,10 +450,25 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             container.prefs.setHealthEnergyGoalsEnabled(false)
         }
 
+        // "Connected" is now any-permission, so revoking ONLY the energy reads leaves granted=true
+        // and skips the block above. Tear Energy Burn down independently on its own capability so
+        // the toggle doesn't lie about an anchor that can no longer refresh.
+        if (granted && container.prefs.healthEnergyGoalsEnabled.first() && !container.health.hasEnergyRead()) {
+            container.profileRepository.current()?.let { current ->
+                val restored = container.prefs.restoreHealthEnergyGoalPreviousTargets(current)
+                container.profileRepository.save(restored)
+            }
+            container.prefs.clearHealthEnergyGoalPreviousTargets()
+            container.prefs.setHealthEnergyGoalsEnabled(false)
+        }
+
         if (granted && (!stored || version < HealthConnectManager.CURRENT_TYPES_VERSION)) {
             backfillHealthConnect()
             container.prefs.setHealthPermissionsVersion(HealthConnectManager.CURRENT_TYPES_VERSION)
         }
+
+        // Pull external weigh-ins / body-fat readings whenever Settings reloads while connected.
+        if (granted) container.syncHealthConnectReads()
 
         return granted
     }
@@ -466,7 +482,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
     fun setHealthEnergyGoalsEnabled(v: Boolean) {
         viewModelScope.launch {
             if (v) {
-                val granted = container.health.isAvailable() && container.health.hasAllPermissions()
+                val granted = container.health.isAvailable() && container.health.hasEnergyRead()
                 if (!granted) {
                     showHealthEnergyGoalAlert(
                         title = "Health Connect Needed",
@@ -557,19 +573,26 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         )
     }
 
+    /** Push existing local entries OUT to Health Connect. Each section is gated on its own
+     *  WRITE permission, so a partial grant (e.g. weight-write only) still backfills what it can. */
     private suspend fun backfillHealthConnect() {
-        if (!container.health.hasAllPermissions()) return
-
-        container.foodRepository.entries.first().forEach { entry ->
-            container.health.updateNutrition(entry)
+        val caps = container.health.capabilities()
+        if (caps.nutritionWrite) {
+            container.foodRepository.entries.first().forEach { entry ->
+                container.health.updateNutrition(entry)
+            }
         }
-        container.weightRepository.entries.first().forEach { entry ->
-            container.health.deleteWeight(entry.id)
-            container.health.writeWeight(entry)
+        if (caps.weightWrite) {
+            container.weightRepository.entries.first().forEach { entry ->
+                container.health.deleteWeight(entry.id)
+                container.health.writeWeight(entry)
+            }
         }
-        container.bodyFatRepository.entries.first().forEach { entry ->
-            container.health.deleteBodyFat(entry.id)
-            container.health.writeBodyFat(entry)
+        if (caps.bodyFatWrite) {
+            container.bodyFatRepository.entries.first().forEach { entry ->
+                container.health.deleteBodyFat(entry.id)
+                container.health.writeBodyFat(entry)
+            }
         }
     }
 

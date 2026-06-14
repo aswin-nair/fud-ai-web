@@ -1,6 +1,7 @@
 package com.apoorvdarshan.calorietracker.data
 
 import com.apoorvdarshan.calorietracker.models.BodyFatEntry
+import com.apoorvdarshan.calorietracker.services.health.ExternalBodyFat
 import com.apoorvdarshan.calorietracker.services.health.HealthConnectManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -69,14 +70,46 @@ class BodyFatRepository(
             .filter { it.date in from..to }
             .sortedBy { it.date }
 
-    /** Bulk-add for Health Connect backfill (when wired). Bypasses the per-entry
-     *  callback fan-out so importing years of historical scale data doesn't
-     *  trigger N round-trips back to HC. */
-    suspend fun importExternalEntries(external: List<BodyFatEntry>) {
-        if (external.isEmpty()) return
-        val current = prefs.bodyFatEntries.first()
-        prefs.setBodyFatEntries(current + external)
+    /**
+     * Merge externally-sourced body-fat readings (e.g. a smart scale via Health
+     * Connect) into local history. Idempotent: each external record maps to a
+     * deterministic id so repeated imports upsert in place instead of duplicating,
+     * the user's own manual entries are preserved, and Fud AI's own writes are skipped.
+     */
+    suspend fun importExternalBodyFats(external: List<ExternalBodyFat>) {
+        val manager = health ?: return
+        val incoming = external
+            .filterNot { manager.isOwnRecord(it.clientRecordId) }
+            .map {
+                BodyFatEntry(
+                    id = externalId(it.clientRecordId, it.recordId, it.time),
+                    date = it.time,
+                    bodyFatFraction = it.bodyFatFraction
+                )
+            }
+        if (incoming.isEmpty()) return
+        val byId = prefs.bodyFatEntries.first().associateBy { it.id }.toMutableMap()
+        var changed = false
+        for (entry in incoming) {
+            val existing = byId[entry.id]
+            if (existing == null || abs(existing.bodyFatFraction - entry.bodyFatFraction) > 0.0001 || existing.date != entry.date) {
+                byId[entry.id] = entry
+                changed = true
+            }
+        }
+        if (!changed) return
+        prefs.setBodyFatEntries(byId.values.sortedBy { it.date })
         syncProfileBodyFatToLatest()
+    }
+
+    /** Stable id for an external record: prefer the source's clientRecordId, then the
+     *  Health Connect record id, then the timestamp. The VALUE is never part of the seed,
+     *  so an in-place correction upserts in place instead of duplicating. */
+    private fun externalId(clientRecordId: String?, recordId: String, time: Instant): UUID {
+        val seed = clientRecordId?.takeIf { it.isNotBlank() }
+            ?: recordId.takeIf { it.isNotBlank() }
+            ?: "hc-bodyfat:${time.toEpochMilli()}"
+        return UUID.nameUUIDFromBytes(seed.toByteArray())
     }
 
     /** Keep UserProfile.bodyFatPercentage aligned with the latest reading so
@@ -92,8 +125,9 @@ class BodyFatRepository(
         }
     }
 
+    /** Write gate — only push to Health Connect when the user granted body-fat WRITE. */
     private suspend fun shouldSyncHealth(): Boolean {
         val manager = health ?: return false
-        return prefs.healthConnectEnabled.first() && manager.hasAllPermissions()
+        return prefs.healthConnectEnabled.first() && manager.hasBodyFatWrite()
     }
 }

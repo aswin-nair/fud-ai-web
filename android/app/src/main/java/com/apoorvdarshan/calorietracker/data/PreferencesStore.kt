@@ -114,6 +114,24 @@ class PreferencesStore(private val context: Context) {
     val healthPermissionsVersion: Flow<Int> = ds.data.map { it[Keys.HEALTH_TYPES_VERSION] ?: 0 }
     suspend fun setHealthPermissionsVersion(v: Int) { ds.edit { it[Keys.HEALTH_TYPES_VERSION] = v } }
 
+    /// Opaque Health Connect changes token for incremental weight/body-fat read-sync.
+    /// Null means "no sync yet" → the coordinator does a one-time historical backfill.
+    val healthChangesToken: Flow<String?> = ds.data.map { it[Keys.HEALTH_CHANGES_TOKEN] }
+    suspend fun setHealthChangesToken(v: String) { ds.edit { it[Keys.HEALTH_CHANGES_TOKEN] = v } }
+    suspend fun clearHealthChangesToken() {
+        ds.edit { it.remove(Keys.HEALTH_CHANGES_TOKEN); it.remove(Keys.HEALTH_CHANGES_TOKEN_TYPES) }
+    }
+
+    /// Which read types the current changes token was seeded for (e.g. {"weight","bodyfat"}).
+    /// If a newly-granted read type isn't covered, the coordinator drops the token and
+    /// re-backfills so the new metric's history is imported.
+    val healthChangesTokenTypes: Flow<Set<String>> = ds.data.map {
+        it[Keys.HEALTH_CHANGES_TOKEN_TYPES]?.split(",")?.filter { s -> s.isNotBlank() }?.toSet() ?: emptySet()
+    }
+    suspend fun setHealthChangesTokenTypes(types: Set<String>) {
+        ds.edit { it[Keys.HEALTH_CHANGES_TOKEN_TYPES] = types.joinToString(",") }
+    }
+
     val healthEnergyGoalsEnabled: Flow<Boolean> = ds.data.map { it[Keys.HEALTH_ENERGY_GOALS_ENABLED] ?: false }
     suspend fun setHealthEnergyGoalsEnabled(v: Boolean) { ds.edit { it[Keys.HEALTH_ENERGY_GOALS_ENABLED] = v } }
 
@@ -479,6 +497,8 @@ class PreferencesStore(private val context: Context) {
         val LAST_NOTIFIED_UPDATE_VERSION = stringPreferencesKey("lastNotifiedUpdateVersion")
         val HEALTH_CONNECT_ENABLED = booleanPreferencesKey("healthConnectEnabled")
         val HEALTH_TYPES_VERSION = intPreferencesKey("healthTypesVersion")
+        val HEALTH_CHANGES_TOKEN = stringPreferencesKey("healthChangesToken")
+        val HEALTH_CHANGES_TOKEN_TYPES = stringPreferencesKey("healthChangesTokenTypes")
         val HEALTH_ENERGY_GOALS_ENABLED = booleanPreferencesKey("healthEnergyGoalsEnabled")
         val HEALTH_ENERGY_GOALS_PREVIOUS_TARGETS = stringPreferencesKey("healthEnergyGoalsPreviousTargets")
         val HEALTH_ENERGY_GOALS_LAST_AUTO_REFRESH_DAY = stringPreferencesKey("healthEnergyGoalsLastAutoRefreshDay")

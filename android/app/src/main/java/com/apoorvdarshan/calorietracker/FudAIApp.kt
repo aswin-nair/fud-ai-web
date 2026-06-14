@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -88,6 +90,11 @@ class FudAIApp : Application() {
     }
 }
 
+/** Stable labels for the read types a Health Connect changes token was seeded for,
+ *  persisted alongside the token so we can detect a newly-granted read capability. */
+private const val HEALTH_READ_TYPE_WEIGHT = "weight"
+private const val HEALTH_READ_TYPE_BODY_FAT = "bodyfat"
+
 class AppContainer(app: FudAIApp) {
     val appContext = app.applicationContext
     val prefs = PreferencesStore(app)
@@ -120,6 +127,78 @@ class AppContainer(app: FudAIApp) {
 
     private var adaptiveGoalsRefreshInFlight = false
 
+    @Volatile
+    private var healthReadSyncInFlight = false
+
+    /**
+     * Pull external weight + body-fat readings FROM Health Connect into the app (e.g. a
+     * Withings scale that writes weigh-ins to Health Connect). Runs on app foreground and
+     * right after the user connects/grants. Read-direction only — gated per metric on READ
+     * permission, so a user who granted read but not write still gets their data imported
+     * (issue #91). Incremental via a persisted changes token, with a one-time historical
+     * backfill when there's no token yet; imports are deduped, so re-runs are harmless.
+     */
+    suspend fun syncHealthConnectReads() {
+        if (healthReadSyncInFlight) return
+        if (!prefs.healthConnectEnabled.first()) return
+        if (!health.isAvailable()) return
+        val caps = health.capabilities()
+        if (!caps.weightRead && !caps.bodyFatRead) return
+
+        healthReadSyncInFlight = true
+        try {
+            val desiredTypes = buildSet {
+                if (caps.weightRead) add(HEALTH_READ_TYPE_WEIGHT)
+                if (caps.bodyFatRead) add(HEALTH_READ_TYPE_BODY_FAT)
+            }
+            // If a read type was granted AFTER the token was seeded, the existing token never
+            // observes it. Drop the token so we re-enter the backfill branch and import that
+            // metric's history + re-seed a token covering everything now granted.
+            if (!prefs.healthChangesTokenTypes.first().containsAll(desiredTypes)) {
+                prefs.clearHealthChangesToken()
+            }
+
+            val token = prefs.healthChangesToken.first()
+            if (token == null) {
+                // First sync: backfill recent history (two years) so existing scale data shows up.
+                val now = Instant.now()
+                val from = now.minus(Duration.ofDays(730))
+                if (caps.weightRead) {
+                    weightRepository.importExternalWeights(health.readWeights(from, now))
+                }
+                if (caps.bodyFatRead) {
+                    bodyFatRepository.importExternalBodyFats(health.readBodyFats(from, now))
+                }
+                // Seed a token covering only the types we can actually read.
+                val recordTypes = buildSet {
+                    if (caps.weightRead) add(androidx.health.connect.client.records.WeightRecord::class)
+                    if (caps.bodyFatRead) add(androidx.health.connect.client.records.BodyFatRecord::class)
+                }
+                health.getChangesToken(recordTypes)?.let {
+                    prefs.setHealthChangesToken(it)
+                    prefs.setHealthChangesTokenTypes(desiredTypes)
+                }
+            } else {
+                var next: String? = null
+                if (caps.weightRead) {
+                    val result = health.consumeWeightChanges(token)
+                    if (result == null) { prefs.clearHealthChangesToken(); return }
+                    weightRepository.importExternalWeights(result.first)
+                    next = result.second
+                }
+                if (caps.bodyFatRead) {
+                    val result = health.consumeBodyFatChanges(token)
+                    if (result == null) { prefs.clearHealthChangesToken(); return }
+                    bodyFatRepository.importExternalBodyFats(result.first)
+                    next = result.second ?: next
+                }
+                next?.let { prefs.setHealthChangesToken(it) }
+            }
+        } finally {
+            healthReadSyncInFlight = false
+        }
+    }
+
     /**
      * Energy Burn toggle resolved to a number: the user's measured maintenance from Health Connect
      * (14-day active + basal average), or null when Energy Burn is off, Health is unavailable, or
@@ -128,7 +207,7 @@ class AppContainer(app: FudAIApp) {
     suspend fun measuredEnergyTdeeIfEnabled(profile: UserProfile): Int? {
         if (!prefs.healthEnergyGoalsEnabled.first()) return null
         if (!prefs.healthConnectEnabled.first()) return null
-        if (!health.isAvailable() || !health.hasAllPermissions()) return null
+        if (!health.isAvailable() || !health.hasEnergyRead()) return null
         val summary = runCatching { health.readRecentEnergySummary(days = 14) }.getOrNull() ?: return null
         return summary.totalAverageCalories ?: (profile.bmr.roundToInt() + summary.activeAverageCalories)
     }

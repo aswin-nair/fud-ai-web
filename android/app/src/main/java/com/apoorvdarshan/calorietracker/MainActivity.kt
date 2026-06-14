@@ -28,6 +28,9 @@ open class MainActivity : ComponentActivity() {
             // when on, supplies the measured-burn anchor it consumes — separate toggle).
             val container = (application as FudAIApp).container
             container.refreshAdaptiveGoalsIfNeeded()
+            // Pull any new external weight / body-fat readings (e.g. a Withings scale)
+            // from Health Connect into the app on every foreground (issue #91).
+            container.syncHealthConnectReads()
         }
     }
 
