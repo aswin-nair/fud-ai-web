@@ -257,6 +257,38 @@ class NotificationManager {
         )
     }
 
+    // MARK: - App Update Available (one-shot, de-duped per version)
+
+    /// Identifier used so the tap handler can recognize an update notification.
+    static let appUpdateNotificationID = "app.update"
+
+    /// Fire a local notification telling the user a new App Store version is out. Tapping it opens
+    /// the store (handled in AppDelegate). Gated by the "App Updates" toggle (default on), only when
+    /// notifications are authorized, and de-duped so a given version notifies at most once even
+    /// though the update check runs on every launch.
+    func notifyUpdateAvailable(version: String, url: URL) async {
+        let enabled = UserDefaults.standard.object(forKey: "appUpdateNotificationsEnabled") as? Bool ?? true
+        guard enabled else { return }
+        guard UserDefaults.standard.string(forKey: "lastNotifiedAppUpdateVersion") != version else { return }
+
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        guard settings.authorizationStatus == .authorized else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Update Available"
+        content.body = "Fud AI \(version) is ready. Tap to update."
+        content.sound = .default
+        content.userInfo = ["updateURL": url.absoluteString]
+
+        let request = UNNotificationRequest(identifier: Self.appUpdateNotificationID, content: content, trigger: nil)
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            UserDefaults.standard.set(version, forKey: "lastNotifiedAppUpdateVersion")
+        } catch {
+            // Best-effort; nothing to recover.
+        }
+    }
+
     // MARK: - Cancel All
 
     func cancelAllNotifications() {

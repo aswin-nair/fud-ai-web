@@ -853,6 +853,8 @@ struct NotificationSettingsView: View {
     @AppStorage("bodyFatLogReminderHour") private var bodyFatLogHour = 8
     @AppStorage("bodyFatLogReminderMinute") private var bodyFatLogMinute = 0
 
+    @AppStorage("appUpdateNotificationsEnabled") private var appUpdatesEnabled = true
+
     var body: some View {
         List {
             // Master toggle
@@ -970,6 +972,25 @@ struct NotificationSettingsView: View {
                     Text("Smart Notifications")
                 } footer: {
                     Text("All four reminders are smart — they skip firing on days you've already logged. Body fat default is off since most users don't measure daily.")
+                        .font(.system(.caption, design: .rounded))
+                }
+                .listRowBackground(AppColors.appCard)
+
+                // App Updates
+                Section {
+                    Toggle(isOn: $appUpdatesEnabled) {
+                        Label {
+                            Text("App Updates")
+                        } icon: {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .foregroundStyle(AppColors.calorie)
+                        }
+                    }
+                    .tint(AppColors.calorie)
+                } header: {
+                    Text("App")
+                } footer: {
+                    Text("Get notified when a new version is available. Tap the notification to open the App Store.")
                         .font(.system(.caption, design: .rounded))
                 }
                 .listRowBackground(AppColors.appCard)

@@ -39,6 +39,7 @@ data class SettingsUiState(
     val weightReminderEnabled: Boolean = true,
     val bodyFatReminderEnabled: Boolean = true,
     val goalReachedNotificationsEnabled: Boolean = true,
+    val appUpdateNotificationsEnabled: Boolean = true,
     val healthConnectEnabled: Boolean = false,
     val healthEnergyGoalsEnabled: Boolean = false,
     val adaptiveGoalsEnabled: Boolean = false,
@@ -96,6 +97,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             val weightReminder = container.prefs.weightReminderEnabled.first()
             val bodyFatReminder = container.prefs.bodyFatReminderEnabled.first()
             val goalReachedNotifications = container.prefs.goalReachedNotificationsEnabled.first()
+            val appUpdateNotifications = container.prefs.appUpdateNotificationsEnabled.first()
             val hc = reconcileHealthConnectState()
             val profile = container.profileRepository.current()
             val energyGoals = container.prefs.healthEnergyGoalsEnabled.first() && hc
@@ -132,6 +134,7 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 weightReminderEnabled = weightReminder,
                 bodyFatReminderEnabled = bodyFatReminder,
                 goalReachedNotificationsEnabled = goalReachedNotifications,
+                appUpdateNotificationsEnabled = appUpdateNotifications,
                 healthConnectEnabled = hc,
                 healthEnergyGoalsEnabled = energyGoals,
                 adaptiveGoalsEnabled = adaptiveGoals,
@@ -336,6 +339,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             container.prefs.setGoalReachedNotificationsEnabled(v)
             _ui.value = _ui.value.copy(goalReachedNotificationsEnabled = v)
+        }
+    }
+
+    fun setAppUpdateNotificationsEnabled(v: Boolean) {
+        viewModelScope.launch {
+            container.prefs.setAppUpdateNotificationsEnabled(v)
+            _ui.value = _ui.value.copy(appUpdateNotificationsEnabled = v)
         }
     }
 

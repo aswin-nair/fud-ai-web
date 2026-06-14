@@ -9,6 +9,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import com.apoorvdarshan.calorietracker.services.update.AndroidUpdateChecker
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -68,7 +70,13 @@ class NotificationService(private val context: Context) {
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply { description = "Daily reminder to log a body-fat reading." }
 
-        mgr.createNotificationChannels(listOf(streak, daily, goal, weight, bodyFat))
+        val appUpdate = NotificationChannel(
+            CHANNEL_APP_UPDATE,
+            "App Updates",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply { description = "A new version of Fud AI is available on the Play Store." }
+
+        mgr.createNotificationChannels(listOf(streak, daily, goal, weight, bodyFat, appUpdate))
     }
 
     fun canPostNotifications(): Boolean {
@@ -96,6 +104,32 @@ class NotificationService(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
         NotificationManagerCompat.from(context).notifySafely(GOAL_NOTIFICATION_ID, notif)
+    }
+
+    /** Post a "new version available" notification. Tapping it opens the Play Store listing
+     *  (market:// → web fallback), mirroring the About screen's open-store behavior. */
+    fun showUpdateAvailable() {
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse(AndroidUpdateChecker.PLAY_STORE_MARKET_URL)).apply {
+            setPackage("com.android.vending")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        val resolvable = marketIntent.resolveActivity(context.packageManager) != null
+        val intent = if (resolvable) marketIntent else
+            Intent(Intent.ACTION_VIEW, Uri.parse(AndroidUpdateChecker.PLAY_STORE_WEB_URL))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        val pi = PendingIntent.getActivity(
+            context, REQUEST_APP_UPDATE, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val notif = NotificationCompat.Builder(context, CHANNEL_APP_UPDATE)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("Update available")
+            .setContentText("A new version of Fud AI is ready. Tap to update.")
+            .setContentIntent(pi)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+        NotificationManagerCompat.from(context).notifySafely(APP_UPDATE_NOTIFICATION_ID, notif)
     }
 
     // -- Scheduling ------------------------------------------------------
@@ -173,15 +207,18 @@ class NotificationService(private val context: Context) {
         const val CHANNEL_WEIGHT_GOAL = "weight_goal"
         const val CHANNEL_WEIGHT_LOG = "weight_log_reminder"
         const val CHANNEL_BODY_FAT_LOG = "body_fat_log_reminder"
+        const val CHANNEL_APP_UPDATE = "app_update"
         const val EXTRA_CHANNEL = "channel"
         const val EXTRA_TITLE = "title"
         const val EXTRA_TEXT = "text"
         const val EXTRA_REQUEST = "request"
         private const val GOAL_NOTIFICATION_ID = 4242
+        private const val APP_UPDATE_NOTIFICATION_ID = 5555
         private const val REQUEST_STREAK = 1001
         private const val REQUEST_DAILY = 1002
         private const val REQUEST_WEIGHT = 1003
         private const val REQUEST_BODY_FAT = 1004
+        private const val REQUEST_APP_UPDATE = 1005
     }
 }
 

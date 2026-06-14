@@ -11,6 +11,7 @@ import WidgetKit
 
 @main
 struct calorietrackerApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var foodStore = FoodStore()
     @State private var weightStore = WeightStore()
     @State private var bodyFatStore = BodyFatStore()

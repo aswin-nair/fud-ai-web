@@ -111,6 +111,7 @@ private enum AppUpdateChecker {
 // MARK: - Main Content View
 struct ContentView: View {
     @Environment(StoreManager.self) private var storeManager
+    @Environment(NotificationManager.self) private var notificationManager
     @AppStorage(AppThemeColor.storageKey) private var appThemeColorRaw = AppThemeColor.defaultColor.rawValue
     @State private var appUpdateState: AppUpdateState = .idle
 
@@ -167,6 +168,12 @@ struct ContentView: View {
 
         appUpdateState = .checking
         appUpdateState = await AppUpdateChecker.check()
+
+        // A newer version is out — fire a one-shot notification (de-duped per version, gated by the
+        // "App Updates" toggle) so the user finds out even if they don't open the About tab.
+        if case let .available(_, latest, url) = appUpdateState {
+            await notificationManager.notifyUpdateAvailable(version: latest, url: url)
+        }
     }
 }
 

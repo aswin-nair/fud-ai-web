@@ -76,6 +76,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Percent
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material.icons.outlined.BatteryAlert
 import androidx.compose.material.icons.outlined.Person
@@ -927,11 +928,19 @@ private fun NotificationTypeRows(ui: SettingsUiState, vm: SettingsViewModel) {
         icon = Icons.Outlined.TrackChanges,
         onChange = vm::setGoalReachedNotificationsEnabled
     )
+    HorizontalDivider()
+    ToggleRow(
+        "App updates",
+        ui.appUpdateNotificationsEnabled,
+        icon = Icons.Outlined.SystemUpdate,
+        onChange = vm::setAppUpdateNotificationsEnabled
+    )
     val noneSelected = !ui.streakReminderEnabled &&
         !ui.dailySummaryEnabled &&
         !ui.weightReminderEnabled &&
         !ui.bodyFatReminderEnabled &&
-        !ui.goalReachedNotificationsEnabled
+        !ui.goalReachedNotificationsEnabled &&
+        !ui.appUpdateNotificationsEnabled
     if (noneSelected) {
         Text(
             "No notification type is selected. You can leave notifications allowed and keep every app reminder off.",

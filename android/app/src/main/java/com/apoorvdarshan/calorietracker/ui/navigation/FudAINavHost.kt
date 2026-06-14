@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -48,7 +49,18 @@ fun FudAINavHost(
     var updateAvailable by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentVersion) {
-        updateAvailable = AndroidUpdateChecker.check(context, currentVersion) is AndroidUpdateState.Available
+        val state = AndroidUpdateChecker.check(context, currentVersion)
+        updateAvailable = state is AndroidUpdateState.Available
+        // A newer version is out — fire a one-shot notification (de-duped per version, gated by the
+        // "App Updates" toggle) so the user finds out even without opening the About tab.
+        if (state is AndroidUpdateState.Available &&
+            container.prefs.appUpdateNotificationsEnabled.first() &&
+            container.notifications.canPostNotifications() &&
+            container.prefs.lastNotifiedUpdateVersion.first() != state.latest
+        ) {
+            container.notifications.showUpdateAvailable()
+            container.prefs.setLastNotifiedUpdateVersion(state.latest)
+        }
     }
 
     Scaffold(

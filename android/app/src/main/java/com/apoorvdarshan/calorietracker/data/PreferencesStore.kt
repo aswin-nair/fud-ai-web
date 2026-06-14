@@ -99,6 +99,14 @@ class PreferencesStore(private val context: Context) {
     val goalReachedNotificationsEnabled: Flow<Boolean> = ds.data.map { it[Keys.GOAL_REACHED_NOTIFICATIONS_ENABLED] ?: true }
     suspend fun setGoalReachedNotificationsEnabled(v: Boolean) { ds.edit { it[Keys.GOAL_REACHED_NOTIFICATIONS_ENABLED] = v } }
 
+    val appUpdateNotificationsEnabled: Flow<Boolean> = ds.data.map { it[Keys.APP_UPDATE_NOTIFICATIONS_ENABLED] ?: true }
+    suspend fun setAppUpdateNotificationsEnabled(v: Boolean) { ds.edit { it[Keys.APP_UPDATE_NOTIFICATIONS_ENABLED] = v } }
+
+    /// Last app version a "new update" notification was posted for — so it fires at most once per
+    /// version even though the update check runs on every launch.
+    val lastNotifiedUpdateVersion: Flow<String?> = ds.data.map { it[Keys.LAST_NOTIFIED_UPDATE_VERSION] }
+    suspend fun setLastNotifiedUpdateVersion(v: String) { ds.edit { it[Keys.LAST_NOTIFIED_UPDATE_VERSION] = v } }
+
     // -- Health Connect ---------------------------------------------------
     val healthConnectEnabled: Flow<Boolean> = ds.data.map { it[Keys.HEALTH_CONNECT_ENABLED] ?: false }
     suspend fun setHealthConnectEnabled(v: Boolean) { ds.edit { it[Keys.HEALTH_CONNECT_ENABLED] = v } }
@@ -467,6 +475,8 @@ class PreferencesStore(private val context: Context) {
         val WEIGHT_REMINDER_ENABLED = booleanPreferencesKey("weightReminderEnabled")
         val BODY_FAT_REMINDER_ENABLED = booleanPreferencesKey("bodyFatReminderEnabled")
         val GOAL_REACHED_NOTIFICATIONS_ENABLED = booleanPreferencesKey("goalReachedNotificationsEnabled")
+        val APP_UPDATE_NOTIFICATIONS_ENABLED = booleanPreferencesKey("appUpdateNotificationsEnabled")
+        val LAST_NOTIFIED_UPDATE_VERSION = stringPreferencesKey("lastNotifiedUpdateVersion")
         val HEALTH_CONNECT_ENABLED = booleanPreferencesKey("healthConnectEnabled")
         val HEALTH_TYPES_VERSION = intPreferencesKey("healthTypesVersion")
         val HEALTH_ENERGY_GOALS_ENABLED = booleanPreferencesKey("healthEnergyGoalsEnabled")
