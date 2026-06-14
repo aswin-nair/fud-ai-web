@@ -2668,6 +2668,7 @@ struct ProfileView: View {
     @State private var showDefaultGramsInfo = false
     @State private var showAdaptiveGoalsInfo = false
     @State private var showEnergyBurnInfo = false
+    @State private var energyBurnToggleReverting = false
     @State private var isRecalculatingGoals = false
     @State private var isApplyingAdaptiveGoals = false
     @State private var showAdaptiveGoalAlert = false
@@ -4096,11 +4097,32 @@ struct ProfileView: View {
         }
     }
 
-    /// Energy Burn is just an input switch for the goal calc — re-run the calc now so the new
-    /// (or removed) measured anchor takes effect immediately, exactly like tapping Recalculate.
-    /// With Apple Health not connected the calc simply falls back to the formula anchor.
+    /// Energy Burn is an input switch for the goal calc. Enabling requires Apple Health with enough
+    /// data (mirrors Android) — otherwise we revert the toggle and tell the user instead of running
+    /// an anchorless recalc. On a genuine enable/disable we re-run the calc so the new (or removed)
+    /// measured anchor takes effect immediately, exactly like tapping Recalculate.
     private func handleEnergyBurnToggle(_ enabled: Bool) {
-        Task { await recalculateGoalsWithAI() }
+        // A programmatic revert (failed enable, below) re-fires this onChange — skip that pass.
+        if energyBurnToggleReverting { energyBurnToggleReverting = false; return }
+        if enabled {
+            guard healthKitEnabled else {
+                energyBurnToggleReverting = true
+                energyBurnEnabled = false
+                showAdaptiveGoalAlert(title: "Apple Health Needed", message: "Energy Burn uses your measured calories burned from Apple Health. Connect Apple Health first, then turn Energy Burn on.")
+                return
+            }
+            Task {
+                if await healthKitManager.fetchRecentEnergySummary(days: 14) == nil {
+                    energyBurnToggleReverting = true
+                    energyBurnEnabled = false
+                    showAdaptiveGoalAlert(title: "Not Enough Health Data", message: "Fud AI needs at least 3 recent days of Apple Health energy data before it can use your measured burn.")
+                    return
+                }
+                await recalculateGoalsWithAI()
+            }
+        } else {
+            Task { await recalculateGoalsWithAI() }
+        }
     }
 
     /// Energy Burn toggle resolved to a number: the user's measured maintenance from Apple Health
