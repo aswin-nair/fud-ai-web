@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FlashAuto
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +61,8 @@ fun InAppCameraCaptureDialog(
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var flashMode by remember { mutableStateOf(ImageCapture.FLASH_MODE_OFF) }
+    var hasFlashUnit by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -72,13 +77,15 @@ fun InAppCameraCaptureDialog(
 
             runCatching {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                val camera = cameraProvider.bindToLifecycle(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     capture
                 )
+                capture.flashMode = flashMode
                 imageCapture = capture
+                hasFlashUnit = camera.cameraInfo.hasFlashUnit()
             }.onFailure {
                 error = "Could not open camera"
             }
@@ -120,6 +127,30 @@ fun InAppCameraCaptureDialog(
                 Icon(Icons.Filled.Close, contentDescription = "Close camera", tint = Color.White)
             }
 
+            if (hasFlashUnit) {
+                IconButton(
+                    onClick = { flashMode = nextFlashMode(flashMode) },
+                    enabled = !isCapturing,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(18.dp)
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.45f))
+                ) {
+                    val (flashIcon, flashDesc) = when (flashMode) {
+                        ImageCapture.FLASH_MODE_ON -> Icons.Filled.FlashOn to "Flash on"
+                        ImageCapture.FLASH_MODE_AUTO -> Icons.Filled.FlashAuto to "Flash auto"
+                        else -> Icons.Filled.FlashOff to "Flash off"
+                    }
+                    Icon(
+                        flashIcon,
+                        contentDescription = flashDesc,
+                        tint = if (flashMode == ImageCapture.FLASH_MODE_OFF) Color.White else AppColors.Calorie
+                    )
+                }
+            }
+
             error?.let {
                 Text(
                     text = it,
@@ -143,6 +174,7 @@ fun InAppCameraCaptureDialog(
 
                     isCapturing = true
                     error = null
+                    capture.flashMode = flashMode
                     capture.targetRotation = previewView.display.rotation
                     capture.takePicture(
                         output,
@@ -193,4 +225,11 @@ fun InAppCameraCaptureDialog(
             }
         }
     }
+}
+
+/** Cycles the in-app camera flash: Off → Auto → On → Off. */
+private fun nextFlashMode(current: Int): Int = when (current) {
+    ImageCapture.FLASH_MODE_OFF -> ImageCapture.FLASH_MODE_AUTO
+    ImageCapture.FLASH_MODE_AUTO -> ImageCapture.FLASH_MODE_ON
+    else -> ImageCapture.FLASH_MODE_OFF
 }
