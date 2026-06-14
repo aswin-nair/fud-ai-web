@@ -390,23 +390,12 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         onChange = ::onHealthEnergyGoalsToggle
                     )
                     HorizontalDivider()
-                    // Lock controls are dimmed while Adaptive Goals is on — it auto-recalculates and
-                    // would overwrite any user lock. Tapping anything here explains that instead of
-                    // silently doing nothing.
+                    // The lock glyph is read-only. Saving a value locks it; the picker's Reset
+                    // releases it. While Adaptive Goals is on, tapping a row explains that it owns
+                    // the targets (so editing would be overwritten weekly) instead of opening.
                     val lockEnabled = !ui.adaptiveGoalsEnabled
                     val openGoal = { target: SettingsSheet ->
                         if (ui.adaptiveGoalsEnabled) showAdaptiveLockHint = true else sheet = target
-                    }
-                    val toggleMacroLock = { macro: AutoBalanceMacro ->
-                        when {
-                            ui.adaptiveGoalsEnabled -> showAdaptiveLockHint = true
-                            !p.isMacroLocked(macro) && p.lockedMacros.size >= 2 -> showMaxPinnedAlert = true
-                            else -> vm.updateProfile { it.toggledMacroLock(macro) }
-                        }
-                    }
-                    val toggleCaloriesLock = {
-                        if (ui.adaptiveGoalsEnabled) showAdaptiveLockHint = true
-                        else vm.updateProfile { it.toggledCaloriesLock() }
                     }
                     LockableGoalRow(
                         label = stringResource(R.string.settings_calories),
@@ -414,8 +403,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         icon = Icons.Outlined.LocalFireDepartment,
                         locked = p.caloriesLocked,
                         lockEnabled = lockEnabled,
-                        onClick = { openGoal(SettingsSheet.CALORIES) },
-                        onToggleLock = toggleCaloriesLock
+                        onClick = { openGoal(SettingsSheet.CALORIES) }
                     )
                     HorizontalDivider()
                     LockableGoalRow(
@@ -424,8 +412,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         icon = Icons.Outlined.DataUsage,
                         locked = p.isMacroLocked(AutoBalanceMacro.PROTEIN),
                         lockEnabled = lockEnabled,
-                        onClick = { openGoal(SettingsSheet.PROTEIN) },
-                        onToggleLock = { toggleMacroLock(AutoBalanceMacro.PROTEIN) }
+                        onClick = { openGoal(SettingsSheet.PROTEIN) }
                     )
                     HorizontalDivider()
                     LockableGoalRow(
@@ -434,8 +421,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         icon = Icons.Outlined.DataUsage,
                         locked = p.isMacroLocked(AutoBalanceMacro.CARBS),
                         lockEnabled = lockEnabled,
-                        onClick = { openGoal(SettingsSheet.CARBS) },
-                        onToggleLock = { toggleMacroLock(AutoBalanceMacro.CARBS) }
+                        onClick = { openGoal(SettingsSheet.CARBS) }
                     )
                     HorizontalDivider()
                     LockableGoalRow(
@@ -444,8 +430,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         icon = Icons.Outlined.DataUsage,
                         locked = p.isMacroLocked(AutoBalanceMacro.FAT),
                         lockEnabled = lockEnabled,
-                        onClick = { openGoal(SettingsSheet.FAT) },
-                        onToggleLock = { toggleMacroLock(AutoBalanceMacro.FAT) }
+                        onClick = { openGoal(SettingsSheet.FAT) }
                     )
                     if (ui.adaptiveGoalsEnabled) {
                         Text(
@@ -499,9 +484,10 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                     }
                     if (ui.goalsNeedRecalc && !ui.recalculatingGoals) {
                         Text(
-                            "Your profile changed — recalculate to refresh your calories and macros.",
+                            "Profile changed — recalculate to refresh goals.",
                             color = AppColors.Calorie,
                             style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
                         )
                     }
@@ -1384,7 +1370,10 @@ private fun SettingsSheets(
                     onSave = { v ->
                         vm.editCaloriesGoal(v)
                         onDismiss()
-                    }
+                    },
+                    onResetToAuto = if (ui.profile?.caloriesLocked == true) {
+                        { vm.resetCaloriesLock(); onDismiss() }
+                    } else null
                 )
                 SettingsSheet.PROTEIN -> NutritionPickerSheet(
                     label = stringResource(R.string.macro_protein), unit = stringResource(R.string.unit_g),
@@ -2127,9 +2116,9 @@ private fun ActivityLevelSettingRow(
 }
 
 /**
- * A goal row (calories or a macro). Tapping the row opens the value picker; tapping the trailing
- * lock icon toggles the lock. Mirrors iOS `lockableGoalRow`: Filled.Lock (pink) when locked,
- * Outlined.LockOpen (gray) when not. Lock controls are dimmed/disabled while Adaptive Goals is on.
+ * A goal row (calories or a macro). Tapping the row opens the value picker. The lock glyph is a
+ * READ-ONLY indicator (Filled.Lock pink when locked, Outlined.LockOpen gray when not) — saving a
+ * value locks it; the picker's "Reset to Auto-balance" releases it. Dimmed while Adaptive is on.
  */
 @Composable
 private fun LockableGoalRow(
@@ -2138,14 +2127,13 @@ private fun LockableGoalRow(
     icon: ImageVector,
     locked: Boolean,
     lockEnabled: Boolean,
-    onClick: () -> Unit,
-    onToggleLock: () -> Unit
+    onClick: () -> Unit
 ) {
     Row(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         FudIconBubble(icon = icon, size = 22.dp, iconSize = 14.dp)
@@ -2161,22 +2149,19 @@ private fun LockableGoalRow(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-        // Stays tappable while Adaptive is on so the tap can explain why locking is unavailable;
-        // [lockEnabled] only dims the tint to read as inactive.
-        IconButton(onClick = onToggleLock) {
-            Icon(
-                if (locked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
-                contentDescription = stringResource(
-                    if (locked) R.string.settings_macro_locked else R.string.settings_macro_unlocked
-                ),
-                tint = when {
-                    !lockEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                    locked -> AppColors.Calorie
-                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                },
-                modifier = Modifier.size(18.dp)
-            )
-        }
+        Spacer(Modifier.width(10.dp))
+        Icon(
+            if (locked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
+            contentDescription = stringResource(
+                if (locked) R.string.settings_macro_locked else R.string.settings_macro_unlocked
+            ),
+            tint = when {
+                !lockEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                locked -> AppColors.Calorie
+                else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+            },
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
 

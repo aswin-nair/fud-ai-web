@@ -256,6 +256,15 @@ data class UserProfile(
         }
     }
 
+    /** Release the calories lock and reset the total to the sum of the current macros — the honest
+     *  "auto" value when calories isn't pinned. The calories-row "Reset to Auto-balance" action,
+     *  mirroring the per-macro reset. */
+    fun resetCaloriesToBalance(): UserProfile {
+        val base = materialized()
+        val total = AutoBalanceMacro.values().sumOf { base.effectiveGrams(it) * it.kcalPerGram }
+        return base.copy(caloriesLocked = false, customCalories = total)
+    }
+
     /** Release a macro's lock and reset it to the balancing remainder: it absorbs whatever calories
      *  the other two macros leave, so the macros sum back to the calorie total. This is the "Reset
      *  to Auto-balance" action — turns the lock off and re-derives the value. */

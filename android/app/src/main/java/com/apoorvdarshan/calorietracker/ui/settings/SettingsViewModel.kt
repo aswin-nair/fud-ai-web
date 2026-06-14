@@ -704,6 +704,12 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
         updateProfile { it.resetMacroToBalance(macro) }
     }
 
+    /** "Reset to Auto-balance" from the calories picker: release the calories lock and snap the
+     *  total to the sum of the macros. */
+    fun resetCaloriesLock() {
+        updateProfile { it.resetCaloriesToBalance() }
+    }
+
     fun setCustomBaseUrl(provider: AIProvider, url: String) {
         viewModelScope.launch {
             container.prefs.setCustomBaseUrl(provider, url.takeIf { it.isNotBlank() })

@@ -440,6 +440,15 @@ struct UserProfile: Codable, Equatable {
         }
     }
 
+    /// Release the calories lock and reset the total to the sum of the current macros — the honest
+    /// "auto" value when calories isn't pinned. The picker's "Reset to Auto-balance" action for the
+    /// calories row, mirroring the per-macro reset.
+    mutating func resetCaloriesToBalance() {
+        materializeGoals()
+        caloriesLocked = nil
+        customCalories = AutoBalanceMacro.allCases.reduce(0) { $0 + effectiveGrams($1) * $1.kcalPerGram }
+    }
+
     /// Release a macro's lock and reset it to the balancing remainder: it absorbs whatever calories
     /// the other two macros leave, so the macros sum back to the calorie total. This is the "Reset
     /// to Auto-balance" action — turns the lock off and re-derives the value.

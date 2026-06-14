@@ -3002,9 +3002,11 @@ struct ProfileView: View {
                     .disabled(isRecalculatingGoals)
 
                     if goalsNeedRecalc && !isRecalculatingGoals {
-                        Text("Your profile changed — recalculate to refresh your calories and macros.")
+                        Text("Profile changed — recalculate to refresh goals.")
                             .font(.caption)
                             .foregroundStyle(AppColors.calorie)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                             .listRowSeparator(.hidden)
                     }
 
@@ -3774,9 +3776,13 @@ struct ProfileView: View {
                     }
 
                 case .editCalories:
-                    NutritionPickerSheet(label: "Calories", unit: "kcal", currentValue: profile.effectiveCalories, range: 800...6000, step: 50) { value in
-                        setCalories(to: value)
-                    }
+                    NutritionPickerSheet(
+                        label: "Calories", unit: "kcal",
+                        currentValue: profile.effectiveCalories,
+                        range: 800...6000, step: 50,
+                        onSave: { setCalories(to: $0) },
+                        onResetToAuto: profile.isCaloriesLocked ? { resetCaloriesLock() } : nil
+                    )
 
                 case .editProtein:
                     NutritionPickerSheet(
@@ -3927,60 +3933,33 @@ struct ProfileView: View {
     @ViewBuilder
     private func lockableGoalRow(icon: String, label: String, valueText: String, macro: AutoBalanceMacro?, sheet: ActiveSheet) -> some View {
         let locked = macro.map { profile.isMacroLocked($0) } ?? profile.isCaloriesLocked
-        HStack(spacing: 12) {
-            Button {
-                // While Adaptive owns the targets, editing is futile (it overwrites weekly) — explain
-                // instead of silently opening a picker whose value won't stick.
-                if adaptiveGoalsEnabled {
-                    showAdaptiveGoalsLockHint()
-                } else {
-                    activeSheet = sheet
-                }
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: icon)
-                        .foregroundStyle(AppColors.calorie)
-                        .frame(width: 22)
-                    Text(LocalizedDisplayText.text(label))
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Text(valueText)
-                        .foregroundStyle(.secondary)
-                }
+        // The lock glyph is a read-only indicator. Saving a value locks it; the picker's "Reset to
+        // Auto-balance" releases it. Tapping the row opens the picker (or explains, when Adaptive is
+        // on and editing would be overwritten weekly).
+        Button {
+            if adaptiveGoalsEnabled {
+                showAdaptiveGoalsLockHint()
+            } else {
+                activeSheet = sheet
             }
-            .buttonStyle(.plain)
-
-            Button {
-                toggleLock(macro)
-            } label: {
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundStyle(AppColors.calorie)
+                    .frame(width: 22)
+                Text(LocalizedDisplayText.text(label))
+                    .foregroundStyle(.primary)
+                Spacer()
+                Text(valueText)
+                    .foregroundStyle(.secondary)
                 Image(systemName: locked ? "lock.fill" : "lock.open")
                     .font(.footnote)
                     .foregroundStyle(locked ? AppColors.calorie : .secondary)
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
+                    .opacity(adaptiveGoalsEnabled ? 0.3 : 1)
+                    .accessibilityLabel(locked ? "Locked" : "Unlocked")
             }
-            .buttonStyle(.plain)
-            // Stays tappable while Adaptive is on so the tap can explain why locking is unavailable;
-            // dimmed to read as inactive.
-            .opacity(adaptiveGoalsEnabled ? 0.3 : 1)
-            .accessibilityLabel(locked ? "Locked" : "Unlocked")
         }
-    }
-
-    /// Toggle a lock from the row's lock icon (mainly used to *release* a value back to balancing —
-    /// saving a value already locks it). `macro == nil` toggles the calories lock. Explains itself
-    /// while Adaptive Goals is on; a third macro lock surfaces the "max 2 locked" alert.
-    private func toggleLock(_ macro: AutoBalanceMacro?) {
-        guard !adaptiveGoalsEnabled else { showAdaptiveGoalsLockHint(); return }
-        if let macro {
-            guard profile.toggleMacroLock(macro) else {
-                showMaxPinnedAlert = true
-                return
-            }
-        } else {
-            profile.toggleCaloriesLock()
-        }
-        saveProfile()
+        .buttonStyle(.plain)
     }
 
     /// Explain why the goals section is read-only while Adaptive Goals owns the targets.
@@ -4017,6 +3996,13 @@ struct ProfileView: View {
     /// balancing remainder.
     private func resetMacroLock(_ macro: AutoBalanceMacro) {
         profile.resetMacroToBalance(macro)
+        saveProfile()
+    }
+
+    /// "Reset to Auto-balance" from the calories picker: release the calories lock and snap the
+    /// total to the sum of the macros.
+    private func resetCaloriesLock() {
+        profile.resetCaloriesToBalance()
         saveProfile()
     }
 
