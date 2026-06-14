@@ -185,6 +185,7 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
     val vm: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(container))
     val ui by vm.ui.collectAsState()
     val profile = ui.profile
+    val latestMeasurement by container.bodyMeasurementRepository.latest.collectAsState(initial = null)
 
     var sheet by remember { mutableStateOf<SettingsSheet?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -348,6 +349,17 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                             icon = Icons.Outlined.TrackChanges
                         ) { sheet = SettingsSheet.GOAL_BODY_FAT }
                     }
+                    HorizontalDivider()
+                    // Optional tape-measure circumferences — extra signal for the AI goal calc +
+                    // Coach. Never edits BMR / the body-fat field.
+                    SettingRow(
+                        "Body Measurements",
+                        latestMeasurement?.waistCm?.let { waist ->
+                            if (ui.useMetric) String.format(Locale.US, "Waist %.0f cm", waist)
+                            else String.format(Locale.US, "Waist %.0f in", waist / 2.54)
+                        } ?: stringResource(R.string.settings_not_set),
+                        icon = Icons.Outlined.Straighten
+                    ) { nav.navigate(FudAIRoutes.BODY_MEASUREMENTS) }
                 }
             }
 

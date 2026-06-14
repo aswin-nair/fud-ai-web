@@ -1131,6 +1131,50 @@ struct LogBodyMeasurementsSheet: View {
     }
 }
 
+/// Settings → Personal Info detail screen: the latest measurements + derived metrics, with
+/// Log/Update and history. Lives in Settings (not Progress) so it sits with the other body inputs.
+struct BodyMeasurementsDetailView: View {
+    @Environment(BodyMeasurementStore.self) private var store
+    @AppStorage("useMetric") private var useMetric = false
+    let gender: Gender
+    let heightCm: Double
+
+    @State private var showLog = false
+    @State private var showHistory = false
+
+    var body: some View {
+        ScrollView {
+            BodyMeasurementsSection(
+                latest: store.latestEntry,
+                totalCount: store.entries.count,
+                gender: gender,
+                heightCm: heightCm,
+                useMetric: useMetric,
+                onLog: { showLog = true },
+                onHistory: { showHistory = true }
+            )
+            .padding()
+        }
+        .background(AppColors.appBackground)
+        .navigationTitle("Body Measurements")
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showLog) {
+            LogBodyMeasurementsSheet(latest: store.latestEntry, gender: gender, heightCm: heightCm) { measurement in
+                store.addEntry(measurement)
+            }
+        }
+        .sheet(isPresented: $showHistory) {
+            AllBodyMeasurementsHistoryView(
+                entries: store.sortedEntries,
+                gender: gender,
+                heightCm: heightCm,
+                useMetric: useMetric,
+                onDelete: { entry in store.deleteEntry(entry) }
+            )
+        }
+    }
+}
+
 /// Full history with swipe-to-delete, mirroring AllWeightHistoryView.
 struct AllBodyMeasurementsHistoryView: View {
     let entries: [BodyMeasurement]

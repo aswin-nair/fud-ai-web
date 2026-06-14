@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ChevronRight
@@ -48,7 +49,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -136,8 +139,6 @@ fun ProgressScreen(container: AppContainer) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showAddBodyFatDialog by remember { mutableStateOf(false) }
     var showAllWeights by remember { mutableStateOf(false) }
-    var showAddMeasurements by remember { mutableStateOf(false) }
-    var showAllMeasurements by remember { mutableStateOf(false) }
     var bodyMetric by remember { mutableStateOf(BodyMetric.WEIGHT) }
 
     // Filter weights + body fats to range
@@ -242,19 +243,6 @@ fun ProgressScreen(container: AppContainer) {
                 }
             }
 
-            // 3b. Body Measurements — optional tape-measure tracking that feeds the AI
-            item {
-                BodyMeasurementsCard(
-                    latest = ui.bodyMeasurements.maxByOrNull { it.date },
-                    totalCount = ui.bodyMeasurements.size,
-                    gender = ui.profile?.gender ?: Gender.MALE,
-                    heightCm = ui.profile?.heightCm ?: 0.0,
-                    useMetric = useMetric,
-                    onLog = { showAddMeasurements = true },
-                    onHistory = { showAllMeasurements = true }
-                )
-            }
-
             // 4. Calorie chart section
             item {
                 CardSection {
@@ -309,26 +297,6 @@ fun ProgressScreen(container: AppContainer) {
             useMetric = useMetric,
             onDelete = vm::deleteWeight,
             onDismiss = { showAllWeights = false }
-        )
-    }
-    if (showAddMeasurements) {
-        AddBodyMeasurementsSheet(
-            latest = ui.bodyMeasurements.maxByOrNull { it.date },
-            gender = ui.profile?.gender ?: Gender.MALE,
-            heightCm = ui.profile?.heightCm ?: 0.0,
-            useMetric = useMetric,
-            onDismiss = { showAddMeasurements = false },
-            onSave = { m -> vm.addBodyMeasurement(m); showAddMeasurements = false }
-        )
-    }
-    if (showAllMeasurements) {
-        BodyMeasurementsHistorySheet(
-            entries = ui.bodyMeasurements.sortedByDescending { it.date },
-            gender = ui.profile?.gender ?: Gender.MALE,
-            heightCm = ui.profile?.heightCm ?: 0.0,
-            useMetric = useMetric,
-            onDelete = vm::deleteBodyMeasurement,
-            onDismiss = { showAllMeasurements = false }
         )
     }
     if (ui.goalReached) {
@@ -1566,5 +1534,83 @@ private fun BodyMeasurementsHistorySheet(
             }
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+/**
+ * Settings → Personal Info detail screen for body-circumference measurements. Lives in Settings
+ * (not the Progress tab) so it sits with the other body inputs. Reuses the card + log/history
+ * sheets and talks to BodyMeasurementRepository directly.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BodyMeasurementsScreen(container: AppContainer, onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val entries by container.bodyMeasurementRepository.entries.collectAsState(initial = emptyList())
+    val profile by container.profileRepository.profile.collectAsState(initial = null)
+    val useMetric by container.prefs.useMetric.collectAsState(initial = true)
+    val gender = profile?.gender ?: Gender.MALE
+    val heightCm = profile?.heightCm ?: 0.0
+
+    var showAdd by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 14.dp, bottom = BottomNavScrollPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onBack() }
+                            .padding(horizontal = 2.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.Calorie, modifier = Modifier.size(22.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Settings", color = AppColors.Calorie, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+            item {
+                Text("Body Measurements", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            }
+            item {
+                BodyMeasurementsCard(
+                    latest = entries.maxByOrNull { it.date },
+                    totalCount = entries.size,
+                    gender = gender,
+                    heightCm = heightCm,
+                    useMetric = useMetric,
+                    onLog = { showAdd = true },
+                    onHistory = { showHistory = true }
+                )
+            }
+        }
+    }
+
+    if (showAdd) {
+        AddBodyMeasurementsSheet(
+            latest = entries.maxByOrNull { it.date },
+            gender = gender,
+            heightCm = heightCm,
+            useMetric = useMetric,
+            onDismiss = { showAdd = false },
+            onSave = { m -> scope.launch { container.bodyMeasurementRepository.addEntry(m) }; showAdd = false }
+        )
+    }
+    if (showHistory) {
+        BodyMeasurementsHistorySheet(
+            entries = entries.sortedByDescending { it.date },
+            gender = gender,
+            heightCm = heightCm,
+            useMetric = useMetric,
+            onDelete = { id -> scope.launch { container.bodyMeasurementRepository.deleteEntry(id) } },
+            onDismiss = { showHistory = false }
+        )
     }
 }

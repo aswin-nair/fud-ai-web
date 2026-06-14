@@ -24,6 +24,7 @@ import com.apoorvdarshan.calorietracker.ui.about.AboutScreen
 import com.apoorvdarshan.calorietracker.ui.coach.CoachScreen
 import com.apoorvdarshan.calorietracker.ui.home.HomeScreen
 import com.apoorvdarshan.calorietracker.ui.onboarding.OnboardingScreen
+import com.apoorvdarshan.calorietracker.ui.progress.BodyMeasurementsScreen
 import com.apoorvdarshan.calorietracker.ui.progress.ProgressScreen
 import com.apoorvdarshan.calorietracker.ui.settings.CalculationMethodsScreen
 import com.apoorvdarshan.calorietracker.ui.settings.OptionalNutrientGoalsScreen
@@ -99,6 +100,9 @@ fun FudAINavHost(
                 }
                 composable(FudAIRoutes.CALCULATION_METHODS) {
                     CalculationMethodsScreen(onBack = { nav.popBackStack() })
+                }
+                composable(FudAIRoutes.BODY_MEASUREMENTS) {
+                    BodyMeasurementsScreen(container = container, onBack = { nav.popBackStack() })
                 }
                 composable(FudAIRoutes.ABOUT) { AboutScreen(container = container) }
             }

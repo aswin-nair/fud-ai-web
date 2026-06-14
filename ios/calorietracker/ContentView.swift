@@ -2465,7 +2465,6 @@ struct ProgressTabView: View {
     @Environment(FoodStore.self) private var foodStore
     @Environment(WeightStore.self) private var weightStore
     @Environment(BodyFatStore.self) private var bodyFatStore
-    @Environment(BodyMeasurementStore.self) private var bodyMeasurementStore
     @Environment(ProfileStore.self) private var profileStore
     @AppStorage("useMetric") private var useMetric = false
     @State private var timeRange: TimeRange = .week
@@ -2473,8 +2472,6 @@ struct ProgressTabView: View {
     @State private var showLogBodyFat = false
     @State private var showGoalReached = false
     @State private var showAllWeights = false
-    @State private var showLogMeasurements = false
-    @State private var showAllMeasurements = false
 
     private var userProfile: UserProfile { profileStore.profile }
 
@@ -2570,18 +2567,6 @@ struct ProgressTabView: View {
                         .padding(.horizontal)
                     }
 
-                    // Body Measurements — optional tape-measure tracking that feeds the AI
-                    BodyMeasurementsSection(
-                        latest: bodyMeasurementStore.latestEntry,
-                        totalCount: bodyMeasurementStore.entries.count,
-                        gender: userProfile.gender,
-                        heightCm: userProfile.heightCm,
-                        useMetric: useMetric,
-                        onLog: { showLogMeasurements = true },
-                        onHistory: { showAllMeasurements = true }
-                    )
-                    .padding(.horizontal)
-
                     // Calorie Trend
                     CalorieChartSection(
                         dailyCalories: dailyCalories,
@@ -2636,24 +2621,6 @@ struct ProgressTabView: View {
                     entries: weightStore.entries.sorted { $0.date > $1.date },
                     useMetric: useMetric,
                     onDelete: { entry in weightStore.deleteEntry(entry) }
-                )
-            }
-            .sheet(isPresented: $showLogMeasurements) {
-                LogBodyMeasurementsSheet(
-                    latest: bodyMeasurementStore.latestEntry,
-                    gender: userProfile.gender,
-                    heightCm: userProfile.heightCm
-                ) { measurement in
-                    bodyMeasurementStore.addEntry(measurement)
-                }
-            }
-            .sheet(isPresented: $showAllMeasurements) {
-                AllBodyMeasurementsHistoryView(
-                    entries: bodyMeasurementStore.sortedEntries,
-                    gender: userProfile.gender,
-                    heightCm: userProfile.heightCm,
-                    useMetric: useMetric,
-                    onDelete: { entry in bodyMeasurementStore.deleteEntry(entry) }
                 )
             }
         }
@@ -2765,6 +2732,15 @@ struct ProfileView: View {
         return String(format: "%.1f lbs", gw * 2.20462)
     }
 
+    /// Glanceable value for the Body Measurements row — the latest waist, or "Not set".
+    private var bodyMeasurementsRowValue: String {
+        guard let latest = bodyMeasurementStore.latestEntry else { return "Not set" }
+        if let waist = latest.waistCm {
+            return useMetric ? String(format: "Waist %.0f cm", waist) : String(format: "Waist %.0f in", waist / 2.54)
+        }
+        return "Logged"
+    }
+
     // Weekly change display
     private var weeklyChangeDisplay: String {
         let rate = profile.weeklyChangeKg ?? 0.5
@@ -2830,6 +2806,24 @@ struct ProfileView: View {
                             value: profile.goalBodyFatPercentage != nil ? "\(Int(profile.goalBodyFatPercentage! * 100))%" : "Not set"
                         ) {
                             activeSheet = .editGoalBodyFat
+                        }
+                    }
+
+                    // Optional tape-measure circumferences. Extra signal for the AI goal calc +
+                    // Coach (waist-to-hip, waist-to-height, Navy body-fat %, frame). Never edits BMR.
+                    NavigationLink {
+                        BodyMeasurementsDetailView(gender: profile.gender, heightCm: profile.heightCm)
+                    } label: {
+                        Label {
+                            HStack {
+                                Text("Body Measurements")
+                                Spacer()
+                                Text(bodyMeasurementsRowValue)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "ruler")
+                                .foregroundStyle(AppColors.calorie)
                         }
                     }
                 }
