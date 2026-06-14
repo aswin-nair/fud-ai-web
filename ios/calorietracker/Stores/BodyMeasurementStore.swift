@@ -30,6 +30,30 @@ class BodyMeasurementStore {
         saveEntries()
     }
 
+    /// Set one site's value. Editing several sites the same day updates today's single snapshot;
+    /// the first edit on a new day starts a fresh dated snapshot carrying the previous values
+    /// forward (so the latest entry always holds the user's current full set). `nil` clears a site.
+    func setValue(_ site: BodyMeasurement.Site, cm: Double?) {
+        if let latest = latestEntry, Calendar.current.isDateInToday(latest.date) {
+            let updated = latest.setting(site, to: cm)
+            entries.removeAll { $0.id == latest.id }
+            if updated.hasAnyValue { entries.append(updated) }
+            saveEntries()
+        } else {
+            var fresh = BodyMeasurement()
+            if let latest = latestEntry {
+                for s in BodyMeasurement.Site.allCases {
+                    fresh = fresh.setting(s, to: latest.value(for: s))
+                }
+            }
+            fresh = fresh.setting(site, to: cm)
+            if fresh.hasAnyValue {
+                entries.append(fresh)
+                saveEntries()
+            }
+        }
+    }
+
     func deleteEntry(_ entry: BodyMeasurement) {
         let id = entry.id
         entries.removeAll { $0.id == id }

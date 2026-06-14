@@ -129,4 +129,33 @@ data class BodyMeasurement(
     enum class FrameSize(val label: String) {
         SMALL("Small"), MEDIUM("Medium"), LARGE("Large")
     }
+
+    /** The eight circumference sites, in display order. Used to render the per-site editor rows. */
+    enum class Site(val label: String) {
+        NECK("Neck"), WAIST("Waist"), HIPS("Hips"), CHEST("Chest"),
+        UPPER_ARM("Upper Arm"), THIGH("Thigh"), CALF("Calf"), WRIST("Wrist")
+    }
+
+    fun value(site: Site): Double? = when (site) {
+        Site.NECK -> neckCm
+        Site.WAIST -> waistCm
+        Site.HIPS -> hipsCm
+        Site.CHEST -> chestCm
+        Site.UPPER_ARM -> upperArmCm
+        Site.THIGH -> thighCm
+        Site.CALF -> calfCm
+        Site.WRIST -> wristCm
+    }
+
+    /** A copy with one site changed (same id + date — used for in-place daily updates). */
+    fun setting(site: Site, cm: Double?): BodyMeasurement = when (site) {
+        Site.NECK -> copy(neckCm = cm)
+        Site.WAIST -> copy(waistCm = cm)
+        Site.HIPS -> copy(hipsCm = cm)
+        Site.CHEST -> copy(chestCm = cm)
+        Site.UPPER_ARM -> copy(upperArmCm = cm)
+        Site.THIGH -> copy(thighCm = cm)
+        Site.CALF -> copy(calfCm = cm)
+        Site.WRIST -> copy(wristCm = cm)
+    }
 }

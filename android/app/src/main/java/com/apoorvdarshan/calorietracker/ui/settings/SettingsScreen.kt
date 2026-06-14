@@ -2077,14 +2077,15 @@ private fun GoalSpeedSheet(current: Double, goal: WeightGoal, useMetric: Boolean
  * macro is currently pinned.
  */
 @Composable
-private fun NutritionPickerSheet(
+fun NutritionPickerSheet(
     label: String,
     unit: String,
     currentValue: Int,
     range: IntRange,
     step: Int,
     onSave: (Int) -> Unit,
-    onResetToAuto: (() -> Unit)? = null
+    onResetToAuto: (() -> Unit)? = null,
+    resetLabel: String = "Reset to Auto-balance"
 ) {
     val items = remember(range, step) { (range.first..range.last step step).toList() }
     val snapped = (currentValue / step) * step
@@ -2136,7 +2137,7 @@ private fun NutritionPickerSheet(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                "Reset to Auto-balance",
+                resetLabel,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }

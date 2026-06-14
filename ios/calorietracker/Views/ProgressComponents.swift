@@ -901,191 +901,58 @@ private func derivedMetricChips(_ m: BodyMeasurement, gender: Gender, heightCm: 
     return chips
 }
 
-private struct MetricChip: View {
-    let label: String
-    let value: String
-    var body: some View {
-        VStack(spacing: 3) {
-            Text(value)
-                .font(.system(.headline, design: .rounded, weight: .bold))
-                .foregroundStyle(AppColors.calorie)
-            Text(label)
-                .font(.system(.caption2, design: .rounded))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .padding(.horizontal, 8)
-        .background(AppColors.calorie.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-/// Card showing the latest circumferences + the AI-derived body-composition metrics, plus a button
-/// to log/update. Empty until the user logs anything — nothing about the rest of the app changes
-/// for users who never open it.
-struct BodyMeasurementsSection: View {
-    let latest: BodyMeasurement?
-    let totalCount: Int
+/// Settings → Personal Info detail screen. Mirrors the Other Nutrients screen: a tappable row per
+/// body part that opens a wheel picker to set its value, plus the AI-derived metrics and history.
+/// Lives in Settings (not Progress) so it sits with the other body inputs.
+struct BodyMeasurementsDetailView: View {
+    @Environment(BodyMeasurementStore.self) private var store
+    @AppStorage("useMetric") private var useMetric = false
     let gender: Gender
     let heightCm: Double
-    let useMetric: Bool
-    let onLog: () -> Void
-    let onHistory: () -> Void
 
-    private let twoColumns = [GridItem(.flexible()), GridItem(.flexible())]
+    @State private var editingSite: BodyMeasurement.Site?
+    @State private var showHistory = false
+
+    private var latest: BodyMeasurement? { store.latestEntry }
+    private var unit: String { useMetric ? "cm" : "in" }
+
+    private func displayValue(_ site: BodyMeasurement.Site) -> String {
+        guard let cm = latest?.value(for: site) else { return "Not set" }
+        return useMetric ? String(format: "%.0f cm", cm) : String(format: "%.0f in", cm / 2.54)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Label {
-                    Text("Body Measurements")
-                        .font(.system(.headline, design: .rounded, weight: .bold))
-                } icon: {
-                    Image(systemName: "ruler")
-                        .foregroundStyle(AppColors.calorie)
+        List {
+            Section {
+                ForEach(BodyMeasurement.Site.allCases) { site in
+                    Button {
+                        editingSite = site
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "ruler")
+                                .foregroundStyle(AppColors.calorie)
+                                .frame(width: 22)
+                            Text(site.label)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Text(displayValue(site))
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
-                Spacer()
-                Button(action: onLog) {
-                    Text(latest == nil ? "Log" : "Update")
-                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 14)
-                        .background(AppColors.calorie.opacity(0.14), in: Capsule())
-                        .foregroundStyle(AppColors.calorie)
-                }
-                .buttonStyle(.plain)
+            } header: {
+                Text("Measurements")
+            } footer: {
+                Text("Optional. Fud AI turns these into waist-to-hip, waist-to-height, body-fat %, and frame size, and reads them when it recalculates your goals and in Coach.")
             }
+            .listRowBackground(AppColors.appCard)
 
             if let latest {
                 let chips = derivedMetricChips(latest, gender: gender, heightCm: heightCm)
-                if !chips.isEmpty {
-                    LazyVGrid(columns: twoColumns, spacing: 8) {
-                        ForEach(chips, id: \.label) { chip in
-                            MetricChip(label: chip.label, value: chip.value)
-                        }
-                    }
-                }
-
-                let sites = measurementSites(latest)
-                if !sites.isEmpty {
-                    LazyVGrid(columns: twoColumns, spacing: 8) {
-                        ForEach(sites, id: \.label) { site in
-                            HStack {
-                                Text(site.label)
-                                    .font(.system(.subheadline, design: .rounded))
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text(displayLength(site.cm, useMetric: useMetric))
-                                    .font(.system(.subheadline, design: .rounded, weight: .medium))
-                            }
-                        }
-                    }
-                }
-
-                HStack {
-                    Text("Logged \(weightHistoryFormatter.string(from: latest.date))")
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundStyle(.tertiary)
-                    Spacer()
-                    if totalCount > 1 {
-                        Button(action: onHistory) {
-                            Text("History")
-                                .font(.system(.caption, design: .rounded, weight: .semibold))
-                                .foregroundStyle(AppColors.calorie)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            } else {
-                Text("Log tape-measure sizes — waist, hips, neck, and more. Fud AI turns them into waist-to-hip, waist-to-height, body-fat %, and frame size, and reads them when it recalculates your goals and in Coach.")
-                    .font(.system(.subheadline, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.appCard, in: RoundedRectangle(cornerRadius: 18))
-    }
-}
-
-/// Log/update sheet: eight optional fields, live derived metrics, unit-aware. Pre-filled from the
-/// latest entry so updating is a quick tweak. Saving creates a fresh dated entry.
-struct LogBodyMeasurementsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @AppStorage("useMetric") private var useMetric = false
-
-    let latest: BodyMeasurement?
-    let gender: Gender
-    let heightCm: Double
-    let onSave: (BodyMeasurement) -> Void
-
-    @State private var neck: String
-    @State private var waist: String
-    @State private var hips: String
-    @State private var chest: String
-    @State private var upperArm: String
-    @State private var thigh: String
-    @State private var calf: String
-    @State private var wrist: String
-
-    init(latest: BodyMeasurement?, gender: Gender, heightCm: Double, onSave: @escaping (BodyMeasurement) -> Void) {
-        self.latest = latest
-        self.gender = gender
-        self.heightCm = heightCm
-        self.onSave = onSave
-        let metric = UserDefaults.standard.bool(forKey: "useMetric")
-        func field(_ cm: Double?) -> String {
-            guard let cm else { return "" }
-            let value = metric ? cm : cm / 2.54
-            return String(format: "%.1f", value)
-        }
-        _neck = State(initialValue: field(latest?.neckCm))
-        _waist = State(initialValue: field(latest?.waistCm))
-        _hips = State(initialValue: field(latest?.hipsCm))
-        _chest = State(initialValue: field(latest?.chestCm))
-        _upperArm = State(initialValue: field(latest?.upperArmCm))
-        _thigh = State(initialValue: field(latest?.thighCm))
-        _calf = State(initialValue: field(latest?.calfCm))
-        _wrist = State(initialValue: field(latest?.wristCm))
-    }
-
-    private var unit: String { useMetric ? "cm" : "in" }
-
-    /// Parse a field into centimetres (nil when blank/invalid). Accepts comma decimals too.
-    private func cm(_ text: String) -> Double? {
-        let normalized = text.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
-        guard let value = Double(normalized), value > 0 else { return nil }
-        return useMetric ? value : value * 2.54
-    }
-
-    private var draft: BodyMeasurement {
-        BodyMeasurement(
-            neckCm: cm(neck), waistCm: cm(waist), hipsCm: cm(hips), chestCm: cm(chest),
-            upperArmCm: cm(upperArm), thighCm: cm(thigh), calfCm: cm(calf), wristCm: cm(wrist)
-        )
-    }
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    field("Neck", $neck)
-                    field("Waist", $waist)
-                    field("Hips", $hips)
-                    field("Chest", $chest)
-                    field("Upper arm", $upperArm)
-                    field("Thigh", $thigh)
-                    field("Calf", $calf)
-                    field("Wrist", $wrist)
-                } header: {
-                    Text("Circumferences (\(unit))")
-                } footer: {
-                    Text("Everything is optional — log only what you measure.")
-                }
-
-                let chips = derivedMetricChips(draft, gender: gender, heightCm: heightCm)
                 if !chips.isEmpty {
                     Section("Derived") {
                         ForEach(chips, id: \.label) { chip in
@@ -1098,70 +965,50 @@ struct LogBodyMeasurementsSheet: View {
                             }
                         }
                     }
+                    .listRowBackground(AppColors.appCard)
                 }
             }
-            .navigationTitle(latest == nil ? "Log Measurements" : "Update Measurements")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        onSave(draft)
-                        dismiss()
+
+            if store.entries.count > 1 {
+                Section {
+                    Button {
+                        showHistory = true
+                    } label: {
+                        HStack {
+                            Text("Measurement History")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Text("\(store.entries.count)")
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
-                    .disabled(!draft.hasAnyValue)
+                    .buttonStyle(.plain)
                 }
+                .listRowBackground(AppColors.appCard)
             }
         }
-    }
-
-    private func field(_ label: String, _ binding: Binding<String>) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            TextField("—", text: binding)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(maxWidth: 90)
-            Text(unit)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-/// Settings → Personal Info detail screen: the latest measurements + derived metrics, with
-/// Log/Update and history. Lives in Settings (not Progress) so it sits with the other body inputs.
-struct BodyMeasurementsDetailView: View {
-    @Environment(BodyMeasurementStore.self) private var store
-    @AppStorage("useMetric") private var useMetric = false
-    let gender: Gender
-    let heightCm: Double
-
-    @State private var showLog = false
-    @State private var showHistory = false
-
-    var body: some View {
-        ScrollView {
-            BodyMeasurementsSection(
-                latest: store.latestEntry,
-                totalCount: store.entries.count,
-                gender: gender,
-                heightCm: heightCm,
-                useMetric: useMetric,
-                onLog: { showLog = true },
-                onHistory: { showHistory = true }
-            )
-            .padding()
-        }
+        .scrollContentBackground(.hidden)
         .background(AppColors.appBackground)
         .navigationTitle("Body Measurements")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showLog) {
-            LogBodyMeasurementsSheet(latest: store.latestEntry, gender: gender, heightCm: heightCm) { measurement in
-                store.addEntry(measurement)
-            }
+        .sheet(item: $editingSite) { site in
+            let current = latest?.value(for: site)
+            let currentDisplay = current.map { useMetric ? Int($0.rounded()) : Int(($0 / 2.54).rounded()) }
+            NutritionPickerSheet(
+                label: site.label,
+                unit: unit,
+                currentValue: currentDisplay ?? (useMetric ? 80 : 32),
+                range: useMetric ? 10...250 : 4...100,
+                step: 1,
+                onSave: { value in
+                    store.setValue(site, cm: useMetric ? Double(value) : Double(value) * 2.54)
+                },
+                onResetToAuto: current != nil ? { store.setValue(site, cm: nil) } : nil,
+                resetLabel: "Clear"
+            )
         }
         .sheet(isPresented: $showHistory) {
             AllBodyMeasurementsHistoryView(

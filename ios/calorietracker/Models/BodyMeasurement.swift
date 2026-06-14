@@ -111,6 +111,53 @@ struct BodyMeasurement: Identifiable, Codable, Equatable {
         }
     }
 
+    /// The eight circumference sites, in display order. Used to render the per-site editor rows.
+    enum Site: String, CaseIterable, Identifiable {
+        case neck, waist, hips, chest, upperArm, thigh, calf, wrist
+        var id: String { rawValue }
+        var label: String {
+            switch self {
+            case .neck: return "Neck"
+            case .waist: return "Waist"
+            case .hips: return "Hips"
+            case .chest: return "Chest"
+            case .upperArm: return "Upper Arm"
+            case .thigh: return "Thigh"
+            case .calf: return "Calf"
+            case .wrist: return "Wrist"
+            }
+        }
+    }
+
+    func value(for site: Site) -> Double? {
+        switch site {
+        case .neck: return neckCm
+        case .waist: return waistCm
+        case .hips: return hipsCm
+        case .chest: return chestCm
+        case .upperArm: return upperArmCm
+        case .thigh: return thighCm
+        case .calf: return calfCm
+        case .wrist: return wristCm
+        }
+    }
+
+    /// A copy with one site changed (same id + date — used for in-place daily updates).
+    func setting(_ site: Site, to cm: Double?) -> BodyMeasurement {
+        var copy = self
+        switch site {
+        case .neck: copy.neckCm = cm
+        case .waist: copy.waistCm = cm
+        case .hips: copy.hipsCm = cm
+        case .chest: copy.chestCm = cm
+        case .upperArm: copy.upperArmCm = cm
+        case .thigh: copy.thighCm = cm
+        case .calf: copy.calfCm = cm
+        case .wrist: copy.wristCm = cm
+        }
+        return copy
+    }
+
     /// Compact AI-prompt summary of the logged sites + derived metrics, always in cm for a single
     /// consistent unit. Returns nil when nothing is logged so callers can omit the section entirely.
     func promptSummary(gender: Gender, heightCm: Double) -> String? {

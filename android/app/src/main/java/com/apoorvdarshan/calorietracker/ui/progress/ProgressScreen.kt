@@ -35,6 +35,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -79,6 +80,7 @@ import com.apoorvdarshan.calorietracker.ui.components.FudGlassSurface
 import com.apoorvdarshan.calorietracker.ui.components.FudGlassTextButton
 import com.apoorvdarshan.calorietracker.ui.components.FudIconBubble
 import com.apoorvdarshan.calorietracker.ui.components.SplitDecimalWheelPicker
+import com.apoorvdarshan.calorietracker.ui.settings.NutritionPickerSheet
 import androidx.annotation.StringRes
 import com.apoorvdarshan.calorietracker.R
 import androidx.compose.ui.unit.dp
@@ -1322,162 +1324,6 @@ private fun measurementHistorySummary(m: BodyMeasurement, gender: Gender, height
     return (sites + listOfNotNull(bf)).joinToString(" · ")
 }
 
-@Composable
-private fun BodyMeasurementsCard(
-    latest: BodyMeasurement?,
-    totalCount: Int,
-    gender: Gender,
-    heightCm: Double,
-    useMetric: Boolean,
-    onLog: () -> Unit,
-    onHistory: () -> Unit
-) {
-    CardSection {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Body Measurements", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.weight(1f))
-                Row(modifier = Modifier.clickable(onClick = onLog), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.AddCircle, null, tint = AppColors.Calorie, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(if (latest == null) "Log" else "Update", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = AppColors.Calorie)
-                }
-            }
-            if (latest == null) {
-                Text(
-                    "Log tape-measure sizes — waist, hips, neck, and more. Fud AI turns them into waist-to-hip, waist-to-height, body-fat %, and frame size, and reads them when it recalculates your goals and in Coach.",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            } else {
-                derivedMetricList(latest, gender, heightCm).chunked(2).forEach { StatBadgeRow(it) }
-                val sites = measurementSiteList(latest)
-                if (sites.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        sites.chunked(2).forEach { pair ->
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                pair.forEach { (label, cm) ->
-                                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                                        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                                        Spacer(Modifier.weight(1f))
-                                        Text(displayLengthCm(cm, useMetric), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                    }
-                                }
-                                if (pair.size == 1) Spacer(Modifier.weight(1f))
-                            }
-                        }
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Logged ${measurementHistoryFmt.format(latest.date)}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    Spacer(Modifier.weight(1f))
-                    if (totalCount > 1) {
-                        Text("History", modifier = Modifier.clickable(onClick = onHistory), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.Calorie)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MeasurementField(label: String, unit: String, value: String, onChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text("$label ($unit)") },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddBodyMeasurementsSheet(
-    latest: BodyMeasurement?,
-    gender: Gender,
-    heightCm: Double,
-    useMetric: Boolean,
-    onDismiss: () -> Unit,
-    onSave: (BodyMeasurement) -> Unit
-) {
-    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val sheetSurface = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFAF3EE)
-    val unit = if (useMetric) "cm" else "in"
-
-    fun seed(cm: Double?): String {
-        if (cm == null) return ""
-        val v = if (useMetric) cm else cm / 2.54
-        return String.format(Locale.US, "%.1f", v)
-    }
-    var neck by remember { mutableStateOf(seed(latest?.neckCm)) }
-    var waist by remember { mutableStateOf(seed(latest?.waistCm)) }
-    var hips by remember { mutableStateOf(seed(latest?.hipsCm)) }
-    var chest by remember { mutableStateOf(seed(latest?.chestCm)) }
-    var upperArm by remember { mutableStateOf(seed(latest?.upperArmCm)) }
-    var thigh by remember { mutableStateOf(seed(latest?.thighCm)) }
-    var calf by remember { mutableStateOf(seed(latest?.calfCm)) }
-    var wrist by remember { mutableStateOf(seed(latest?.wristCm)) }
-
-    fun toCm(text: String): Double? {
-        val v = text.replace(",", ".").trim().toDoubleOrNull() ?: return null
-        if (v <= 0) return null
-        return if (useMetric) v else v * 2.54
-    }
-    val draft = BodyMeasurement(
-        neckCm = toCm(neck), waistCm = toCm(waist), hipsCm = toCm(hips), chestCm = toCm(chest),
-        upperArmCm = toCm(upperArm), thighCm = toCm(thigh), calfCm = toCm(calf), wristCm = toCm(wrist)
-    )
-    val derived = derivedMetricList(draft, gender, heightCm)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = state,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = sheetSurface
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(if (latest == null) "Log Measurements" else "Update Measurements", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                }
-            }
-            Text(
-                "Everything is optional — log only what you measure ($unit).",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-            MeasurementField("Neck", unit, neck) { neck = it }
-            MeasurementField("Waist", unit, waist) { waist = it }
-            MeasurementField("Hips", unit, hips) { hips = it }
-            MeasurementField("Chest", unit, chest) { chest = it }
-            MeasurementField("Upper arm", unit, upperArm) { upperArm = it }
-            MeasurementField("Thigh", unit, thigh) { thigh = it }
-            MeasurementField("Calf", unit, calf) { calf = it }
-            MeasurementField("Wrist", unit, wrist) { wrist = it }
-
-            if (derived.isNotEmpty()) {
-                Spacer(Modifier.height(2.dp))
-                derived.chunked(2).forEach { StatBadgeRow(it) }
-            }
-
-            FudGlassPrimaryButton(
-                text = stringResource(R.string.action_save),
-                onClick = { if (draft.hasAnyValue) onSave(draft) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(16.dp))
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BodyMeasurementsHistorySheet(
@@ -1538,9 +1384,9 @@ private fun BodyMeasurementsHistorySheet(
 }
 
 /**
- * Settings → Personal Info detail screen for body-circumference measurements. Lives in Settings
- * (not the Progress tab) so it sits with the other body inputs. Reuses the card + log/history
- * sheets and talks to BodyMeasurementRepository directly.
+ * Settings → Personal Info detail screen for body-circumference measurements. Mirrors the Other
+ * Nutrients screen: a tappable row per body part that opens a wheel picker to set its value, plus
+ * the AI-derived metrics and history. Talks to BodyMeasurementRepository directly.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1551,9 +1397,16 @@ fun BodyMeasurementsScreen(container: AppContainer, onBack: () -> Unit) {
     val useMetric by container.prefs.useMetric.collectAsState(initial = true)
     val gender = profile?.gender ?: Gender.MALE
     val heightCm = profile?.heightCm ?: 0.0
+    val latest = entries.maxByOrNull { it.date }
+    val unit = if (useMetric) "cm" else "in"
 
-    var showAdd by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<BodyMeasurement.Site?>(null) }
     var showHistory by remember { mutableStateOf(false) }
+
+    fun displayValue(site: BodyMeasurement.Site): String {
+        val cm = latest?.value(site) ?: return "Not set"
+        return if (useMetric) String.format(Locale.US, "%.0f cm", cm) else String.format(Locale.US, "%.0f in", cm / 2.54)
+    }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         LazyColumn(
@@ -1578,30 +1431,94 @@ fun BodyMeasurementsScreen(container: AppContainer, onBack: () -> Unit) {
             }
             item {
                 Text("Body Measurements", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Optional. Fud AI turns these into waist-to-hip, waist-to-height, body-fat %, and frame size, and reads them when it recalculates your goals and in Coach.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
             }
             item {
-                BodyMeasurementsCard(
-                    latest = entries.maxByOrNull { it.date },
-                    totalCount = entries.size,
-                    gender = gender,
-                    heightCm = heightCm,
-                    useMetric = useMetric,
-                    onLog = { showAdd = true },
-                    onHistory = { showHistory = true }
-                )
+                FudGlassSurface(modifier = Modifier.fillMaxWidth(), cornerRadius = 22.dp, padding = 0.dp) {
+                    Column {
+                        BodyMeasurement.Site.values().forEachIndexed { index, site ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable { editing = site }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(site.label, modifier = Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                                Text(displayValue(site), fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                Spacer(Modifier.width(6.dp))
+                                Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                            }
+                            if (index != BodyMeasurement.Site.values().lastIndex) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                            }
+                        }
+                    }
+                }
+            }
+            if (latest != null) {
+                val derived = derivedMetricList(latest, gender, heightCm)
+                if (derived.isNotEmpty()) {
+                    item {
+                        FudGlassSurface(modifier = Modifier.fillMaxWidth(), cornerRadius = 22.dp, padding = 16.dp) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Derived", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
+                                derived.forEach { (label, value) ->
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(label, modifier = Modifier.weight(1f), fontSize = 15.sp)
+                                        Text(value, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AppColors.Calorie)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (entries.size > 1) {
+                    item {
+                        FudGlassSurface(
+                            modifier = Modifier.fillMaxWidth().clickable { showHistory = true },
+                            cornerRadius = 16.dp,
+                            padding = 14.dp
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Measurement History", modifier = Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                                Text("${entries.size}", fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                Spacer(Modifier.width(6.dp))
+                                Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    if (showAdd) {
-        AddBodyMeasurementsSheet(
-            latest = entries.maxByOrNull { it.date },
-            gender = gender,
-            heightCm = heightCm,
-            useMetric = useMetric,
-            onDismiss = { showAdd = false },
-            onSave = { m -> scope.launch { container.bodyMeasurementRepository.addEntry(m) }; showAdd = false }
-        )
+    editing?.let { site ->
+        val current = latest?.value(site)
+        val currentDisplay = current?.let { if (useMetric) Math.round(it).toInt() else Math.round(it / 2.54).toInt() }
+        FudGlassDialog(onDismissRequest = { editing = null }) {
+            NutritionPickerSheet(
+                label = site.label,
+                unit = unit,
+                currentValue = currentDisplay ?: if (useMetric) 80 else 32,
+                range = if (useMetric) 10..250 else 4..100,
+                step = 1,
+                onSave = { v ->
+                    val cm = if (useMetric) v.toDouble() else v * 2.54
+                    scope.launch { container.bodyMeasurementRepository.setValue(site, cm) }
+                    editing = null
+                },
+                onResetToAuto = if (current != null) {
+                    { scope.launch { container.bodyMeasurementRepository.setValue(site, null) }; editing = null }
+                } else null,
+                resetLabel = "Clear"
+            )
+        }
     }
     if (showHistory) {
         BodyMeasurementsHistorySheet(

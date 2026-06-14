@@ -4,6 +4,8 @@ import com.apoorvdarshan.calorietracker.models.BodyMeasurement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 /**
@@ -28,6 +30,30 @@ class BodyMeasurementRepository(private val prefs: PreferencesStore) {
     suspend fun deleteEntry(id: UUID) {
         val current = prefs.bodyMeasurements.first()
         prefs.setBodyMeasurements(current.filter { it.id != id })
+    }
+
+    /**
+     * Set one site's value. Editing several sites the same day updates today's single snapshot;
+     * the first edit on a new day starts a fresh dated snapshot carrying the previous values
+     * forward (so the latest entry always holds the user's current full set). `null` clears a site.
+     */
+    suspend fun setValue(site: BodyMeasurement.Site, cm: Double?) {
+        val current = prefs.bodyMeasurements.first()
+        val latest = current.maxByOrNull { it.date }
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        if (latest != null && latest.date.atZone(zone).toLocalDate() == today) {
+            val updated = latest.setting(site, cm)
+            val rest = current.filter { it.id != latest.id }
+            prefs.setBodyMeasurements(if (updated.hasAnyValue) rest + updated else rest)
+        } else {
+            var fresh = BodyMeasurement()
+            if (latest != null) {
+                BodyMeasurement.Site.values().forEach { s -> fresh = fresh.setting(s, latest.value(s)) }
+            }
+            fresh = fresh.setting(site, cm)
+            if (fresh.hasAnyValue) prefs.setBodyMeasurements(current + fresh)
+        }
     }
 
     suspend fun replaceAll(entries: List<BodyMeasurement>) {
