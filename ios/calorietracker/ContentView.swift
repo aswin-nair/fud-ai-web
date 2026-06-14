@@ -826,14 +826,19 @@ struct HomeView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // Placeholder circular button to the LEFT of the "+" (first-declared trailing item
-                // sits leftmost). Will host the Delts promo later; for now it just shows the native
-                // Liquid Glass toolbar button so we can see it. No-op action for now.
+                // Delts cross-promo button to the LEFT of the "+" (first-declared trailing item sits
+                // leftmost). Native Liquid Glass toolbar button showing the Delts logo; opens its
+                // App Store page.
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         openURL(deltsAppStoreURL)
                     } label: {
-                        Image(systemName: "dumbbell.fill")
+                        Image("DeltsLogo")
+                            .renderingMode(.original)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
                     .accessibilityLabel("Delts Workout Tracker on the App Store")
                 }
