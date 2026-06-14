@@ -3938,11 +3938,8 @@ struct ProfileView: View {
                 Text(LocalizedDisplayText.text(label))
                     .foregroundStyle(.primary)
                 Spacer()
-                Text(pinned ? "\(value)g" : "\(value)g · auto")
+                Text("\(value)g")
                     .foregroundStyle(.secondary)
-                Image(systemName: pinned ? "lock.fill" : "lock.open")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(pinned ? AppColors.calorie : .secondary)
             }
         }
         .buttonStyle(.plain)
@@ -3993,8 +3990,8 @@ struct ProfileView: View {
             // Carbs and fat stay auto-balanced (unlocked) and absorb the remaining calories.
             profile.customCalories = result.calories
             profile.customProtein = result.protein
-            profile.customFat = nil
-            profile.customCarbs = nil
+            profile.customCarbs = result.carbs
+            profile.customFat = result.fat
             profile.autoBalanceMacro = nil
             saveProfile()
             markGoalsRecalculated()
@@ -4136,8 +4133,8 @@ struct ProfileView: View {
             AdaptiveGoalSettings.savePreviousTargetsIfNeeded(from: profile)
             profile.customCalories = result.calories
             profile.customProtein = result.protein
-            profile.customFat = nil
-            profile.customCarbs = nil
+            profile.customCarbs = result.carbs
+            profile.customFat = result.fat
             profile.autoBalanceMacro = nil
             saveProfile()
             markGoalsRecalculated()

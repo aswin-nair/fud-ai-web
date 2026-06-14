@@ -598,12 +598,15 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 )
                 return@launch
             }
-            // Apply the AI's calorie + protein targets. Protein is the AI's choice within a range
-            // near the activity multiplier (it can flex with the goal + history), not a rigid lock.
-            // Carbs and fat stay auto-balanced (unlocked) and absorb the rest.
+            // Store the AI's full plan as a fixed snapshot: calories + all three macros. Protein is
+            // the AI's choice within a range near the activity multiplier. Freezing carbs and fat too
+            // means editing a profile input (weight, pace, …) no longer reshuffles macros — they only
+            // change on the next Recalculate.
             val next = current.recalculatedFromFormulas().copy(
                 customCalories = result.calories,
-                customProtein = result.protein
+                customProtein = result.protein,
+                customCarbs = result.carbs,
+                customFat = result.fat
             )
             val message = "Updated to ${result.calories} kcal." + (result.reason?.let { " $it" } ?: "")
             container.profileRepository.save(next)

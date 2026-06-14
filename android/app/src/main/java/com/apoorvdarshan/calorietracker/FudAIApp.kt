@@ -168,7 +168,9 @@ class AppContainer(app: FudAIApp) {
             prefs.saveAdaptiveGoalPreviousTargetsIfNeeded(profile)
             val next = profile.recalculatedFromFormulas().copy(
                 customCalories = result.calories,
-                customProtein = result.protein
+                customProtein = result.protein,
+                customCarbs = result.carbs,
+                customFat = result.fat
             )
             profileRepository.save(next)
             return AdaptiveGoalResult(

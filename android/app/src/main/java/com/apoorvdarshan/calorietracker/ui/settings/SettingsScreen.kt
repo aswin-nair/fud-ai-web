@@ -2100,17 +2100,9 @@ private fun MacroSettingRow(
             fontWeight = FontWeight.Medium
         )
         Text(
-            if (pinned) "${value}g" else "${value}g · auto",
+            "${value}g",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-        Spacer(Modifier.width(8.dp))
-        Icon(
-            if (pinned) Icons.Filled.Lock else Icons.Outlined.LockOpen,
-            contentDescription = if (pinned) "Pinned" else "Auto",
-            tint = if (pinned) AppColors.Calorie
-                   else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            modifier = Modifier.size(16.dp)
         )
     }
 }

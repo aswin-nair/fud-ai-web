@@ -174,7 +174,7 @@ class FoodAnalysisService(
         // Energy Burn toggle: when on (and Health Connect has enough data) this measured
         // maintenance replaces the formula TDEE as the calorie anchor.
         val measuredSection = if (measuredTdee != null) {
-            "\nMEASURED ENERGY BURN — the user's REAL maintenance from Health Connect (14-day average of active + basal calories). Use THIS as the maintenance/TDEE anchor INSTEAD of the formula TDEE: $measuredTdee kcal/day. Apply the weight goal and weekly-change adjustment to this measured maintenance. Still sanity-check it against the observed weight trend. Keep protein at the formula value."
+            "\nMEASURED ENERGY BURN — the user's REAL maintenance from Health Connect (14-day average of active + basal calories). Use THIS as the maintenance/TDEE anchor INSTEAD of the formula TDEE: $measuredTdee kcal/day. Apply the weight goal and weekly-change adjustment to this measured maintenance. Still sanity-check it against the observed weight trend."
         } else ""
 
         val prompt = """
