@@ -16,6 +16,8 @@ enum CameraMode {
 
 private let fudAIAppStoreID = "6758935726"
 private let fudAIAppStoreURL = URL(string: "https://apps.apple.com/us/app/fud-ai-calorie-tracker/id6758935726")!
+// Cross-promo: the developer's workout app, opened from the Home toolbar button.
+private let deltsAppStoreURL = URL(string: "https://apps.apple.com/us/app/delts-workout-tracker/id6778653288")!
 
 private enum AppUpdateState: Equatable {
     case idle
@@ -556,6 +558,7 @@ struct ActivityShareSheet: UIViewControllerRepresentable {
 // MARK: - Home View (Main Dashboard)
 struct HomeView: View {
     @Environment(FoodStore.self) private var foodStore
+    @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
     @State private var showCamera = false
     @State private var showBarcodeScanner = false
@@ -823,6 +826,17 @@ struct HomeView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // Placeholder circular button to the LEFT of the "+" (first-declared trailing item
+                // sits leftmost). Will host the Delts promo later; for now it just shows the native
+                // Liquid Glass toolbar button so we can see it. No-op action for now.
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        openURL(deltsAppStoreURL)
+                    } label: {
+                        Image(systemName: "dumbbell.fill")
+                    }
+                    .accessibilityLabel("Delts Workout Tracker on the App Store")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                             Button(action: {
