@@ -36,7 +36,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.LocalDining
@@ -187,6 +189,8 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
     var showClearFoodDialog by remember { mutableStateOf(false) }
     var invalidGoalWeightMessage by remember { mutableStateOf<String?>(null) }
     var showMaxPinnedAlert by remember { mutableStateOf(false) }
+    var showRebalanceBlockedAlert by remember { mutableStateOf(false) }
+    var showAdaptiveLockHint by remember { mutableStateOf(false) }
     var permissionDeniedMessage by remember { mutableStateOf<String?>(null) }
     var showDefaultGramsInfo by remember { mutableStateOf(false) }
     var showHealthEnergyGoalsInfo by remember { mutableStateOf(false) }
@@ -386,38 +390,71 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
                         onChange = ::onHealthEnergyGoalsToggle
                     )
                     HorizontalDivider()
-                    // iOS shows "2452 kcal" with no chevron suffix on the Calories row.
-                    SettingRow(stringResource(R.string.settings_calories), stringResource(R.string.kcal_value_format, p.effectiveCalories), icon = Icons.Outlined.LocalFireDepartment) { sheet = SettingsSheet.CALORIES }
-                    HorizontalDivider()
-                    // Per-macro rows mirror iOS macroRow(): "{value}g · auto" suffix when
-                    // unpinned, "{value}g" when pinned, plus lock.fill / lock.open icon.
-                    // Max-2-pinned guard: tapping an unpinned macro when 2 are already
-                    // pinned shows the alert instead of opening the picker.
-                    val openMacro = { macro: AutoBalanceMacro, target: SettingsSheet ->
-                        val isPinned = p.isPinned(macro)
-                        if (!isPinned && p.pinnedCount >= 2) showMaxPinnedAlert = true
-                        else sheet = target
+                    // Lock controls are dimmed while Adaptive Goals is on — it auto-recalculates and
+                    // would overwrite any user lock. Tapping anything here explains that instead of
+                    // silently doing nothing.
+                    val lockEnabled = !ui.adaptiveGoalsEnabled
+                    val openGoal = { target: SettingsSheet ->
+                        if (ui.adaptiveGoalsEnabled) showAdaptiveLockHint = true else sheet = target
                     }
-                    MacroSettingRow(
+                    val toggleMacroLock = { macro: AutoBalanceMacro ->
+                        when {
+                            ui.adaptiveGoalsEnabled -> showAdaptiveLockHint = true
+                            !p.isMacroLocked(macro) && p.lockedMacros.size >= 2 -> showMaxPinnedAlert = true
+                            else -> vm.updateProfile { it.toggledMacroLock(macro) }
+                        }
+                    }
+                    val toggleCaloriesLock = {
+                        if (ui.adaptiveGoalsEnabled) showAdaptiveLockHint = true
+                        else vm.updateProfile { it.toggledCaloriesLock() }
+                    }
+                    LockableGoalRow(
+                        label = stringResource(R.string.settings_calories),
+                        value = stringResource(R.string.kcal_value_format, p.effectiveCalories),
+                        icon = Icons.Outlined.LocalFireDepartment,
+                        locked = p.caloriesLocked,
+                        lockEnabled = lockEnabled,
+                        onClick = { openGoal(SettingsSheet.CALORIES) },
+                        onToggleLock = toggleCaloriesLock
+                    )
+                    HorizontalDivider()
+                    LockableGoalRow(
                         label = stringResource(R.string.macro_protein),
-                        value = p.effectiveProtein,
-                        pinned = p.isPinned(AutoBalanceMacro.PROTEIN),
-                        onClick = { openMacro(AutoBalanceMacro.PROTEIN, SettingsSheet.PROTEIN) }
+                        value = "${p.effectiveProtein}g",
+                        icon = Icons.Outlined.DataUsage,
+                        locked = p.isMacroLocked(AutoBalanceMacro.PROTEIN),
+                        lockEnabled = lockEnabled,
+                        onClick = { openGoal(SettingsSheet.PROTEIN) },
+                        onToggleLock = { toggleMacroLock(AutoBalanceMacro.PROTEIN) }
                     )
                     HorizontalDivider()
-                    MacroSettingRow(
+                    LockableGoalRow(
                         label = stringResource(R.string.macro_carbs),
-                        value = p.effectiveCarbs,
-                        pinned = p.isPinned(AutoBalanceMacro.CARBS),
-                        onClick = { openMacro(AutoBalanceMacro.CARBS, SettingsSheet.CARBS) }
+                        value = "${p.effectiveCarbs}g",
+                        icon = Icons.Outlined.DataUsage,
+                        locked = p.isMacroLocked(AutoBalanceMacro.CARBS),
+                        lockEnabled = lockEnabled,
+                        onClick = { openGoal(SettingsSheet.CARBS) },
+                        onToggleLock = { toggleMacroLock(AutoBalanceMacro.CARBS) }
                     )
                     HorizontalDivider()
-                    MacroSettingRow(
+                    LockableGoalRow(
                         label = stringResource(R.string.macro_fat),
-                        value = p.effectiveFat,
-                        pinned = p.isPinned(AutoBalanceMacro.FAT),
-                        onClick = { openMacro(AutoBalanceMacro.FAT, SettingsSheet.FAT) }
+                        value = "${p.effectiveFat}g",
+                        icon = Icons.Outlined.DataUsage,
+                        locked = p.isMacroLocked(AutoBalanceMacro.FAT),
+                        lockEnabled = lockEnabled,
+                        onClick = { openGoal(SettingsSheet.FAT) },
+                        onToggleLock = { toggleMacroLock(AutoBalanceMacro.FAT) }
                     )
+                    if (ui.adaptiveGoalsEnabled) {
+                        Text(
+                            stringResource(R.string.settings_adaptive_locks_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                    }
                     HorizontalDivider()
                     SettingRow(
                         "Other Nutrient Goals",
@@ -675,7 +712,8 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
             ui = ui,
             vm = vm,
             onDismiss = { sheet = null },
-            onInvalidGoalWeight = { invalidGoalWeightMessage = it }
+            onInvalidGoalWeight = { invalidGoalWeightMessage = it },
+            onRebalanceBlocked = { showRebalanceBlockedAlert = true }
         )
     }
 
@@ -732,6 +770,34 @@ fun SettingsScreen(container: AppContainer, nav: NavHostController) {
             FudGlassDialogActions(
                 primaryText = stringResource(R.string.action_ok),
                 onPrimary = { showMaxPinnedAlert = false }
+            )
+        }
+    }
+
+    if (showRebalanceBlockedAlert) {
+        FudGlassDialog(onDismissRequest = { showRebalanceBlockedAlert = false }) {
+            Text(stringResource(R.string.settings_rebalance_blocked_title), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.settings_rebalance_blocked_message),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { showRebalanceBlockedAlert = false }
+            )
+        }
+    }
+
+    if (showAdaptiveLockHint) {
+        FudGlassDialog(onDismissRequest = { showAdaptiveLockHint = false }) {
+            Text(stringResource(R.string.settings_adaptive_locks_title), fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.settings_adaptive_locks_message),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+            )
+            FudGlassDialogActions(
+                primaryText = stringResource(R.string.action_ok),
+                onPrimary = { showAdaptiveLockHint = false }
             )
         }
     }
@@ -1032,7 +1098,8 @@ private fun SettingsSheets(
     ui: SettingsUiState,
     vm: SettingsViewModel,
     onDismiss: () -> Unit,
-    onInvalidGoalWeight: (String) -> Unit
+    onInvalidGoalWeight: (String) -> Unit,
+    onRebalanceBlocked: () -> Unit
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val invalidLoseMsg = stringResource(R.string.settings_invalid_goal_lose)
@@ -1315,7 +1382,7 @@ private fun SettingsSheets(
                     currentValue = ui.profile?.effectiveCalories ?: 2000,
                     range = 800..6000, step = 50,
                     onSave = { v ->
-                        vm.updateProfile { it.copy(customCalories = v) }
+                        vm.editCaloriesGoal(v)
                         onDismiss()
                     }
                 )
@@ -1324,14 +1391,11 @@ private fun SettingsSheets(
                     currentValue = ui.profile?.effectiveProtein ?: 0,
                     range = 10..500, step = 5,
                     onSave = { v ->
-                        vm.updateProfile { it.copy(customProtein = v) }
+                        vm.editMacroGoal(AutoBalanceMacro.PROTEIN, v) { onRebalanceBlocked() }
                         onDismiss()
                     },
-                    onResetToAuto = if (ui.profile?.isPinned(AutoBalanceMacro.PROTEIN) == true) {
-                        {
-                            vm.updateProfile { it.copy(customProtein = null) }
-                            onDismiss()
-                        }
+                    onResetToAuto = if (ui.profile?.isMacroLocked(AutoBalanceMacro.PROTEIN) == true) {
+                        { vm.resetMacroLock(AutoBalanceMacro.PROTEIN); onDismiss() }
                     } else null
                 )
                 SettingsSheet.CARBS -> NutritionPickerSheet(
@@ -1339,14 +1403,11 @@ private fun SettingsSheets(
                     currentValue = ui.profile?.effectiveCarbs ?: 0,
                     range = 0..800, step = 5,
                     onSave = { v ->
-                        vm.updateProfile { it.copy(customCarbs = v) }
+                        vm.editMacroGoal(AutoBalanceMacro.CARBS, v) { onRebalanceBlocked() }
                         onDismiss()
                     },
-                    onResetToAuto = if (ui.profile?.isPinned(AutoBalanceMacro.CARBS) == true) {
-                        {
-                            vm.updateProfile { it.copy(customCarbs = null) }
-                            onDismiss()
-                        }
+                    onResetToAuto = if (ui.profile?.isMacroLocked(AutoBalanceMacro.CARBS) == true) {
+                        { vm.resetMacroLock(AutoBalanceMacro.CARBS); onDismiss() }
                     } else null
                 )
                 SettingsSheet.FAT -> NutritionPickerSheet(
@@ -1354,14 +1415,11 @@ private fun SettingsSheets(
                     currentValue = ui.profile?.effectiveFat ?: 0,
                     range = 10..300, step = 5,
                     onSave = { v ->
-                        vm.updateProfile { it.copy(customFat = v) }
+                        vm.editMacroGoal(AutoBalanceMacro.FAT, v) { onRebalanceBlocked() }
                         onDismiss()
                     },
-                    onResetToAuto = if (ui.profile?.isPinned(AutoBalanceMacro.FAT) == true) {
-                        {
-                            vm.updateProfile { it.copy(customFat = null) }
-                            onDismiss()
-                        }
+                    onResetToAuto = if (ui.profile?.isMacroLocked(AutoBalanceMacro.FAT) == true) {
+                        { vm.resetMacroLock(AutoBalanceMacro.FAT); onDismiss() }
                     } else null
                 )
                 SettingsSheet.OPTIONAL_NUTRIENTS -> OptionalNutrientGoalsSheet(
@@ -2069,29 +2127,28 @@ private fun ActivityLevelSettingRow(
 }
 
 /**
- * Verbatim port of iOS `macroRow(label:icon:macro:value:sheet:)` in
- * ContentView.swift's ProfileView. Uses the DataUsage circle icon (matches
- * iOS circle.dotted) on the left, the macro label, and on the right
- *   "{value}g"             when pinned (custom value)
- *   "{value}g · auto"      when auto-balanced
- * followed by a lock icon — Filled.Lock (pink) when pinned, Outlined.LockOpen
- * (gray) when not.
+ * A goal row (calories or a macro). Tapping the row opens the value picker; tapping the trailing
+ * lock icon toggles the lock. Mirrors iOS `lockableGoalRow`: Filled.Lock (pink) when locked,
+ * Outlined.LockOpen (gray) when not. Lock controls are dimmed/disabled while Adaptive Goals is on.
  */
 @Composable
-private fun MacroSettingRow(
+private fun LockableGoalRow(
     label: String,
-    value: Int,
-    pinned: Boolean,
-    onClick: () -> Unit
+    value: String,
+    icon: ImageVector,
+    locked: Boolean,
+    lockEnabled: Boolean,
+    onClick: () -> Unit,
+    onToggleLock: () -> Unit
 ) {
     Row(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        FudIconBubble(icon = Icons.Outlined.DataUsage, size = 22.dp, iconSize = 14.dp)
+        FudIconBubble(icon = icon, size = 22.dp, iconSize = 14.dp)
         Spacer(Modifier.width(14.dp))
         Text(
             label,
@@ -2100,10 +2157,26 @@ private fun MacroSettingRow(
             fontWeight = FontWeight.Medium
         )
         Text(
-            "${value}g",
+            value,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
+        // Stays tappable while Adaptive is on so the tap can explain why locking is unavailable;
+        // [lockEnabled] only dims the tint to read as inactive.
+        IconButton(onClick = onToggleLock) {
+            Icon(
+                if (locked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
+                contentDescription = stringResource(
+                    if (locked) R.string.settings_macro_locked else R.string.settings_macro_unlocked
+                ),
+                tint = when {
+                    !lockEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                    locked -> AppColors.Calorie
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                },
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }
 

@@ -145,6 +145,14 @@ struct UserProfile: Codable, Equatable {
     var customFat: Int?
     var customCarbs: Int?
     var autoBalanceMacro: AutoBalanceMacro?
+    /// User lock over the calorie target. When locked, editing one macro holds this total fixed
+    /// (the other unlocked macros absorb the change) instead of letting calories float to the new
+    /// sum. Optional so old saves decode cleanly (nil → unlocked). Cleared by Recalculate/Adaptive.
+    var caloriesLocked: Bool? = nil
+    /// User locks over individual macros — at most two at once, so at least one always stays free
+    /// to balance. A locked macro is never auto-adjusted during a rebalance. Optional/`nil` for
+    /// back-compat (→ none locked). Cleared by Recalculate and the Adaptive auto-run.
+    var lockedMacros: Set<AutoBalanceMacro>? = nil
 
     var displayName: String {
         if let name, !name.isEmpty { return name }
@@ -310,14 +318,152 @@ struct UserProfile: Codable, Equatable {
         return parts.joined(separator: "|")
     }
 
+    // MARK: - User locks (a control layer on top of the stored custom* snapshot)
+
+    var isCaloriesLocked: Bool { caloriesLocked ?? false }
+    func isMacroLocked(_ macro: AutoBalanceMacro) -> Bool { lockedMacros?.contains(macro) ?? false }
+    var lockedMacroCount: Int { lockedMacros?.count ?? 0 }
+
+    /// Toggle a macro lock. At most two macros may be locked — at least one stays free to balance.
+    /// Returns false (and changes nothing) when trying to lock a third macro.
+    @discardableResult
+    mutating func toggleMacroLock(_ macro: AutoBalanceMacro) -> Bool {
+        var set = lockedMacros ?? []
+        if set.contains(macro) {
+            set.remove(macro)
+        } else {
+            guard set.count < 2 else { return false }
+            set.insert(macro)
+        }
+        lockedMacros = set.isEmpty ? nil : set
+        return true
+    }
+
+    mutating func toggleCaloriesLock() {
+        caloriesLocked = isCaloriesLocked ? nil : true
+    }
+
+    mutating func clearLocks() {
+        caloriesLocked = nil
+        lockedMacros = nil
+    }
+
+    private func effectiveGrams(_ macro: AutoBalanceMacro) -> Int {
+        switch macro {
+        case .protein: return effectiveProtein
+        case .carbs:   return effectiveCarbs
+        case .fat:     return effectiveFat
+        }
+    }
+
+    private mutating func setMacroGrams(_ macro: AutoBalanceMacro, _ grams: Int) {
+        let clamped = max(0, grams)
+        switch macro {
+        case .protein: customProtein = clamped
+        case .carbs:   customCarbs = clamped
+        case .fat:     customFat = clamped
+        }
+    }
+
+    /// Freeze the current effective values into the stored custom* fields so edits are explicit
+    /// (no hidden auto-balance). Snapshots all three macros before writing any, so writing one
+    /// doesn't shift another macro's auto value mid-materialization.
+    private mutating func materializeGoals() {
+        let p = effectiveProtein, c = effectiveCarbs, f = effectiveFat, cal = effectiveCalories
+        customProtein = p; customCarbs = c; customFat = f; customCalories = cal
+    }
+
+    /// Fill `macros` so their kcal sums to `targetKcal`, split proportional to each macro's current
+    /// kcal (falling back to formula weights when current is zero). The last macro absorbs the
+    /// rounding remainder so the group lands on target.
+    private mutating func distribute(_ targetKcal: Int, among macros: [AutoBalanceMacro]) {
+        guard !macros.isEmpty else { return }
+        let target = max(0, targetKcal)
+        let weights = macros.map { macro -> Double in
+            let current = Double(effectiveGrams(macro) * macro.kcalPerGram)
+            return current > 0 ? current : Double(max(1, formulaValue(macro) * macro.kcalPerGram))
+        }
+        let totalWeight = weights.reduce(0, +)
+        var assignedKcal = 0
+        for (index, macro) in macros.enumerated() {
+            if index == macros.count - 1 {
+                let kcal = max(0, target - assignedKcal)
+                setMacroGrams(macro, Int((Double(kcal) / Double(macro.kcalPerGram)).rounded()))
+            } else {
+                let share = totalWeight > 0
+                    ? Double(target) * weights[index] / totalWeight
+                    : Double(target) / Double(macros.count)
+                let grams = Int((share / Double(macro.kcalPerGram)).rounded())
+                setMacroGrams(macro, grams)
+                assignedKcal += grams * macro.kcalPerGram
+            }
+        }
+    }
+
+    /// User edited the calorie target directly. Hold any locked macros fixed and rescale the
+    /// unlocked macros to fill the new total. (Max two macros lock, so one always absorbs.)
+    mutating func applyCaloriesEdit(_ newCalories: Int) {
+        materializeGoals()
+        let target = max(0, newCalories)
+        let lockedKcal = AutoBalanceMacro.allCases
+            .filter { isMacroLocked($0) }
+            .reduce(0) { $0 + effectiveGrams($1) * $1.kcalPerGram }
+        let unlocked = AutoBalanceMacro.allCases.filter { !isMacroLocked($0) }
+        distribute(target - lockedKcal, among: unlocked)
+        customCalories = target
+    }
+
+    /// User edited one macro. When calories is locked, hold the calorie total fixed and let the
+    /// other unlocked macros absorb the change — returns false (changes nothing) if neither other
+    /// macro can absorb (both locked). When calories is unlocked, the macro simply takes the new
+    /// value and calories floats to the new sum.
+    @discardableResult
+    mutating func applyMacroEdit(_ macro: AutoBalanceMacro, grams newGrams: Int) -> Bool {
+        materializeGoals()
+        let requested = max(0, newGrams)
+        if isCaloriesLocked {
+            let absorbers = AutoBalanceMacro.allCases.filter { $0 != macro && !isMacroLocked($0) }
+            guard !absorbers.isEmpty else { return false }
+            let otherLockedKcal = AutoBalanceMacro.allCases
+                .filter { $0 != macro && isMacroLocked($0) }
+                .reduce(0) { $0 + effectiveGrams($1) * $1.kcalPerGram }
+            let available = max(0, effectiveCalories - otherLockedKcal)
+            let macroKcal = min(requested * macro.kcalPerGram, available)
+            setMacroGrams(macro, macroKcal / macro.kcalPerGram)
+            distribute(available - macroKcal, among: absorbers)
+            // customCalories stays put — calories is locked.
+            return true
+        } else {
+            setMacroGrams(macro, requested)
+            customCalories = AutoBalanceMacro.allCases.reduce(0) { $0 + effectiveGrams($1) * $1.kcalPerGram }
+            return true
+        }
+    }
+
+    /// Release a macro's lock and reset it to the balancing remainder: it absorbs whatever calories
+    /// the other two macros leave, so the macros sum back to the calorie total. This is the "Reset
+    /// to Auto-balance" action — turns the lock off and re-derives the value.
+    mutating func resetMacroToBalance(_ macro: AutoBalanceMacro) {
+        materializeGoals()
+        if var set = lockedMacros {
+            set.remove(macro)
+            lockedMacros = set.isEmpty ? nil : set
+        }
+        let othersKcal = AutoBalanceMacro.allCases
+            .filter { $0 != macro }
+            .reduce(0) { $0 + effectiveGrams($1) * $1.kcalPerGram }
+        setMacroGrams(macro, max(0, effectiveCalories - othersKcal) / macro.kcalPerGram)
+    }
+
     /// Recompute calories from weight/activity/goal formulas and reset all three macros to auto.
-    /// User can pin individual macros afterwards (max 2).
+    /// Clears every user lock — a fresh calculation starts unlocked.
     mutating func recalculateGoalsFromFormulas() {
         customCalories = dailyCalories
         customProtein = nil
         customFat = nil
         customCarbs = nil
         autoBalanceMacro = nil
+        clearLocks()
     }
 
     static let `default` = UserProfile(

@@ -2947,13 +2947,17 @@ struct ProfileView: View {
                             }
                     }
 
-                    ProfileInfoRow(icon: "flame", label: "Calories", value: "\(profile.effectiveCalories) kcal") {
-                        activeSheet = .editCalories
-                    }
+                    lockableGoalRow(icon: "flame", label: "Calories", valueText: "\(profile.effectiveCalories) kcal", macro: nil, sheet: .editCalories)
 
-                    macroRow(label: "Protein", icon: "p.circle", macro: .protein, value: profile.effectiveProtein, sheet: .editProtein)
-                    macroRow(label: "Carbs", icon: "c.circle", macro: .carbs, value: profile.effectiveCarbs, sheet: .editCarbs)
-                    macroRow(label: "Fat", icon: "f.circle", macro: .fat, value: profile.effectiveFat, sheet: .editFat)
+                    lockableGoalRow(icon: "p.circle", label: "Protein", valueText: "\(profile.effectiveProtein)g", macro: .protein, sheet: .editProtein)
+                    lockableGoalRow(icon: "c.circle", label: "Carbs", valueText: "\(profile.effectiveCarbs)g", macro: .carbs, sheet: .editCarbs)
+                    lockableGoalRow(icon: "f.circle", label: "Fat", valueText: "\(profile.effectiveFat)g", macro: .fat, sheet: .editFat)
+
+                    if adaptiveGoalsEnabled {
+                        Text("Adaptive Goals is on — turn it off to lock or set your own calories and macros.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
                     NavigationLink {
                         OptionalNutrientGoalsSettingsView(profile: profile, useMetric: useMetric)
@@ -3771,8 +3775,7 @@ struct ProfileView: View {
 
                 case .editCalories:
                     NutritionPickerSheet(label: "Calories", unit: "kcal", currentValue: profile.effectiveCalories, range: 800...6000, step: 50) { value in
-                        profile.customCalories = value
-                        saveProfile()
+                        setCalories(to: value)
                     }
 
                 case .editProtein:
@@ -3781,7 +3784,7 @@ struct ProfileView: View {
                         currentValue: profile.effectiveProtein,
                         range: 10...500, step: 5,
                         onSave: { setMacro(.protein, to: $0) },
-                        onResetToAuto: profile.isPinned(.protein) ? { setMacro(.protein, to: nil) } : nil
+                        onResetToAuto: profile.isMacroLocked(.protein) ? { resetMacroLock(.protein) } : nil
                     )
 
                 case .editCarbs:
@@ -3790,7 +3793,7 @@ struct ProfileView: View {
                         currentValue: profile.effectiveCarbs,
                         range: 0...800, step: 5,
                         onSave: { setMacro(.carbs, to: $0) },
-                        onResetToAuto: profile.isPinned(.carbs) ? { setMacro(.carbs, to: nil) } : nil
+                        onResetToAuto: profile.isMacroLocked(.carbs) ? { resetMacroLock(.carbs) } : nil
                     )
 
                 case .editFat:
@@ -3799,7 +3802,7 @@ struct ProfileView: View {
                         currentValue: profile.effectiveFat,
                         range: 10...300, step: 5,
                         onSave: { setMacro(.fat, to: $0) },
-                        onResetToAuto: profile.isPinned(.fat) ? { setMacro(.fat, to: nil) } : nil
+                        onResetToAuto: profile.isMacroLocked(.fat) ? { resetMacroLock(.fat) } : nil
                     )
 
                 }
@@ -3847,15 +3850,15 @@ struct ProfileView: View {
                     markGoalsRecalculated()
                 }
             }
-            .alert("Auto-balanced", isPresented: $showAutoMacroEditAlert) {
+            .alert("Can't Rebalance", isPresented: $showAutoMacroEditAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("This macro is auto-balanced from the others. Tap the lock icon to pin it, then tap the row to set a custom value.")
+                Text("Calories is locked and both other macros are locked, so there's nothing left to absorb this change. Unlock calories or another macro, then try again.")
             }
-            .alert("Max 2 Pinned", isPresented: $showMaxPinnedAlert) {
+            .alert("Max 2 Macros Locked", isPresented: $showMaxPinnedAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("At most 2 macros can be pinned at a time. Unpin another macro first (tap its lock icon).")
+                Text("At most 2 macros can be locked at a time, so one stays free to balance. Unlock another macro first (tap its lock icon).")
             }
             .alert("Invalid Goal Weight", isPresented: $showInvalidGoalWeightAlert) {
                 Button("OK", role: .cancel) { }
@@ -3917,41 +3920,103 @@ struct ProfileView: View {
         UserDefaults.standard.set(profile.goalInputSignature, forKey: Self.lastRecalcGoalSignatureKey)
     }
 
-    /// Macro row. Tap to open the picker (which lets the user enter a value to pin, or reset to auto).
-    /// "(auto)" suffix when the macro is unpinned. Lock icon shows current pin state.
+    /// A goal row (calories or a macro). Tap the row to edit the value; tap the lock icon to lock it.
+    /// Locking a macro keeps it fixed during a rebalance; locking calories holds the calorie total
+    /// when a macro is edited. Lock controls are disabled while Adaptive Goals is on (it auto-
+    /// recalculates and would overwrite). `macro == nil` means the calories row.
     @ViewBuilder
-    private func macroRow(label: String, icon: String, macro: AutoBalanceMacro, value: Int, sheet: ActiveSheet) -> some View {
-        let pinned = profile.isPinned(macro)
-        Button {
-            // Enforce max-2 only at the moment of trying to pin a NEW macro.
-            // Opening the picker on an already-pinned macro is fine; opening on an auto macro
-            // is also fine since user might just want to view + tap "Reset to Auto" to no-op.
-            if !pinned && profile.pinnedCount >= 2 {
-                showMaxPinnedAlert = true
-            } else {
-                activeSheet = sheet
+    private func lockableGoalRow(icon: String, label: String, valueText: String, macro: AutoBalanceMacro?, sheet: ActiveSheet) -> some View {
+        let locked = macro.map { profile.isMacroLocked($0) } ?? profile.isCaloriesLocked
+        HStack(spacing: 12) {
+            Button {
+                // While Adaptive owns the targets, editing is futile (it overwrites weekly) — explain
+                // instead of silently opening a picker whose value won't stick.
+                if adaptiveGoalsEnabled {
+                    showAdaptiveGoalsLockHint()
+                } else {
+                    activeSheet = sheet
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: icon)
+                        .foregroundStyle(AppColors.calorie)
+                        .frame(width: 22)
+                    Text(LocalizedDisplayText.text(label))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text(valueText)
+                        .foregroundStyle(.secondary)
+                }
             }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .foregroundStyle(AppColors.calorie)
-                    .frame(width: 22)
-                Text(LocalizedDisplayText.text(label))
-                    .foregroundStyle(.primary)
-                Spacer()
-                Text("\(value)g")
-                    .foregroundStyle(.secondary)
+            .buttonStyle(.plain)
+
+            Button {
+                toggleLock(macro)
+            } label: {
+                Image(systemName: locked ? "lock.fill" : "lock.open")
+                    .font(.footnote)
+                    .foregroundStyle(locked ? AppColors.calorie : .secondary)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            // Stays tappable while Adaptive is on so the tap can explain why locking is unavailable;
+            // dimmed to read as inactive.
+            .opacity(adaptiveGoalsEnabled ? 0.3 : 1)
+            .accessibilityLabel(locked ? "Locked" : "Unlocked")
         }
-        .buttonStyle(.plain)
     }
 
-    private func setMacro(_ macro: AutoBalanceMacro, to value: Int?) {
-        switch macro {
-        case .protein: profile.customProtein = value
-        case .carbs:   profile.customCarbs   = value
-        case .fat:     profile.customFat     = value
+    /// Toggle a lock from the row's lock icon (mainly used to *release* a value back to balancing —
+    /// saving a value already locks it). `macro == nil` toggles the calories lock. Explains itself
+    /// while Adaptive Goals is on; a third macro lock surfaces the "max 2 locked" alert.
+    private func toggleLock(_ macro: AutoBalanceMacro?) {
+        guard !adaptiveGoalsEnabled else { showAdaptiveGoalsLockHint(); return }
+        if let macro {
+            guard profile.toggleMacroLock(macro) else {
+                showMaxPinnedAlert = true
+                return
+            }
+        } else {
+            profile.toggleCaloriesLock()
         }
+        saveProfile()
+    }
+
+    /// Explain why the goals section is read-only while Adaptive Goals owns the targets.
+    private func showAdaptiveGoalsLockHint() {
+        showAdaptiveGoalAlert(
+            title: "Adaptive Goals Is On",
+            message: "Turn off Adaptive Goals to lock or set your own calories and macros. While it's on, Fud AI recalculates them for you each week."
+        )
+    }
+
+    /// Apply a calorie edit: locked macros stay, unlocked macros rescale to the new total. Saving a
+    /// value the user chose locks it (the lock icon then releases it).
+    private func setCalories(to value: Int) {
+        profile.applyCaloriesEdit(value)
+        profile.caloriesLocked = true
+        saveProfile()
+    }
+
+    /// Apply a macro edit through the rebalance engine, then lock the macro the user just set
+    /// (honoring the max-2 cap — silently left unlocked if two macros are already locked). When
+    /// calories is locked and neither other macro can absorb the change, the edit is rejected.
+    private func setMacro(_ macro: AutoBalanceMacro, to value: Int) {
+        guard profile.applyMacroEdit(macro, grams: value) else {
+            showAutoMacroEditAlert = true
+            return
+        }
+        if !profile.isMacroLocked(macro) {
+            _ = profile.toggleMacroLock(macro)
+        }
+        saveProfile()
+    }
+
+    /// "Reset to Auto-balance" from the picker: release the macro's lock and re-derive it as the
+    /// balancing remainder.
+    private func resetMacroLock(_ macro: AutoBalanceMacro) {
+        profile.resetMacroToBalance(macro)
         saveProfile()
     }
 
@@ -3994,6 +4059,7 @@ struct ProfileView: View {
             profile.customCarbs = result.carbs
             profile.customFat = result.fat
             profile.autoBalanceMacro = nil
+            profile.clearLocks()
             saveProfile()
             markGoalsRecalculated()
         } catch {
@@ -4088,6 +4154,12 @@ struct ProfileView: View {
 
     private func handleAdaptiveGoalsToggle(_ enabled: Bool, wasEnabled: Bool) {
         if enabled {
+            // Adaptive owns the targets while on and auto-recalculates — clear any user locks now so
+            // the (disabled) lock controls read as unlocked, even before the weekly run lands.
+            if profile.isCaloriesLocked || profile.lockedMacroCount > 0 {
+                profile.clearLocks()
+                saveProfile()
+            }
             Task { await applyAdaptiveGoalsIfDue(force: !wasEnabled, showAlert: true) }
         } else {
             if AdaptiveGoalSettings.restorePreviousTargets(to: &profile) {
@@ -4158,6 +4230,7 @@ struct ProfileView: View {
             profile.customCarbs = result.carbs
             profile.customFat = result.fat
             profile.autoBalanceMacro = nil
+            profile.clearLocks()
             saveProfile()
             markGoalsRecalculated()
             AdaptiveGoalSettings.markCheckedToday()

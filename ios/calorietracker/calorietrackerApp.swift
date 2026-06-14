@@ -345,6 +345,7 @@ struct calorietrackerApp: App {
                 next.customCarbs = result.carbs
                 next.customFat = result.fat
                 next.autoBalanceMacro = nil
+                next.clearLocks()
                 next.save()
                 AdaptiveGoalSettings.markCheckedToday()
             } catch {

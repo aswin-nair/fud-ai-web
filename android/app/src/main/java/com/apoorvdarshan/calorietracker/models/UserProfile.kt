@@ -28,7 +28,15 @@ data class UserProfile(
     val customProtein: Int? = null,
     val customFat: Int? = null,
     val customCarbs: Int? = null,
-    val autoBalanceMacro: AutoBalanceMacro? = null
+    val autoBalanceMacro: AutoBalanceMacro? = null,
+    /** User lock over the calorie target. When locked, editing one macro holds this total fixed
+     *  (the other unlocked macros absorb the change) instead of letting calories float to the new
+     *  sum. Defaults false for back-compat. Cleared by Recalculate and the Adaptive auto-run. */
+    val caloriesLocked: Boolean = false,
+    /** User locks over individual macros — at most two at once, so at least one stays free to
+     *  balance. A locked macro is never auto-adjusted during a rebalance. Defaults empty for
+     *  back-compat. Cleared by Recalculate and the Adaptive auto-run. */
+    val lockedMacros: Set<AutoBalanceMacro> = emptySet()
 ) {
     val displayName: String get() = name?.takeIf { it.isNotEmpty() } ?: "User"
 
@@ -142,16 +150,138 @@ data class UserProfile(
         weeklyChangeKg, goalWeightKg, bodyFatPercentage, useBodyFatInBMR
     ).joinToString("|")
 
+    // -- User locks (a control layer on top of the stored custom* snapshot) -----------------
+
+    fun isMacroLocked(macro: AutoBalanceMacro): Boolean = macro in lockedMacros
+
+    /** Toggle a macro lock. At most two macros may be locked — at least one stays free to balance.
+     *  Returns the original (unchanged) profile when trying to lock a third macro. */
+    fun toggledMacroLock(macro: AutoBalanceMacro): UserProfile = when {
+        macro in lockedMacros -> copy(lockedMacros = lockedMacros - macro)
+        lockedMacros.size >= 2 -> this
+        else -> copy(lockedMacros = lockedMacros + macro)
+    }
+
+    fun toggledCaloriesLock(): UserProfile = copy(caloriesLocked = !caloriesLocked)
+
+    fun withLocksCleared(): UserProfile = copy(caloriesLocked = false, lockedMacros = emptySet())
+
+    private fun effectiveGrams(macro: AutoBalanceMacro): Int = when (macro) {
+        AutoBalanceMacro.PROTEIN -> effectiveProtein
+        AutoBalanceMacro.CARBS -> effectiveCarbs
+        AutoBalanceMacro.FAT -> effectiveFat
+    }
+
+    /** Freeze current effective values into the stored custom* fields so edits are explicit
+     *  (no hidden auto-balance). Snapshots all three macros before writing, so writing one
+     *  doesn't shift another's auto value mid-materialization. */
+    private fun materialized(): UserProfile = copy(
+        customCalories = effectiveCalories,
+        customProtein = effectiveProtein,
+        customCarbs = effectiveCarbs,
+        customFat = effectiveFat
+    )
+
+    /** Distribute [targetKcal] over [macros], split proportional to each macro's current kcal
+     *  (falling back to formula weights when current is zero). The last macro absorbs the rounding
+     *  remainder. Returns gram values keyed by macro. */
+    private fun distribute(targetKcal: Int, macros: List<AutoBalanceMacro>): Map<AutoBalanceMacro, Int> {
+        if (macros.isEmpty()) return emptyMap()
+        val target = maxOf(0, targetKcal)
+        val weights = macros.map { m ->
+            val current = (effectiveGrams(m) * m.kcalPerGram).toDouble()
+            if (current > 0) current else maxOf(1, formulaValue(m) * m.kcalPerGram).toDouble()
+        }
+        val totalWeight = weights.sum()
+        val result = mutableMapOf<AutoBalanceMacro, Int>()
+        var assignedKcal = 0
+        macros.forEachIndexed { index, m ->
+            if (index == macros.lastIndex) {
+                val kcal = maxOf(0, target - assignedKcal)
+                result[m] = Math.round(kcal.toDouble() / m.kcalPerGram).toInt()
+            } else {
+                val share = if (totalWeight > 0) target * weights[index] / totalWeight
+                            else target.toDouble() / macros.size
+                val grams = Math.round(share / m.kcalPerGram).toInt()
+                result[m] = grams
+                assignedKcal += grams * m.kcalPerGram
+            }
+        }
+        return result
+    }
+
+    private fun withMacroGrams(updates: Map<AutoBalanceMacro, Int>): UserProfile = copy(
+        customProtein = updates[AutoBalanceMacro.PROTEIN]?.let { maxOf(0, it) } ?: customProtein,
+        customCarbs = updates[AutoBalanceMacro.CARBS]?.let { maxOf(0, it) } ?: customCarbs,
+        customFat = updates[AutoBalanceMacro.FAT]?.let { maxOf(0, it) } ?: customFat
+    )
+
+    /** User edited the calorie target directly. Hold any locked macros fixed and rescale the
+     *  unlocked macros to fill the new total. (Max two macros lock, so one always absorbs.) */
+    fun applyCaloriesEdit(newCalories: Int): UserProfile {
+        val base = materialized()
+        val target = maxOf(0, newCalories)
+        val lockedKcal = AutoBalanceMacro.values()
+            .filter { base.isMacroLocked(it) }
+            .sumOf { base.effectiveGrams(it) * it.kcalPerGram }
+        val unlocked = AutoBalanceMacro.values().filter { !base.isMacroLocked(it) }
+        return base
+            .withMacroGrams(base.distribute(target - lockedKcal, unlocked))
+            .copy(customCalories = target)
+    }
+
+    /** User edited one macro. When calories is locked, hold the calorie total fixed and let the
+     *  other unlocked macros absorb the change — returns null (no change) if neither other macro
+     *  can absorb (both locked). When calories is unlocked, the macro takes the new value and
+     *  calories floats to the new sum. */
+    fun applyMacroEdit(macro: AutoBalanceMacro, newGrams: Int): UserProfile? {
+        val base = materialized()
+        val requested = maxOf(0, newGrams)
+        if (caloriesLocked) {
+            val absorbers = AutoBalanceMacro.values().filter { it != macro && !base.isMacroLocked(it) }
+            if (absorbers.isEmpty()) return null
+            val otherLockedKcal = AutoBalanceMacro.values()
+                .filter { it != macro && base.isMacroLocked(it) }
+                .sumOf { base.effectiveGrams(it) * it.kcalPerGram }
+            val available = maxOf(0, base.effectiveCalories - otherLockedKcal)
+            val macroKcal = minOf(requested * macro.kcalPerGram, available)
+            return base
+                .withMacroGrams(mapOf(macro to macroKcal / macro.kcalPerGram))
+                .withMacroGrams(base.distribute(available - macroKcal, absorbers))
+            // customCalories stays put — calories is locked.
+        } else {
+            val edited = base.withMacroGrams(mapOf(macro to requested))
+            val newTotal = AutoBalanceMacro.values().sumOf { edited.effectiveGrams(it) * it.kcalPerGram }
+            return edited.copy(customCalories = newTotal)
+        }
+    }
+
+    /** Release a macro's lock and reset it to the balancing remainder: it absorbs whatever calories
+     *  the other two macros leave, so the macros sum back to the calorie total. This is the "Reset
+     *  to Auto-balance" action — turns the lock off and re-derives the value. */
+    fun resetMacroToBalance(macro: AutoBalanceMacro): UserProfile {
+        val base = materialized()
+        val othersKcal = AutoBalanceMacro.values()
+            .filter { it != macro }
+            .sumOf { base.effectiveGrams(it) * it.kcalPerGram }
+        val grams = maxOf(0, base.effectiveCalories - othersKcal) / macro.kcalPerGram
+        return base
+            .copy(lockedMacros = lockedMacros - macro)
+            .withMacroGrams(mapOf(macro to grams))
+    }
+
     /**
-     * Returns a copy with calories recomputed from formulas and all three macros reset to auto.
-     * User can pin individual macros afterwards (max 2).
+     * Returns a copy with calories recomputed from formulas, all three macros reset to auto, and
+     * every user lock cleared — a fresh calculation starts unlocked.
      */
     fun recalculatedFromFormulas(): UserProfile = copy(
         customCalories = dailyCalories,
         customProtein = null,
         customFat = null,
         customCarbs = null,
-        autoBalanceMacro = null
+        autoBalanceMacro = null,
+        caloriesLocked = false,
+        lockedMacros = emptySet()
     )
 
     companion object {

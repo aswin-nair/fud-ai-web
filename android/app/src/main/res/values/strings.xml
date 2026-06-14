@@ -580,8 +580,15 @@
     <string name="settings_clear_food_message">Wipes all food entries and photos. Profile, weights, and settings stay.</string>
     <string name="settings_delete_all_title">Delete all local data?</string>
     <string name="settings_delete_all_message">Wipes profile, food log, weight history, chat, and API keys, then takes you back to onboarding. Health Connect data stays intact.</string>
-    <string name="settings_max_pinned_title">Max 2 Pinned</string>
-    <string name="settings_max_pinned_message">At most 2 macros can be pinned at a time. Unpin another macro first by opening it and tapping Reset to Auto-balance.</string>
+    <string name="settings_max_pinned_title">Max 2 Macros Locked</string>
+    <string name="settings_max_pinned_message">At most 2 macros can be locked at a time, so one stays free to balance. Unlock another macro first (tap its lock icon).</string>
+    <string name="settings_macro_locked">Locked</string>
+    <string name="settings_macro_unlocked">Unlocked</string>
+    <string name="settings_rebalance_blocked_title">Can\'t Rebalance</string>
+    <string name="settings_rebalance_blocked_message">Calories is locked and both other macros are locked, so there\'s nothing left to absorb this change. Unlock calories or another macro, then try again.</string>
+    <string name="settings_adaptive_locks_title">Adaptive Goals Is On</string>
+    <string name="settings_adaptive_locks_message">Turn off Adaptive Goals to lock or set your own calories and macros. While it\'s on, Fud AI recalculates them for you each week.</string>
+    <string name="settings_adaptive_locks_hint">Adaptive Goals is on — turn it off to lock or set your own calories and macros.</string>
     <string name="settings_recalc_title">Recalculate goals?</string>
     <string name="settings_recalc_message">Resets calories and macros to formula defaults from your height/weight/activity/goal. Any pinned macros are cleared.</string>
     <string name="settings_recalc_confirm">Recalculate</string>

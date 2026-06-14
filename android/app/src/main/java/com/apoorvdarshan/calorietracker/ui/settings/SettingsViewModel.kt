@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.apoorvdarshan.calorietracker.AppContainer
 import com.apoorvdarshan.calorietracker.models.AIProvider
+import com.apoorvdarshan.calorietracker.models.AutoBalanceMacro
 import com.apoorvdarshan.calorietracker.models.OptionalNutrientGoals
 import com.apoorvdarshan.calorietracker.models.SpeechLanguage
 import com.apoorvdarshan.calorietracker.models.SpeechProvider
@@ -512,6 +513,13 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
                 adaptiveGoalsEnabled = true,
                 applyingAdaptiveGoals = true
             )
+            // Adaptive owns the targets while on and auto-recalculates — drop any user locks now so
+            // the (disabled) lock controls read as unlocked, even before the first weekly run lands.
+            container.profileRepository.current()?.let { cur ->
+                if (cur.caloriesLocked || cur.lockedMacros.isNotEmpty()) {
+                    container.profileRepository.save(cur.withLocksCleared())
+                }
+            }
             val result = container.refreshAdaptiveGoalsIfNeeded(force = true)
             _ui.value = _ui.value.copy(
                 profile = result?.profile ?: container.profileRepository.current() ?: _ui.value.profile,
@@ -664,6 +672,36 @@ class SettingsViewModel(val container: AppContainer) : ViewModel() {
             container.profileRepository.save(next)
             _ui.value = _ui.value.copy(profile = next, goalsNeedRecalc = needsRecalc(next))
         }
+    }
+
+    /** Applies a calorie-goal edit: locked macros stay, unlocked macros rescale to the new total.
+     *  Saving a value the user chose locks it (the lock icon / Reset button then releases it). */
+    fun editCaloriesGoal(newCalories: Int) {
+        updateProfile { it.applyCaloriesEdit(newCalories).copy(caloriesLocked = true) }
+    }
+
+    /** Applies a macro-goal edit through the rebalance engine, then locks the macro the user just
+     *  set (honoring the max-2 cap — silently left unlocked if two macros are already locked).
+     *  Invokes [onBlocked] and changes nothing when calories is locked and neither other macro can
+     *  absorb the change (both locked). */
+    fun editMacroGoal(macro: AutoBalanceMacro, newGrams: Int, onBlocked: () -> Unit) {
+        viewModelScope.launch {
+            val current = container.profileRepository.current() ?: return@launch
+            val rebalanced = current.applyMacroEdit(macro, newGrams)
+            if (rebalanced == null) {
+                onBlocked()
+                return@launch
+            }
+            val next = if (rebalanced.isMacroLocked(macro)) rebalanced else rebalanced.toggledMacroLock(macro)
+            container.profileRepository.save(next)
+            _ui.value = _ui.value.copy(profile = next, goalsNeedRecalc = needsRecalc(next))
+        }
+    }
+
+    /** "Reset to Auto-balance" from the picker: release the macro's lock and re-derive it as the
+     *  balancing remainder. */
+    fun resetMacroLock(macro: AutoBalanceMacro) {
+        updateProfile { it.resetMacroToBalance(macro) }
     }
 
     fun setCustomBaseUrl(provider: AIProvider, url: String) {
