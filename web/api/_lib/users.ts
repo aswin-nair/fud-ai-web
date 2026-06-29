@@ -1,4 +1,4 @@
-import { getDb } from './db.js'
+import { getDb, asRows } from './db.js'
 import { hashPassword, verifyPassword } from './password.js'
 import type { SessionClaims } from './jwt.js'
 
@@ -25,20 +25,24 @@ function toSession(user: DbUser): SessionClaims {
 
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
   const sql = getDb()
-  const rows = await sql`SELECT * FROM users WHERE email = ${email.toLowerCase()} LIMIT 1`
-  return (rows[0] as DbUser | undefined) ?? null
+  const rows = asRows<DbUser>(
+    await sql`SELECT * FROM users WHERE email = ${email.toLowerCase()} LIMIT 1`,
+  )
+  return rows[0] ?? null
 }
 
 export async function findUserById(id: string): Promise<DbUser | null> {
   const sql = getDb()
-  const rows = await sql`SELECT * FROM users WHERE id = ${id}::uuid LIMIT 1`
-  return (rows[0] as DbUser | undefined) ?? null
+  const rows = asRows<DbUser>(await sql`SELECT * FROM users WHERE id = ${id}::uuid LIMIT 1`)
+  return rows[0] ?? null
 }
 
 export async function findUserByExternalSub(externalSub: string): Promise<DbUser | null> {
   const sql = getDb()
-  const rows = await sql`SELECT * FROM users WHERE external_sub = ${externalSub} LIMIT 1`
-  return (rows[0] as DbUser | undefined) ?? null
+  const rows = asRows<DbUser>(
+    await sql`SELECT * FROM users WHERE external_sub = ${externalSub} LIMIT 1`,
+  )
+  return rows[0] ?? null
 }
 
 export async function registerEmailUser(
@@ -53,12 +57,15 @@ export async function registerEmailUser(
 
   const { hash, salt } = hashPassword(password)
   const sql = getDb()
-  const rows = await sql`
+  const rows = asRows<DbUser>(
+    await sql`
     INSERT INTO users (external_sub, email, name, provider, password_hash, password_salt)
     VALUES (${externalSub}, ${normalized}, ${name.trim()}, 'email', ${hash}, ${salt})
     RETURNING *
-  `
-  const user = rows[0] as DbUser
+  `,
+  )
+  const user = rows[0]
+  if (!user) throw new Error('Failed to create user')
   await sql`
     INSERT INTO user_states (user_id, state)
     VALUES (${user.id}::uuid, ${JSON.stringify({})}::jsonb)
@@ -87,21 +94,28 @@ export async function upsertGoogleUser(input: {
   const sql = getDb()
   const existing = await findUserByExternalSub(input.googleSub)
   if (existing) {
-    const rows = await sql`
+    const rows = asRows<DbUser>(
+      await sql`
       UPDATE users
       SET name = ${input.name}, picture = ${input.picture ?? null}, email = ${input.email.toLowerCase()}
       WHERE id = ${existing.id}::uuid
       RETURNING *
-    `
-    return toSession(rows[0] as DbUser)
+    `,
+    )
+    const user = rows[0]
+    if (!user) throw new Error('Failed to update user')
+    return toSession(user)
   }
 
-  const rows = await sql`
+  const rows = asRows<DbUser>(
+    await sql`
     INSERT INTO users (external_sub, email, name, picture, provider)
     VALUES (${input.googleSub}, ${input.email.toLowerCase()}, ${input.name}, ${input.picture ?? null}, 'google')
     RETURNING *
-  `
-  const user = rows[0] as DbUser
+  `,
+  )
+  const user = rows[0]
+  if (!user) throw new Error('Failed to create user')
   await sql`
     INSERT INTO user_states (user_id, state)
     VALUES (${user.id}::uuid, ${JSON.stringify({})}::jsonb)

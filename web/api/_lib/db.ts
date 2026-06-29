@@ -12,3 +12,8 @@ export function getDb() {
 export function isDbConfigured(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim())
 }
+
+/** Neon tagged-template results are a union; cast before indexing rows. */
+export function asRows<T>(result: unknown): T[] {
+  return result as T[]
+}

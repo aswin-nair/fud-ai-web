@@ -1,12 +1,13 @@
-import { getDb } from './db.js'
+import { getDb, asRows } from './db.js'
 
 export async function loadUserState(userId: string): Promise<Record<string, unknown>> {
   const sql = getDb()
-  const rows = await sql`
+  const rows = asRows<{ state: Record<string, unknown> }>(
+    await sql`
     SELECT state FROM user_states WHERE user_id = ${userId}::uuid LIMIT 1
-  `
-  const row = rows[0] as { state: Record<string, unknown> } | undefined
-  return row?.state ?? {}
+  `,
+  )
+  return rows[0]?.state ?? {}
 }
 
 export async function saveUserState(userId: string, state: Record<string, unknown>): Promise<void> {
