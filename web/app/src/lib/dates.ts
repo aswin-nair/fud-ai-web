@@ -17,6 +17,21 @@ export function sameDay(a: Date, b: Date): boolean {
     a.getDate() === b.getDate()
 }
 
+/** Calendar date YYYY-MM-DD in the user's local timezone. */
+export function localDayKey(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+export function startOfDay(date = new Date()): Date {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
 export function addDays(date: Date, n: number): Date {
   const d = new Date(date)
   d.setDate(d.getDate() + n)

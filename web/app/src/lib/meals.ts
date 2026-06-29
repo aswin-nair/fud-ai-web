@@ -1,4 +1,5 @@
 import type { FoodEntry, SavedMeal } from '../types'
+import { localDayKey } from './dates'
 
 export function mealKey(entry: Pick<FoodEntry, 'name' | 'calories' | 'protein' | 'carbs' | 'fat'>): string {
   return [entry.name.toLowerCase().trim(), entry.calories, entry.protein, entry.carbs, entry.fat].join('|')
@@ -52,8 +53,8 @@ export function dailyCalorieSeries(entries: FoodEntry[], days: number): { label:
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
-    const key = d.toISOString().slice(0, 10)
-    const dayEntries = entries.filter(e => e.timestamp.slice(0, 10) === key)
+    const key = localDayKey(d)
+    const dayEntries = entries.filter(e => localDayKey(e.timestamp) === key)
     const calories = dayEntries.reduce((s, e) => s + e.calories, 0)
     result.push({
       label: d.toLocaleDateString(undefined, { weekday: 'short' }),

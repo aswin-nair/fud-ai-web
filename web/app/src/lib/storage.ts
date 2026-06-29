@@ -1,4 +1,5 @@
 import type { AppState, FoodEntry } from '../types'
+import { localDayKey } from './dates'
 import { defaultProfile } from './profile'
 import { defaultAISettings, normalizeAISettings } from './aiConfig'
 
@@ -73,13 +74,13 @@ export function importData(json: string): AppState {
 }
 
 export function dayKey(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  return localDayKey(date)
 }
 
 export function entriesForDay(entries: FoodEntry[], date: Date): FoodEntry[] {
   const key = dayKey(date)
   return entries
-    .filter(e => e.timestamp.slice(0, 10) === key)
+    .filter(e => localDayKey(e.timestamp) === key)
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
 }
 

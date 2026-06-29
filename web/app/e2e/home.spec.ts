@@ -28,6 +28,30 @@ test.describe('Home & food logging', () => {
     await expect(page.getByText('150 kcal')).toBeVisible()
   })
 
+  test('week strip keeps today calories after switching dates', async ({ page }) => {
+    await logManualMeal(page, {
+      name: 'Oatmeal',
+      calories: '320',
+      protein: '12',
+      carbs: '54',
+      fat: '6',
+    })
+
+    await expect(page.locator('.calorie-hero-value')).toHaveText('320')
+
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayLabel = String(yesterday.getDate())
+
+    await page.locator('.week-day').filter({ hasText: yesterdayLabel }).first().click()
+    await expect(page.locator('.calorie-hero-value')).toHaveText('0')
+
+    const todayLabel = String(new Date().getDate())
+    await page.locator('.week-day').filter({ hasText: todayLabel }).first().click()
+    await expect(page.locator('.calorie-hero-value')).toHaveText('320')
+    await expect(page.getByText('Oatmeal')).toBeVisible()
+  })
+
   test('week strip is visible', async ({ page }) => {
     await expect(page.locator('.week-strip')).toBeVisible()
     await expect(page.locator('.week-day').first()).toBeVisible()

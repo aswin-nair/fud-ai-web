@@ -3,6 +3,7 @@ import { BottomNav } from '../components/BottomNav'
 import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
+import { localDayKey } from '../lib/dates'
 
 const RANGES = [
   { id: '1W', days: 7 },
@@ -47,9 +48,9 @@ export function ProgressPage() {
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
-      const key = d.toISOString().slice(0, 10)
+      const key = localDayKey(d)
       const cals = state.foodEntries
-        .filter(e => e.timestamp.slice(0, 10) === key)
+        .filter(e => localDayKey(e.timestamp) === key)
         .reduce((s, e) => s + e.calories, 0)
       if (cals > 0 || range === '1W') {
         result.push({

@@ -9,6 +9,7 @@ import {
   computeTDEE,
 } from './profile'
 import { macroTotals, entriesForDay } from './storage'
+import { localDayKey } from './dates'
 
 function ageFromBirthday(birthday: string): number {
   const birth = new Date(birthday)
@@ -42,7 +43,7 @@ function buildCoachSystemPrompt(state: AppState): string {
 
   return `You are Coach, an AI nutrition assistant inside Fud AI calorie tracker. Answer in plain English, be specific and grounded in the user's data. Avoid medical advice. Keep replies concise (2-5 sentences unless more detail is requested).
 
-## Today (${today.toISOString().slice(0, 10)})
+## Today (${localDayKey(today)})
 - Logged so far: ${todayTotals.calories} kcal, ${Math.round(todayTotals.protein)}g protein, ${Math.round(todayTotals.carbs)}g carbs, ${Math.round(todayTotals.fat)}g fat
 - Daily targets: ${effectiveCalories(profile)} kcal, ${effectiveProtein(profile)}g protein, ${effectiveCarbs(profile)}g carbs, ${effectiveFat(profile)}g fat
 

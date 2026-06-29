@@ -8,10 +8,11 @@ import { BottomNav } from '../components/BottomNav'
 import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveCalories, effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
+import { startOfDay } from '../lib/dates'
 
 export function HomePage() {
   const { state } = useApp()
-  const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [selectedDate, setSelectedDate] = useState(() => startOfDay())
   const dayEntries = entriesForDay(state.foodEntries, selectedDate)
   const totals = macroTotals(dayEntries)
   const profile = state.profile
