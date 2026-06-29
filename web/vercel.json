@@ -4,8 +4,9 @@
   "outputDirectory": "app/dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/app", "destination": "/app/index.html" },
-    { "source": "/app/(.*)", "destination": "/app/index.html" }
+    { "source": "/app/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/app/(.*)", "destination": "/index.html" }
   ],
   "redirects": [
     { "source": "/", "destination": "/app/login", "permanent": false }
