@@ -1,4 +1,4 @@
-import { getDb } from './db'
+import { getDb } from './db.js'
 
 export async function loadUserState(userId: string): Promise<Record<string, unknown>> {
   const sql = getDb()

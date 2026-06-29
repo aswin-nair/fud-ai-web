@@ -1,6 +1,6 @@
-import { getDb } from './db'
-import { hashPassword, verifyPassword } from './password'
-import type { SessionClaims } from './jwt'
+import { getDb } from './db.js'
+import { hashPassword, verifyPassword } from './password.js'
+import type { SessionClaims } from './jwt.js'
 
 interface DbUser {
   id: string

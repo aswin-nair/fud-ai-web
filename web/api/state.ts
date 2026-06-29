@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { isDbConfigured } from '../_lib/db'
-import { bearerToken, verifySession } from '../_lib/jwt'
-import { loadUserState, saveUserState } from '../_lib/state'
-import { json, methodNotAllowed, readJson, serverError, unauthorized } from '../_lib/http'
+import { isDbConfigured } from './_lib/db.js'
+import { bearerToken, verifySession } from './_lib/jwt.js'
+import { loadUserState, saveUserState } from './_lib/state.js'
+import { json, methodNotAllowed, readJson, serverError, unauthorized } from './_lib/http.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })

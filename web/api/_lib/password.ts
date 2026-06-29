@@ -2,19 +2,23 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 
 const KEY_LEN = 64
 
-export function hashPassword(password: string, salt?: Buffer): { hash: string; salt: string } {
-  const saltBuf = salt ?? randomBytes(16)
-  const derived = scryptSync(password, saltBuf, KEY_LEN)
+function asUint8Array(data: Buffer): Uint8Array {
+  return new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+}
+
+export function hashPassword(password: string, salt?: Uint8Array): { hash: string; salt: string } {
+  const saltBuf = salt ?? asUint8Array(randomBytes(16))
+  const derived = scryptSync(password, saltBuf, KEY_LEN) as Buffer
   return {
     hash: derived.toString('base64'),
-    salt: saltBuf.toString('base64'),
+    salt: Buffer.from(saltBuf).toString('base64'),
   }
 }
 
 export function verifyPassword(password: string, hash: string, saltB64: string): boolean {
-  const salt = Buffer.from(saltB64, 'base64')
-  const derived = scryptSync(password, salt, KEY_LEN)
-  const expected = Buffer.from(hash, 'base64')
+  const salt = asUint8Array(Buffer.from(saltB64, 'base64'))
+  const derived = asUint8Array(scryptSync(password, salt, KEY_LEN) as Buffer)
+  const expected = asUint8Array(Buffer.from(hash, 'base64'))
   if (derived.length !== expected.length) return false
   return timingSafeEqual(derived, expected)
 }

@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { isDbConfigured } from '../_lib/db'
-import { badRequest, json, methodNotAllowed, readJson, serverError } from '../_lib/http'
-import { signSession } from '../_lib/jwt'
-import { validateEmail, validatePasswordInput } from '../_lib/password'
-import { registerEmailUser } from '../_lib/users'
+import { isDbConfigured } from '../_lib/db.js'
+import { badRequest, json, methodNotAllowed, readJson, serverError } from '../_lib/http.js'
+import { signSession } from '../_lib/jwt.js'
+import { validateEmail, validatePasswordInput } from '../_lib/password.js'
+import { registerEmailUser } from '../_lib/users.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
