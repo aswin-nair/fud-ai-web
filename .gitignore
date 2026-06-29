@@ -16,6 +16,11 @@ local.properties
 # Local configuration
 ios/Local.xcconfig
 .DS_Store
+.env
+.env.*
+!.env.example
+web/.env
+web/app/.env.local
 
 # Claude Code runtime
 .claude/

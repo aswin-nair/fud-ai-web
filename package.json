@@ -1,0 +1,12 @@
+{
+  "name": "fud-ai",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix web/app",
+    "build": "npm run build --prefix web/app",
+    "preview": "npm run preview --prefix web/app",
+    "lint": "npm run lint --prefix web/app",
+    "test:e2e": "npm run test:e2e --prefix web/app",
+    "ci": "npm run ci --prefix web/app"
+  }
+}

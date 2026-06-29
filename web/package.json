@@ -1,0 +1,14 @@
+{
+  "name": "fud-ai-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:migrate": "node scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@vercel/node": "^5.3.21",
+    "google-auth-library": "^10.5.0",
+    "jose": "^6.1.3"
+  }
+}
