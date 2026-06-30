@@ -11,6 +11,7 @@ import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveCalories, effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
 import { startOfDay, sameDay } from '../lib/dates'
+import { getStreak, getBadges, getSeenBadgeIds, markBadgesSeen } from '../lib/streak'
 
 function greeting(): string {
   const h = new Date().getHours()
@@ -32,6 +33,10 @@ export function HomePage() {
   const firstName = profile.name?.split(' ')[0]
   const goal = effectiveCalories(profile)
 
+  const streak = getStreak(state.foodEntries)
+  const badges = getBadges(state.foodEntries, streak)
+
+  // Confetti when calories hit goal
   useEffect(() => {
     if (goal <= 0) return
     const dateKey = selectedDate.toDateString()
@@ -45,6 +50,16 @@ export function HomePage() {
     }
   }, [totals.calories]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Badge unlock toast
+  useEffect(() => {
+    const seen = getSeenBadgeIds()
+    const newlyUnlocked = badges.filter(b => b.unlocked && !seen.has(b.id))
+    if (newlyUnlocked.length > 0) {
+      markBadgesSeen(newlyUnlocked.map(b => b.id))
+      toast(`${newlyUnlocked[0].emoji} Badge unlocked: ${newlyUnlocked[0].name}!`)
+    }
+  }, [state.foodEntries.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="app-shell home-shell">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
@@ -54,21 +69,25 @@ export function HomePage() {
           <span className="home-greeting-text">
             {greeting()}{firstName ? `, ${firstName}` : ''}
           </span>
+          {streak > 0 && (
+            <div className="streak-chip">
+              <span className="streak-fire">🔥</span>
+              <span className="streak-count">{streak}</span>
+              <span className="streak-label">day streak</span>
+            </div>
+          )}
         </div>
         <AddMenuButton />
       </header>
 
       <main className="app-main home-main">
         <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
-
         <CalorieHero current={totals.calories} goal={goal} />
-
         <MacroGrid
           protein={{ current: totals.protein, goal: effectiveProtein(profile) }}
           carbs={{ current: totals.carbs, goal: effectiveCarbs(profile) }}
           fat={{ current: totals.fat, goal: effectiveFat(profile) }}
         />
-
         <FoodList entries={dayEntries} selectedDate={selectedDate} />
       </main>
 

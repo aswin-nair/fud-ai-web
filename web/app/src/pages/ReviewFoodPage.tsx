@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { useToast } from '../components/Toast'
@@ -6,11 +6,7 @@ import type { FoodAnalysis, MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 
 const MEAL_ICONS: Record<MealType, string> = {
-  breakfast: '🌅',
-  lunch: '☀️',
-  dinner: '🌙',
-  snack: '🍎',
-  other: '🍽️',
+  breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎', other: '🍽️',
 }
 
 function inferMealType(): MealType {
@@ -33,6 +29,8 @@ export function ReviewFoodPage() {
   const navigate = useNavigate()
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(pendingAnalysis)
   const [mealType, setMealType] = useState<MealType>(inferMealType)
+  const [servings, setServings] = useState(1)
+  const baseRef = useRef<FoodAnalysis | null>(pendingAnalysis)
 
   useEffect(() => {
     if (!pendingAnalysis) navigate('/log', { replace: true })
@@ -42,6 +40,24 @@ export function ReviewFoodPage() {
 
   function update(field: keyof FoodAnalysis, value: string | number) {
     setAnalysis(a => a ? { ...a, [field]: value } : a)
+    // Manual edit detaches from serving scale — update base too
+    if (baseRef.current) {
+      baseRef.current = { ...baseRef.current, [field]: value }
+    }
+  }
+
+  function changeServings(next: number) {
+    const s = Math.max(0.25, Math.round(next * 4) / 4)
+    setServings(s)
+    if (!baseRef.current) return
+    const b = baseRef.current
+    setAnalysis(a => a ? {
+      ...a,
+      calories: Math.round(Number(b.calories) * s),
+      protein:  Math.round(Number(b.protein)  * s * 10) / 10,
+      carbs:    Math.round(Number(b.carbs)    * s * 10) / 10,
+      fat:      Math.round(Number(b.fat)      * s * 10) / 10,
+    } : a)
   }
 
   function save() {
@@ -69,7 +85,6 @@ export function ReviewFoodPage() {
       <main className="app-main">
         <button type="button" className="back-link" onClick={() => navigate('/log')}>← Back</button>
 
-        {/* Hero card */}
         <div className="review-hero">
           <div className="review-hero-emoji">{analysis.emoji ?? '🍽️'}</div>
           <div className="review-hero-info">
@@ -79,11 +94,39 @@ export function ReviewFoodPage() {
               onChange={e => update('name', e.target.value)}
               aria-label="Food name"
             />
-            <span className="review-hero-hint">Tap name to edit</span>
+            <span className="review-hero-hint">Tap to edit name</span>
           </div>
         </div>
 
-        {/* Calories */}
+        {/* Serving size stepper */}
+        <div className="serving-row">
+          <span className="serving-label">Servings</span>
+          <div className="serving-stepper">
+            <button
+              type="button"
+              className="serving-btn"
+              onClick={() => changeServings(servings - 0.25)}
+              disabled={servings <= 0.25}
+            >−</button>
+            <input
+              className="serving-input"
+              type="number"
+              min="0.25"
+              step="0.25"
+              value={servings}
+              onChange={e => changeServings(Number(e.target.value))}
+            />
+            <button
+              type="button"
+              className="serving-btn"
+              onClick={() => changeServings(servings + 0.25)}
+            >+</button>
+          </div>
+          <span className="serving-hint">
+            {servings === 1 ? '1 serving' : `${servings} servings`}
+          </span>
+        </div>
+
         <div className="review-calorie-card">
           <span className="review-calorie-label">Calories</span>
           <input
@@ -96,7 +139,6 @@ export function ReviewFoodPage() {
           <span className="review-calorie-unit">kcal</span>
         </div>
 
-        {/* Macros */}
         <div className="review-macro-row">
           {MACROS.map(m => (
             <div key={m.key} className="review-macro-card" style={{ borderColor: m.color + '33' }}>
@@ -115,7 +157,6 @@ export function ReviewFoodPage() {
           ))}
         </div>
 
-        {/* Meal type */}
         <div className="review-section-label">Meal</div>
         <div className="meal-type-row">
           {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (

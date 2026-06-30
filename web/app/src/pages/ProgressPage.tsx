@@ -4,6 +4,7 @@ import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
+import { getStreak, getBadges } from '../lib/streak'
 
 const RANGES = [
   { id: '1W', days: 7 },
@@ -55,6 +56,8 @@ function StatCard({ label, value, sub, accent, positive, negative }: StatCardPro
 export function ProgressPage() {
   const { state, addWeightEntry, deleteWeightEntry } = useApp()
   const [range, setRange] = useState<RangeId>('1W')
+  const streak = getStreak(state.foodEntries)
+  const badges = getBadges(state.foodEntries, streak)
   const [showLog, setShowLog] = useState(false)
   const [weight, setWeight] = useState(String(state.profile.weightKg ?? ''))
   const [showHistory, setShowHistory] = useState(false)
@@ -198,6 +201,34 @@ export function ProgressPage() {
           </div>
 
           <ProgressBarChart bars={calorieBars} goal={goal} />
+        </div>
+
+        {/* Badges */}
+        <div className="progress-card">
+          <div className="progress-card-header">
+            <h2 className="progress-card-title">Achievements</h2>
+            <span className="badge-count-pill">
+              {badges.filter(b => b.unlocked).length}/{badges.length}
+            </span>
+          </div>
+          {streak > 0 && (
+            <div className="streak-banner">
+              <span className="streak-banner-fire">🔥</span>
+              <div>
+                <span className="streak-banner-num">{streak}-day streak</span>
+                <span className="streak-banner-sub"> — keep it going!</span>
+              </div>
+            </div>
+          )}
+          <div className="badge-grid">
+            {badges.map(b => (
+              <div key={b.id} className={`badge-card${b.unlocked ? ' unlocked' : ' locked'}`}>
+                <span className="badge-emoji">{b.emoji}</span>
+                <span className="badge-name">{b.name}</span>
+                <span className="badge-desc">{b.desc}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
       </main>
