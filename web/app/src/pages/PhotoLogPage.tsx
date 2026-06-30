@@ -7,7 +7,8 @@ import { providerLabel } from '../lib/aiConfig'
 export function PhotoLogPage() {
   const { state, setPendingAnalysis, setPendingSource } = useApp()
   const navigate = useNavigate()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,61 +25,98 @@ export function PhotoLogPage() {
       navigate('/review')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Analysis failed')
-    } finally {
       setLoading(false)
     }
+  }
+
+  const hasKey = !!state.aiSettings.apiKey
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <main className="app-main">
+          {preview && (
+            <img src={preview} alt="Food preview" className="photo-preview analyzing-photo" />
+          )}
+          <div className="analyzing-overlay">
+            <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
+            <p className="analyzing-title">Reading your photo…</p>
+            <p className="analyzing-sub">AI is identifying the food</p>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" style={{ color: 'var(--ink-soft)', fontSize: '0.9rem' }}>← Back</Link>
+        <Link to="/log" className="back-link">← Back</Link>
         <h1 className="page-title" style={{ marginTop: 12 }}>Photo log</h1>
-        <p className="page-sub">Take or upload a food photo for AI analysis.</p>
+        <p className="page-sub">AI reads the food and estimates your macros.</p>
 
         {error && <div className="error-banner">{error}</div>}
 
-        {!state.aiSettings.apiKey && (
-          <div className="card" style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: '0.9rem', color: 'var(--ink-soft)' }}>
-              Add your {providerLabel(state.aiSettings.provider)} key in <Link to="/settings">Settings</Link>.
-              Use a vision-capable model (e.g. <code>google/gemini-2.5-flash</code>).
-            </p>
+        {!hasKey && (
+          <div className="no-key-banner">
+            Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings.
+            Use a vision-capable model (e.g. <code>gemini-2.0-flash</code>).
           </div>
         )}
 
-        {preview && !loading && (
-          <img src={preview} alt="Food preview" className="photo-preview" />
-        )}
-
-        {loading ? (
-          <div className="analyzing-overlay">
-            <div className="loading-spinner" />
-            <p>Analyzing photo…</p>
-          </div>
-        ) : (
-          <>
+        {preview ? (
+          <div className="photo-preview-wrap">
+            <img src={preview} alt="Food preview" className="photo-preview" />
             <button
               type="button"
-              className="btn btn-primary btn-block"
-              disabled={!state.aiSettings.apiKey}
-              onClick={() => inputRef.current?.click()}
+              className="photo-retake-btn"
+              onClick={() => { setPreview(null); setError(null) }}
             >
-              📷 Choose photo
+              ✕ Remove
             </button>
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              hidden
-              onChange={e => {
-                const f = e.target.files?.[0]
-                if (f) handleFile(f)
-              }}
-            />
-          </>
+          </div>
+        ) : (
+          <div className="photo-upload-zone" onClick={() => galleryRef.current?.click()}>
+            <span className="photo-upload-icon" aria-hidden>📷</span>
+            <p className="photo-upload-title">Tap to choose a photo</p>
+            <p className="photo-upload-sub">JPG, PNG, HEIC — any food image</p>
+          </div>
         )}
+
+        <div className="photo-btn-row">
+          <button
+            type="button"
+            className="photo-source-btn"
+            disabled={!hasKey}
+            onClick={() => cameraRef.current?.click()}
+          >
+            <span aria-hidden>📸</span> Camera
+          </button>
+          <button
+            type="button"
+            className="photo-source-btn"
+            disabled={!hasKey}
+            onClick={() => galleryRef.current?.click()}
+          >
+            <span aria-hidden>🖼️</span> Gallery
+          </button>
+        </div>
+
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+        />
+        <input
+          ref={galleryRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+        />
       </main>
     </div>
   )

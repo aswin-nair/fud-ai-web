@@ -1,5 +1,6 @@
 {
   "buildCommand": "npm install && cd app && npm install && npm run build",
+  "devCommand": "cd app && npm run dev",
   "installCommand": "npm install && cd app && npm install",
   "outputDirectory": "app/dist",
   "rewrites": [

@@ -4,6 +4,13 @@ import { useApp } from '../store/AppContext'
 import { analyzeTextFood } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
 
+const EXAMPLES = [
+  '2 scrambled eggs, toast with butter',
+  'Chicken rice bowl with veggies',
+  'Large latte with oat milk',
+  '100g Greek yogurt with berries',
+]
+
 export function LogTextPage() {
   const { state, setPendingAnalysis, setPendingSource } = useApp()
   const navigate = useNavigate()
@@ -32,38 +39,63 @@ export function LogTextPage() {
     return (
       <div className="app-shell">
         <main className="app-main analyzing-overlay">
-          <div className="loading-spinner" />
-          <p>AI is estimating nutrition…</p>
+          <div className="analyzing-ring">
+            <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
+          </div>
+          <p className="analyzing-title">Estimating nutrition…</p>
+          <p className="analyzing-sub">AI is reading your description</p>
         </main>
       </div>
     )
   }
 
+  const hasKey = !!state.aiSettings.apiKey
+
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" style={{ color: 'var(--ink-soft)', fontSize: '0.9rem' }}>← Back</Link>
-        <h1 className="page-title" style={{ marginTop: 12 }}>Text log</h1>
-        <p className="page-sub">Describe what you ate.</p>
+        <Link to="/log" className="back-link">← Back</Link>
+        <h1 className="page-title" style={{ marginTop: 12 }}>Describe your meal</h1>
+        <p className="page-sub">Type what you ate — AI estimates the macros.</p>
+
         {error && <div className="error-banner">{error}</div>}
-        {!state.aiSettings.apiKey && (
-          <div className="card" style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: '0.9rem', color: 'var(--ink-soft)' }}>
-              Add your {providerLabel(state.aiSettings.provider)} key in <Link to="/settings">Settings</Link>.
-            </p>
+
+        {!hasKey && (
+          <div className="no-key-banner">
+            Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings to use AI logging.
           </div>
         )}
-        <div className="field">
-          <label>Food description</label>
+
+        <div className="text-log-area">
           <textarea
+            className="text-log-input"
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="e.g. 2 eggs, toast with butter, black coffee"
             autoFocus
+            rows={4}
           />
+          {!text && (
+            <div className="text-log-examples">
+              <p className="text-log-examples-label">Try an example</p>
+              <div className="example-chips">
+                {EXAMPLES.map(ex => (
+                  <button key={ex} type="button" className="example-chip" onClick={() => setText(ex)}>
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <button type="button" className="btn btn-primary btn-block" disabled={!text.trim() || !state.aiSettings.apiKey} onClick={handleAnalyze}>
-          Analyze with AI
+
+        <button
+          type="button"
+          className="btn btn-log btn-block"
+          disabled={!text.trim() || !hasKey}
+          onClick={handleAnalyze}
+        >
+          ✨ Analyze with AI
         </button>
       </main>
     </div>

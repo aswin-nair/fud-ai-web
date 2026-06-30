@@ -11,12 +11,23 @@ const STARTERS = [
   'Am I on track for my weight goal?',
 ]
 
+function TypingIndicator() {
+  return (
+    <div className="chat-bubble assistant chat-typing">
+      <span className="typing-dot" />
+      <span className="typing-dot" />
+      <span className="typing-dot" />
+    </div>
+  )
+}
+
 export function CoachPage() {
   const { state, addChatMessage, clearChat } = useApp()
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -55,65 +66,101 @@ export function CoachPage() {
       setError(e instanceof Error ? e.message : 'Coach request failed')
     } finally {
       setLoading(false)
+      inputRef.current?.focus()
     }
   }
 
+  const hasKey = !!state.aiSettings.apiKey
+
   return (
     <div className="app-shell coach-shell">
-      <main className="app-main coach-main">
-        <div className="coach-header">
-          <h1 className="page-title">Coach</h1>
-          {state.chatMessages.length > 0 && (
-            <button type="button" className="btn-copy" onClick={() => { if (confirm('Clear chat history?')) clearChat() }}>Reset</button>
-          )}
+      <header className="coach-header-bar">
+        <div className="coach-header-avatar" aria-hidden>🤖</div>
+        <div className="coach-header-info">
+          <span className="coach-header-title">AI Coach</span>
+          <span className="coach-header-sub">Powered by {providerLabel(state.aiSettings.provider)}</span>
         </div>
-        <p className="page-sub">AI nutrition coach with your profile & log context.</p>
+        {state.chatMessages.length > 0 && (
+          <button
+            type="button"
+            className="coach-clear-btn"
+            onClick={() => { if (confirm('Clear chat history?')) clearChat() }}
+          >
+            Clear
+          </button>
+        )}
+      </header>
 
+      <main className="app-main coach-main">
         {error && <div className="error-banner">{error}</div>}
 
-        {!state.aiSettings.apiKey && (
-          <div className="card" style={{ marginBottom: 12 }}>
-            <p style={{ fontSize: '0.9rem', color: 'var(--ink-soft)' }}>
-              Add your API key in <Link to="/settings">Settings</Link> to chat with Coach.
-            </p>
+        {!hasKey && (
+          <div className="coach-no-key-card">
+            <span className="coach-no-key-icon" aria-hidden>🔑</span>
+            <p>Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings to start chatting.</p>
           </div>
         )}
 
         <div className="chat-thread">
           {state.chatMessages.length === 0 && (
-            <div className="chat-empty">
-              <p>Ask anything about your diet, goals, or progress.</p>
-              <div className="chip-row" style={{ justifyContent: 'center', marginTop: 12 }}>
+            <div className="chat-empty-state">
+              <div className="chat-empty-icon" aria-hidden>💬</div>
+              <p className="chat-empty-title">Ask me anything</p>
+              <p className="chat-empty-sub">About your diet, goals, or progress — I have your full log context.</p>
+              <div className="starter-chips">
                 {STARTERS.map(s => (
-                  <button key={s} type="button" className="chip" onClick={() => send(s)}>{s}</button>
+                  <button
+                    key={s}
+                    type="button"
+                    className="starter-chip"
+                    onClick={() => send(s)}
+                    disabled={!hasKey}
+                  >
+                    {s}
+                  </button>
                 ))}
               </div>
             </div>
           )}
+
           {state.chatMessages.map(msg => (
             <div key={msg.id} className={`chat-bubble ${msg.role}`}>
-              {msg.content}
+              {msg.role === 'assistant' && (
+                <span className="chat-bubble-avatar" aria-hidden>🤖</span>
+              )}
+              <span className="chat-bubble-text">{msg.content}</span>
             </div>
           ))}
-          {loading && (
-            <div className="chat-bubble assistant loading">Thinking…</div>
-          )}
+
+          {loading && <TypingIndicator />}
           <div ref={bottomRef} />
         </div>
+      </main>
 
+      <div className="chat-input-bar">
         <form
-          className="chat-input-row"
+          className="chat-input-form"
           onSubmit={e => { e.preventDefault(); send(input) }}
         >
           <input
+            ref={inputRef}
+            className="chat-input"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Ask Coach…"
-            disabled={loading}
+            placeholder={hasKey ? 'Ask Coach…' : 'Add API key in Settings first'}
+            disabled={loading || !hasKey}
           />
-          <button type="submit" className="btn btn-primary" disabled={loading || !input.trim()}>Send</button>
+          <button
+            type="submit"
+            className="chat-send-btn"
+            disabled={loading || !input.trim() || !hasKey}
+            aria-label="Send"
+          >
+            ↑
+          </button>
         </form>
-      </main>
+      </div>
+
       <BottomNav />
     </div>
   )

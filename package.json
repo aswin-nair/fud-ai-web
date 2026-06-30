@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run dev --prefix web/app",
+    "dev:all": "npm run dev:all --prefix web",
     "build": "npm run build --prefix web/app",
     "preview": "npm run preview --prefix web/app",
     "lint": "npm run lint --prefix web/app",

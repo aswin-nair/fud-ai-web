@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev:all": "npx vercel dev --yes",
     "db:migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {

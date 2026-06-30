@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { googleClientId, isGoogleAuthConfigured } from './lib/auth'
 import { AuthProvider, useAuth } from './store/AuthContext'
 import { AppProvider, useApp } from './store/AppContext'
+import { ToastProvider } from './components/Toast'
 import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
 import { OnboardingPage } from './pages/OnboardingPage'
@@ -79,7 +80,9 @@ function AppShell() {
   return (
     <AuthProvider>
       <BrowserRouter basename={routerBasename()}>
-        <AppGate />
+        <ToastProvider>
+          <AppGate />
+        </ToastProvider>
       </BrowserRouter>
     </AuthProvider>
   )

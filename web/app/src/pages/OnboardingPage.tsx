@@ -13,6 +13,15 @@ import {
 
 const STEPS = ['About you', 'Body', 'Activity', 'Goal', 'Review']
 
+const ACTIVITY_ICONS: Record<ActivityLevel, string> = {
+  sedentary: '🪑',
+  light: '🚶',
+  moderate: '🏃',
+  active: '🏋️',
+  veryActive: '⚡',
+  extraActive: '🔥',
+}
+
 export function OnboardingPage() {
   const { updateProfile, setOnboarded } = useApp()
   const navigate = useNavigate()
@@ -36,34 +45,41 @@ export function OnboardingPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
-        <h1 className="page-title">Welcome to Fud AI</h1>
-        <p className="page-sub">Set up your profile to calculate daily goals.</p>
-
-        <div className="onboarding-steps">
-          {STEPS.map((_, i) => (
-            <div key={i} className={`step-dot${i <= step ? ' done' : ''}`} />
-          ))}
+      <main className="app-main onboarding-main">
+        {/* Step indicator */}
+        <div className="onboarding-header">
+          <div className="onboarding-steps">
+            {STEPS.map((_, i) => (
+              <div
+                key={i}
+                className={`onboarding-step-dot${i < step ? ' done' : i === step ? ' current' : ''}`}
+              />
+            ))}
+          </div>
+          <span className="onboarding-step-label">{STEPS[step]}</span>
         </div>
 
         {step === 0 && (
-          <>
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Welcome to Fud AI 👋</h1>
+            <p className="onboarding-sub">Let's set up your profile to calculate your daily targets.</p>
             <div className="field">
-              <label>Name (optional)</label>
+              <label>Your name (optional)</label>
               <input
                 value={profile.name ?? ''}
                 onChange={e => setProfile(p => ({ ...p, name: e.target.value }))}
-                placeholder="Your name"
+                placeholder="e.g. Alex"
+                autoFocus
               />
             </div>
             <div className="field">
               <label>Gender</label>
-              <div className="chip-row">
+              <div className="onboarding-chip-row">
                 {(['male', 'female', 'other'] as Gender[]).map(g => (
                   <button
                     key={g}
                     type="button"
-                    className={`chip${profile.gender === g ? ' active' : ''}`}
+                    className={`onboarding-chip${profile.gender === g ? ' active' : ''}`}
                     onClick={() => setProfile(p => ({ ...p, gender: g }))}
                   >
                     {g.charAt(0).toUpperCase() + g.slice(1)}
@@ -79,61 +95,50 @@ export function OnboardingPage() {
                 onChange={e => setProfile(p => ({ ...p, birthday: new Date(e.target.value).toISOString() }))}
               />
             </div>
-          </>
+          </div>
         )}
 
         {step === 1 && (
-          <>
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Your body</h1>
+            <p className="onboarding-sub">Used to calculate your basal metabolic rate.</p>
             <div className="field">
               <label>Height (cm)</label>
-              <input
-                type="number"
-                value={profile.heightCm}
-                onChange={e => setProfile(p => ({ ...p, heightCm: Number(e.target.value) }))}
-              />
+              <input type="number" value={profile.heightCm} onChange={e => setProfile(p => ({ ...p, heightCm: Number(e.target.value) }))} />
             </div>
             <div className="field">
               <label>Weight (kg)</label>
-              <input
-                type="number"
-                value={profile.weightKg}
-                onChange={e => setProfile(p => ({ ...p, weightKg: Number(e.target.value) }))}
-              />
+              <input type="number" value={profile.weightKg} onChange={e => setProfile(p => ({ ...p, weightKg: Number(e.target.value) }))} />
             </div>
             <div className="field">
-              <label>Body fat % (optional)</label>
+              <label>Body fat % <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span></label>
               <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="60"
+                type="number" step="0.1" min="0" max="60"
                 placeholder="e.g. 18"
                 value={profile.bodyFatPercentage != null ? profile.bodyFatPercentage * 100 : ''}
                 onChange={e => {
                   const v = e.target.value
-                  setProfile(p => ({
-                    ...p,
-                    bodyFatPercentage: v ? Number(v) / 100 : undefined,
-                  }))
+                  setProfile(p => ({ ...p, bodyFatPercentage: v ? Number(v) / 100 : undefined }))
                 }}
               />
             </div>
-          </>
+          </div>
         )}
 
         {step === 2 && (
-          <div className="field">
-            <label>Activity level</label>
-            <div className="chip-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Activity level</h1>
+            <p className="onboarding-sub">How active are you on a typical day?</p>
+            <div className="activity-option-list">
               {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map(level => (
                 <button
                   key={level}
                   type="button"
-                  className={`chip${profile.activityLevel === level ? ' active' : ''}`}
-                  style={{ textAlign: 'left' }}
+                  className={`activity-option${profile.activityLevel === level ? ' active' : ''}`}
                   onClick={() => setProfile(p => ({ ...p, activityLevel: level }))}
                 >
-                  {ACTIVITY_LABELS[level]}
+                  <span className="activity-option-icon">{ACTIVITY_ICONS[level]}</span>
+                  <span className="activity-option-label">{ACTIVITY_LABELS[level]}</span>
                 </button>
               ))}
             </div>
@@ -141,58 +146,66 @@ export function OnboardingPage() {
         )}
 
         {step === 3 && (
-          <>
-            <div className="field">
-              <label>Goal</label>
-              <div className="chip-row">
-                {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(g => (
-                  <button
-                    key={g}
-                    type="button"
-                    className={`chip${profile.goal === g ? ' active' : ''}`}
-                    onClick={() => setProfile(p => ({ ...p, goal: g }))}
-                  >
-                    {GOAL_LABELS[g]}
-                  </button>
-                ))}
-              </div>
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Your goal</h1>
+            <p className="onboarding-sub">This adjusts your calorie target.</p>
+            <div className="onboarding-chip-row" style={{ flexDirection: 'column' }}>
+              {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(g => (
+                <button
+                  key={g}
+                  type="button"
+                  className={`onboarding-chip goal-chip${profile.goal === g ? ' active' : ''}`}
+                  onClick={() => setProfile(p => ({ ...p, goal: g }))}
+                >
+                  {GOAL_LABELS[g]}
+                </button>
+              ))}
             </div>
             {profile.goal !== 'maintain' && (
-              <div className="field">
+              <div className="field" style={{ marginTop: 16 }}>
                 <label>Weekly change (kg)</label>
                 <input
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  max="1.5"
+                  type="number" step="0.1" min="0.1" max="1.5"
                   value={profile.weeklyChangeKg ?? 0.5}
                   onChange={e => setProfile(p => ({ ...p, weeklyChangeKg: Number(e.target.value) }))}
                 />
               </div>
             )}
-          </>
+          </div>
         )}
 
         {step === 4 && (
-          <div className="card">
-            <p style={{ color: 'var(--ink-soft)', marginBottom: 16 }}>
-              Based on your profile, here are your daily targets:
-            </p>
-            <div className="goals-summary">
-              <div className="goal-item"><span>Calories</span><strong>{dailyCalories(profile)}</strong></div>
-              <div className="goal-item"><span>Protein</span><strong>{effectiveProtein(profile)}g</strong></div>
-              <div className="goal-item"><span>Carbs</span><strong>{effectiveCarbs(profile)}g</strong></div>
-              <div className="goal-item"><span>Fat</span><strong>{effectiveFat(profile)}g</strong></div>
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Your daily targets</h1>
+            <p className="onboarding-sub">Calculated from your profile — you can adjust these in Settings.</p>
+            <div className="onboarding-goals-grid">
+              <div className="onboarding-goal-card" style={{ gridColumn: '1 / -1' }}>
+                <span className="onboarding-goal-label">Calories</span>
+                <span className="onboarding-goal-value" style={{ color: 'var(--coral-start)' }}>{dailyCalories(profile)}</span>
+                <span className="onboarding-goal-unit">kcal / day</span>
+              </div>
+              <div className="onboarding-goal-card">
+                <span className="onboarding-goal-label">Protein</span>
+                <span className="onboarding-goal-value" style={{ color: '#6B9FFF' }}>{effectiveProtein(profile)}g</span>
+              </div>
+              <div className="onboarding-goal-card">
+                <span className="onboarding-goal-label">Carbs</span>
+                <span className="onboarding-goal-value" style={{ color: '#FFB347' }}>{effectiveCarbs(profile)}g</span>
+              </div>
+              <div className="onboarding-goal-card">
+                <span className="onboarding-goal-label">Fat</span>
+                <span className="onboarding-goal-value" style={{ color: '#FF6B9D' }}>{effectiveFat(profile)}g</span>
+              </div>
             </div>
           </div>
         )}
 
-        <div className="form-actions">
+        <div className="onboarding-actions">
           {step > 0 && (
             <button type="button" className="btn btn-ghost" onClick={back}>Back</button>
           )}
-          <button type="button" className="btn btn-primary" onClick={next}>
-            {step === STEPS.length - 1 ? 'Get started' : 'Continue'}
+          <button type="button" className="btn btn-primary" style={{ flex: 1 }} onClick={next}>
+            {step === STEPS.length - 1 ? '🚀 Get started' : 'Continue →'}
           </button>
         </div>
       </main>

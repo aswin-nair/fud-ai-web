@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
+import { useToast } from '../components/Toast'
 import type { FoodAnalysis, MealType } from '../types'
 import { MEAL_LABELS } from '../types'
+
+const MEAL_ICONS: Record<MealType, string> = {
+  breakfast: '🌅',
+  lunch: '☀️',
+  dinner: '🌙',
+  snack: '🍎',
+  other: '🍽️',
+}
 
 function inferMealType(): MealType {
   const h = new Date().getHours()
@@ -12,8 +21,15 @@ function inferMealType(): MealType {
   return 'snack'
 }
 
+const MACROS = [
+  { key: 'protein', label: 'Protein', unit: 'g', color: '#6B9FFF', bg: 'rgba(107,159,255,0.12)' },
+  { key: 'carbs',   label: 'Carbs',   unit: 'g', color: '#FFB347', bg: 'rgba(255,179,71,0.12)'  },
+  { key: 'fat',     label: 'Fat',     unit: 'g', color: '#FF6B9D', bg: 'rgba(255,107,157,0.12)' },
+] as const
+
 export function ReviewFoodPage() {
   const { pendingAnalysis, setPendingAnalysis, addEntry, pendingSource } = useApp()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(pendingAnalysis)
   const [mealType, setMealType] = useState<MealType>(inferMealType)
@@ -44,59 +60,78 @@ export function ReviewFoodPage() {
       servingSizeGrams: analysis.servingSizeGrams,
     })
     setPendingAnalysis(null)
+    toast(`Logged ${analysis.name}!`)
     navigate('/')
   }
 
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" style={{ color: 'var(--ink-soft)', fontSize: '0.9rem' }}>← Back</Link>
-        <h1 className="page-title" style={{ marginTop: 12 }}>
-          {analysis.emoji} Review
-        </h1>
-        <p className="page-sub">Adjust values before logging.</p>
+        <button type="button" className="back-link" onClick={() => navigate('/log')}>← Back</button>
 
-        <div className="field">
-          <label>Name</label>
-          <input value={analysis.name} onChange={e => update('name', e.target.value)} />
-        </div>
-
-        <div className="review-grid">
-          <div className="stat-box">
-            <label>Calories</label>
-            <input type="number" value={analysis.calories} onChange={e => update('calories', Number(e.target.value))} />
-          </div>
-          <div className="stat-box">
-            <label>Protein (g)</label>
-            <input type="number" step="0.1" value={analysis.protein} onChange={e => update('protein', Number(e.target.value))} />
-          </div>
-          <div className="stat-box">
-            <label>Carbs (g)</label>
-            <input type="number" step="0.1" value={analysis.carbs} onChange={e => update('carbs', Number(e.target.value))} />
-          </div>
-          <div className="stat-box">
-            <label>Fat (g)</label>
-            <input type="number" step="0.1" value={analysis.fat} onChange={e => update('fat', Number(e.target.value))} />
+        {/* Hero card */}
+        <div className="review-hero">
+          <div className="review-hero-emoji">{analysis.emoji ?? '🍽️'}</div>
+          <div className="review-hero-info">
+            <input
+              className="review-name-input"
+              value={analysis.name}
+              onChange={e => update('name', e.target.value)}
+              aria-label="Food name"
+            />
+            <span className="review-hero-hint">Tap name to edit</span>
           </div>
         </div>
 
-        <div className="field" style={{ marginTop: 16 }}>
-          <label>Meal type</label>
-          <div className="chip-row">
-            {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
-              <button
-                key={m}
-                type="button"
-                className={`chip${mealType === m ? ' active' : ''}`}
-                onClick={() => setMealType(m)}
-              >
-                {MEAL_LABELS[m]}
-              </button>
-            ))}
-          </div>
+        {/* Calories */}
+        <div className="review-calorie-card">
+          <span className="review-calorie-label">Calories</span>
+          <input
+            className="review-calorie-input"
+            type="number"
+            value={analysis.calories}
+            onChange={e => update('calories', Number(e.target.value))}
+            aria-label="Calories"
+          />
+          <span className="review-calorie-unit">kcal</span>
         </div>
 
-        <button type="button" className="btn btn-primary btn-block" onClick={save}>
+        {/* Macros */}
+        <div className="review-macro-row">
+          {MACROS.map(m => (
+            <div key={m.key} className="review-macro-card" style={{ borderColor: m.color + '33' }}>
+              <span className="review-macro-label" style={{ color: m.color }}>{m.label}</span>
+              <input
+                className="review-macro-input"
+                type="number"
+                step="0.1"
+                value={analysis[m.key]}
+                onChange={e => update(m.key, Number(e.target.value))}
+                aria-label={m.label}
+                style={{ color: m.color }}
+              />
+              <span className="review-macro-unit">{m.unit}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Meal type */}
+        <div className="review-section-label">Meal</div>
+        <div className="meal-type-row">
+          {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
+            <button
+              key={m}
+              type="button"
+              className={`meal-type-btn${mealType === m ? ' active' : ''}`}
+              onClick={() => setMealType(m)}
+            >
+              <span className="meal-type-icon">{MEAL_ICONS[m]}</span>
+              <span className="meal-type-label">{MEAL_LABELS[m]}</span>
+            </button>
+          ))}
+        </div>
+
+        <button type="button" className="btn btn-log btn-block" onClick={save}>
           Log meal
         </button>
       </main>

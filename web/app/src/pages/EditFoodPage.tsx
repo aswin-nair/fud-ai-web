@@ -1,8 +1,18 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useApp, isFavorite } from '../store/AppContext'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
+
+const MEAL_ICONS: Record<MealType, string> = {
+  breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎', other: '🍽️',
+}
+
+const MACROS = [
+  { key: 'protein', label: 'Protein', color: '#6B9FFF' },
+  { key: 'carbs',   label: 'Carbs',   color: '#FFB347' },
+  { key: 'fat',     label: 'Fat',     color: '#FF6B9D' },
+] as const
 
 export function EditFoodPage() {
   const { id } = useParams<{ id: string }>()
@@ -21,12 +31,14 @@ export function EditFoodPage() {
     return (
       <div className="app-shell">
         <main className="app-main">
-          <p>Entry not found.</p>
-          <Link to="/">Back to home</Link>
+          <p style={{ color: 'var(--ink-soft)' }}>Entry not found.</p>
+          <button type="button" className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => navigate('/')}>← Home</button>
         </main>
       </div>
     )
   }
+
+  const fav = isFavorite(state, entry)
 
   function save() {
     if (!entry) return
@@ -44,6 +56,7 @@ export function EditFoodPage() {
 
   function remove() {
     if (!entry) return
+    if (!confirm('Delete this entry?')) return
     deleteEntry(entry.id)
     navigate('/')
   }
@@ -51,58 +64,88 @@ export function EditFoodPage() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/" style={{ color: 'var(--ink-soft)', fontSize: '0.9rem' }}>← Back</Link>
-        <h1 className="page-title" style={{ marginTop: 12 }}>Edit entry</h1>
-
-        <div className="field">
-          <label>Name</label>
-          <input value={name} onChange={e => setName(e.target.value)} />
-        </div>
-        <div className="field">
-          <label>Calories</label>
-          <input type="number" value={calories} onChange={e => setCalories(e.target.value)} />
-        </div>
-        <div className="review-grid">
-          <div className="field">
-            <label>Protein (g)</label>
-            <input type="number" value={protein} onChange={e => setProtein(e.target.value)} />
-          </div>
-          <div className="field">
-            <label>Carbs (g)</label>
-            <input type="number" value={carbs} onChange={e => setCarbs(e.target.value)} />
-          </div>
-          <div className="field">
-            <label>Fat (g)</label>
-            <input type="number" value={fat} onChange={e => setFat(e.target.value)} />
-          </div>
+        <div className="edit-topbar">
+          <button type="button" className="back-link" onClick={() => navigate('/')}>← Back</button>
+          <button
+            type="button"
+            className={`fav-btn${fav ? ' active' : ''}`}
+            onClick={() => toggleFavorite(entry)}
+            aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {fav ? '★' : '☆'}
+          </button>
         </div>
 
-        <div className="field">
-          <label>Meal type</label>
-          <div className="chip-row">
-            {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
-              <button
-                key={m}
-                type="button"
-                className={`chip${mealType === m ? ' active' : ''}`}
-                onClick={() => setMealType(m)}
-              >
-                {MEAL_LABELS[m]}
-              </button>
-            ))}
-          </div>
+        {/* Name + emoji hero */}
+        <div className="edit-hero">
+          <span className="edit-hero-emoji">{entry.emoji ?? '🍽️'}</span>
+          <input
+            className="edit-name-input"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            aria-label="Food name"
+          />
         </div>
 
-        <button type="button" className="btn btn-primary btn-block" onClick={save}>Save changes</button>
+        {/* Calorie card */}
+        <div className="review-calorie-card">
+          <span className="review-calorie-label">Calories</span>
+          <input
+            className="review-calorie-input"
+            type="number"
+            value={calories}
+            onChange={e => setCalories(e.target.value)}
+            aria-label="Calories"
+          />
+          <span className="review-calorie-unit">kcal</span>
+        </div>
+
+        {/* Macro cards */}
+        <div className="review-macro-row">
+          {MACROS.map(m => (
+            <div key={m.key} className="review-macro-card" style={{ borderColor: m.color + '33' }}>
+              <span className="review-macro-label" style={{ color: m.color }}>{m.label}</span>
+              <input
+                className="review-macro-input"
+                type="number"
+                step="0.1"
+                value={m.key === 'protein' ? protein : m.key === 'carbs' ? carbs : fat}
+                onChange={e => {
+                  if (m.key === 'protein') setProtein(e.target.value)
+                  else if (m.key === 'carbs') setCarbs(e.target.value)
+                  else setFat(e.target.value)
+                }}
+                aria-label={m.label}
+                style={{ color: m.color }}
+              />
+              <span className="review-macro-unit">g</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Meal type */}
+        <div className="review-section-label">Meal</div>
+        <div className="meal-type-row">
+          {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
+            <button
+              key={m}
+              type="button"
+              className={`meal-type-btn${mealType === m ? ' active' : ''}`}
+              onClick={() => setMealType(m)}
+            >
+              <span className="meal-type-icon">{MEAL_ICONS[m]}</span>
+              <span className="meal-type-label">{MEAL_LABELS[m]}</span>
+            </button>
+          ))}
+        </div>
+
+        <button type="button" className="btn btn-log btn-block" onClick={save}>Save changes</button>
         <button
           type="button"
-          className="btn btn-secondary btn-block"
-          style={{ marginTop: 10 }}
-          onClick={() => toggleFavorite(entry)}
+          className="btn btn-ghost btn-block"
+          style={{ marginTop: 10, color: 'var(--coral-deep)' }}
+          onClick={remove}
         >
-          {isFavorite(state, entry) ? '★ Remove from favorites' : '☆ Add to favorites'}
-        </button>
-        <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 10 }} onClick={remove}>
           Delete entry
         </button>
       </main>
