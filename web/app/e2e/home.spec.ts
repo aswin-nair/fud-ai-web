@@ -7,7 +7,7 @@ test.describe('Home & food logging', () => {
   })
 
   test('shows calorie hero and macro cards', async ({ page }) => {
-    await expect(page.getByText('of', { exact: false }).first()).toBeVisible()
+    await expect(page.getByText('kcal eaten')).toBeVisible()
     await expect(page.getByText('left').first()).toBeVisible()
     await expect(page.getByText('Protein')).toBeVisible()
     await expect(page.getByText('Carbs')).toBeVisible()
@@ -25,7 +25,7 @@ test.describe('Home & food logging', () => {
     })
 
     await expect(page.getByText('Greek Yogurt')).toBeVisible()
-    await expect(page.getByText('150 kcal')).toBeVisible()
+    await expect(page.locator('.food-card-cals', { hasText: '150 kcal' })).toBeVisible()
   })
 
   test('week strip keeps today calories after switching dates', async ({ page }) => {

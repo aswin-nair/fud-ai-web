@@ -11,21 +11,21 @@ test.describe('Progress', () => {
     await expect(page.getByRole('button', { name: '1W' })).toBeVisible()
     await expect(page.getByRole('button', { name: '1M' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Weight' })).toBeVisible()
-    await expect(page.getByText('Current')).toBeVisible()
-    await expect(page.getByText('Goal')).toBeVisible()
+    await expect(page.getByText('Current', { exact: true }).first()).toBeVisible()
+    await expect(page.locator('.progress-stat-grid').first().getByText('Goal', { exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Calories' })).toBeVisible()
   })
 
   test('logs weight via modal', async ({ page }) => {
-    await page.getByRole('button', { name: '+ Log Weight' }).click()
-    await expect(page.getByRole('heading', { name: 'Log Weight' })).toBeVisible()
+    await page.getByRole('button', { name: '+ Log weight' }).click()
+    await expect(page.getByRole('heading', { name: 'Log weight' })).toBeVisible()
 
     await page.getByLabel('Weight (kg)').fill('72.5')
     await page.getByRole('button', { name: 'Save' }).click()
 
-    await expect(page.getByText('Weight History')).toBeVisible()
-    await expect(page.getByText('1 entries')).toBeVisible()
-    await expect(page.locator('.stat-badge').first()).toContainText('72.5')
+    await expect(page.getByText('Weight history')).toBeVisible()
+    await expect(page.getByText('1 entry')).toBeVisible()
+    await expect(page.locator('.progress-stat-value').first()).toContainText('72.5')
   })
 
   test('switches time range', async ({ page }) => {
