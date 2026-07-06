@@ -38,7 +38,6 @@ export function ReviewFoodPage() {
 
   function update(field: keyof FoodAnalysis, value: string | number) {
     setAnalysis(a => a ? { ...a, [field]: value } : a)
-    // Manual edit detaches from serving scale — update base too
     if (baseRef.current) {
       baseRef.current = { ...baseRef.current, [field]: value }
     }
@@ -80,9 +79,10 @@ export function ReviewFoodPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main review-page">
         <button type="button" className="back-link" onClick={() => navigate('/log')}>← Back</button>
 
+        {/* Food identity row */}
         <div className="review-hero">
           <div className="review-hero-emoji">{analysis.emoji ?? '🍽️'}</div>
           <div className="review-hero-info">
@@ -96,66 +96,78 @@ export function ReviewFoodPage() {
           </div>
         </div>
 
-        {/* Serving size stepper */}
-        <div className="serving-row">
-          <span className="serving-label">Servings</span>
-          <div className="serving-stepper">
-            <button
-              type="button"
-              className="serving-btn"
-              onClick={() => changeServings(servings - 0.25)}
-              disabled={servings <= 0.25}
-            >−</button>
+        {/* Serving stepper */}
+        <div className="review-section-label">Servings</div>
+        <div className="review-serving-row">
+          <button
+            type="button"
+            className="review-serving-btn"
+            onClick={() => changeServings(servings - 0.25)}
+            disabled={servings <= 0.25}
+            aria-label="Decrease servings"
+          >−</button>
+          <div className="review-serving-center">
             <input
-              className="serving-input"
+              className="review-serving-input"
               type="number"
               min="0.25"
               step="0.25"
               value={servings}
               onChange={e => changeServings(Number(e.target.value))}
+              aria-label="Servings"
             />
-            <button
-              type="button"
-              className="serving-btn"
-              onClick={() => changeServings(servings + 0.25)}
-            >+</button>
+            <span className="review-serving-unit">
+              {servings === 1 ? 'serving' : 'servings'}
+            </span>
           </div>
-          <span className="serving-hint">
-            {servings === 1 ? '1 serving' : `${servings} servings`}
-          </span>
+          <button
+            type="button"
+            className="review-serving-btn"
+            onClick={() => changeServings(servings + 0.25)}
+            aria-label="Increase servings"
+          >+</button>
         </div>
 
-        <div className="review-calorie-card">
-          <span className="review-calorie-label">Calories</span>
+        {/* Calorie hero */}
+        <div className="review-section-label" style={{ marginTop: 20 }}>Calories</div>
+        <div className="review-cal-hero">
           <input
-            className="review-calorie-input"
+            className="review-cal-hero-input"
             type="number"
             value={analysis.calories}
             onChange={e => update('calories', Number(e.target.value))}
             aria-label="Calories"
           />
-          <span className="review-calorie-unit">kcal</span>
+          <span className="review-cal-hero-unit">kcal</span>
         </div>
 
+        {/* Macros */}
+        <div className="review-section-label" style={{ marginTop: 20 }}>Macronutrients</div>
         <div className="review-macro-row">
           {MACROS.map(m => (
-            <div key={m.key} className="review-macro-card" style={{ borderColor: m.color + '33' }}>
-              <span className="review-macro-label" style={{ color: m.color }}>{m.label}</span>
-              <input
-                className="review-macro-input"
-                type="number"
-                step="0.1"
-                value={analysis[m.key]}
-                onChange={e => update(m.key, Number(e.target.value))}
-                aria-label={m.label}
-                style={{ color: m.color }}
-              />
-              <span className="review-macro-unit">{m.unit}</span>
-            </div>
+            <label
+              key={m.key}
+              className="review-macro-card"
+              style={{ '--mc': m.color, '--mc-bg': m.bg } as React.CSSProperties}
+            >
+              <span className="review-macro-label">{m.label}</span>
+              <div className="review-macro-input-wrap">
+                <input
+                  className="review-macro-input"
+                  type="number"
+                  step="0.1"
+                  value={analysis[m.key]}
+                  onChange={e => update(m.key, Number(e.target.value))}
+                  aria-label={m.label}
+                />
+                <span className="review-macro-unit">{m.unit}</span>
+              </div>
+            </label>
           ))}
         </div>
 
-        <div className="review-section-label">Meal</div>
+        {/* Meal type */}
+        <div className="review-section-label" style={{ marginTop: 20 }}>Meal</div>
         <div className="meal-type-row">
           {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
             <button

@@ -184,55 +184,55 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
 
       {expanded && (
         <div className="food-quick-edit">
-          <div className="food-quick-breakdown">
-            <div className="food-quick-nutrient">
-              <span className="food-quick-nutrient-value" style={{ color: '#6B9FFF' }}>
-                {Math.round(entry.protein)}g
-              </span>
-              <span className="food-quick-nutrient-label">Protein</span>
+          {/* Macro chips */}
+          <div className="fqe-chips">
+            <div className="fqe-chip" style={{ '--chip-c': '#6B9FFF', '--chip-bg': 'rgba(107,159,255,0.12)' } as React.CSSProperties}>
+              <span className="fqe-chip-val">{Math.round(entry.protein)}g</span>
+              <span className="fqe-chip-lbl">Protein</span>
             </div>
-            <div className="food-quick-nutrient">
-              <span className="food-quick-nutrient-value" style={{ color: '#FFB347' }}>
-                {Math.round(entry.carbs)}g
-              </span>
-              <span className="food-quick-nutrient-label">Carbs</span>
+            <div className="fqe-chip" style={{ '--chip-c': '#FFB347', '--chip-bg': 'rgba(255,179,71,0.12)' } as React.CSSProperties}>
+              <span className="fqe-chip-val">{Math.round(entry.carbs)}g</span>
+              <span className="fqe-chip-lbl">Carbs</span>
             </div>
-            <div className="food-quick-nutrient">
-              <span className="food-quick-nutrient-value" style={{ color: '#FF6B9D' }}>
-                {Math.round(entry.fat)}g
-              </span>
-              <span className="food-quick-nutrient-label">Fat</span>
+            <div className="fqe-chip" style={{ '--chip-c': '#FF6B9D', '--chip-bg': 'rgba(255,107,157,0.12)' } as React.CSSProperties}>
+              <span className="fqe-chip-val">{Math.round(entry.fat)}g</span>
+              <span className="fqe-chip-lbl">Fat</span>
             </div>
             {entry.servingSizeGrams && (
-              <div className="food-quick-nutrient">
-                <span className="food-quick-nutrient-value">{Math.round(entry.servingSizeGrams)}g</span>
-                <span className="food-quick-nutrient-label">Serving</span>
+              <div className="fqe-chip" style={{ '--chip-c': 'var(--ink-soft)', '--chip-bg': 'rgba(255,255,255,0.06)' } as React.CSSProperties}>
+                <span className="fqe-chip-val">{Math.round(entry.servingSizeGrams)}g</span>
+                <span className="fqe-chip-lbl">Serving</span>
               </div>
             )}
           </div>
 
-          <div className="food-quick-cal-row">
-            <span className="food-quick-label">Calories</span>
-            <input
-              className="food-quick-input"
-              type="number"
-              value={editCals}
-              onChange={e => setEditCals(e.target.value)}
-              onClick={e => e.stopPropagation()}
-              onKeyDown={e => e.key === 'Enter' && handleUpdate()}
-              autoFocus
-            />
-            <span className="food-quick-unit">kcal</span>
+          {/* Calorie edit */}
+          <div className="fqe-cal-wrap">
+            <span className="fqe-cal-label">Calories</span>
+            <div className="fqe-cal-input-row">
+              <input
+                className="fqe-cal-input"
+                type="number"
+                value={editCals}
+                onChange={e => setEditCals(e.target.value)}
+                onClick={e => e.stopPropagation()}
+                onKeyDown={e => e.key === 'Enter' && handleUpdate()}
+                autoFocus
+              />
+              <span className="fqe-cal-unit">kcal</span>
+            </div>
           </div>
-          <div className="food-quick-actions">
-            <button type="button" className="fq-update" onClick={e => { e.stopPropagation(); handleUpdate() }}>
-              Update
+
+          {/* Actions */}
+          <div className="fqe-actions">
+            <button type="button" className="fqe-btn fqe-btn-save" onClick={e => { e.stopPropagation(); handleUpdate() }}>
+              Save
             </button>
-            <button type="button" className="fq-delete" onClick={e => { e.stopPropagation(); handleDelete() }}>
+            <button type="button" className="fqe-btn fqe-btn-delete" onClick={e => { e.stopPropagation(); handleDelete() }}>
               Delete
             </button>
-            <button type="button" className="fq-full" onClick={e => { e.stopPropagation(); navigate(`/edit/${entry.id}`) }}>
-              Full edit →
+            <button type="button" className="fqe-btn fqe-btn-edit" onClick={e => { e.stopPropagation(); navigate(`/edit/${entry.id}`) }}>
+              Edit all →
             </button>
           </div>
         </div>

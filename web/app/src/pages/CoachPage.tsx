@@ -1,9 +1,54 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { useApp } from '../store/AppContext'
 import { sendCoachMessage } from '../lib/coachAI'
 import { providerLabel } from '../lib/aiConfig'
+
+/** Render AI message with paragraphs, bullet lists, and **bold**. */
+function CoachMessage({ text }: { text: string }) {
+  const paragraphs = text.split(/\n{2,}/)
+
+  return (
+    <div className="coach-msg">
+      {paragraphs.map((para, pi) => {
+        const lines = para.split('\n')
+        const isList = lines.every(l => /^[-•*]\s/.test(l.trim()) || l.trim() === '')
+        const trimmedLines = lines.filter(l => l.trim())
+
+        if (isList && trimmedLines.length > 0) {
+          return (
+            <ul key={pi} className="coach-msg-list">
+              {trimmedLines.map((l, li) => (
+                <li key={li}>{renderInline(l.replace(/^[-•*]\s+/, ''))}</li>
+              ))}
+            </ul>
+          )
+        }
+
+        return (
+          <p key={pi} className="coach-msg-para">
+            {lines.map((line, li) => (
+              <span key={li}>
+                {renderInline(line)}
+                {li < lines.length - 1 && line.trim() !== '' && <br />}
+              </span>
+            ))}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+function renderInline(text: string): ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/)
+  return parts.map((p, i) =>
+    p.startsWith('**') && p.endsWith('**')
+      ? <strong key={i}>{p.slice(2, -2)}</strong>
+      : <span key={i}>{p}</span>
+  )
+}
 
 const STARTERS = [
   'How am I doing today?',
@@ -128,7 +173,10 @@ export function CoachPage() {
               {msg.role === 'assistant' && (
                 <span className="chat-bubble-avatar" aria-hidden>🤖</span>
               )}
-              <span className="chat-bubble-text">{msg.content}</span>
+              {msg.role === 'assistant'
+                ? <CoachMessage text={msg.content} />
+                : <span className="chat-bubble-text">{msg.content}</span>
+              }
             </div>
           ))}
 
