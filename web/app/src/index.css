@@ -362,11 +362,43 @@ a:hover { text-decoration: underline; }
   line-height: 1;
 }
 
+.week-strip-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.week-nav-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.week-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+}
+
+.week-nav-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
 .week-strip {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
   padding: 4px 0 8px;
+  min-width: 0;
 }
 
 .week-day {
@@ -3448,6 +3480,35 @@ a:hover { text-decoration: underline; }
   animation: expand-down 0.18s ease;
 }
 
+.food-quick-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.food-quick-nutrient {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.food-quick-nutrient-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.food-quick-nutrient-label {
+  font-size: 0.68rem;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .food-quick-cal-row {
   display: flex;
   align-items: center;
@@ -3782,4 +3843,264 @@ a:hover { text-decoration: underline; }
   min-width: 26px;
   text-align: center;
   padding: 0 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADDICTIVE HOME UX — keyframes, components, micro-interactions
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+
+@keyframes ring-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.07); }
+  65%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1)   rotate(-2deg); filter: brightness(1);   }
+  25%       { transform: scale(1.1) rotate(2deg);  filter: brightness(1.2); }
+  50%       { transform: scale(0.95) rotate(-1deg); filter: brightness(0.9); }
+  75%       { transform: scale(1.05) rotate(1deg);  filter: brightness(1.1); }
+}
+
+@keyframes section-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+@keyframes tip-fade {
+  0%   { opacity: 0; transform: translateY(6px); }
+  12%  { opacity: 1; transform: translateY(0);   }
+  88%  { opacity: 1; transform: translateY(0);   }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes plate-bounce {
+  0%, 100% { transform: translateY(0); }
+  40%       { transform: translateY(-10px); }
+  60%       { transform: translateY(-5px);  }
+}
+
+@keyframes at-risk-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 179, 71, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(255, 179, 71, 0.2); }
+}
+
+@keyframes ring-near-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(255,55,95,0.5)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(255,55,95,0.9)); }
+}
+
+@keyframes ring-goal-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(52,199,89,0.6)); }
+  50%       { filter: drop-shadow(0 0 18px rgba(52,199,89,1)); }
+}
+
+/* ── Reduced-motion: kill all animations ────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .home-section-enter,
+  .ring-pop,
+  .streak-fire,
+  .streak-card.at-risk,
+  .ring-near-goal .calorie-ring-svg circle:last-child,
+  .ring-at-goal .calorie-ring-svg circle:last-child,
+  .food-empty-plate,
+  .food-empty-tip {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Section entrance ───────────────────────────────────────── */
+.home-section-enter {
+  animation: section-enter 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+/* ── Ring pop (celebration) ─────────────────────────────────── */
+.calorie-hero.ring-pop .calorie-ring-wrap {
+  animation: ring-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── CalorieHero zone accents ───────────────────────────────── */
+.calorie-hero.ring-near-goal .calorie-ring-svg circle:last-child {
+  animation: ring-near-glow 1.6s ease-in-out infinite;
+}
+
+.calorie-hero.ring-at-goal .calorie-ring-svg circle:last-child {
+  stroke: var(--green-goal) !important;
+  animation: ring-goal-glow 1.8s ease-in-out infinite;
+}
+
+.calorie-hero.ring-over .calorie-ring-svg circle:last-child {
+  stroke: var(--coral-deep) !important;
+}
+
+/* ── Motivation status line ─────────────────────────────────── */
+.calorie-hero-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+  transition: color 0.3s;
+}
+
+.ring-near-goal .calorie-hero-status { color: var(--coral); }
+.ring-at-goal   .calorie-hero-status { color: var(--green-goal); }
+.ring-over      .calorie-hero-status { color: var(--coral-deep); }
+
+/* ── Press-spring feedback ──────────────────────────────────── */
+.press-spring {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.press-spring:active { transform: scale(0.97); }
+
+/* Apply press-spring to interactive home cards */
+.food-card-row { transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.food-card-row:active { transform: scale(0.98); }
+
+.add-menu-btn:active { transform: scale(0.94); }
+
+.week-day-btn { transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.week-day-btn:active { transform: scale(0.94); }
+
+/* ── StreakCard ──────────────────────────────────────────────── */
+.streak-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 5px 10px 5px 6px;
+  background: rgba(255, 179, 71, 0.08);
+  border: 1px solid rgba(255, 179, 71, 0.18);
+  border-radius: 20px;
+  width: fit-content;
+  min-height: 34px;
+}
+
+.streak-card.at-risk {
+  background: rgba(255, 179, 71, 0.14);
+  border-color: rgba(255, 179, 71, 0.35);
+  animation: at-risk-pulse 2s ease-in-out infinite;
+}
+
+.streak-card-zero {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--rule);
+  gap: 6px;
+}
+
+.streak-fire {
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-block;
+  animation: flame-flicker 1.8s ease-in-out infinite;
+}
+
+.streak-fire-dim {
+  opacity: 0.45;
+  animation: none;
+}
+
+.flame-tier-1 { font-size: 1rem; animation-duration: 2.2s; }
+.flame-tier-2 { font-size: 1.1rem; animation-duration: 1.8s; }
+.flame-tier-3 { font-size: 1.2rem; animation-duration: 1.4s; filter: brightness(1.1); }
+.flame-tier-4 { font-size: 1.3rem; animation-duration: 1s;   filter: brightness(1.3) saturate(1.2); }
+
+.streak-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.streak-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.streak-count {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #FFB347;
+  letter-spacing: -0.02em;
+}
+
+.streak-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.streak-zero-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-mute);
+}
+
+.streak-risk-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: rgba(255, 179, 71, 0.22);
+  color: #FFB347;
+  border-radius: 8px;
+  padding: 1px 6px;
+  letter-spacing: 0.02em;
+}
+
+.streak-progress-track {
+  height: 3px;
+  background: rgba(255, 179, 71, 0.18);
+  border-radius: 2px;
+  overflow: hidden;
+  width: 80px;
+}
+
+.streak-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFB347, #FF9500);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.streak-milestone-hint {
+  font-size: 0.6rem;
+  color: var(--ink-mute);
+  font-weight: 500;
+}
+
+/* ── Food empty state (animated) ───────────────────────────── */
+.food-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 20px 32px;
+  text-align: center;
+}
+
+.food-empty-plate {
+  font-size: 2.8rem;
+  line-height: 1;
+  animation: plate-bounce 2s ease-in-out infinite;
+}
+
+.food-empty-tip {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+  max-width: 220px;
+  line-height: 1.4;
+  min-height: 2.8em;
+  animation: tip-fade 3s ease-in-out both;
+}
+
+.food-empty-cta {
+  padding: 11px 28px;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
 }

@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { useApp, isFavorite } from '../store/AppContext'
-import { useToast } from '../components/Toast'
 import { recentMeals, mealKey } from '../lib/meals'
 import { MEAL_LABELS } from '../types'
 import type { SavedMeal } from '../types'
@@ -64,14 +63,15 @@ function MealRow({
 
 export function SavedMealsPage() {
   const { state, logSavedMeal, toggleFavorite } = useApp()
-  const { toast } = useToast()
+  const navigate = useNavigate()
   const recents = recentMeals(state.foodEntries)
 
   function logEntry(entry: FoodEntry, servings: number) {
+    const cals = Math.round(entry.calories * servings)
     logSavedMeal({
       id: mealKey(entry),
       name: entry.name,
-      calories: Math.round(entry.calories * servings),
+      calories: cals,
       protein: Math.round(entry.protein * servings * 10) / 10,
       carbs: Math.round(entry.carbs * servings * 10) / 10,
       fat: Math.round(entry.fat * servings * 10) / 10,
@@ -79,18 +79,19 @@ export function SavedMealsPage() {
       mealType: entry.mealType,
       servingSizeGrams: entry.servingSizeGrams,
     })
-    toast(`Logged ${entry.name}${servings !== 1 ? ` ×${servings}` : ''}!`)
+    navigate('/', { state: { justLogged: { calories: cals, name: entry.name } } })
   }
 
   function logMeal(meal: SavedMeal, servings: number) {
+    const cals = Math.round(meal.calories * servings)
     logSavedMeal({
       ...meal,
-      calories: Math.round(meal.calories * servings),
+      calories: cals,
       protein: Math.round(meal.protein * servings * 10) / 10,
       carbs: Math.round(meal.carbs * servings * 10) / 10,
       fat: Math.round(meal.fat * servings * 10) / 10,
     })
-    toast(`Logged ${meal.name}${servings !== 1 ? ` ×${servings}` : ''}!`)
+    navigate('/', { state: { justLogged: { calories: cals, name: meal.name } } })
   }
 
   return (

@@ -6,6 +6,41 @@ import { sameDay } from '../lib/dates'
 import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
 
+const TIPS = [
+  'Snap a photo to log in seconds 📷',
+  'Type what you ate — AI does the rest ✨',
+  'Re-log saved meals with one tap ⭐',
+  'Track macros alongside calories 💪',
+  'Your streak grows every day you log 🔥',
+]
+
+function EmptyState({ isToday }: { isToday: boolean }) {
+  const navigate = useNavigate()
+  const [tipIdx, setTipIdx] = useState(0)
+
+  useEffect(() => {
+    const t = setInterval(() => setTipIdx(i => (i + 1) % TIPS.length), 3000)
+    return () => clearInterval(t)
+  }, [])
+
+  return (
+    <section className="food-log-section">
+      <h2 className="food-section-title muted">{isToday ? "Today's Food" : 'Food Log'}</h2>
+      <div className="food-empty-state">
+        <div className="food-empty-plate" aria-hidden>🍽️</div>
+        <p className="food-empty-tip" key={tipIdx}>{TIPS[tipIdx]}</p>
+        <button
+          type="button"
+          className="btn btn-primary food-empty-cta press-spring"
+          onClick={() => navigate('/log')}
+        >
+          + Add meal
+        </button>
+      </div>
+    </section>
+  )
+}
+
 const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack', 'other']
 
 const MEAL_ICONS: Record<MealType, string> = {
@@ -149,6 +184,33 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
 
       {expanded && (
         <div className="food-quick-edit">
+          <div className="food-quick-breakdown">
+            <div className="food-quick-nutrient">
+              <span className="food-quick-nutrient-value" style={{ color: '#6B9FFF' }}>
+                {Math.round(entry.protein)}g
+              </span>
+              <span className="food-quick-nutrient-label">Protein</span>
+            </div>
+            <div className="food-quick-nutrient">
+              <span className="food-quick-nutrient-value" style={{ color: '#FFB347' }}>
+                {Math.round(entry.carbs)}g
+              </span>
+              <span className="food-quick-nutrient-label">Carbs</span>
+            </div>
+            <div className="food-quick-nutrient">
+              <span className="food-quick-nutrient-value" style={{ color: '#FF6B9D' }}>
+                {Math.round(entry.fat)}g
+              </span>
+              <span className="food-quick-nutrient-label">Fat</span>
+            </div>
+            {entry.servingSizeGrams && (
+              <div className="food-quick-nutrient">
+                <span className="food-quick-nutrient-value">{Math.round(entry.servingSizeGrams)}g</span>
+                <span className="food-quick-nutrient-label">Serving</span>
+              </div>
+            )}
+          </div>
+
           <div className="food-quick-cal-row">
             <span className="food-quick-label">Calories</span>
             <input
@@ -191,22 +253,13 @@ export function FoodList({ entries, selectedDate }: FoodListProps) {
   function toggleSection(meal: MealType) {
     setCollapsed(prev => {
       const next = new Set(prev)
-      next.has(meal) ? next.delete(meal) : next.add(meal)
+      if (next.has(meal)) { next.delete(meal) } else { next.add(meal) }
       return next
     })
   }
 
   if (entries.length === 0) {
-    return (
-      <section className="food-log-section">
-        <h2 className="food-section-title muted">{isToday ? "Today's Food" : 'Food Log'}</h2>
-        <div className="food-empty-hint">
-          <span className="food-empty-icon">🍽️</span>
-          <p>No foods logged yet</p>
-          <span className="food-empty-sub">Tap + to add your first meal</span>
-        </div>
-      </section>
-    )
+    return <EmptyState isToday={isToday} />
   }
 
   const grouped = MEAL_ORDER.map(meal => ({

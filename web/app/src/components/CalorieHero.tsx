@@ -1,4 +1,5 @@
 import { useCountUp } from '../hooks/useCountUp'
+import { getMotivation } from '../lib/motivation'
 
 const RADIUS = 82
 const CIRC = 2 * Math.PI * RADIUS
@@ -6,9 +7,10 @@ const CIRC = 2 * Math.PI * RADIUS
 interface CalorieHeroProps {
   current: number
   goal: number
+  pop?: boolean
 }
 
-export function CalorieHero({ current, goal }: CalorieHeroProps) {
+export function CalorieHero({ current, goal, pop }: CalorieHeroProps) {
   const raw = goal > 0 ? current / goal : 0
   const progress = Math.min(1, raw)
   const over = raw > 1
@@ -18,8 +20,10 @@ export function CalorieHero({ current, goal }: CalorieHeroProps) {
   const displayCalories = useCountUp(Math.round(current))
   const displayRemaining = useCountUp(Math.round(over ? current - goal : remaining))
 
+  const { status, emoji, ringClass } = getMotivation(current, goal)
+
   return (
-    <div className="calorie-hero">
+    <div className={`calorie-hero${pop ? ' ring-pop' : ''}${ringClass ? ` ${ringClass}` : ''}`}>
       <div className="calorie-ring-wrap">
         <svg className="calorie-ring-svg" viewBox="0 0 200 200" aria-hidden>
           <defs>
@@ -54,6 +58,11 @@ export function CalorieHero({ current, goal }: CalorieHeroProps) {
         <div className="calorie-ring-center">
           <span className="calorie-hero-value">{displayCalories.toLocaleString()}</span>
           <span className="calorie-hero-unit">kcal eaten</span>
+          {current > 0 && (
+            <span className="calorie-hero-status" aria-live="polite">
+              {emoji} {status}
+            </span>
+          )}
         </div>
       </div>
 

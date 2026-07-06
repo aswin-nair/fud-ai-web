@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
-import { useToast } from '../components/Toast'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 
@@ -15,7 +14,6 @@ function inferMealType(): MealType {
 
 export function ManualEntryPage() {
   const { addEntry } = useApp()
-  const { toast } = useToast()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [calories, setCalories] = useState('')
@@ -48,8 +46,7 @@ export function ManualEntryPage() {
       source: 'manual',
       mealType,
     })
-    toast(`Logged ${name.trim()}!`)
-    navigate('/')
+    navigate('/', { state: { justLogged: { calories: scaledCalories, name: name.trim() } } })
   }
 
   return (

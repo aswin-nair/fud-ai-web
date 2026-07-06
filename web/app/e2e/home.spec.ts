@@ -64,4 +64,16 @@ test.describe('Home & food logging', () => {
     await expect(page.getByRole('menuitem', { name: 'Saved Meals' })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: 'Manual Entry' })).toBeVisible()
   })
+
+  test('shows +kcal logged toast after manual entry', async ({ page }) => {
+    await logManualMeal(page, {
+      name: 'Toast Test Meal',
+      calories: '420',
+      protein: '22',
+      carbs: '45',
+      fat: '10',
+    })
+
+    await expect(page.getByText('+420 kcal logged')).toBeVisible()
+  })
 })

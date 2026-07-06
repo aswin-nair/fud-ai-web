@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
-import { useToast } from '../components/Toast'
 import type { FoodAnalysis, MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 
@@ -25,7 +24,6 @@ const MACROS = [
 
 export function ReviewFoodPage() {
   const { pendingAnalysis, setPendingAnalysis, addEntry, pendingSource } = useApp()
-  const { toast } = useToast()
   const navigate = useNavigate()
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(pendingAnalysis)
   const [mealType, setMealType] = useState<MealType>(inferMealType)
@@ -62,10 +60,11 @@ export function ReviewFoodPage() {
 
   function save() {
     if (!analysis) return
+    const cals = Math.round(Number(analysis.calories))
     addEntry({
       id: crypto.randomUUID(),
       name: analysis.name,
-      calories: Math.round(Number(analysis.calories)),
+      calories: cals,
       protein: Number(analysis.protein),
       carbs: Number(analysis.carbs),
       fat: Number(analysis.fat),
@@ -76,8 +75,7 @@ export function ReviewFoodPage() {
       servingSizeGrams: analysis.servingSizeGrams,
     })
     setPendingAnalysis(null)
-    toast(`Logged ${analysis.name}!`)
-    navigate('/')
+    navigate('/', { state: { justLogged: { calories: cals, name: analysis.name } } })
   }
 
   return (

@@ -1,4 +1,4 @@
-import { weekDatesContaining, sameDay, narrowWeekday } from '../lib/dates'
+import { addDays, weekDatesContaining, sameDay, startOfWeek, narrowWeekday } from '../lib/dates'
 
 interface WeekStripProps {
   selectedDate: Date
@@ -17,36 +17,70 @@ export function WeekStrip({ selectedDate, onSelect }: WeekStripProps) {
   const today = new Date()
   const days = weekDatesContaining(selectedDate)
 
-  return (
-    <div className="week-strip">
-      {days.map(d => {
-        const isSelected = sameDay(d, selectedDate)
-        const isToday = sameDay(d, today)
-        const isFuture = isFutureDay(d, today)
+  const thisWeekStart = startOfWeek(today).getTime()
+  const shownWeekStart = startOfWeek(selectedDate).getTime()
+  const isCurrentWeek = shownWeekStart === thisWeekStart
 
-        return (
-          <button
-            key={d.toISOString()}
-            type="button"
-            className="week-day"
-            disabled={isFuture}
-            onClick={() => onSelect(d)}
-          >
-            <span className={`week-day-label${isSelected ? ' selected' : ''}`}>
-              {narrowWeekday(d)}
-            </span>
-            <span
-              className={[
-                'week-day-circle',
-                isSelected ? 'selected' : '',
-                isToday && !isSelected ? 'today' : '',
-              ].filter(Boolean).join(' ')}
+  function goToPrevWeek() {
+    onSelect(addDays(selectedDate, -7))
+  }
+
+  function goToNextWeek() {
+    if (isCurrentWeek) return
+    onSelect(addDays(selectedDate, 7))
+  }
+
+  return (
+    <div className="week-strip-row">
+      <button
+        type="button"
+        className="week-nav-btn"
+        onClick={goToPrevWeek}
+        aria-label="Previous week"
+      >
+        ‹
+      </button>
+
+      <div className="week-strip">
+        {days.map(d => {
+          const isSelected = sameDay(d, selectedDate)
+          const isToday = sameDay(d, today)
+          const isFuture = isFutureDay(d, today)
+
+          return (
+            <button
+              key={d.toISOString()}
+              type="button"
+              className="week-day"
+              disabled={isFuture}
+              onClick={() => onSelect(d)}
             >
-              {d.getDate()}
-            </span>
-          </button>
-        )
-      })}
+              <span className={`week-day-label${isSelected ? ' selected' : ''}`}>
+                {narrowWeekday(d)}
+              </span>
+              <span
+                className={[
+                  'week-day-circle',
+                  isSelected ? 'selected' : '',
+                  isToday && !isSelected ? 'today' : '',
+                ].filter(Boolean).join(' ')}
+              >
+                {d.getDate()}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      <button
+        type="button"
+        className="week-nav-btn"
+        onClick={goToNextWeek}
+        disabled={isCurrentWeek}
+        aria-label="Next week"
+      >
+        ›
+      </button>
     </div>
   )
 }
