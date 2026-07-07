@@ -1,4 +1,4 @@
-import type { AppState, FoodEntry, GamificationState } from '../types'
+import type { AppState, FoodEntry, GamificationState, ExerciseEntry } from '../types'
 import { localDayKey } from './dates'
 import { defaultProfile } from './profile'
 import { defaultAISettings, normalizeAISettings } from './aiConfig'
@@ -46,11 +46,17 @@ function normalizeState(parsed: AppState): AppState {
     profile: { ...defaultProfile(), ...parsed.profile },
     foodEntries: parsed.foodEntries ?? [],
     weightEntries: parsed.weightEntries ?? [],
+    exerciseEntries: normalizeExerciseEntries(parsed.exerciseEntries),
     favoriteMeals: parsed.favoriteMeals ?? [],
     chatMessages: parsed.chatMessages ?? [],
     aiSettings: normalizeAISettings(parsed.aiSettings),
     gamification: normalizeGamification(parsed.gamification),
   }
+}
+
+function normalizeExerciseEntries(raw: unknown): ExerciseEntry[] {
+  if (!Array.isArray(raw)) return []
+  return raw as ExerciseEntry[]
 }
 
 function normalizeGamification(g: GamificationState | undefined): GamificationState {
@@ -94,6 +100,7 @@ export function freshState(): AppState {
     profile: defaultProfile(),
     foodEntries: [],
     weightEntries: [],
+    exerciseEntries: [],
     favoriteMeals: [],
     chatMessages: [],
     aiSettings: defaultAISettings(),

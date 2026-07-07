@@ -4,7 +4,7 @@ import type {
 
   AppState, FoodEntry, UserProfile, AISettings, FoodAnalysis,
 
-  WeightEntry, ChatMessage, SavedMeal,
+  WeightEntry, ChatMessage, SavedMeal, ExerciseEntry,
 
 } from '../types'
 
@@ -59,6 +59,10 @@ interface AppContextValue {
   clearAllData: () => void
 
   ackLevelUp: () => void
+
+  addExercise: (entry: ExerciseEntry) => void
+
+  deleteExercise: (id: string) => void
 
   pendingAnalysis: FoodAnalysis | null
 
@@ -389,6 +393,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ackLevelUp: () => setState(s => ({
       ...s,
       gamification: { ...s.gamification, pendingLevelUp: null },
+    })),
+
+    addExercise: (entry: ExerciseEntry) => setState(s => {
+
+      const earnedXp = 20
+      const newXp = s.gamification.xp + earnedXp
+      const newLevel = levelFromXp(newXp)
+      const didLevelUp = newLevel > s.gamification.level
+      const xpEvent = {
+        id: crypto.randomUUID(),
+        key: `exercise-${entry.id}`,
+        xp: earnedXp,
+        label: 'Exercise logged!',
+        timestamp: new Date().toISOString(),
+      }
+      const alreadyAwarded = s.gamification.xpEvents.some(e => e.key === xpEvent.key)
+
+      return {
+        ...s,
+        exerciseEntries: [...s.exerciseEntries, entry],
+        gamification: {
+          ...s.gamification,
+          xp: alreadyAwarded ? s.gamification.xp : newXp,
+          level: alreadyAwarded ? s.gamification.level : newLevel,
+          pendingLevelUp: (!alreadyAwarded && didLevelUp) ? newLevel : s.gamification.pendingLevelUp,
+          xpEvents: alreadyAwarded
+            ? s.gamification.xpEvents
+            : [xpEvent, ...s.gamification.xpEvents].slice(0, 50),
+        },
+      }
+
+    }),
+
+    deleteExercise: (id: string) => setState(s => ({
+
+      ...s,
+
+      exerciseEntries: s.exerciseEntries.filter(e => e.id !== id),
+
     })),
 
     clearAllData: () => {

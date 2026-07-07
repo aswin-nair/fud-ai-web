@@ -6,6 +6,7 @@ import { FoodList } from '../components/FoodList'
 import { WeekStrip } from '../components/WeekStrip'
 import { StreakCard } from '../components/StreakCard'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
+import { ActivitySheet } from '../components/ActivitySheet'
 import { AddMenuButton } from '../components/AddMenuButton'
 import { BottomNav } from '../components/BottomNav'
 import { Confetti } from '../components/Confetti'
@@ -13,9 +14,10 @@ import { useToast } from '../components/Toast'
 import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveCalories, effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
-import { startOfDay, sameDay } from '../lib/dates'
+import { startOfDay, sameDay, localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
 import { useHaptic } from '../hooks/useHaptic'
+import { ACTIVITY_PRESETS, type ActivityPreset } from '../lib/activities'
 
 function greeting(): string {
   const h = new Date().getHours()
@@ -35,6 +37,7 @@ export function HomePage() {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay())
   const [showConfetti, setShowConfetti] = useState(false)
   const [ringPop, setRingPop] = useState(false)
+  const [activePreset, setActivePreset] = useState<ActivityPreset | null>(null)
   const celebratedKey = useRef('')
   const loggedNavKey = useRef('')
   const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
@@ -44,6 +47,11 @@ export function HomePage() {
   const profile = state.profile
   const firstName = profile.name?.split(' ')[0]
   const goal = effectiveCalories(profile)
+
+  const selectedDayKey = localDayKey(selectedDate)
+  const burned = state.exerciseEntries
+    .filter(e => localDayKey(new Date(e.timestamp)) === selectedDayKey)
+    .reduce((sum, e) => sum + e.caloriesBurned, 0)
 
   const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
 
@@ -92,6 +100,16 @@ export function HomePage() {
     <div className="app-shell home-shell">
       {showConfetti && !pendingLevelUp && <Confetti onDone={() => setShowConfetti(false)} />}
       {pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
+      {activePreset && (
+        <ActivitySheet
+          defaultPreset={activePreset}
+          onClose={() => setActivePreset(null)}
+          onLogged={(kcal, name) => {
+            toast(`🏃 +${kcal} kcal burned (${name})`)
+            vibrate(15)
+          }}
+        />
+      )}
 
       <header className="home-header">
         <div className="home-greeting">
@@ -108,8 +126,26 @@ export function HomePage() {
           <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
         </div>
         <div className="home-section-enter" style={{ '--enter-delay': '60ms' } as React.CSSProperties}>
-          <CalorieHero current={totals.calories} goal={goal} pop={ringPop} />
+          <CalorieHero current={totals.calories} goal={goal} burned={burned} pop={ringPop} />
         </div>
+
+        {/* Quick activity presets */}
+        <div className="home-section-enter" style={{ '--enter-delay': '90ms' } as React.CSSProperties}>
+          <div className="activity-quick-row">
+            {ACTIVITY_PRESETS.map(preset => (
+              <button
+                key={preset.id}
+                type="button"
+                className="activity-quick-chip"
+                onClick={() => { setActivePreset(preset); vibrate(8) }}
+              >
+                <span>{preset.emoji}</span>
+                <span>{preset.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="home-section-enter" style={{ '--enter-delay': '120ms' } as React.CSSProperties}>
           <MacroGrid
             protein={{ current: totals.protein, goal: effectiveProtein(profile) }}

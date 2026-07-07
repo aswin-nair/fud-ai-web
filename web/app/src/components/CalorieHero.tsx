@@ -7,20 +7,22 @@ const CIRC = 2 * Math.PI * RADIUS
 interface CalorieHeroProps {
   current: number
   goal: number
+  burned?: number
   pop?: boolean
 }
 
-export function CalorieHero({ current, goal, pop }: CalorieHeroProps) {
-  const raw = goal > 0 ? current / goal : 0
+export function CalorieHero({ current, goal, burned = 0, pop }: CalorieHeroProps) {
+  const effectiveBudget = goal + burned
+  const raw = effectiveBudget > 0 ? current / effectiveBudget : 0
   const progress = Math.min(1, raw)
   const over = raw > 1
-  const remaining = Math.max(0, goal - current)
+  const remaining = Math.max(0, effectiveBudget - current)
   const offset = CIRC * (1 - progress)
 
   const displayCalories = useCountUp(Math.round(current))
-  const displayRemaining = useCountUp(Math.round(over ? current - goal : remaining))
+  const displayRemaining = useCountUp(Math.round(over ? current - effectiveBudget : remaining))
 
-  const { status, emoji, ringClass } = getMotivation(current, goal)
+  const { status, emoji, ringClass } = getMotivation(current, effectiveBudget)
 
   return (
     <div className={`calorie-hero${pop ? ' ring-pop' : ''}${ringClass ? ` ${ringClass}` : ''}`}>
@@ -75,6 +77,13 @@ export function CalorieHero({ current, goal, pop }: CalorieHeroProps) {
             : `${displayRemaining.toLocaleString()} left`}
         </span>
       </div>
+
+      {burned > 0 && (
+        <div className="calorie-burned-chip" aria-label={`${burned} kcal burned from exercise`}>
+          <span>🏃</span>
+          <span>+{burned.toLocaleString()} burned</span>
+        </div>
+      )}
     </div>
   )
 }

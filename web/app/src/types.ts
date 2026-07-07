@@ -93,11 +93,21 @@ export interface GamificationState {
   seenBadgeIds: string[]       // badge IDs already toasted
 }
 
+export interface ExerciseEntry {
+  id: string
+  name: string
+  emoji: string
+  caloriesBurned: number
+  durationMinutes: number
+  timestamp: string
+}
+
 export interface AppState {
   onboarded: boolean
   profile: UserProfile
   foodEntries: FoodEntry[]
   weightEntries: WeightEntry[]
+  exerciseEntries: ExerciseEntry[]
   favoriteMeals: SavedMeal[]
   chatMessages: ChatMessage[]
   aiSettings: AISettings
