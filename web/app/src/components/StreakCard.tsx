@@ -1,5 +1,6 @@
-import type { FoodEntry } from '../types'
+import type { FoodEntry, GamificationState } from '../types'
 import { sameDay } from '../lib/dates'
+import { levelFromXp, LEVEL_COMPANIONS } from '../lib/xp'
 
 const MILESTONES = [3, 7, 14, 30, 60, 100]
 
@@ -17,19 +18,17 @@ function flameScale(streak: number): string {
 interface StreakCardProps {
   streak: number
   entries: FoodEntry[]
+  gamification: GamificationState
 }
 
-export function StreakCard({ streak, entries }: StreakCardProps) {
-  if (streak === 0 && entries.length === 0) return null
-
+export function StreakCard({ streak, entries, gamification }: StreakCardProps) {
   const hasLoggedToday = entries.some(e => sameDay(new Date(e.timestamp), new Date()))
   const atRisk = streak > 0 && !hasLoggedToday
 
-  const next = nextMilestone(streak)
-  const prev = MILESTONES.find(m => m <= streak) ?? 0
-  const progress = next === prev ? 1 : (streak - prev) / (next - prev)
+  const level = levelFromXp(gamification.xp)
+  const companion = LEVEL_COMPANIONS[Math.min(level, LEVEL_COMPANIONS.length - 1)]
 
-  if (streak === 0) {
+  if (streak === 0 && entries.length === 0) {
     return (
       <div className="streak-card streak-card-zero">
         <span className="streak-fire streak-fire-dim">🔥</span>
@@ -37,6 +36,19 @@ export function StreakCard({ streak, entries }: StreakCardProps) {
       </div>
     )
   }
+
+  if (streak === 0) {
+    return (
+      <div className="streak-card streak-card-zero">
+        <span className="streak-fire streak-fire-dim">🔥</span>
+        <span className="streak-zero-text">Log today to start a streak!</span>
+      </div>
+    )
+  }
+
+  const next = nextMilestone(streak)
+  const prev = MILESTONES.find(m => m <= streak) ?? 0
+  const progress = next === prev ? 1 : (streak - prev) / (next - prev)
 
   return (
     <div className={`streak-card${atRisk ? ' at-risk' : ''}`}>
@@ -46,6 +58,11 @@ export function StreakCard({ streak, entries }: StreakCardProps) {
           <span className="streak-count">{streak}</span>
           <span className="streak-label">day streak</span>
           {atRisk && <span className="streak-risk-badge">Log today!</span>}
+          {gamification.streakFreezes > 0 && (
+            <span className="streak-freeze-badge" title="Streak freeze available">
+              ❄️{gamification.streakFreezes}
+            </span>
+          )}
         </div>
         <div className="streak-progress-track">
           <div
@@ -54,6 +71,10 @@ export function StreakCard({ streak, entries }: StreakCardProps) {
           />
         </div>
         <span className="streak-milestone-hint">{next - streak} to {next}-day badge</span>
+      </div>
+      <div className="streak-level-badge">
+        <span className="streak-companion">{companion}</span>
+        <span className="streak-level-num">{level}</span>
       </div>
     </div>
   )

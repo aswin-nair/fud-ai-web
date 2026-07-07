@@ -18,6 +18,10 @@ import { apiLoadState, apiSaveState } from '../lib/apiClient'
 
 import { isCloudBackend } from '../lib/dataBackend'
 
+import { computeXpAwards, makeXpEvents, levelFromXp } from '../lib/xp'
+
+import { applyFreeze, getStreakWithFreezes, getAllBadges } from '../lib/journey'
+
 
 
 interface AppContextValue {
@@ -53,6 +57,8 @@ interface AppContextValue {
   replaceState: (state: AppState) => void
 
   clearAllData: () => void
+
+  ackLevelUp: () => void
 
   pendingAnalysis: FoodAnalysis | null
 
@@ -216,15 +222,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     updateAISettings: (aiSettings) => setState(s => ({ ...s, aiSettings })),
 
-    addEntry: (entry) => setState(s => ({
+    addEntry: (entry) => setState(s => {
 
-      ...s,
+      const allEntries = [...s.foodEntries, entry]
 
-      foodEntries: [...s.foodEntries, entry],
+      // Streak freezes
+      const freezeUpdate = applyFreeze(s.foodEntries, s.gamification)
 
-      profile: { ...s.profile, weightKg: s.profile.weightKg },
+      // XP awards
+      const awards = computeXpAwards(entry, s.foodEntries, {
+        ...s.gamification,
+        ...freezeUpdate,
+      })
+      const newEvents = makeXpEvents(awards)
+      const earnedXp = awards.reduce((sum, a) => sum + a.xp, 0)
+      const newXp = s.gamification.xp + earnedXp
+      const newLevel = levelFromXp(newXp)
+      const didLevelUp = newLevel > s.gamification.level
 
-    })),
+      // Badge detection
+      const newGam = {
+        ...s.gamification,
+        ...freezeUpdate,
+        xp: newXp,
+        level: newLevel,
+        pendingLevelUp: didLevelUp ? newLevel : s.gamification.pendingLevelUp,
+        xpEvents: [...newEvents, ...s.gamification.xpEvents].slice(0, 50),
+      }
+      const currentStreak = getStreakWithFreezes(allEntries, newGam.freezeUsedDates)
+      const allBadges = getAllBadges(allEntries, currentStreak, newGam)
+      const seenSet = new Set(newGam.seenBadgeIds)
+      const newlyUnlocked = allBadges.filter(b => b.unlocked && !seenSet.has(b.id))
+      if (newlyUnlocked.length > 0) {
+        newGam.seenBadgeIds = [...newGam.seenBadgeIds, ...newlyUnlocked.map(b => b.id)]
+      }
+
+      return {
+
+        ...s,
+
+        foodEntries: allEntries,
+
+        profile: { ...s.profile, weightKg: s.profile.weightKg },
+
+        gamification: newGam,
+
+      }
+
+    }),
 
     updateEntry: (entry) => setState(s => ({
 
@@ -298,13 +343,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     },
 
-    logSavedMeal: (meal) => setState(s => ({
+    logSavedMeal: (meal) => setState(s => {
 
-      ...s,
+      const entry = savedToEntry(meal)
+      const allEntries = [...s.foodEntries, entry]
+      const freezeUpdate = applyFreeze(s.foodEntries, s.gamification)
+      const awards = computeXpAwards(entry, s.foodEntries, { ...s.gamification, ...freezeUpdate })
+      const newEvents = makeXpEvents(awards)
+      const newXp = s.gamification.xp + awards.reduce((sum, a) => sum + a.xp, 0)
+      const newLevel = levelFromXp(newXp)
+      const didLevelUp = newLevel > s.gamification.level
 
-      foodEntries: [...s.foodEntries, savedToEntry(meal)],
+      const newGam = {
+        ...s.gamification,
+        ...freezeUpdate,
+        xp: newXp,
+        level: newLevel,
+        pendingLevelUp: didLevelUp ? newLevel : s.gamification.pendingLevelUp,
+        xpEvents: [...newEvents, ...s.gamification.xpEvents].slice(0, 50),
+      }
+      const currentStreak = getStreakWithFreezes(allEntries, newGam.freezeUsedDates)
+      const allBadges = getAllBadges(allEntries, currentStreak, newGam)
+      const seenSet = new Set(newGam.seenBadgeIds)
+      const newlyUnlocked = allBadges.filter(b => b.unlocked && !seenSet.has(b.id))
+      if (newlyUnlocked.length > 0) {
+        newGam.seenBadgeIds = [...newGam.seenBadgeIds, ...newlyUnlocked.map(b => b.id)]
+      }
 
-    })),
+      return { ...s, foodEntries: allEntries, gamification: newGam } as AppState
+
+    }),
 
     addChatMessage: (msg) => setState(s => ({
 
@@ -317,6 +385,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     clearChat: () => setState(s => ({ ...s, chatMessages: [] })),
 
     replaceState: (next) => setState(next),
+
+    ackLevelUp: () => setState(s => ({
+      ...s,
+      gamification: { ...s.gamification, pendingLevelUp: null },
+    })),
 
     clearAllData: () => {
 
@@ -377,8 +450,6 @@ export function useApp() {
   return ctx
 
 }
-
-
 
 export function isFavorite(state: AppState, entry: FoodEntry): boolean {
 

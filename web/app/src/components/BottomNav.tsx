@@ -33,11 +33,11 @@ function IconSettings() {
   )
 }
 
-function IconAbout() {
+function IconJourney() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 10v6M12 7h.01" />
+      <path d="M3 17l4-8 4 4 4-6 4 6" />
+      <circle cx="7" cy="9" r="1" fill="currentColor" stroke="none" />
     </svg>
   )
 }
@@ -45,9 +45,9 @@ function IconAbout() {
 const TABS = [
   { to: '/', end: true, label: 'Home', Icon: IconHome },
   { to: '/progress', label: 'Progress', Icon: IconProgress },
+  { to: '/journey', label: 'Journey', Icon: IconJourney },
   { to: '/coach', label: 'Coach', Icon: IconCoach },
   { to: '/settings', label: 'Settings', Icon: IconSettings },
-  { to: '/about', label: 'About', Icon: IconAbout },
 ] as const
 
 export function BottomNav() {

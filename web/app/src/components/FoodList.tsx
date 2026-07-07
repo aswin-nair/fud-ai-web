@@ -145,41 +145,43 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
   }
 
   return (
-    <div className="swipe-row-wrap">
-      <button
-        type="button"
-        className="swipe-delete-btn"
-        onClick={handleDelete}
-        aria-label="Delete"
-      >
-        <span aria-hidden>🗑️</span>
-        <span>Delete</span>
-      </button>
+    <div className="food-card-outer">
+      <div className="swipe-row-wrap">
+        <button
+          type="button"
+          className="swipe-delete-btn"
+          onClick={handleDelete}
+          aria-label="Delete"
+        >
+          <span aria-hidden>🗑️</span>
+          <span>Delete</span>
+        </button>
 
-      <div
-        ref={cardRef}
-        className={`food-card-row swipeable${bordered ? ' bordered' : ''}${expanded ? ' row-expanded' : ''}`}
-        onClick={handleCardClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={e => e.key === 'Enter' && handleCardClick()}
-      >
-        <span className="food-card-emoji">{entry.emoji ?? '🍽️'}</span>
-        <div className="food-card-info">
-          <div className="food-card-top">
-            <span className="food-card-name">{entry.name}</span>
+        <div
+          ref={cardRef}
+          className={`food-card-row swipeable${bordered ? ' bordered' : ''}${expanded ? ' row-expanded' : ''}`}
+          onClick={handleCardClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => e.key === 'Enter' && handleCardClick()}
+        >
+          <span className="food-card-emoji">{entry.emoji ?? '🍽️'}</span>
+          <div className="food-card-info">
+            <div className="food-card-top">
+              <span className="food-card-name">{entry.name}</span>
+            </div>
+            <div className="food-card-meta">
+              <span className="food-card-cals">{entry.calories} kcal</span>
+              <span className="food-card-dot">·</span>
+              <span>P {Math.round(entry.protein)}g · C {Math.round(entry.carbs)}g · F {Math.round(entry.fat)}g</span>
+            </div>
           </div>
-          <div className="food-card-meta">
-            <span className="food-card-cals">{entry.calories} kcal</span>
-            <span className="food-card-dot">·</span>
-            <span>P {Math.round(entry.protein)}g · C {Math.round(entry.carbs)}g · F {Math.round(entry.fat)}g</span>
-          </div>
+          <span className="food-card-chevron" aria-hidden style={{
+            transform: expanded ? 'rotate(90deg)' : undefined,
+            transition: 'transform 0.2s',
+            display: 'inline-block',
+          }}>›</span>
         </div>
-        <span className="food-card-chevron" aria-hidden style={{
-          transform: expanded ? 'rotate(90deg)' : undefined,
-          transition: 'transform 0.2s',
-          display: 'inline-block',
-        }}>›</span>
       </div>
 
       {expanded && (

@@ -74,6 +74,25 @@ export interface FoodAnalysis {
   emoji?: string
 }
 
+export interface XpEvent {
+  id: string
+  key: string     // dedup key — prevents double-awarding
+  xp: number
+  label: string
+  timestamp: string
+}
+
+export interface GamificationState {
+  xp: number
+  level: number
+  streakFreezes: number        // available freezes (resets to 2 each month)
+  freezeUsedDates: string[]    // YYYY-MM-DD days covered by a freeze
+  freezeEarnedMonth: string    // YYYY-MM of last freeze grant
+  xpEvents: XpEvent[]          // last 50 XP events (for feed display)
+  pendingLevelUp: number | null // new level pending celebration
+  seenBadgeIds: string[]       // badge IDs already toasted
+}
+
 export interface AppState {
   onboarded: boolean
   profile: UserProfile
@@ -82,6 +101,7 @@ export interface AppState {
   favoriteMeals: SavedMeal[]
   chatMessages: ChatMessage[]
   aiSettings: AISettings
+  gamification: GamificationState
 }
 
 export const MEAL_LABELS: Record<MealType, string> = {

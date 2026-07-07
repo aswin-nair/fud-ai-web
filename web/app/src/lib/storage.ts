@@ -1,4 +1,4 @@
-import type { AppState, FoodEntry } from '../types'
+import type { AppState, FoodEntry, GamificationState } from '../types'
 import { localDayKey } from './dates'
 import { defaultProfile } from './profile'
 import { defaultAISettings, normalizeAISettings } from './aiConfig'
@@ -49,6 +49,42 @@ function normalizeState(parsed: AppState): AppState {
     favoriteMeals: parsed.favoriteMeals ?? [],
     chatMessages: parsed.chatMessages ?? [],
     aiSettings: normalizeAISettings(parsed.aiSettings),
+    gamification: normalizeGamification(parsed.gamification),
+  }
+}
+
+function normalizeGamification(g: GamificationState | undefined): GamificationState {
+  const base = defaultGamification()
+  if (!g) {
+    // Migrate old seen-badge IDs from localStorage
+    try {
+      const old = localStorage.getItem('fud-seen-badges')
+      if (old) base.seenBadgeIds = JSON.parse(old) as string[]
+    } catch { /* ignore */ }
+    return base
+  }
+  return {
+    xp: g.xp ?? 0,
+    level: g.level ?? 1,
+    streakFreezes: g.streakFreezes ?? 2,
+    freezeUsedDates: g.freezeUsedDates ?? [],
+    freezeEarnedMonth: g.freezeEarnedMonth ?? '',
+    xpEvents: g.xpEvents ?? [],
+    pendingLevelUp: g.pendingLevelUp ?? null,
+    seenBadgeIds: g.seenBadgeIds ?? base.seenBadgeIds,
+  }
+}
+
+export function defaultGamification(): GamificationState {
+  return {
+    xp: 0,
+    level: 1,
+    streakFreezes: 2,
+    freezeUsedDates: [],
+    freezeEarnedMonth: new Date().toISOString().slice(0, 7),
+    xpEvents: [],
+    pendingLevelUp: null,
+    seenBadgeIds: [],
   }
 }
 
@@ -61,6 +97,7 @@ export function freshState(): AppState {
     favoriteMeals: [],
     chatMessages: [],
     aiSettings: defaultAISettings(),
+    gamification: defaultGamification(),
   }
 }
 

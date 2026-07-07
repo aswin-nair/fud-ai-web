@@ -4,7 +4,7 @@ import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
-import { getStreak, getBadges } from '../lib/streak'
+import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
 
 const RANGES = [
   { id: '1W', days: 7 },
@@ -56,8 +56,8 @@ function StatCard({ label, value, sub, accent, positive, negative }: StatCardPro
 export function ProgressPage() {
   const { state, addWeightEntry, deleteWeightEntry } = useApp()
   const [range, setRange] = useState<RangeId>('1W')
-  const streak = getStreak(state.foodEntries)
-  const badges = getBadges(state.foodEntries, streak)
+  const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
+  const badges = getAllBadges(state.foodEntries, streak, state.gamification)
   const [showLog, setShowLog] = useState(false)
   const [weight, setWeight] = useState(String(state.profile.weightKg ?? ''))
   const [showHistory, setShowHistory] = useState(false)

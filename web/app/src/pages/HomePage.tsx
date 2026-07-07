@@ -5,6 +5,7 @@ import { MacroGrid } from '../components/MacroGrid'
 import { FoodList } from '../components/FoodList'
 import { WeekStrip } from '../components/WeekStrip'
 import { StreakCard } from '../components/StreakCard'
+import { LevelUpOverlay } from '../components/LevelUpOverlay'
 import { AddMenuButton } from '../components/AddMenuButton'
 import { BottomNav } from '../components/BottomNav'
 import { Confetti } from '../components/Confetti'
@@ -13,7 +14,7 @@ import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveCalories, effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
 import { startOfDay, sameDay } from '../lib/dates'
-import { getStreak, getBadges, getSeenBadgeIds, markBadgesSeen } from '../lib/streak'
+import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
 import { useHaptic } from '../hooks/useHaptic'
 
 function greeting(): string {
@@ -26,7 +27,7 @@ function greeting(): string {
 interface JustLogged { calories: number; name: string }
 
 export function HomePage() {
-  const { state } = useApp()
+  const { state, ackLevelUp } = useApp()
   const { toast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
@@ -36,6 +37,7 @@ export function HomePage() {
   const [ringPop, setRingPop] = useState(false)
   const celebratedKey = useRef('')
   const loggedNavKey = useRef('')
+  const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
 
   const dayEntries = entriesForDay(state.foodEntries, selectedDate)
   const totals = macroTotals(dayEntries)
@@ -43,29 +45,23 @@ export function HomePage() {
   const firstName = profile.name?.split(' ')[0]
   const goal = effectiveCalories(profile)
 
-  const streak = getStreak(state.foodEntries)
-  const badges = getBadges(state.foodEntries, streak)
+  const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
 
-  // Meal-log celebration: fired when navigating here with justLogged state
+  // Meal-log celebration
   useEffect(() => {
     const justLogged = (location.state as { justLogged?: JustLogged } | null)?.justLogged
     if (!justLogged) return
-    // Guard against StrictMode double-invoke and stale re-fires
     if (loggedNavKey.current === location.key) return
     loggedNavKey.current = location.key
-
-    // Clear state immediately so refresh doesn't re-fire
     navigate('.', { replace: true, state: null })
-
     toast(`+${justLogged.calories} kcal logged`)
     vibrate(15)
-
     setRingPop(true)
     const t = setTimeout(() => setRingPop(false), 600)
     return () => clearTimeout(t)
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Confetti when calories hit goal
+  // Calorie goal confetti
   useEffect(() => {
     if (goal <= 0) return
     const dateKey = selectedDate.toDateString()
@@ -73,32 +69,36 @@ export function HomePage() {
     if (near && celebratedKey.current !== dateKey) {
       celebratedKey.current = dateKey
       setShowConfetti(true)
-      if (sameDay(selectedDate, new Date())) {
-        toast('🎉 Goal reached! Great work!')
-      }
+      if (sameDay(selectedDate, new Date())) toast('🎉 Goal reached! Great work!')
     }
   }, [totals.calories]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Badge unlock toast
+  // Badge unlock toast (uses gamification.seenBadgeIds, not old localStorage key)
   useEffect(() => {
-    const seen = getSeenBadgeIds()
-    const newlyUnlocked = badges.filter(b => b.unlocked && !seen.has(b.id))
-    if (newlyUnlocked.length > 0) {
-      markBadgesSeen(newlyUnlocked.map(b => b.id))
-      toast(`${newlyUnlocked[0].emoji} Badge unlocked: ${newlyUnlocked[0].name}!`)
+    const prev = prevSeenBadgeCount.current
+    const current = state.gamification.seenBadgeIds.length
+    if (current > prev) {
+      const allBadges = getAllBadges(state.foodEntries, streak, state.gamification)
+      const newIds = state.gamification.seenBadgeIds.slice(prev)
+      const newBadge = allBadges.find(b => newIds.includes(b.id))
+      if (newBadge) toast(`${newBadge.emoji} Badge unlocked: ${newBadge.name}!`)
     }
-  }, [state.foodEntries.length]) // eslint-disable-line react-hooks/exhaustive-deps
+    prevSeenBadgeCount.current = current
+  }, [state.gamification.seenBadgeIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pendingLevelUp = state.gamification.pendingLevelUp
 
   return (
     <div className="app-shell home-shell">
-      {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
+      {showConfetti && !pendingLevelUp && <Confetti onDone={() => setShowConfetti(false)} />}
+      {pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
 
       <header className="home-header">
         <div className="home-greeting">
           <span className="home-greeting-text">
             {greeting()}{firstName ? `, ${firstName}` : ''}
           </span>
-          <StreakCard streak={streak} entries={state.foodEntries} />
+          <StreakCard streak={streak} entries={state.foodEntries} gamification={state.gamification} />
         </div>
         <AddMenuButton />
       </header>

@@ -17,6 +17,7 @@ import { EditFoodPage } from './pages/EditFoodPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { CoachPage } from './pages/CoachPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { JourneyPage } from './pages/JourneyPage'
 import { AboutPage } from './pages/AboutPage'
 
 function routerBasename(): string | undefined {
@@ -51,6 +52,7 @@ function AuthenticatedRoutes() {
       <Route path="/edit/:id" element={<EditFoodPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/journey" element={<JourneyPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
