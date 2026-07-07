@@ -22,6 +22,16 @@ import { computeXpAwards, makeXpEvents, levelFromXp } from '../lib/xp'
 
 import { applyFreeze, getStreakWithFreezes, getAllBadges } from '../lib/journey'
 
+import { SplashScreen } from '../components/SplashScreen'
+
+const MIN_SPLASH_MS = 1100
+
+const SPLASH_EXIT_MS = 320
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 
 
 interface AppContextValue {
@@ -90,13 +100,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [state, setState] = useState<AppState>(() => (cloud ? freshState() : loadState(userId)))
 
-  const [loading, setLoading] = useState(cloud)
+  const [loading, setLoading] = useState(true)
+
+  const [splashExiting, setSplashExiting] = useState(false)
 
   const [pendingAnalysis, setPendingAnalysis] = useState<FoodAnalysis | null>(null)
 
   const [pendingSource, setPendingSource] = useState<FoodEntry['source']>('textInput')
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const hydrated = useRef(false)
 
@@ -110,53 +124,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setPendingAnalysis(null)
 
+    setSplashExiting(false)
+
+    if (exitTimer.current) clearTimeout(exitTimer.current)
+
 
 
     async function hydrate() {
 
+      const minTime = delay(MIN_SPLASH_MS)
+
+      let hydration: Promise<void>
+
       if (cloud) {
 
-        setLoading(true)
+        hydration = (async () => {
 
-        try {
+          try {
 
-          const remote = await apiLoadState()
+            const remote = await apiLoadState()
 
-          if (!cancelled && remote) {
+            if (!cancelled && remote) {
 
-            setState(importData(JSON.stringify(remote)))
+              setState(importData(JSON.stringify(remote)))
 
-          } else if (!cancelled) {
+            } else if (!cancelled) {
 
-            setState(freshState())
+              setState(freshState())
 
-          }
+            }
 
-        } catch {
+          } catch {
 
-          if (!cancelled) setState(freshState())
-
-        } finally {
-
-          if (!cancelled) {
-
-            setLoading(false)
-
-            hydrated.current = true
+            if (!cancelled) setState(freshState())
 
           }
 
-        }
+        })()
 
       } else {
 
-        setState(loadState(userId))
-
-        hydrated.current = true
-
-        setLoading(false)
+        hydration = Promise.resolve(setState(loadState(userId)))
 
       }
+
+      await Promise.all([hydration, minTime])
+
+      if (cancelled) return
+
+      hydrated.current = true
+
+      // Play the splash's fade/scale-out transition before unmounting it.
+
+      setSplashExiting(true)
+
+      exitTimer.current = setTimeout(() => {
+
+        if (!cancelled) {
+
+          setLoading(false)
+
+          setSplashExiting(false)
+
+        }
+
+      }, SPLASH_EXIT_MS)
 
     }
 
@@ -164,7 +196,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     hydrate()
 
-    return () => { cancelled = true }
+    return () => {
+
+      cancelled = true
+
+      if (exitTimer.current) clearTimeout(exitTimer.current)
+
+    }
 
   }, [userId, cloud])
 
@@ -464,15 +502,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   if (loading) {
 
-    return (
-
-      <div className="app-shell" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '100dvh' }}>
-
-        <div className="loading-spinner" aria-label="Loading your data" />
-
-      </div>
-
-    )
+    return <SplashScreen exiting={splashExiting} />
 
   }
 

@@ -1,0 +1,49 @@
+import logo from '@assets/calorie logo transparent.png'
+
+const RADIUS = 54
+const CIRC = 2 * Math.PI * RADIUS
+
+interface SplashScreenProps {
+  /** When true, plays the fade/scale-out transition before the parent unmounts this component. */
+  exiting?: boolean
+}
+
+export function SplashScreen({ exiting = false }: SplashScreenProps) {
+  return (
+    <div
+      className={`splash-screen${exiting ? ' splash-exit' : ''}`}
+      role="status"
+      aria-label="Loading Fud AI"
+    >
+      <div className="splash-ring-wrap">
+        <svg className="splash-ring-svg" viewBox="0 0 128 128" aria-hidden>
+          <defs>
+            <linearGradient id="splash-ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--coral-start)" />
+              <stop offset="100%" stopColor="var(--coral-end)" />
+            </linearGradient>
+          </defs>
+          <circle
+            cx="64" cy="64" r={RADIUS}
+            fill="none"
+            stroke="rgba(255,55,95,0.14)"
+            strokeWidth="6"
+          />
+          <circle
+            className="splash-ring-progress"
+            cx="64" cy="64" r={RADIUS}
+            fill="none"
+            stroke="url(#splash-ring-grad)"
+            strokeWidth="6"
+            strokeLinecap="round"
+            style={{ '--circ': CIRC } as React.CSSProperties}
+          />
+        </svg>
+        <img src={logo} alt="" className="splash-logo" />
+      </div>
+
+      <div className="splash-wordmark">Fud AI</div>
+      <div className="splash-tagline">Fueling your journey</div>
+    </div>
+  )
+}
