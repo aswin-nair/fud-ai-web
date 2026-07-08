@@ -100,7 +100,7 @@ export function JourneyPage() {
                     </div>
                   </div>
                   <span className={`journey-path-label${done ? ' done' : ''}${isCurrent ? ' current' : ''}`}>
-                    {stage.name.split(' ')[0]}
+                    {stage.short}
                   </span>
                 </div>
               )

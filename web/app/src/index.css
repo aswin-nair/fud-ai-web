@@ -1049,21 +1049,6 @@ a:hover { text-decoration: underline; }
 
 .date-pill.active .day-num { color: var(--coral); }
 
-.onboarding-steps {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 24px;
-}
-
-.step-dot {
-  flex: 1;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--rule);
-}
-
-.step-dot.done { background: var(--coral); }
-
 .form-actions {
   display: flex;
   gap: 10px;
@@ -1584,15 +1569,6 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 
-.photo-preview {
-  width: 100%;
-  max-height: 220px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  margin-bottom: 16px;
-  border: 1px solid var(--rule);
-}
-
 .chart-wrap { margin-top: 8px; }
 
 .line-chart {
@@ -1713,29 +1689,6 @@ a:hover { text-decoration: underline; }
   color: var(--ink-mute);
   padding: 24px 0;
   font-size: 0.9rem;
-}
-
-.chat-bubble {
-  max-width: 88%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.chat-bubble.user {
-  align-self: flex-end;
-  background: var(--coral);
-  color: var(--paper);
-  border-bottom-right-radius: 4px;
-}
-
-.chat-bubble.assistant {
-  align-self: flex-start;
-  background: var(--paper-warm);
-  border: 1px solid var(--rule);
-  border-bottom-left-radius: 4px;
 }
 
 .chat-bubble.loading {
@@ -2092,6 +2045,9 @@ a:hover { text-decoration: underline; }
 .coach-header-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .coach-header-title {
@@ -2104,6 +2060,9 @@ a:hover { text-decoration: underline; }
 .coach-header-sub {
   font-size: 0.72rem;
   color: var(--ink-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .coach-clear-btn {
@@ -2132,6 +2091,12 @@ a:hover { text-decoration: underline; }
 }
 
 .coach-no-key-card a { color: var(--coral-start); }
+
+.coach-no-key-icon {
+  display: block;
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
 
 .chat-list {
   display: flex;
@@ -2796,6 +2761,22 @@ a:hover { text-decoration: underline; }
   color: var(--coral-start);
 }
 
+.analyzing-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--coral-soft);
+  animation: analyzing-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes analyzing-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 55, 95, 0.25); }
+  50%      { box-shadow: 0 0 0 16px rgba(255, 55, 95, 0); }
+}
+
 .analyzing-title {
   font-size: 1.15rem;
   font-weight: 700;
@@ -2864,16 +2845,6 @@ a:hover { text-decoration: underline; }
 
 .photo-preview.analyzing-photo {
   filter: brightness(0.55);
-}
-
-.analyzing-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
 }
 
 .photo-retake-btn {
@@ -3873,39 +3844,6 @@ a:hover { text-decoration: underline; }
 .food-quick-nutrient-label, .food-quick-cal-row, .food-quick-label,
 .food-quick-input, .food-quick-unit, .food-quick-actions,
 .fq-update, .fq-delete, .fq-full { /* legacy — replaced */ }
-
-/* ── Streak chip (home header) ──────────────────────────────── */
-
-/* .home-greeting is already defined in the home section above */
-
-.streak-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 159, 10, 0.14);
-  border: 1px solid rgba(255, 159, 10, 0.3);
-  border-radius: 999px;
-  padding: 3px 10px 3px 7px;
-  width: fit-content;
-}
-
-.streak-fire {
-  font-size: 0.85rem;
-  line-height: 1;
-}
-
-.streak-count {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: #FFB347;
-  letter-spacing: -0.01em;
-}
-
-.streak-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: rgba(255, 179, 71, 0.8);
-}
 
 /* ── Badges (Progress page) ─────────────────────────────────── */
 

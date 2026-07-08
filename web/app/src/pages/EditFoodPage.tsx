@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp, isFavorite } from '../store/AppContext'
+import { useToast } from '../components/Toast'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 
@@ -9,14 +10,15 @@ const MEAL_ICONS: Record<MealType, string> = {
 }
 
 const MACROS = [
-  { key: 'protein', label: 'Protein', color: '#6B9FFF' },
-  { key: 'carbs',   label: 'Carbs',   color: '#FFB347' },
-  { key: 'fat',     label: 'Fat',     color: '#FF6B9D' },
+  { key: 'protein', label: 'Protein', color: '#6B9FFF', bg: 'rgba(107,159,255,0.12)' },
+  { key: 'carbs',   label: 'Carbs',   color: '#FFB347', bg: 'rgba(255,179,71,0.12)'  },
+  { key: 'fat',     label: 'Fat',     color: '#FF6B9D', bg: 'rgba(255,107,157,0.12)' },
 ] as const
 
 export function EditFoodPage() {
   const { id } = useParams<{ id: string }>()
   const { state, updateEntry, deleteEntry, toggleFavorite } = useApp()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const entry = state.foodEntries.find(e => e.id === id)
 
@@ -40,6 +42,11 @@ export function EditFoodPage() {
 
   const fav = isFavorite(state, entry)
 
+  const macroValues: Record<(typeof MACROS)[number]['key'], string> = { protein, carbs, fat }
+  const macroSetters: Record<(typeof MACROS)[number]['key'], (v: string) => void> = {
+    protein: setProtein, carbs: setCarbs, fat: setFat,
+  }
+
   function save() {
     if (!entry) return
     updateEntry({
@@ -51,6 +58,7 @@ export function EditFoodPage() {
       fat: Number(fat) || 0,
       mealType,
     })
+    toast('Changes saved')
     navigate('/')
   }
 
@@ -58,12 +66,13 @@ export function EditFoodPage() {
     if (!entry) return
     if (!confirm('Delete this entry?')) return
     deleteEntry(entry.id)
+    toast(`Deleted ${entry.name}`, { type: 'info' })
     navigate('/')
   }
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main review-page">
         <div className="edit-topbar">
           <button type="button" className="back-link" onClick={() => navigate('/')}>← Back</button>
           <button
@@ -76,55 +85,60 @@ export function EditFoodPage() {
           </button>
         </div>
 
-        {/* Name + emoji hero */}
-        <div className="edit-hero">
-          <span className="edit-hero-emoji">{entry.emoji ?? '🍽️'}</span>
-          <input
-            className="edit-name-input"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            aria-label="Food name"
-          />
+        {/* Food identity row */}
+        <div className="review-hero">
+          <div className="review-hero-emoji">{entry.emoji ?? '🍽️'}</div>
+          <div className="review-hero-info">
+            <input
+              className="review-name-input"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              aria-label="Food name"
+            />
+            <span className="review-hero-hint">Tap to edit name</span>
+          </div>
         </div>
 
-        {/* Calorie card */}
-        <div className="review-calorie-card">
-          <span className="review-calorie-label">Calories</span>
+        {/* Calorie hero */}
+        <div className="review-section-label" style={{ marginTop: 20 }}>Calories</div>
+        <div className="review-cal-hero">
           <input
-            className="review-calorie-input"
+            className="review-cal-hero-input"
             type="number"
             value={calories}
             onChange={e => setCalories(e.target.value)}
             aria-label="Calories"
           />
-          <span className="review-calorie-unit">kcal</span>
+          <span className="review-cal-hero-unit">kcal</span>
         </div>
 
-        {/* Macro cards */}
+        {/* Macros */}
+        <div className="review-section-label" style={{ marginTop: 20 }}>Macronutrients</div>
         <div className="review-macro-row">
           {MACROS.map(m => (
-            <div key={m.key} className="review-macro-card" style={{ borderColor: m.color + '33' }}>
-              <span className="review-macro-label" style={{ color: m.color }}>{m.label}</span>
-              <input
-                className="review-macro-input"
-                type="number"
-                step="0.1"
-                value={m.key === 'protein' ? protein : m.key === 'carbs' ? carbs : fat}
-                onChange={e => {
-                  if (m.key === 'protein') setProtein(e.target.value)
-                  else if (m.key === 'carbs') setCarbs(e.target.value)
-                  else setFat(e.target.value)
-                }}
-                aria-label={m.label}
-                style={{ color: m.color }}
-              />
-              <span className="review-macro-unit">g</span>
-            </div>
+            <label
+              key={m.key}
+              className="review-macro-card"
+              style={{ '--mc': m.color, '--mc-bg': m.bg } as React.CSSProperties}
+            >
+              <span className="review-macro-label">{m.label}</span>
+              <div className="review-macro-input-wrap">
+                <input
+                  className="review-macro-input"
+                  type="number"
+                  step="0.1"
+                  value={macroValues[m.key]}
+                  onChange={e => macroSetters[m.key](e.target.value)}
+                  aria-label={m.label}
+                />
+                <span className="review-macro-unit">g</span>
+              </div>
+            </label>
           ))}
         </div>
 
         {/* Meal type */}
-        <div className="review-section-label">Meal</div>
+        <div className="review-section-label" style={{ marginTop: 20 }}>Meal</div>
         <div className="meal-type-row">
           {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
             <button

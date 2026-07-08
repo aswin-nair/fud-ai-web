@@ -5,6 +5,8 @@ import { localDayKey } from './dates'
 export interface JourneyStage {
   stage: number
   name: string
+  /** One-word label for the path map */
+  short: string
   tagline: string
   companion: string
   terrain: string
@@ -14,32 +16,32 @@ export interface JourneyStage {
 
 export const JOURNEY_STAGES: JourneyStage[] = [
   {
-    stage: 1, name: 'First Steps', minDays: 0,
+    stage: 1, name: 'First Steps', short: 'Steps', minDays: 0,
     tagline: 'Every journey starts with a single log.',
     companion: '🌱', terrain: '🌾', color: '#6B9FFF',
   },
   {
-    stage: 2, name: 'Building the Habit', minDays: 7,
+    stage: 2, name: 'Building the Habit', short: 'Habit', minDays: 7,
     tagline: "You're showing up. That's the whole game.",
     companion: '🌿', terrain: '🌲', color: '#4CD964',
   },
   {
-    stage: 3, name: 'Finding Balance', minDays: 14,
+    stage: 3, name: 'Finding Balance', short: 'Balance', minDays: 14,
     tagline: 'Patterns are emerging. Variety is your superpower.',
     companion: '🪴', terrain: '🏡', color: '#FFB347',
   },
   {
-    stage: 4, name: 'Steady Habits', minDays: 30,
+    stage: 4, name: 'Steady Habits', short: 'Steady', minDays: 30,
     tagline: 'This is who you are now — a mindful eater.',
     companion: '🌳', terrain: '🏔️', color: '#FF6B9D',
   },
   {
-    stage: 5, name: 'The Long Game', minDays: 60,
+    stage: 5, name: 'The Long Game', short: 'Long Game', minDays: 60,
     tagline: 'Two months in. Your future self thanks you.',
     companion: '🌲', terrain: '🌟', color: '#A78BFA',
   },
   {
-    stage: 6, name: 'Wellness Explorer', minDays: 100,
+    stage: 6, name: 'Wellness Explorer', short: 'Explorer', minDays: 100,
     tagline: "You've turned tracking into a way of life.",
     companion: '✨', terrain: '🌈', color: '#FF375F',
   },
