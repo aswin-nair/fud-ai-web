@@ -6,6 +6,7 @@ import {
   JOURNEY_STAGES, getJourneyStage, getNextStage, getTotalLoggedDays,
   getStreakWithFreezes, getAllBadges, BADGE_CATEGORIES,
 } from '../lib/journey'
+import { IconCheck } from '../components/icons'
 
 function timeAgo(ts: string): string {
   const diff = Date.now() - new Date(ts).getTime()
@@ -96,7 +97,7 @@ export function JourneyPage() {
                       style={isCurrent ? { borderColor: stage.color, boxShadow: `0 0 0 3px ${stage.color}33` } : {}}
                       title={stage.name}
                     >
-                      {isCurrent ? companion : done ? '✓' : stage.terrain}
+                      {isCurrent ? companion : done ? <IconCheck size={16} strokeWidth={2.6} /> : stage.terrain}
                     </div>
                   </div>
                   <span className={`journey-path-label${done ? ' done' : ''}${isCurrent ? ' current' : ''}`}>

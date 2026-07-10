@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
 import { BottomNav } from '../components/BottomNav'
@@ -18,6 +19,7 @@ import {
 } from '../lib/profile'
 import { exportData, importData } from '../lib/storage'
 import { userInitials } from '../lib/auth'
+import { IconArrowUpRight, IconCheck, IconChevronRight } from '../components/icons'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="settings-section-label">{children}</p>
@@ -103,7 +105,7 @@ export function SettingsPage() {
         <h1 className="page-title">Settings</h1>
 
         {saved && (
-          <div className="settings-saved-banner">Saved ✓</div>
+          <div className="settings-saved-banner"><IconCheck size={15} strokeWidth={2.6} /> Saved</div>
         )}
 
         {/* Account */}
@@ -191,7 +193,9 @@ export function SettingsPage() {
         <SettingsCard>
           <p className="settings-byok-note">
             Your key stays in this browser only.{' '}
-            <a href={apiKeyHelpUrl(provider)} target="_blank" rel="noreferrer">Get a key →</a>
+            <a href={apiKeyHelpUrl(provider)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+              Get a key <IconArrowUpRight size={12} strokeWidth={2.2} />
+            </a>
           </p>
           <SettingsRow label="Provider">
             <select className="settings-select" value={provider} onChange={e => handleProviderChange(e.target.value as AIProvider)}>
@@ -261,6 +265,15 @@ export function SettingsPage() {
             Delete all data
           </button>
           <input ref={fileRef} type="file" accept=".json" hidden onChange={handleImport} />
+        </SettingsCard>
+
+        {/* About */}
+        <SectionLabel>About</SectionLabel>
+        <SettingsCard>
+          <Link to="/about" className="settings-data-btn settings-link-row">
+            <span>About Fud AI</span>
+            <IconChevronRight size={16} className="settings-link-chevron" />
+          </Link>
         </SettingsCard>
 
         <p className="settings-footer">Fud AI · Local-first · BYOK AI · Privacy-first</p>

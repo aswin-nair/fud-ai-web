@@ -1,10 +1,13 @@
 import { BottomNav } from '../components/BottomNav'
+import { BackLink } from '../components/BackLink'
+import { IconArrowUpRight } from '../components/icons'
 
 export function AboutPage() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        <h1 className="screen-title">About</h1>
+        <BackLink to="/settings" />
+        <h1 className="screen-title" style={{ marginTop: 12 }}>About</h1>
 
         <div className="progress-card">
           <p className="about-lead">
@@ -15,11 +18,11 @@ export function AboutPage() {
         <div className="progress-card">
           <a href="https://github.com/apoorvdarshan/fud-ai" target="_blank" rel="noreferrer" className="about-link-row">
             <span>Open Source</span>
-            <span className="about-chevron">›</span>
+            <span className="about-chevron"><IconArrowUpRight size={15} /></span>
           </a>
           <a href="https://github.com/apoorvdarshan/fud-ai" target="_blank" rel="noreferrer" className="about-link-row">
             <span>Star on GitHub</span>
-            <span className="about-chevron">›</span>
+            <span className="about-chevron"><IconArrowUpRight size={15} /></span>
           </a>
         </div>
 

@@ -251,10 +251,20 @@ a:hover { text-decoration: underline; }
 .nav-item svg {
   width: 20px;
   height: 20px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-item svg rect,
+.nav-item svg circle {
+  transition: fill 0.2s ease, stroke-width 0.2s ease;
 }
 
 .nav-item.active {
   color: var(--coral-start);
+}
+
+.nav-item.active svg {
+  transform: translateY(-1px) scale(1.06);
 }
 
 .nav-item.active .nav-item-inner {
@@ -359,6 +369,7 @@ a:hover { text-decoration: underline; }
 }
 
 .add-menu-btn {
+  position: relative;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -372,9 +383,33 @@ a:hover { text-decoration: underline; }
   transition: transform 0.15s;
 }
 
-.add-menu-btn svg {
-  width: 22px;
-  height: 22px;
+.add-menu-btn-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.add-menu-btn-icon-plus {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.add-menu-btn-icon-close {
+  opacity: 0;
+  transform: rotate(-45deg) scale(0.6);
+}
+
+.add-menu-btn.open .add-menu-btn-icon-plus {
+  opacity: 0;
+  transform: rotate(45deg) scale(0.6);
+}
+
+.add-menu-btn.open .add-menu-btn-icon-close {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 .add-menu-wrap {
@@ -417,8 +452,7 @@ a:hover { text-decoration: underline; }
 }
 
 .add-menu-icon {
-  font-size: 1.1rem;
-  line-height: 1;
+  flex-shrink: 0;
 }
 
 .week-strip-row {
@@ -1484,9 +1518,30 @@ a:hover { text-decoration: underline; }
 }
 
 .log-ai-icon {
-  font-size: 1.8rem;
-  line-height: 1;
+  margin-bottom: 2px;
 }
+
+.icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.icon-tile-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.icon-tile-coral { background: rgba(255, 55, 95, 0.14); color: var(--coral-start); }
+.icon-tile-blue { background: rgba(107, 159, 255, 0.14); color: #6B9FFF; }
+.icon-tile-gold { background: rgba(255, 179, 71, 0.14); color: #FFB347; }
+.icon-tile-teal { background: rgba(61, 214, 173, 0.14); color: #3DD6AD; }
+.icon-tile-pink { background: rgba(255, 107, 157, 0.14); color: #FF6B9D; }
 
 .log-ai-badge {
   font-size: 0.6rem;
@@ -1543,7 +1598,6 @@ a:hover { text-decoration: underline; }
 }
 
 .log-menu-icon {
-  font-size: 1.4rem;
   margin-bottom: 2px;
 }
 
@@ -1557,16 +1611,32 @@ a:hover { text-decoration: underline; }
 }
 
 .back-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   color: var(--ink-soft);
   font-size: 0.9rem;
+  font-family: inherit;
   text-decoration: none;
   margin-bottom: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.back-link svg {
+  transition: transform 0.15s ease;
 }
 
 .back-link:hover {
   color: var(--ink);
   text-decoration: none;
+}
+
+.back-link:hover svg {
+  transform: translateX(-2px);
 }
 
 .chart-wrap { margin-top: 8px; }
@@ -2673,7 +2743,9 @@ a:hover { text-decoration: underline; }
 .edit-name-input:focus { border-color: var(--coral-start); }
 
 .fav-btn {
-  font-size: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: var(--ink-mute);
@@ -2851,6 +2923,9 @@ a:hover { text-decoration: underline; }
   position: absolute;
   top: 10px;
   right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.8rem;
   font-weight: 600;
   padding: 5px 12px;
@@ -3019,15 +3094,19 @@ a:hover { text-decoration: underline; }
 .log-pill-btn:hover { opacity: 0.85; }
 
 .star-btn {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: var(--ink-mute);
   padding: 2px 4px;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: color 0.15s, transform 0.15s;
   line-height: 1;
 }
+
+.star-btn:hover { transform: scale(1.12); }
 
 .star-btn.active { color: #FFB347; }
 
@@ -3244,6 +3323,20 @@ a:hover { text-decoration: underline; }
 .settings-data-btn:hover { background: var(--paper-deep); }
 .settings-data-btn.danger { color: var(--coral-deep); }
 
+.settings-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+}
+
+.settings-link-row:hover { text-decoration: none; color: var(--ink); }
+
+.settings-link-chevron {
+  color: var(--ink-mute);
+  flex-shrink: 0;
+}
+
 .settings-divider {
   height: 1px;
   background: var(--rule);
@@ -3251,6 +3344,10 @@ a:hover { text-decoration: underline; }
 }
 
 .settings-saved-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: rgba(107, 159, 255, 0.15);
   border: 1px solid rgba(107, 159, 255, 0.35);
   color: #6B9FFF;
@@ -3593,7 +3690,9 @@ a:hover { text-decoration: underline; }
 .toast-action-btn:hover { background: rgba(255, 255, 255, 0.25); }
 
 .toast-x {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: rgba(255, 255, 255, 0.4);
   background: transparent;
   border: none;
@@ -3637,7 +3736,6 @@ a:hover { text-decoration: underline; }
   z-index: 0;
 }
 
-.swipe-delete-btn span:first-child { font-size: 1.2rem; }
 
 .food-card-row.swipeable {
   position: relative;
@@ -3801,6 +3899,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 0.85rem;
@@ -4426,6 +4525,10 @@ a:hover { text-decoration: underline; }
 }
 
 .levelup-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: linear-gradient(135deg, #FFB347 0%, #FF6B9D 100%);
   color: #fff;
   border: none;

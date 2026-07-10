@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { analyzeTextFood } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
+import { BackLink } from '../components/BackLink'
 
 const EXAMPLES = [
   '2 scrambled eggs, toast with butter',
@@ -54,7 +55,7 @@ export function LogTextPage() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" className="back-link">← Back</Link>
+        <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Describe your meal</h1>
         <p className="page-sub">Type what you ate — AI estimates the macros.</p>
 

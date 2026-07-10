@@ -4,6 +4,7 @@ import { BottomNav } from '../components/BottomNav'
 import { useApp } from '../store/AppContext'
 import { sendCoachMessage } from '../lib/coachAI'
 import { providerLabel } from '../lib/aiConfig'
+import { IconSend } from '../components/icons'
 
 /** Render AI message with paragraphs, bullet lists, and **bold**. */
 function CoachMessage({ text }: { text: string }) {
@@ -204,7 +205,7 @@ export function CoachPage() {
             disabled={loading || !input.trim() || !hasKey}
             aria-label="Send"
           >
-            ↑
+            <IconSend size={16} />
           </button>
         </form>
       </div>

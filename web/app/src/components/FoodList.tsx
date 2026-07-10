@@ -5,6 +5,7 @@ import { MEAL_LABELS } from '../types'
 import { sameDay } from '../lib/dates'
 import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
+import { IconChevronDown, IconChevronRight, IconPlus, IconTrash } from './icons'
 
 const TIPS = [
   'Snap a photo to log in seconds 📷',
@@ -34,7 +35,7 @@ function EmptyState({ isToday }: { isToday: boolean }) {
           className="btn btn-primary food-empty-cta press-spring"
           onClick={() => navigate('/log')}
         >
-          + Add meal
+          <IconPlus size={16} strokeWidth={2.6} /> Add meal
         </button>
       </div>
     </section>
@@ -153,7 +154,7 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
           onClick={handleDelete}
           aria-label="Delete"
         >
-          <span aria-hidden>🗑️</span>
+          <IconTrash size={18} />
           <span>Delete</span>
         </button>
 
@@ -179,8 +180,8 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
           <span className="food-card-chevron" aria-hidden style={{
             transform: expanded ? 'rotate(90deg)' : undefined,
             transition: 'transform 0.2s',
-            display: 'inline-block',
-          }}>›</span>
+            display: 'inline-flex',
+          }}><IconChevronRight size={17} strokeWidth={2.2} /></span>
         </div>
       </div>
 
@@ -234,7 +235,7 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
               Delete
             </button>
             <button type="button" className="fqe-btn fqe-btn-edit" onClick={e => { e.stopPropagation(); navigate(`/edit/${entry.id}`) }}>
-              Edit all →
+              Edit all <IconChevronRight size={14} strokeWidth={2.4} />
             </button>
           </div>
         </div>
@@ -292,10 +293,10 @@ export function FoodList({ entries, selectedDate }: FoodListProps) {
                 style={{
                   transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                   transition: 'transform 0.22s ease',
-                  display: 'inline-block',
+                  display: 'inline-flex',
                 }}
               >
-                ⌄
+                <IconChevronDown size={16} strokeWidth={2.2} />
               </span>
             </button>
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { LEVEL_NAMES, LEVEL_COMPANIONS } from '../lib/xp'
 import { Confetti } from './Confetti'
+import { IconChevronRight } from './icons'
 
 interface LevelUpOverlayProps {
   level: number
@@ -30,7 +31,7 @@ export function LevelUpOverlay({ level, onDone }: LevelUpOverlayProps) {
           <div className="levelup-level">{level}</div>
           <div className="levelup-name">{name}</div>
           <button type="button" className="levelup-btn" onClick={onDone}>
-            Keep going! →
+            Keep going! <IconChevronRight size={16} strokeWidth={2.4} />
           </button>
         </div>
       </div>

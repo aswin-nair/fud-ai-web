@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { IconCamera, IconClipboard, IconClose, IconEdit, IconPlus, IconStar } from './icons'
 
 const OPTIONS = [
-  { to: '/log/text', label: 'Text Entry', icon: '✏️' },
-  { to: '/log/photo', label: 'Photo', icon: '📷' },
-  { to: '/log/saved', label: 'Saved Meals', icon: '⭐' },
-  { to: '/log/manual', label: 'Manual Entry', icon: '📝' },
-]
+  { to: '/log/text', label: 'Text Entry', Icon: IconEdit, accent: 'coral' },
+  { to: '/log/photo', label: 'Photo', Icon: IconCamera, accent: 'blue' },
+  { to: '/log/saved', label: 'Saved Meals', Icon: IconStar, accent: 'gold' },
+  { to: '/log/manual', label: 'Manual Entry', Icon: IconClipboard, accent: 'teal' },
+] as const
 
 export function AddMenuButton() {
   const [open, setOpen] = useState(false)
@@ -27,14 +28,13 @@ export function AddMenuButton() {
     <div className="add-menu-wrap" ref={rootRef}>
       <button
         type="button"
-        className="add-menu-btn"
+        className={`add-menu-btn${open ? ' open' : ''}`}
         aria-label="Log food"
         aria-expanded={open}
         onClick={() => setOpen(v => !v)}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <span className="add-menu-btn-icon add-menu-btn-icon-plus"><IconPlus size={22} strokeWidth={2.5} /></span>
+        <span className="add-menu-btn-icon add-menu-btn-icon-close"><IconClose size={22} strokeWidth={2.5} /></span>
       </button>
 
       {open && (
@@ -47,7 +47,7 @@ export function AddMenuButton() {
               role="menuitem"
               onClick={() => setOpen(false)}
             >
-              <span className="add-menu-icon">{opt.icon}</span>
+              <span className={`add-menu-icon icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={16} /></span>
               {opt.label}
             </Link>
           ))}

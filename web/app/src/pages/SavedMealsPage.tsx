@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
+import { BackLink } from '../components/BackLink'
+import { IconMinus, IconPlus, IconStar } from '../components/icons'
 import { useApp, isFavorite } from '../store/AppContext'
 import { recentMeals, mealKey } from '../lib/meals'
 import { MEAL_LABELS } from '../types'
@@ -47,13 +49,13 @@ function MealRow({
             onClick={onStar}
             aria-label={starred ? 'Unfavorite' : 'Favorite'}
           >
-            {starred ? '★' : '☆'}
+            <IconStar active={starred} size={17} />
           </button>
         )}
         <div className="serving-stepper-compact">
-          <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25}>−</button>
+          <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25} aria-label="Decrease servings"><IconMinus size={13} strokeWidth={2.6} /></button>
           <span className="ssc-val">{servings}×</span>
-          <button type="button" className="ssc-btn" onClick={() => changeServings(servings + 0.25)}>+</button>
+          <button type="button" className="ssc-btn" onClick={() => changeServings(servings + 0.25)} aria-label="Increase servings"><IconPlus size={13} strokeWidth={2.6} /></button>
         </div>
         <button type="button" className="log-pill-btn" onClick={() => onLog(servings)}>Log</button>
       </div>
@@ -97,13 +99,13 @@ export function SavedMealsPage() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" className="back-link">← Back</Link>
+        <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Saved meals</h1>
         <p className="page-sub">Quick re-log from recents or favorites.</p>
 
         <div className="saved-section">
           <div className="saved-section-header">
-            <span className="saved-section-icon">★</span>
+            <span className="saved-section-icon"><IconStar active size={15} /></span>
             <span className="saved-section-title">Favorites</span>
           </div>
           {state.favoriteMeals.length === 0 ? (

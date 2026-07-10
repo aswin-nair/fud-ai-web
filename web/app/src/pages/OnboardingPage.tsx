@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import type { ActivityLevel, Gender, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS } from '../types'
+import { IconChevronLeft, IconChevronRight } from '../components/icons'
 import {
   dailyCalories,
   effectiveProtein,
@@ -202,10 +203,10 @@ export function OnboardingPage() {
 
         <div className="onboarding-actions">
           {step > 0 && (
-            <button type="button" className="btn btn-ghost" onClick={back}>Back</button>
+            <button type="button" className="btn btn-ghost" onClick={back}><IconChevronLeft size={15} strokeWidth={2.4} /> Back</button>
           )}
           <button type="button" className="btn btn-primary" style={{ flex: 1 }} onClick={next}>
-            {step === STEPS.length - 1 ? '🚀 Get started' : 'Continue →'}
+            {step === STEPS.length - 1 ? <>🚀 Get started</> : <>Continue <IconChevronRight size={16} strokeWidth={2.4} /></>}
           </button>
         </div>
       </main>

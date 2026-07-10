@@ -1,4 +1,5 @@
 import { addDays, weekDatesContaining, sameDay, startOfWeek, narrowWeekday } from '../lib/dates'
+import { IconChevronLeft, IconChevronRight } from './icons'
 
 interface WeekStripProps {
   selectedDate: Date
@@ -38,7 +39,7 @@ export function WeekStrip({ selectedDate, onSelect }: WeekStripProps) {
         onClick={goToPrevWeek}
         aria-label="Previous week"
       >
-        ‹
+        <IconChevronLeft size={16} strokeWidth={2.4} />
       </button>
 
       <div className="week-strip">
@@ -79,7 +80,7 @@ export function WeekStrip({ selectedDate, onSelect }: WeekStripProps) {
         disabled={isCurrentWeek}
         aria-label="Next week"
       >
-        ›
+        <IconChevronRight size={16} strokeWidth={2.4} />
       </button>
     </div>
   )

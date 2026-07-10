@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
+import { BackLink } from '../components/BackLink'
 
 function inferMealType(): MealType {
   const h = new Date().getHours()
@@ -52,7 +53,7 @@ export function ManualEntryPage() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" className="back-link">← Back</Link>
+        <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Manual entry</h1>
         <p className="page-sub">Log known calories and macros.</p>
 

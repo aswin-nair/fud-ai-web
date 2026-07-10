@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp, isFavorite } from '../store/AppContext'
 import { useToast } from '../components/Toast'
+import { BackLink } from '../components/BackLink'
+import { IconChevronLeft, IconStar } from '../components/icons'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 
@@ -34,7 +36,9 @@ export function EditFoodPage() {
       <div className="app-shell">
         <main className="app-main">
           <p style={{ color: 'var(--ink-soft)' }}>Entry not found.</p>
-          <button type="button" className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => navigate('/')}>← Home</button>
+          <button type="button" className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => navigate('/')}>
+            <IconChevronLeft size={16} strokeWidth={2.4} /> Home
+          </button>
         </main>
       </div>
     )
@@ -74,14 +78,14 @@ export function EditFoodPage() {
     <div className="app-shell">
       <main className="app-main review-page">
         <div className="edit-topbar">
-          <button type="button" className="back-link" onClick={() => navigate('/')}>← Back</button>
+          <BackLink onClick={() => navigate('/')} />
           <button
             type="button"
             className={`fav-btn${fav ? ' active' : ''}`}
             onClick={() => toggleFavorite(entry)}
             aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {fav ? '★' : '☆'}
+            <IconStar active={fav} size={19} />
           </button>
         </div>
 

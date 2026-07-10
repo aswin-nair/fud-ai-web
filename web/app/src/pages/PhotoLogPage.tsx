@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { analyzeImageFood, fileToBase64 } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
+import { BackLink } from '../components/BackLink'
+import { IconClose } from '../components/icons'
 
 export function PhotoLogPage() {
   const { state, setPendingAnalysis, setPendingSource } = useApp()
@@ -51,7 +53,7 @@ export function PhotoLogPage() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        <Link to="/log" className="back-link">← Back</Link>
+        <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Photo log</h1>
         <p className="page-sub">AI reads the food and estimates your macros.</p>
 
@@ -72,7 +74,7 @@ export function PhotoLogPage() {
               className="photo-retake-btn"
               onClick={() => { setPreview(null); setError(null) }}
             >
-              ✕ Remove
+              <IconClose size={14} strokeWidth={2.4} /> Remove
             </button>
           </div>
         ) : (

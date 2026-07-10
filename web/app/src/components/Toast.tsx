@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { IconClose } from './icons'
 
 type ToastType = 'success' | 'error' | 'info'
 
@@ -53,7 +54,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 {item.action.label}
               </button>
             )}
-            <button type="button" className="toast-x" onClick={() => dismiss(item.id)} aria-label="Dismiss">✕</button>
+            <button type="button" className="toast-x" onClick={() => dismiss(item.id)} aria-label="Dismiss"><IconClose size={13} strokeWidth={2.4} /></button>
           </div>
         ))}
       </div>

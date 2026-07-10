@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
+import { BackLink } from '../components/BackLink'
+import { IconMinus, IconPlus } from '../components/icons'
 import type { FoodAnalysis, MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 
@@ -80,7 +82,7 @@ export function ReviewFoodPage() {
   return (
     <div className="app-shell">
       <main className="app-main review-page">
-        <button type="button" className="back-link" onClick={() => navigate('/log')}>← Back</button>
+        <BackLink onClick={() => navigate('/log')} />
 
         {/* Food identity row */}
         <div className="review-hero">
@@ -105,7 +107,7 @@ export function ReviewFoodPage() {
             onClick={() => changeServings(servings - 0.25)}
             disabled={servings <= 0.25}
             aria-label="Decrease servings"
-          >−</button>
+          ><IconMinus size={18} strokeWidth={2.4} /></button>
           <div className="review-serving-center">
             <input
               className="review-serving-input"
@@ -125,7 +127,7 @@ export function ReviewFoodPage() {
             className="review-serving-btn"
             onClick={() => changeServings(servings + 0.25)}
             aria-label="Increase servings"
-          >+</button>
+          ><IconPlus size={18} strokeWidth={2.4} /></button>
         </div>
 
         {/* Calorie hero */}

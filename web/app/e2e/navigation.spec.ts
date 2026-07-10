@@ -18,7 +18,7 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/settings')
     await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
 
-    await nav(page).getByRole('link', { name: 'About' }).click()
+    await page.getByRole('link', { name: 'About Fud AI' }).click()
     await expect(page).toHaveURL('/about')
     await expect(page.getByRole('heading', { name: 'About' })).toBeVisible()
 

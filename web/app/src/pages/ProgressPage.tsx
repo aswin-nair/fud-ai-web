@@ -5,6 +5,7 @@ import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
+import { IconChevronRight, IconMenuLines } from '../components/icons'
 
 const RANGES = [
   { id: '1W', days: 7 },
@@ -161,12 +162,12 @@ export function ProgressPage() {
 
         {sortedWeights.length > 0 && (
           <button type="button" className="history-link-card" onClick={() => setShowHistory(v => !v)}>
-            <span className="history-link-icon">☰</span>
+            <span className="history-link-icon"><IconMenuLines size={17} /></span>
             <div className="history-link-text">
               <strong>Weight history</strong>
               <span>{sortedWeights.length} {sortedWeights.length === 1 ? 'entry' : 'entries'} · tap to {showHistory ? 'hide' : 'view or delete'}</span>
             </div>
-            <span className="about-chevron" style={{ transform: showHistory ? 'rotate(90deg)' : undefined, transition: 'transform 0.2s' }}>›</span>
+            <span className="about-chevron" style={{ display: 'inline-flex', transform: showHistory ? 'rotate(90deg)' : undefined, transition: 'transform 0.2s' }}><IconChevronRight size={16} /></span>
           </button>
         )}
 
