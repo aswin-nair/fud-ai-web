@@ -62,6 +62,30 @@ export function narrowWeekday(date: Date): string {
   return date.toLocaleDateString(undefined, { weekday: 'narrow' })
 }
 
+export function startOfMonth(date: Date): Date {
+  const d = new Date(date)
+  d.setDate(1)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+/** Weeks (rows) of days (cols) covering `date`'s month, padded with nulls to full weeks. */
+export function monthGridWeeks(date: Date, weekStartsOnMonday = false): (Date | null)[][] {
+  const first = startOfMonth(date)
+  const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()
+  const firstWeekday = weekStartsOnMonday ? (first.getDay() + 6) % 7 : first.getDay()
+
+  const cells: (Date | null)[] = Array.from({ length: firstWeekday }, () => null)
+  for (let day = 1; day <= daysInMonth; day++) {
+    cells.push(new Date(first.getFullYear(), first.getMonth(), day))
+  }
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const weeks: (Date | null)[][] = []
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
+  return weeks
+}
+
 export function formatMacroValue(n: number): string {
   if (Number.isInteger(n) || Math.abs(n - Math.round(n)) < 0.05) return String(Math.round(n))
   return n.toFixed(1)

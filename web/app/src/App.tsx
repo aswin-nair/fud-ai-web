@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { googleClientId, isGoogleAuthConfigured } from './lib/auth'
 import { AuthProvider, useAuth } from './store/AuthContext'
 import { AppProvider, useApp } from './store/AppContext'
@@ -19,6 +20,15 @@ import { CoachPage } from './pages/CoachPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { JourneyPage } from './pages/JourneyPage'
 import { AboutPage } from './pages/AboutPage'
+
+/** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 function routerBasename(): string | undefined {
   const base = import.meta.env.BASE_URL
@@ -47,6 +57,7 @@ function AuthenticatedRoutes() {
       <Route path="/log/text" element={<LogTextPage />} />
       <Route path="/log/photo" element={<PhotoLogPage />} />
       <Route path="/log/saved" element={<SavedMealsPage />} />
+      <Route path="/discover" element={<SavedMealsPage />} />
       <Route path="/log/manual" element={<ManualEntryPage />} />
       <Route path="/review" element={<ReviewFoodPage />} />
       <Route path="/edit/:id" element={<EditFoodPage />} />
@@ -82,6 +93,7 @@ function AppShell() {
   return (
     <AuthProvider>
       <BrowserRouter basename={routerBasename()}>
+        <ScrollToTop />
         <ToastProvider>
           <AppGate />
         </ToastProvider>

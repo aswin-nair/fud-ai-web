@@ -43,7 +43,7 @@ export const JOURNEY_STAGES: JourneyStage[] = [
   {
     stage: 6, name: 'Wellness Explorer', short: 'Explorer', minDays: 100,
     tagline: "You've turned tracking into a way of life.",
-    companion: '✨', terrain: '🌈', color: '#FF375F',
+    companion: '✨', terrain: '🌈', color: '#FF7A50',
   },
 ]
 

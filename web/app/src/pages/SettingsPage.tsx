@@ -10,6 +10,7 @@ import {
   GEMINI_MODELS,
   apiKeyHelpUrl,
   apiKeyPlaceholder,
+  isLowAccuracyModel,
 } from '../lib/aiConfig'
 import {
   dailyCalories,
@@ -59,7 +60,7 @@ export function SettingsPage() {
 
   function handleProviderChange(next: AIProvider) {
     setProvider(next)
-    setModel(next === 'openrouter' ? 'openrouter/free' : 'gemini-2.0-flash')
+    setModel(next === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash')
   }
 
   function saveProfile() {
@@ -224,12 +225,27 @@ export function SettingsPage() {
               list="model-presets"
               value={model}
               onChange={e => setModel(e.target.value)}
-              placeholder={provider === 'openrouter' ? 'openrouter/free' : 'gemini-2.0-flash'}
+              placeholder={provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash'}
             />
             <datalist id="model-presets">
               {modelPresets.map(m => <option key={m} value={m} />)}
             </datalist>
           </SettingsRow>
+          {isLowAccuracyModel(model) && (
+            <div className="settings-accuracy-warning">
+              <p>
+                This model routes randomly to whatever free model is available (often a small,
+                less capable one) and gives noticeably less accurate nutrition estimates.
+              </p>
+              <button
+                type="button"
+                className="settings-accuracy-fix"
+                onClick={() => setModel(provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash')}
+              >
+                Switch to {provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash'} (cheap &amp; far more accurate)
+              </button>
+            </div>
+          )}
           <div className="settings-field-block">
             <span className="settings-row-label">Custom instructions</span>
             <textarea

@@ -16,6 +16,7 @@ export async function completeChat(
   settings: AISettings,
   messages: ChatMsg[],
   maxTokens = 1024,
+  temperature?: number,
 ): Promise<string> {
   if (!settings.apiKey.trim()) throw new Error('Add your API key in Settings.')
 
@@ -24,9 +25,10 @@ export async function completeChat(
       method: 'POST',
       headers: aiHeaders(settings),
       body: JSON.stringify({
-        model: settings.model || 'openrouter/free',
+        model: settings.model || 'google/gemini-2.0-flash-001',
         messages,
         max_tokens: maxTokens,
+        ...(temperature != null ? { temperature } : {}),
       }),
     })
     if (!res.ok) throw new Error(`OpenRouter error (${res.status}): ${(await res.text()).slice(0, 240)}`)
@@ -45,7 +47,13 @@ export async function completeChat(
     parts: [{ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }],
   }))
 
-  const body: Record<string, unknown> = { contents }
+  const body: Record<string, unknown> = {
+    contents,
+    generationConfig: {
+      maxOutputTokens: maxTokens,
+      ...(temperature != null ? { temperature } : {}),
+    },
+  }
   if (system && typeof system.content === 'string') {
     body.systemInstruction = { parts: [{ text: system.content }] }
   }
@@ -70,6 +78,9 @@ export async function completeVision(
   prompt: string,
   imageBase64: string,
   mimeType = 'image/jpeg',
+  maxTokens = 1024,
+  temperature?: number,
+  systemPrompt?: string,
 ): Promise<string> {
   if (!settings.apiKey.trim()) throw new Error('Add your API key in Settings.')
 
@@ -79,11 +90,12 @@ export async function completeVision(
       { type: 'text', text: prompt },
     ]
     const messages: ChatMsg[] = []
-    if (settings.customInstructions?.trim()) {
-      messages.push({ role: 'system', content: settings.customInstructions.trim() })
+    const sys = systemPrompt?.trim() ?? settings.customInstructions?.trim()
+    if (sys) {
+      messages.push({ role: 'system', content: sys })
     }
     messages.push({ role: 'user', content })
-    return completeChat(settings, messages, 1024)
+    return completeChat(settings, messages, maxTokens, temperature)
   }
 
   const model = settings.model || 'gemini-2.0-flash'
@@ -93,9 +105,14 @@ export async function completeVision(
   ]
   const body: Record<string, unknown> = {
     contents: [{ parts }],
+    generationConfig: {
+      maxOutputTokens: maxTokens,
+      ...(temperature != null ? { temperature } : {}),
+    },
   }
-  if (settings.customInstructions?.trim()) {
-    body.systemInstruction = { parts: [{ text: settings.customInstructions.trim() }] }
+  const sys = systemPrompt?.trim() ?? settings.customInstructions?.trim()
+  if (sys) {
+    body.systemInstruction = { parts: [{ text: sys }] }
   }
 
   const res = await fetch(

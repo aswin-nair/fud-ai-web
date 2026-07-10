@@ -201,3 +201,52 @@ export function IconArrowUpRight({ size, ...rest }: IconProps) {
     </svg>
   )
 }
+
+export function IconCalendar({ size, ...rest }: IconProps) {
+  return (
+    <svg {...base(size, { strokeWidth: 1.9, ...rest })}>
+      <rect x="4" y="5.3" width="16" height="15.2" rx="2.6" />
+      <path d="M4 9.7h16" />
+      <path d="M8.4 3.5v3.6M15.6 3.5v3.6" />
+    </svg>
+  )
+}
+
+export interface IconBellProps extends IconProps {
+  dot?: boolean
+  dotColor?: string
+  ringColor?: string
+}
+
+export function IconBell({ size, dot, dotColor = 'var(--coral)', ringColor = 'var(--paper-warm)', ...rest }: IconBellProps) {
+  return (
+    <svg {...base(size, { strokeWidth: 1.9, ...rest })}>
+      <path d="M12 3.4a5.3 5.3 0 00-5.3 5.3v3.05c0 .84-.3 1.66-.85 2.3l-1.02 1.2a1 1 0 00.76 1.65h12.82a1 1 0 00.76-1.65l-1.02-1.2a3.5 3.5 0 01-.85-2.3V8.7A5.3 5.3 0 0012 3.4z" />
+      <path d="M9.65 19.7a2.35 2.35 0 004.7 0" />
+      {dot && (
+        <circle cx="17.3" cy="6.3" r="3.6" fill={dotColor} stroke={ringColor} strokeWidth="1.6" />
+      )}
+    </svg>
+  )
+}
+
+export function IconSearch({ size, ...rest }: IconProps) {
+  return (
+    <svg {...base(size, { strokeWidth: 2, ...rest })}>
+      <circle cx="10.8" cy="10.8" r="6.3" />
+      <path d="M19.5 19.5l-4.15-4.15" />
+    </svg>
+  )
+}
+
+export function IconScan({ size, ...rest }: IconProps) {
+  return (
+    <svg {...base(size, { strokeWidth: 2, ...rest })}>
+      <path d="M4 8.4V6a2 2 0 012-2h2.4" />
+      <path d="M15.6 4H18a2 2 0 012 2v2.4" />
+      <path d="M20 15.6V18a2 2 0 01-2 2h-2.4" />
+      <path d="M8.4 20H6a2 2 0 01-2-2v-2.4" />
+      <circle cx="12" cy="12" r="3.1" />
+    </svg>
+  )
+}

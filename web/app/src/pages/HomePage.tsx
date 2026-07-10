@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CalorieHero } from '../components/CalorieHero'
 import { MacroGrid } from '../components/MacroGrid'
 import { FoodList } from '../components/FoodList'
@@ -7,10 +7,11 @@ import { WeekStrip } from '../components/WeekStrip'
 import { StreakCard } from '../components/StreakCard'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
 import { ActivitySheet } from '../components/ActivitySheet'
-import { AddMenuButton } from '../components/AddMenuButton'
+import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
 import { Confetti } from '../components/Confetti'
 import { HomeSkeleton } from '../components/HomeSkeleton'
+import { IconBell, IconCalendar, IconCoach, IconPlus } from '../components/icons'
 import { useToast } from '../components/Toast'
 import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
@@ -30,10 +31,6 @@ function greeting(): string {
   return 'Good evening'
 }
 
-function dateLabel(): string {
-  return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
-}
-
 interface JustLogged { calories: number; name: string }
 
 export function HomePage() {
@@ -47,6 +44,7 @@ export function HomePage() {
   const [ringPop, setRingPop] = useState(false)
   const [activePreset, setActivePreset] = useState<ActivityPreset | null>(null)
   const [revealed, setRevealed] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const celebratedKey = useRef('')
   const loggedNavKey = useRef('')
   const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
@@ -55,7 +53,6 @@ export function HomePage() {
   const totals = macroTotals(dayEntries)
   const profile = state.profile
   const firstName = profile.name?.split(' ')[0]
-  const initial = (firstName ?? profile.name ?? 'F').trim().charAt(0) || 'F'
   const goal = effectiveCalories(profile)
 
   const selectedDayKey = localDayKey(selectedDate)
@@ -65,6 +62,8 @@ export function HomePage() {
 
   const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
   const motivation = getMotivation(totals.calories, goal + burned)
+  const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
+  const streakAtRisk = streak > 0 && !hasLoggedToday
 
   // Brief choreographed skeleton reveal so the splash hands off smoothly into content.
   useEffect(() => {
@@ -113,6 +112,15 @@ export function HomePage() {
 
   const pendingLevelUp = state.gamification.pendingLevelUp
 
+  function handleBellClick() {
+    if (streakAtRisk) {
+      toast('🔥 Log today to keep your streak alive!')
+      navigate('/journey')
+    } else {
+      toast("You're all caught up!")
+    }
+  }
+
   return (
     <div className="app-shell home-shell">
       <div className={`home-ambient-glow zone-${motivation.zone}`} aria-hidden />
@@ -131,18 +139,43 @@ export function HomePage() {
       )}
 
       <header className="home-header">
-        <div className="home-header-left">
-          <div className="home-avatar" aria-hidden>{initial}</div>
-          <div className="home-greeting">
-            <span className="home-greeting-text">
-              {greeting()}{firstName ? `, ${firstName}` : ''}
-            </span>
-            <span className="home-date">{dateLabel()}</span>
-            <StreakCard streak={streak} entries={state.foodEntries} gamification={state.gamification} />
-          </div>
+        <button
+          type="button"
+          className="home-icon-btn"
+          onClick={() => setShowDatePicker(true)}
+          aria-label="Choose date"
+        >
+          <IconCalendar size={19} />
+        </button>
+
+        <div className="home-header-center">
+          <h1 className="home-title">Dashboard</h1>
+          <span className="home-header-sub">
+            {greeting()}{firstName ? `, ${firstName}` : ''}
+          </span>
         </div>
-        <AddMenuButton />
+
+        <button
+          type="button"
+          className="home-icon-btn"
+          onClick={handleBellClick}
+          aria-label="Notifications"
+        >
+          <IconBell size={19} dot={streakAtRisk} />
+        </button>
       </header>
+
+      {showDatePicker && (
+        <DatePickerModal
+          selectedDate={selectedDate}
+          onSelect={setSelectedDate}
+          onClose={() => setShowDatePicker(false)}
+        />
+      )}
+
+      <div className="home-streak-row">
+        <StreakCard streak={streak} entries={state.foodEntries} gamification={state.gamification} />
+      </div>
 
       <main className="app-main home-main">
         {!revealed ? (
@@ -153,7 +186,14 @@ export function HomePage() {
               <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
             </div>
             <div className="home-hero-enter" style={{ '--enter-delay': '60ms' } as React.CSSProperties}>
-              <CalorieHero current={totals.calories} goal={goal} burned={burned} pop={ringPop} />
+              <CalorieHero current={totals.calories} goal={goal} burned={burned} pop={ringPop} selectedDate={selectedDate} />
+            </div>
+
+            <div className="home-section-enter" style={{ '--enter-delay': '75ms' } as React.CSSProperties}>
+              <button type="button" className="home-add-pill press-spring" onClick={() => navigate('/log')}>
+                <IconPlus size={18} strokeWidth={2.6} />
+                Log a meal
+              </button>
             </div>
 
             {/* Quick activity presets */}
@@ -181,11 +221,15 @@ export function HomePage() {
               />
             </div>
             <div className="home-section-enter" style={{ '--enter-delay': '180ms' } as React.CSSProperties}>
-              <FoodList entries={dayEntries} selectedDate={selectedDate} />
+              <FoodList entries={dayEntries} selectedDate={selectedDate} dailyGoal={goal} />
             </div>
           </>
         )}
       </main>
+
+      <Link to="/coach" className="fab" aria-label="Chat with your coach">
+        <IconCoach size={24} />
+      </Link>
 
       <BottomNav />
     </div>

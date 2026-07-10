@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { FoodEntry, GamificationState } from '../types'
 import { sameDay } from '../lib/dates'
 import { levelFromXp, LEVEL_COMPANIONS } from '../lib/xp'
@@ -30,19 +31,19 @@ export function StreakCard({ streak, entries, gamification }: StreakCardProps) {
 
   if (streak === 0 && entries.length === 0) {
     return (
-      <div className="streak-card streak-card-zero">
+      <Link to="/journey" className="streak-card streak-card-zero">
         <span className="streak-fire streak-fire-dim">🔥</span>
         <span className="streak-zero-text">Start your streak today!</span>
-      </div>
+      </Link>
     )
   }
 
   if (streak === 0) {
     return (
-      <div className="streak-card streak-card-zero">
+      <Link to="/journey" className="streak-card streak-card-zero">
         <span className="streak-fire streak-fire-dim">🔥</span>
         <span className="streak-zero-text">Log today to start a streak!</span>
-      </div>
+      </Link>
     )
   }
 
@@ -51,7 +52,7 @@ export function StreakCard({ streak, entries, gamification }: StreakCardProps) {
   const progress = next === prev ? 1 : (streak - prev) / (next - prev)
 
   return (
-    <div className={`streak-card${atRisk ? ' at-risk' : ''}`}>
+    <Link to="/journey" className={`streak-card${atRisk ? ' at-risk' : ''}`}>
       <span className={`streak-fire ${flameScale(streak)}`} aria-hidden>🔥</span>
       <div className="streak-body">
         <div className="streak-row">
@@ -76,6 +77,6 @@ export function StreakCard({ streak, entries, gamification }: StreakCardProps) {
         <span className="streak-companion">{companion}</span>
         <span className="streak-level-num">{level}</span>
       </div>
-    </div>
+    </Link>
   )
 }

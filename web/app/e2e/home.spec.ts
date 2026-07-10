@@ -7,8 +7,8 @@ test.describe('Home & food logging', () => {
   })
 
   test('shows calorie hero and macro cards', async ({ page }) => {
-    await expect(page.getByText('kcal eaten')).toBeVisible()
-    await expect(page.getByText('left').first()).toBeVisible()
+    await expect(page.locator('.calorie-hero-value')).toBeVisible()
+    await expect(page.locator('.calorie-hero-goal-line')).toContainText('Goal')
     await expect(page.getByText('Protein')).toBeVisible()
     await expect(page.getByText('Carbs')).toBeVisible()
     await expect(page.getByText('Fat')).toBeVisible()
@@ -37,18 +37,18 @@ test.describe('Home & food logging', () => {
       fat: '6',
     })
 
-    await expect(page.locator('.calorie-hero-value')).toHaveText('320')
+    await expect(page.locator('.calorie-hero-value')).toHaveText('320 kcal')
 
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const yesterdayLabel = String(yesterday.getDate())
 
     await page.locator('.week-day').filter({ hasText: yesterdayLabel }).first().click()
-    await expect(page.locator('.calorie-hero-value')).toHaveText('0')
+    await expect(page.locator('.calorie-hero-value')).toHaveText('0 kcal')
 
     const todayLabel = String(new Date().getDate())
     await page.locator('.week-day').filter({ hasText: todayLabel }).first().click()
-    await expect(page.locator('.calorie-hero-value')).toHaveText('320')
+    await expect(page.locator('.calorie-hero-value')).toHaveText('320 kcal')
     await expect(page.getByText('Oatmeal')).toBeVisible()
   })
 

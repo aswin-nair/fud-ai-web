@@ -16,6 +16,7 @@ export function entryToSaved(entry: FoodEntry): SavedMeal {
     emoji: entry.emoji,
     mealType: entry.mealType,
     servingSizeGrams: entry.servingSizeGrams,
+    ingredients: entry.ingredients,
   }
 }
 
@@ -30,6 +31,7 @@ export function savedToEntry(saved: SavedMeal, source: FoodEntry['source'] = 'ma
     emoji: saved.emoji,
     mealType: saved.mealType,
     servingSizeGrams: saved.servingSizeGrams,
+    ingredients: saved.ingredients,
     source,
     timestamp: new Date().toISOString(),
   }

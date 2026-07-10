@@ -5,7 +5,7 @@ import { MEAL_LABELS } from '../types'
 import { sameDay } from '../lib/dates'
 import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
-import { IconChevronDown, IconChevronRight, IconPlus, IconTrash } from './icons'
+import { IconChevronDown, IconChevronRight, IconEdit, IconPlus, IconTrash } from './icons'
 
 const TIPS = [
   'Snap a photo to log in seconds 📷',
@@ -54,13 +54,14 @@ const MEAL_ICONS: Record<MealType, string> = {
 
 const SNAP_PX = 80
 
-function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean }) {
+function SwipeCard({ entry, bordered, dailyGoal }: { entry: FoodEntry; bordered: boolean; dailyGoal: number }) {
   const { deleteEntry, updateEntry, addEntry } = useApp()
   const { toast } = useToast()
   const navigate = useNavigate()
   const cardRef = useRef<HTMLDivElement>(null)
   const [expanded, setExpanded] = useState(false)
   const [editCals, setEditCals] = useState(String(entry.calories))
+  const [showIngredients, setShowIngredients] = useState(false)
 
   const touch = useRef({ startX: 0, startY: 0, offset: 0, swiped: false })
 
@@ -140,10 +141,13 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
   }
 
   function handleUpdate() {
-    updateEntry({ ...entry, calories: Math.round(Number(editCals) || 0) })
+    // A manual calorie override may no longer match the AI's ingredient breakdown, so drop it.
+    updateEntry({ ...entry, calories: Math.round(Number(editCals) || 0), ingredients: undefined })
     setExpanded(false)
     toast('Updated!')
   }
+
+  const pctOfGoal = dailyGoal > 0 ? Math.round((entry.calories / dailyGoal) * 100) : null
 
   return (
     <div className="food-card-outer">
@@ -170,6 +174,7 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
           <div className="food-card-info">
             <div className="food-card-top">
               <span className="food-card-name">{entry.name}</span>
+              {pctOfGoal !== null && <span className="food-card-pct">{pctOfGoal}%</span>}
             </div>
             <div className="food-card-meta">
               <span className="food-card-cals">{entry.calories} kcal</span>
@@ -177,6 +182,14 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
               <span>P {Math.round(entry.protein)}g · C {Math.round(entry.carbs)}g · F {Math.round(entry.fat)}g</span>
             </div>
           </div>
+          <button
+            type="button"
+            className="food-card-edit-btn"
+            aria-label="Edit entry"
+            onClick={e => { e.stopPropagation(); navigate(`/edit/${entry.id}`) }}
+          >
+            <IconEdit size={14} />
+          </button>
           <span className="food-card-chevron" aria-hidden style={{
             transform: expanded ? 'rotate(90deg)' : undefined,
             transition: 'transform 0.2s',
@@ -202,12 +215,39 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
               <span className="fqe-chip-lbl">Fat</span>
             </div>
             {entry.servingSizeGrams && (
-              <div className="fqe-chip" style={{ '--chip-c': 'var(--ink-soft)', '--chip-bg': 'rgba(255,255,255,0.06)' } as React.CSSProperties}>
+              <div className="fqe-chip" style={{ '--chip-c': 'var(--ink-soft)', '--chip-bg': 'rgba(26,20,14,0.04)' } as React.CSSProperties}>
                 <span className="fqe-chip-val">{Math.round(entry.servingSizeGrams)}g</span>
                 <span className="fqe-chip-lbl">Serving</span>
               </div>
             )}
           </div>
+
+          {/* Ingredient breakdown, when available */}
+          {entry.ingredients && entry.ingredients.length > 0 && (
+            <div className="fqe-ingredients-wrap">
+              <button
+                type="button"
+                className="fqe-ingredients-toggle"
+                onClick={e => { e.stopPropagation(); setShowIngredients(v => !v) }}
+              >
+                <span>{showIngredients ? 'Hide' : 'View'} estimate breakdown</span>
+                <span
+                  aria-hidden
+                  style={{ transform: showIngredients ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s', display: 'inline-flex' }}
+                ><IconChevronDown size={14} strokeWidth={2.2} /></span>
+              </button>
+              {showIngredients && (
+                <div className="fqe-ingredients">
+                  {entry.ingredients.map((ing, i) => (
+                    <div className="fqe-ingredient-row" key={i}>
+                      <span className="fqe-ingredient-name">{ing.item}</span>
+                      <span className="fqe-ingredient-meta">{Math.round(ing.grams)}g · {Math.round(ing.calories)} kcal</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Calorie edit */}
           <div className="fqe-cal-wrap">
@@ -247,9 +287,10 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
 interface FoodListProps {
   entries: FoodEntry[]
   selectedDate: Date
+  dailyGoal: number
 }
 
-export function FoodList({ entries, selectedDate }: FoodListProps) {
+export function FoodList({ entries, selectedDate, dailyGoal }: FoodListProps) {
   const isToday = sameDay(selectedDate, new Date())
   const [collapsed, setCollapsed] = useState<Set<MealType>>(new Set())
 
@@ -308,6 +349,7 @@ export function FoodList({ entries, selectedDate }: FoodListProps) {
                       key={entry.id}
                       entry={entry}
                       bordered={i < items.length - 1}
+                      dailyGoal={dailyGoal}
                     />
                   ))}
                 </div>

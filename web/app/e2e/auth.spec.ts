@@ -19,6 +19,9 @@ test.describe('Authentication', () => {
 
     await signUp(page, { email, name: 'Test User' })
     await expect(page).toHaveURL(/\/onboarding/)
+    await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Skip' }).click()
     await expect(page.getByRole('heading', { name: 'Welcome to Fud AI' })).toBeVisible()
   })
 
@@ -40,6 +43,7 @@ test.describe('Authentication', () => {
     const password = 'TestPass123!'
 
     await signUp(page, { email, password })
+    await page.getByRole('button', { name: 'Skip' }).click()
     for (let i = 0; i < 4; i++) {
       await page.getByRole('button', { name: 'Continue' }).click()
     }

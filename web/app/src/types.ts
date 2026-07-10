@@ -25,6 +25,15 @@ export interface UserProfile {
   customCarbs?: number
 }
 
+export interface FoodIngredientLine {
+  item: string
+  grams: number
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
+}
+
 export interface FoodEntry {
   id: string
   name: string
@@ -37,6 +46,7 @@ export interface FoodEntry {
   source: FoodSource
   mealType: MealType
   servingSizeGrams?: number
+  ingredients?: FoodIngredientLine[]
 }
 
 export interface SavedMeal {
@@ -49,6 +59,7 @@ export interface SavedMeal {
   emoji?: string
   mealType: MealType
   servingSizeGrams?: number
+  ingredients?: FoodIngredientLine[]
 }
 
 export interface WeightEntry {
@@ -72,6 +83,7 @@ export interface FoodAnalysis {
   fat: number
   servingSizeGrams: number
   emoji?: string
+  ingredients?: FoodIngredientLine[]
 }
 
 export interface XpEvent {

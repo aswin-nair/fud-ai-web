@@ -56,7 +56,7 @@ interface AppContextValue {
 
   deleteWeightEntry: (id: string) => void
 
-  toggleFavorite: (entry: FoodEntry) => void
+  toggleFavorite: (entry: FoodEntry | SavedMeal) => void
 
   logSavedMeal: (meal: SavedMeal) => void
 
@@ -377,7 +377,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
             ? s.favoriteMeals.filter(f => mealKey(f) !== key)
 
-            : [...s.favoriteMeals, entryToSaved(entry)],
+            : [...s.favoriteMeals, 'timestamp' in entry ? entryToSaved(entry) : entry],
 
         }
 

@@ -33,6 +33,9 @@ export async function signUp(page: Page, opts?: { name?: string; email?: string;
 }
 
 export async function completeOnboarding(page: Page): Promise<void> {
+  // Skip the marketing welcome slides that lead into the profile-setup steps.
+  await page.getByRole('button', { name: 'Skip' }).click()
+
   await page.getByRole('heading', { name: 'Welcome to Fud AI' }).waitFor()
 
   for (let i = 0; i < 4; i++) {

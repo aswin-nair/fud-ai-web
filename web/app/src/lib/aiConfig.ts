@@ -7,13 +7,16 @@ export interface AISettings {
   customInstructions?: string
 }
 
+// Ordered best-accuracy-first. `openrouter/free` is last: it randomly routes to whichever
+// free model is available (often a small ~3B model) and is not suitable for accuracy-sensitive
+// nutrition estimation — see the warning surfaced in Settings when it's selected.
 export const OPENROUTER_MODELS = [
-  'openrouter/free',
-  'google/gemini-2.5-flash',
   'google/gemini-2.0-flash-001',
+  'google/gemini-2.5-flash',
   'openai/gpt-4o-mini',
   'anthropic/claude-sonnet-4',
   'meta-llama/llama-3.3-70b-instruct',
+  'openrouter/free',
 ] as const
 
 export const GEMINI_MODELS = [
@@ -22,11 +25,19 @@ export const GEMINI_MODELS = [
   'gemini-2.5-pro',
 ] as const
 
+const DEFAULT_OPENROUTER_MODEL = 'google/gemini-2.0-flash-001'
+const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash'
+
+/** Free-tier / randomly-routed models are much less reliable for numeric nutrition estimates. */
+export function isLowAccuracyModel(model: string): boolean {
+  return /(^|\/)free$|:free$/i.test(model.trim())
+}
+
 export function defaultAISettings(): AISettings {
   return {
     provider: 'openrouter',
     apiKey: '',
-    model: 'openrouter/free',
+    model: DEFAULT_OPENROUTER_MODEL,
   }
 }
 
@@ -43,7 +54,7 @@ export function normalizeAISettings(raw?: Partial<AISettings>): AISettings {
   return {
     provider,
     apiKey: raw.apiKey ?? '',
-    model: raw.model ?? (provider === 'openrouter' ? 'openrouter/free' : 'gemini-2.0-flash'),
+    model: raw.model || (provider === 'openrouter' ? DEFAULT_OPENROUTER_MODEL : DEFAULT_GEMINI_MODEL),
     customInstructions: raw.customInstructions,
   }
 }

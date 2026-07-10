@@ -11,8 +11,9 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/progress')
     await expect(page.getByRole('heading', { name: 'Weight' })).toBeVisible()
 
-    await nav(page).getByRole('link', { name: 'Coach' }).click()
-    await expect(page).toHaveURL('/coach')
+    await nav(page).getByRole('link', { name: 'Discover' }).click()
+    await expect(page).toHaveURL('/discover')
+    await expect(page.getByRole('heading', { name: 'Discover' })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Settings' }).click()
     await expect(page).toHaveURL('/settings')
@@ -25,6 +26,28 @@ test.describe('Navigation', () => {
     await nav(page).getByRole('link', { name: 'Home' }).click()
     await expect(page).toHaveURL('/')
     await expect(page.getByText("Today's Food")).toBeVisible()
+  })
+
+  test('journey card and coach FAB reach their full pages', async ({ page }) => {
+    // Journey moved out of the persistent nav onto a tappable Home summary card.
+    await page.locator('a[href="/journey"]').first().click()
+    await expect(page).toHaveURL('/journey')
+
+    await page.goBack()
+    await expect(page).toHaveURL('/')
+
+    // Coach moved onto a floating chat FAB.
+    await page.getByLabel('Chat with your coach').click()
+    await expect(page).toHaveURL('/coach')
+    await expect(page.getByText('AI Coach')).toBeVisible()
+  })
+
+  test('log dropdown opens from the nav and reaches every option', async ({ page }) => {
+    await page.getByRole('button', { name: 'Log food' }).click()
+    await expect(page.getByRole('menuitem', { name: 'Manual Entry' })).toBeVisible()
+
+    await page.getByRole('menuitem', { name: 'Manual Entry' }).click()
+    await expect(page).toHaveURL(/\/log\/manual/)
   })
 
   test('sign out returns to login', async ({ page }) => {

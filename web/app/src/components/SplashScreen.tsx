@@ -26,7 +26,7 @@ export function SplashScreen({ exiting = false }: SplashScreenProps) {
           <circle
             cx="64" cy="64" r={RADIUS}
             fill="none"
-            stroke="rgba(255,55,95,0.14)"
+            stroke="rgba(255,122,80,0.14)"
             strokeWidth="6"
           />
           <circle

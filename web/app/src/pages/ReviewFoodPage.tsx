@@ -56,6 +56,15 @@ export function ReviewFoodPage() {
       protein:  Math.round(Number(b.protein)  * s * 10) / 10,
       carbs:    Math.round(Number(b.carbs)    * s * 10) / 10,
       fat:      Math.round(Number(b.fat)      * s * 10) / 10,
+      servingSizeGrams: b.servingSizeGrams != null ? Math.round(Number(b.servingSizeGrams) * s) : b.servingSizeGrams,
+      ingredients: b.ingredients?.map(ing => ({
+        ...ing,
+        grams:    Math.round(ing.grams * s),
+        calories: Math.round(ing.calories * s),
+        protein:  Math.round(ing.protein * s * 10) / 10,
+        carbs:    Math.round(ing.carbs   * s * 10) / 10,
+        fat:      Math.round(ing.fat     * s * 10) / 10,
+      })),
     } : a)
   }
 
@@ -74,6 +83,7 @@ export function ReviewFoodPage() {
       source: pendingSource,
       mealType,
       servingSizeGrams: analysis.servingSizeGrams,
+      ingredients: analysis.ingredients,
     })
     setPendingAnalysis(null)
     navigate('/', { state: { justLogged: { calories: cals, name: analysis.name } } })
@@ -167,6 +177,27 @@ export function ReviewFoodPage() {
             </label>
           ))}
         </div>
+
+        {/* Ingredient breakdown, when the AI provided one */}
+        {analysis.ingredients && analysis.ingredients.length > 0 && (
+          <>
+            <div className="review-section-label" style={{ marginTop: 20 }}>How we estimated this</div>
+            <div className="review-ingredients">
+              {analysis.ingredients.map((ing, i) => (
+                <div className="review-ingredient-row" key={i}>
+                  <div className="review-ingredient-info">
+                    <span className="review-ingredient-name">{ing.item}</span>
+                    <span className="review-ingredient-grams">{Math.round(ing.grams)}g</span>
+                  </div>
+                  <span className="review-ingredient-cals">{Math.round(ing.calories)} kcal</span>
+                </div>
+              ))}
+            </div>
+            <p className="review-ingredients-hint">
+              Looks off? Adjust the calories or macros above — this breakdown is just our estimate.
+            </p>
+          </>
+        )}
 
         {/* Meal type */}
         <div className="review-section-label" style={{ marginTop: 20 }}>Meal</div>
