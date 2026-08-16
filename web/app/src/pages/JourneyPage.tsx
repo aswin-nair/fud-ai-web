@@ -7,6 +7,7 @@ import {
   getStreakWithFreezes, getAllBadges, BADGE_CATEGORIES,
 } from '../lib/journey'
 import { IconCheck } from '../components/icons'
+import { questTitle } from '../lib/quests'
 
 function timeAgo(ts: string): string {
   const diff = Date.now() - new Date(ts).getTime()
@@ -128,7 +129,7 @@ export function JourneyPage() {
               <span className="journey-streak-label"> day streak</span>
             </div>
             <div className="journey-freeze-badges">
-              {Array.from({ length: 2 }).map((_, i) => (
+              {Array.from({ length: 1 }).map((_, i) => (
                 <span
                   key={i}
                   className={`journey-freeze-icon${i < gamification.streakFreezes ? ' active' : ''}`}
@@ -141,9 +142,32 @@ export function JourneyPage() {
             </div>
           </div>
           <p className="journey-freeze-hint">
-            Freezes auto-apply on a missed day — you get 2 per month.
+            Freezes auto-apply on a missed day — you get one per month.
           </p>
         </div>
+
+        {gamification.quest && (
+          <div className="journey-xp-card">
+            <div className="journey-xp-header">
+              <span className="journey-xp-label">Today's quest</span>
+              <span className="journey-xp-total">
+                {Math.min(gamification.quest.progress, gamification.quest.target)}/{gamification.quest.target}
+              </span>
+            </div>
+            <div className="journey-xp-track">
+              <div
+                className="journey-xp-fill"
+                style={{
+                  width: `${Math.min(100, (gamification.quest.progress / gamification.quest.target) * 100)}%`,
+                }}
+              />
+            </div>
+            <div className="journey-xp-meta">
+              <span>{questTitle(gamification.quest)}</span>
+              <span>{gamification.quest.completedAt ? 'Done' : 'In progress'}</span>
+            </div>
+          </div>
+        )}
 
         {/* ── Recent XP ── */}
         {recentEvents.length > 0 && (

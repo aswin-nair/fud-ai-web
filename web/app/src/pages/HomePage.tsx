@@ -21,6 +21,9 @@ import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
 import { getMotivation } from '../lib/motivation'
 import { useHaptic } from '../hooks/useHaptic'
 import { ACTIVITY_PRESETS, type ActivityPreset } from '../lib/activities'
+import { playLogConfirm, prefersReducedMotion, setFeelEnabled } from '../lib/feel'
+import { questTitle } from '../lib/quests'
+import { evaluateNotifications } from '../lib/notifications'
 
 const REVEAL_DELAY_MS = 420
 
@@ -64,6 +67,27 @@ export function HomePage() {
   const motivation = getMotivation(totals.calories, goal + burned)
   const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
   const streakAtRisk = streak > 0 && !hasLoggedToday
+  const paused = Boolean(profile.trackingPaused)
+  const quest = state.gamification.quest
+
+  useEffect(() => {
+    setFeelEnabled({
+      sound: profile.soundEnabled !== false,
+      haptics: profile.hapticsEnabled !== false,
+    })
+  }, [profile.soundEnabled, profile.hapticsEnabled])
+
+  useEffect(() => {
+    const hours = state.foodEntries
+      .map(e => new Date(e.timestamp).getHours())
+    void evaluateNotifications({
+      loggedToday: hasLoggedToday,
+      streak,
+      freezeAvailable: state.gamification.streakFreezes,
+      firstLogHours: hours,
+      localHour: new Date().getHours(),
+    })
+  }, [hasLoggedToday, streak, state.gamification.streakFreezes, state.foodEntries])
 
   // Brief choreographed skeleton reveal so the splash hands off smoothly into content.
   useEffect(() => {
@@ -79,9 +103,13 @@ export function HomePage() {
     loggedNavKey.current = location.key
     navigate('.', { replace: true, state: null })
     toast(`+${justLogged.calories} kcal logged`)
-    vibrate(15)
-    setRingPop(true)
-    const t = setTimeout(() => setRingPop(false), 600)
+    const questDone = Boolean(state.gamification.quest?.completedAt)
+    playLogConfirm({ questJustCompleted: questDone })
+    if (!prefersReducedMotion()) {
+      vibrate(15)
+      setRingPop(true)
+    }
+    const t = setTimeout(() => setRingPop(false), prefersReducedMotion() ? 0 : 600)
     return () => clearTimeout(t)
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -125,7 +153,9 @@ export function HomePage() {
     <div className="app-shell home-shell">
       <div className={`home-ambient-glow zone-${motivation.zone}`} aria-hidden />
 
-      {showConfetti && !pendingLevelUp && <Confetti onDone={() => setShowConfetti(false)} />}
+      {showConfetti && !pendingLevelUp && !prefersReducedMotion() && (
+        <Confetti onDone={() => setShowConfetti(false)} />
+      )}
       {pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
       {activePreset && (
         <ActivitySheet
@@ -176,6 +206,12 @@ export function HomePage() {
       <div className="home-streak-row">
         <StreakCard streak={streak} entries={state.foodEntries} gamification={state.gamification} />
       </div>
+      {quest && (
+        <Link to="/journey" className="home-quest-row">
+          <span>{questTitle(quest)}</span>
+          <span>{Math.min(quest.progress, quest.target)}/{quest.target}</span>
+        </Link>
+      )}
 
       <main className="app-main home-main">
         {!revealed ? (
@@ -186,7 +222,14 @@ export function HomePage() {
               <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
             </div>
             <div className="home-hero-enter" style={{ '--enter-delay': '60ms' } as React.CSSProperties}>
-              <CalorieHero current={totals.calories} goal={goal} burned={burned} pop={ringPop} selectedDate={selectedDate} />
+              {paused ? (
+                <div className="onboarding-goal-card" style={{ textAlign: 'center' }}>
+                  <p className="onboarding-title" style={{ fontSize: '1.2rem' }}>Tracking is paused</p>
+                  <p className="page-sub">Numbers are hidden. Your streak is held where it is.</p>
+                </div>
+              ) : (
+                <CalorieHero current={totals.calories} goal={goal} burned={burned} pop={ringPop} selectedDate={selectedDate} />
+              )}
             </div>
 
             <div className="home-section-enter" style={{ '--enter-delay': '75ms' } as React.CSSProperties}>
@@ -213,6 +256,7 @@ export function HomePage() {
               </div>
             </div>
 
+            {!paused && (
             <div className="home-section-enter" style={{ '--enter-delay': '120ms' } as React.CSSProperties}>
               <MacroGrid
                 protein={{ current: totals.protein, goal: effectiveProtein(profile) }}
@@ -220,6 +264,7 @@ export function HomePage() {
                 fat={{ current: totals.fat, goal: effectiveFat(profile) }}
               />
             </div>
+            )}
             <div className="home-section-enter" style={{ '--enter-delay': '180ms' } as React.CSSProperties}>
               <FoodList entries={dayEntries} selectedDate={selectedDate} dailyGoal={goal} />
             </div>

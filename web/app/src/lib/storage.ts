@@ -72,12 +72,13 @@ function normalizeGamification(g: GamificationState | undefined): GamificationSt
   return {
     xp: g.xp ?? 0,
     level: g.level ?? 1,
-    streakFreezes: g.streakFreezes ?? 2,
+    streakFreezes: g.streakFreezes ?? 1,
     freezeUsedDates: g.freezeUsedDates ?? [],
     freezeEarnedMonth: g.freezeEarnedMonth ?? '',
     xpEvents: g.xpEvents ?? [],
     pendingLevelUp: g.pendingLevelUp ?? null,
     seenBadgeIds: g.seenBadgeIds ?? base.seenBadgeIds,
+    quest: g.quest,
   }
 }
 
@@ -85,7 +86,7 @@ export function defaultGamification(): GamificationState {
   return {
     xp: 0,
     level: 1,
-    streakFreezes: 2,
+    streakFreezes: 1,
     freezeUsedDates: [],
     freezeEarnedMonth: new Date().toISOString().slice(0, 7),
     xpEvents: [],

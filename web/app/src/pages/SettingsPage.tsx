@@ -19,6 +19,8 @@ import {
   effectiveFat,
 } from '../lib/profile'
 import { exportData, importData } from '../lib/storage'
+import { track } from '../lib/analytics'
+import { requestNotifyPermission } from '../lib/notifications'
 import { userInitials } from '../lib/auth'
 import { IconArrowUpRight, IconCheck, IconChevronRight } from '../components/icons'
 
@@ -258,6 +260,47 @@ export function SettingsPage() {
           </div>
         </SettingsCard>
 
+        <SectionLabel>Feel</SectionLabel>
+        <SettingsCard>
+          <SettingsRow label="Sound" hint="Short cues when you log a meal">
+            <input
+              type="checkbox"
+              checked={profile.soundEnabled !== false}
+              onChange={e => setProfile(p => ({ ...p, soundEnabled: e.target.checked }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Haptics" hint="A light tap on press">
+            <input
+              type="checkbox"
+              checked={profile.hapticsEnabled !== false}
+              onChange={e => setProfile(p => ({ ...p, hapticsEnabled: e.target.checked }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Notifications" hint="At most two per day. Never about calories.">
+            <button type="button" className="settings-data-btn" onClick={() => void requestNotifyPermission()}>
+              Allow
+            </button>
+          </SettingsRow>
+        </SettingsCard>
+
+        <SectionLabel>Taking a break</SectionLabel>
+        <SettingsCard>
+          <SettingsRow
+            label="Pause tracking"
+            hint={profile.trackingPaused ? 'Numbers are hidden and your streak is held.' : 'Hide every number and hold your streak where it is.'}
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(profile.trackingPaused)}
+              onChange={e => {
+                const next = e.target.checked
+                setProfile(p => ({ ...p, trackingPaused: next }))
+                if (next) track({ name: 'tracking_paused' })
+              }}
+            />
+          </SettingsRow>
+        </SettingsCard>
+
         <button type="button" className="btn btn-primary btn-block" style={{ marginBottom: 24 }} onClick={saveProfile}>
           Save settings
         </button>
@@ -286,6 +329,11 @@ export function SettingsPage() {
         {/* About */}
         <SectionLabel>About</SectionLabel>
         <SettingsCard>
+          <Link to="/about" className="settings-data-btn settings-link-row">
+            <span>Support</span>
+            <IconChevronRight size={16} className="settings-link-chevron" />
+          </Link>
+          <div className="settings-divider" />
           <Link to="/about" className="settings-data-btn settings-link-row">
             <span>About Fud AI</span>
             <IconChevronRight size={16} className="settings-link-chevron" />

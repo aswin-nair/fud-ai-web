@@ -18,7 +18,7 @@ const PROTEIN_PER_KG: Record<ActivityLevel, number> = {
   extraActive: 2.2,
 }
 
-function ageFromBirthday(birthday: string): number {
+export function ageFromBirthday(birthday: string): number {
   const birth = new Date(birthday)
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
@@ -108,6 +108,9 @@ export function defaultProfile(): UserProfile {
     activityLevel: 'moderate',
     goal: 'maintain',
     weeklyChangeKg: 0.5,
+    soundEnabled: true,
+    hapticsEnabled: true,
+    trackingPaused: false,
   }
 }
 

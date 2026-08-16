@@ -23,6 +23,9 @@ export interface UserProfile {
   customProtein?: number
   customFat?: number
   customCarbs?: number
+  soundEnabled?: boolean
+  hapticsEnabled?: boolean
+  trackingPaused?: boolean
 }
 
 export interface FoodIngredientLine {
@@ -103,6 +106,14 @@ export interface GamificationState {
   xpEvents: XpEvent[]          // last 50 XP events (for feed display)
   pendingLevelUp: number | null // new level pending celebration
   seenBadgeIds: string[]       // badge IDs already toasted
+  quest?: {
+    date: string
+    type: 'log_n_meals' | 'hit_protein' | 'log_before' | 'log_streak'
+    target: number
+    progress: number
+    completedAt: string | null
+    beforeHour?: number
+  }
 }
 
 export interface ExerciseEntry {

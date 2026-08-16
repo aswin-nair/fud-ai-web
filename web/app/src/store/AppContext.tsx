@@ -18,9 +18,9 @@ import { apiLoadState, apiSaveState } from '../lib/apiClient'
 
 import { isCloudBackend } from '../lib/dataBackend'
 
-import { computeXpAwards, makeXpEvents, levelFromXp } from '../lib/xp'
+import { levelFromXp } from '../lib/xp'
 
-import { applyFreeze, getStreakWithFreezes, getAllBadges } from '../lib/journey'
+import { advanceAfterLog, openSession } from '../lib/gamification'
 
 import { SplashScreen } from '../components/SplashScreen'
 
@@ -174,6 +174,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       hydrated.current = true
 
+      setState(s => {
+        const opened = openSession(s)
+        return { ...s, gamification: opened.gamification }
+      })
+
       // Play the splash's fade/scale-out transition before unmounting it.
 
       setSplashExiting(true)
@@ -265,52 +270,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateAISettings: (aiSettings) => setState(s => ({ ...s, aiSettings })),
 
     addEntry: (entry) => setState(s => {
-
-      const allEntries = [...s.foodEntries, entry]
-
-      // Streak freezes
-      const freezeUpdate = applyFreeze(s.foodEntries, s.gamification)
-
-      // XP awards
-      const awards = computeXpAwards(entry, s.foodEntries, {
-        ...s.gamification,
-        ...freezeUpdate,
-      })
-      const newEvents = makeXpEvents(awards)
-      const earnedXp = awards.reduce((sum, a) => sum + a.xp, 0)
-      const newXp = s.gamification.xp + earnedXp
-      const newLevel = levelFromXp(newXp)
-      const didLevelUp = newLevel > s.gamification.level
-
-      // Badge detection
-      const newGam = {
-        ...s.gamification,
-        ...freezeUpdate,
-        xp: newXp,
-        level: newLevel,
-        pendingLevelUp: didLevelUp ? newLevel : s.gamification.pendingLevelUp,
-        xpEvents: [...newEvents, ...s.gamification.xpEvents].slice(0, 50),
-      }
-      const currentStreak = getStreakWithFreezes(allEntries, newGam.freezeUsedDates)
-      const allBadges = getAllBadges(allEntries, currentStreak, newGam)
-      const seenSet = new Set(newGam.seenBadgeIds)
-      const newlyUnlocked = allBadges.filter(b => b.unlocked && !seenSet.has(b.id))
-      if (newlyUnlocked.length > 0) {
-        newGam.seenBadgeIds = [...newGam.seenBadgeIds, ...newlyUnlocked.map(b => b.id)]
-      }
-
+      const advanced = advanceAfterLog(s, entry)
       return {
-
         ...s,
-
-        foodEntries: allEntries,
-
-        profile: { ...s.profile, weightKg: s.profile.weightKg },
-
-        gamification: newGam,
-
+        foodEntries: [...s.foodEntries, entry],
+        gamification: advanced.gamification,
       }
-
     }),
 
     updateEntry: (entry) => setState(s => ({
@@ -386,34 +351,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
 
     logSavedMeal: (meal) => setState(s => {
-
       const entry = savedToEntry(meal)
-      const allEntries = [...s.foodEntries, entry]
-      const freezeUpdate = applyFreeze(s.foodEntries, s.gamification)
-      const awards = computeXpAwards(entry, s.foodEntries, { ...s.gamification, ...freezeUpdate })
-      const newEvents = makeXpEvents(awards)
-      const newXp = s.gamification.xp + awards.reduce((sum, a) => sum + a.xp, 0)
-      const newLevel = levelFromXp(newXp)
-      const didLevelUp = newLevel > s.gamification.level
-
-      const newGam = {
-        ...s.gamification,
-        ...freezeUpdate,
-        xp: newXp,
-        level: newLevel,
-        pendingLevelUp: didLevelUp ? newLevel : s.gamification.pendingLevelUp,
-        xpEvents: [...newEvents, ...s.gamification.xpEvents].slice(0, 50),
-      }
-      const currentStreak = getStreakWithFreezes(allEntries, newGam.freezeUsedDates)
-      const allBadges = getAllBadges(allEntries, currentStreak, newGam)
-      const seenSet = new Set(newGam.seenBadgeIds)
-      const newlyUnlocked = allBadges.filter(b => b.unlocked && !seenSet.has(b.id))
-      if (newlyUnlocked.length > 0) {
-        newGam.seenBadgeIds = [...newGam.seenBadgeIds, ...newlyUnlocked.map(b => b.id)]
-      }
-
-      return { ...s, foodEntries: allEntries, gamification: newGam } as AppState
-
+      const advanced = advanceAfterLog(s, entry)
+      return { ...s, foodEntries: [...s.foodEntries, entry], gamification: advanced.gamification }
     }),
 
     addChatMessage: (msg) => setState(s => ({

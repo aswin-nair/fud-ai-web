@@ -13,6 +13,7 @@ import {
   effectiveCarbs,
   effectiveFat,
   defaultProfile,
+  ageFromBirthday,
 } from '../lib/profile'
 
 const STEPS = ['About you', 'Body', 'Activity', 'Goal', 'Review']
@@ -49,6 +50,7 @@ export function OnboardingPage() {
   const navigate = useNavigate()
   const [welcomeIndex, setWelcomeIndex] = useState(0)
   const [step, setStep] = useState(0)
+  const [blocked, setBlocked] = useState(false)
   const [profile, setProfile] = useState<UserProfile>(defaultProfile())
   const showingWelcome = welcomeIndex < WELCOME_SLIDES.length
 
@@ -61,6 +63,10 @@ export function OnboardingPage() {
   }
 
   function next() {
+    if (step === 0 && ageFromBirthday(profile.birthday) < 18) {
+      setBlocked(true)
+      return
+    }
     if (step < STEPS.length - 1) setStep(s => s + 1)
     else finish()
   }
@@ -109,6 +115,21 @@ export function OnboardingPage() {
             <IconChevronRight size={16} strokeWidth={2.4} />
           </button>
         </div>
+      </div>
+    )
+  }
+
+  if (blocked) {
+    return (
+      <div className="app-shell">
+        <main className="app-main onboarding-main">
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">This one is built for adults</h1>
+            <p className="onboarding-sub">
+              A doctor or a parent is the right place to start. There is no way around this from here.
+            </p>
+          </div>
+        </main>
       </div>
     )
   }

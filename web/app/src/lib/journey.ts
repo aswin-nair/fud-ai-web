@@ -101,7 +101,7 @@ export function applyFreeze(
   // Monthly reset
   const currentMonth = new Date().toISOString().slice(0, 7)
   if (currentMonth !== freezeEarnedMonth) {
-    streakFreezes = 2
+    streakFreezes = 1
     freezeEarnedMonth = currentMonth
   }
 
