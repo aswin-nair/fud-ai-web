@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { CalorieHero } from '../components/CalorieHero'
 import { MacroGrid } from '../components/MacroGrid'
 import { FoodList } from '../components/FoodList'
 import { WeekStrip } from '../components/WeekStrip'
-import { StreakCard } from '../components/StreakCard'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
 import { ActivitySheet } from '../components/ActivitySheet'
 import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
 import { Confetti } from '../components/Confetti'
 import { HomeSkeleton } from '../components/HomeSkeleton'
-import { IconBell, IconCalendar, IconCoach, IconPlus } from '../components/icons'
+import { IconBell, IconCalendar, IconCoach } from '../components/icons'
 import { useToast } from '../components/Toast'
 import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
@@ -25,6 +23,12 @@ import { playLogConfirm, prefersReducedMotion, setFeelEnabled } from '../lib/fee
 import { questTitle } from '../lib/quests'
 import { evaluateNotifications } from '../lib/notifications'
 import { Mascot, type MascotState } from '../components/Mascot'
+import { MascotSay } from '../components/MascotSay'
+import { LogCelebration } from '../components/LogCelebration'
+import { CalorieRing } from '../components/CalorieRing'
+import { PressableButton } from '../components/PressableButton'
+import { levelFromXp, xpForLevel, xpForNextLevel } from '../lib/xp'
+import type { XpEvent } from '../types'
 
 const REVEAL_DELAY_MS = 420
 
@@ -43,6 +47,15 @@ function greeting(): string {
 
 interface JustLogged { calories: number; name: string }
 
+/** How far back to look for the XP events belonging to the log just made. */
+const CELEBRATION_AWARD_WINDOW_MS = 10_000
+
+interface CelebrationState {
+  foodName: string
+  calories: number
+  awards: XpEvent[]
+}
+
 export function HomePage() {
   const { state, ackLevelUp } = useApp()
   const { toast } = useToast()
@@ -57,6 +70,7 @@ export function HomePage() {
   const [showDatePicker, setShowDatePicker] = useState(false)
   // Transient mascot reaction, held for MASCOT_BEAT_MS after a log lands.
   const [mascotBeat, setMascotBeat] = useState<MascotState | null>(null)
+  const [celebration, setCelebration] = useState<CelebrationState | null>(null)
   const celebratedKey = useRef('')
   const loggedNavKey = useRef('')
   const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
@@ -78,6 +92,18 @@ export function HomePage() {
   const streakAtRisk = streak > 0 && !hasLoggedToday
   const paused = Boolean(profile.trackingPaused)
   const quest = state.gamification.quest
+
+  const loggedDayKeys = new Set(state.foodEntries.map(e => localDayKey(new Date(e.timestamp))))
+  const frozenDayKeys = new Set(state.gamification.freezeUsedDates)
+
+  const xp = state.gamification.xp
+  const level = levelFromXp(xp)
+  const levelFloor = xpForLevel(level)
+  const levelCeiling = xpForNextLevel(level)
+  // Guard the top level, where floor and ceiling meet and the span is zero.
+  const levelProgress = levelCeiling > levelFloor
+    ? Math.min(1, (xp - levelFloor) / (levelCeiling - levelFloor))
+    : 1
 
   /**
    * §2.5 / §7.6: the mascot reads logging behaviour and nothing else. It never
@@ -123,7 +149,8 @@ export function HomePage() {
     if (loggedNavKey.current === location.key) return
     loggedNavKey.current = location.key
     navigate('.', { replace: true, state: null })
-    toast(`+${justLogged.calories} kcal logged`)
+    // No toast here — the celebration overlay below says the same thing, and
+    // the two stack on top of each other.
     const questDone = Boolean(state.gamification.quest?.completedAt)
     playLogConfirm({ questJustCompleted: questDone })
     if (!prefersReducedMotion()) {
@@ -133,6 +160,15 @@ export function HomePage() {
 
     // A quest finishing is the bigger moment; a plain log is still worth a nod.
     setMascotBeat(questDone ? 'celebrating' : 'happy')
+
+    // The XP events this log just produced, so the celebration can itemise
+    // what was earned rather than showing a bare total.
+    const since = Date.now() - CELEBRATION_AWARD_WINDOW_MS
+    const fresh = state.gamification.xpEvents
+      .filter(e => new Date(e.timestamp).getTime() >= since)
+      .slice(0, 4)
+
+    setCelebration({ foodName: justLogged.name, calories: justLogged.calories, awards: fresh })
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /*
@@ -197,6 +233,23 @@ export function HomePage() {
         <Confetti onDone={() => setShowConfetti(false)} />
       )}
       {pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
+
+      {/* The signature moment. Held behind the level-up overlay so the two
+          never stack on top of each other. */}
+      {celebration && !pendingLevelUp && (
+        <LogCelebration
+          foodName={celebration.foodName}
+          calories={celebration.calories}
+          streak={streak}
+          awards={celebration.awards}
+          quest={quest ? {
+            title: questTitle(quest),
+            progress: quest.progress,
+            target: quest.target,
+          } : null}
+          onDone={() => setCelebration(null)}
+        />
+      )}
       {activePreset && (
         <ActivitySheet
           defaultPreset={activePreset}
@@ -243,10 +296,30 @@ export function HomePage() {
         />
       )}
 
-      <div className="home-streak-row">
-        <Mascot state={mascotState} size={46} />
-        <StreakCard streak={streak} entries={state.foodEntries} gamification={state.gamification} />
+      {/* §9.2 opens with the streak, then points and level. */}
+      <div className="home-top-row">
+        <span className={`home-streak-badge${streakAtRisk ? ' is-at-risk' : ''}`}>
+          <span className="home-streak-flame">🔥</span>
+          {streak} day{streak === 1 ? '' : 's'}
+        </span>
+        <div className="home-xp">
+          <div className="home-points">
+            <strong>{state.gamification.xp} XP</strong>
+            <span>Level {level}</span>
+          </div>
+          <div className="home-xp-track">
+            <span className="home-xp-fill" style={{ width: `${levelProgress * 100}%` }} />
+          </div>
+        </div>
       </div>
+
+      {!paused && (
+        <div className="home-say-row">
+          <Mascot state={mascotState} size={54} />
+          <MascotSay state={mascotState} seed={streak + dayEntries.length} />
+        </div>
+      )}
+
       {quest && (
         <Link to="/journey" className="home-quest-row">
           <span>{questTitle(quest)}</span>
@@ -260,7 +333,12 @@ export function HomePage() {
         ) : (
           <>
             <div className="home-section-enter" style={{ '--enter-delay': '0ms' } as React.CSSProperties}>
-              <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
+              <WeekStrip
+                selectedDate={selectedDate}
+                onSelect={setSelectedDate}
+                loggedDays={loggedDayKeys}
+                frozenDays={frozenDayKeys}
+              />
             </div>
             <div className="home-hero-enter" style={{ '--enter-delay': '60ms' } as React.CSSProperties}>
               {paused ? (
@@ -269,15 +347,19 @@ export function HomePage() {
                   <p className="page-sub">Numbers are hidden. Your streak is held where it is.</p>
                 </div>
               ) : (
-                <CalorieHero current={totals.calories} goal={goal} burned={burned} pop={ringPop} selectedDate={selectedDate} />
+                <div className={`home-ring-block${ringPop ? ' ring-pop' : ''}`}>
+                  <div style={{ position: 'relative' }}>
+                    <CalorieRing
+                      consumed={totals.calories}
+                      target={goal + burned}
+                      caption={burned > 0 ? `+${burned.toLocaleString()} burned` : undefined}
+                    />
+                  </div>
+                  <span className="home-ring-sub">
+                    {Math.round(totals.calories).toLocaleString()} of {(goal + burned).toLocaleString()} today
+                  </span>
+                </div>
               )}
-            </div>
-
-            <div className="home-section-enter" style={{ '--enter-delay': '75ms' } as React.CSSProperties}>
-              <button type="button" className="home-add-pill press-spring" onClick={() => navigate('/log')}>
-                <IconPlus size={18} strokeWidth={2.6} />
-                Log a meal
-              </button>
             </div>
 
             {/* Quick activity presets */}
@@ -309,9 +391,17 @@ export function HomePage() {
             <div className="home-section-enter" style={{ '--enter-delay': '180ms' } as React.CSSProperties}>
               <FoodList entries={dayEntries} selectedDate={selectedDate} dailyGoal={goal} />
             </div>
+
+            {/* Clears the pinned button so the last meal is never hidden. */}
+            <div className="home-scroll-pad" />
           </>
         )}
       </main>
+
+      {/* §9.2: the primary action is pinned, not scrolled to. */}
+      <div className="home-log-dock">
+        <PressableButton fullWidth label="Log a meal" onClick={() => navigate('/log')} />
+      </div>
 
       <Link to="/coach" className="fab" aria-label="Chat with your coach">
         <IconCoach size={24} />

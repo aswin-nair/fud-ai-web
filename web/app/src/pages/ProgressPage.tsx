@@ -4,7 +4,7 @@ import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
-import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
+import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
 import { IconChevronRight, IconMenuLines } from '../components/icons'
 
 const RANGES = [
@@ -59,6 +59,7 @@ export function ProgressPage() {
   const [range, setRange] = useState<RangeId>('1W')
   const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
   const badges = getAllBadges(state.foodEntries, streak, state.gamification)
+  const consistency = getMonthConsistency(state.foodEntries)
   const [showLog, setShowLog] = useState(false)
   const [weight, setWeight] = useState(String(state.profile.weightKg ?? ''))
   const [showHistory, setShowHistory] = useState(false)
@@ -131,6 +132,38 @@ export function ProgressPage() {
               {r.id}
             </button>
           ))}
+        </div>
+
+        {/* §9.3: consistency leads. Calories and weight are downstream of the
+            habit, so the habit is what the page opens with. */}
+        <div className="progress-card">
+          <div className="progress-card-header">
+            <h2 className="progress-card-title">Consistency</h2>
+            <span className="consistency-streak">{streak}-day streak</span>
+          </div>
+
+          <div className="consistency-headline">
+            <strong className="consistency-number">{consistency.logged}</strong>
+            <span className="consistency-unit">
+              {consistency.logged === 1 ? 'day logged' : 'days logged'}
+            </span>
+          </div>
+          <p className="consistency-sub">
+            of {consistency.elapsed} {consistency.elapsed === 1 ? 'day' : 'days'} so far this month
+          </p>
+
+          <div className="consistency-grid" aria-hidden>
+            {consistency.days.map((logged, i) => (
+              <span
+                key={i}
+                className={
+                  'consistency-dot'
+                  + (logged ? ' is-logged' : '')
+                  + (i >= consistency.elapsed ? ' is-future' : '')
+                }
+              />
+            ))}
+          </div>
         </div>
 
         {/* Weight card */}

@@ -2,7 +2,7 @@ export type Gender = 'male' | 'female' | 'other'
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'veryActive' | 'extraActive'
 export type WeightGoal = 'lose' | 'maintain' | 'gain'
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'other'
-export type FoodSource = 'textInput' | 'manual' | 'snapFood'
+export type FoodSource = 'textInput' | 'manual' | 'snapFood' | 'quickAdd' | 'recent'
 
 import type { AISettings } from './lib/aiConfig'
 
