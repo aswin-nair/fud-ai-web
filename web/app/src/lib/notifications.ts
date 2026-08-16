@@ -50,7 +50,9 @@ const COPY: Record<NotifyKind, (streak: number) => string> = {
   routine: (streak) =>
     streak > 0
       ? `Two minutes to keep your ${streak}-day streak going.`
-      : 'Your streak is still alive — log anything to keep it.',
+      // With no streak yet there is nothing to "keep alive" — claiming
+      // otherwise is the kind of small lie that costs trust.
+      : 'Log anything today and the day counts.',
   save: (streak) =>
     streak > 0
       ? `Your streak's still alive — log anything to keep it.`

@@ -59,7 +59,7 @@ export function questForDate(date: string): Omit<DailyQuest, 'progress' | 'compl
 export function questTitle(quest: Pick<DailyQuest, 'type' | 'target' | 'beforeHour'>): string {
   switch (quest.type) {
     case 'log_n_meals':
-      return `Log ${quest.target} meals today`
+      return `Log ${quest.target} ${quest.target === 1 ? 'meal' : 'meals'} today`
     case 'hit_protein':
       return 'Hit your protein target'
     case 'log_before': {
