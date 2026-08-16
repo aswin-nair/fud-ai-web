@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withDelay,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -17,6 +18,8 @@ export type ProgressBarProps = {
   height?: number;
   /** Set to render the amount past `max` as a second segment instead of clamping. */
   overflowColor?: ColorToken;
+  /** Held before the fill starts, so a group of bars can stagger. §11.3. */
+  delay?: number;
   style?: ViewStyle;
 };
 
@@ -41,6 +44,7 @@ export function ProgressBar({
   color,
   height = 10,
   overflowColor,
+  delay = 0,
   style,
 }: ProgressBarProps) {
   const theme = useTheme();
@@ -58,9 +62,9 @@ export function ProgressBar({
       over.value = target.over;
       return;
     }
-    base.value = withTiming(target.base, { duration: theme.motion.fill });
-    over.value = withTiming(target.over, { duration: theme.motion.fill });
-  }, [base, over, target.base, target.over, reducedMotion, theme.motion.fill]);
+    base.value = withDelay(delay, withTiming(target.base, { duration: theme.motion.fill }));
+    over.value = withDelay(delay, withTiming(target.over, { duration: theme.motion.fill }));
+  }, [base, over, target.base, target.over, delay, reducedMotion, theme.motion.fill]);
 
   const baseStyle = useAnimatedStyle(() => ({ width: `${base.value * 100}%` }));
   const overStyle = useAnimatedStyle(() => ({ width: `${over.value * 100}%` }));

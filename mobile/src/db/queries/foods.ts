@@ -19,9 +19,22 @@ export async function getRecentsAndFavorites(limit = RECENTS_LIMIT): Promise<Foo
     .limit(limit);
 }
 
+/**
+ * What an empty search box lists. On a fresh install nothing has been eaten
+ * yet, so falling back to the whole catalogue keeps the screen browsable
+ * instead of blank.
+ */
+export async function browseFoods(limit = SEARCH_LIMIT): Promise<Food[]> {
+  return db
+    .select()
+    .from(foods)
+    .orderBy(desc(foods.isFavorite), desc(foods.lastUsedAt), foods.name)
+    .limit(limit);
+}
+
 export async function searchFoods(query: string, limit = SEARCH_LIMIT): Promise<Food[]> {
   const trimmed = query.trim();
-  if (!trimmed) return getRecentsAndFavorites();
+  if (!trimmed) return browseFoods(limit);
 
   const pattern = `%${trimmed}%`;
 

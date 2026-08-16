@@ -28,25 +28,18 @@ export function totalPoints(ledger: readonly { delta: number }[]): number {
 }
 
 /**
- * Levels widen as they go so early progress is quick and later levels still
- * mean something. Level 1 starts at zero points.
+ * §10.3: level = floor(sqrt(points / 100)) + 1. Quadratic spacing, so level n
+ * starts at 100(n-1)^2 and the band widens by 200 points each time. Cosmetic
+ * only — nothing in the app is ever gated on level.
  */
-const LEVEL_STEP = 250;
-
 export function levelFor(points: number): { level: number; into: number; span: number } {
-  if (points < 0) return { level: 1, into: 0, span: LEVEL_STEP };
+  const safe = Math.max(0, points);
+  const level = Math.floor(Math.sqrt(safe / 100)) + 1;
 
-  let level = 1;
-  let span = LEVEL_STEP;
-  let remaining = points;
+  const floorPoints = 100 * (level - 1) ** 2;
+  const ceilPoints = 100 * level ** 2;
 
-  while (remaining >= span) {
-    remaining -= span;
-    level += 1;
-    span = LEVEL_STEP * level;
-  }
-
-  return { level, into: remaining, span };
+  return { level, into: safe - floorPoints, span: ceilPoints - floorPoints };
 }
 
 /** Streak lengths worth a one-off celebration. */
