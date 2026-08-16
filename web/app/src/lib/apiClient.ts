@@ -1,8 +1,10 @@
 import type { AuthUser } from './auth'
 import type { AppState } from '../types'
 import { apiBaseUrl, isCloudBackend } from './dataBackend'
+import { stateWithoutPrivateSecrets } from './storage'
 
 const TOKEN_KEY = 'fud-ai-auth-token'
+const API_TIMEOUT_MS = 12_000
 
 export class ApiError extends Error {
   status: number
@@ -38,7 +40,20 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = loadAuthToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const res = await fetch(url, { ...init, headers })
+  const controller = new AbortController()
+  const timeout = globalThis.setTimeout(() => controller.abort(), API_TIMEOUT_MS)
+  let res: Response
+  try {
+    res = await fetch(url, { ...init, headers, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError('Request timed out. Check your connection and try again.', 0)
+    }
+    throw error
+  } finally {
+    globalThis.clearTimeout(timeout)
+  }
+
   const data = await res.json().catch(() => ({})) as { error?: string } & T
 
   if (!res.ok) {
@@ -78,7 +93,7 @@ export async function apiSaveState(state: AppState): Promise<void> {
   if (!isCloudBackend()) return
   await apiFetch('/api/state', {
     method: 'PUT',
-    body: JSON.stringify({ state }),
+    body: JSON.stringify({ state: stateWithoutPrivateSecrets(state) }),
   })
 }
 

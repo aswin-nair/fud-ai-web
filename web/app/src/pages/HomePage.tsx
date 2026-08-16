@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { MacroGrid } from '../components/MacroGrid'
+import { MacroProgressGroup } from '../components/MacroGrid'
 import { FoodList } from '../components/FoodList'
 import { WeekStrip } from '../components/WeekStrip'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
 import { ActivitySheet } from '../components/ActivitySheet'
 import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
-import { Confetti } from '../components/Confetti'
 import { HomeSkeleton } from '../components/HomeSkeleton'
 import { IconBell, IconCalendar, IconCoach } from '../components/icons'
 import { useToast } from '../components/Toast'
@@ -16,7 +15,6 @@ import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveCalories, effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
 import { startOfDay, sameDay, localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges } from '../lib/journey'
-import { getMotivation } from '../lib/motivation'
 import { useHaptic } from '../hooks/useHaptic'
 import { ACTIVITY_PRESETS, type ActivityPreset } from '../lib/activities'
 import { playLogConfirm, prefersReducedMotion, setFeelEnabled } from '../lib/feel'
@@ -29,6 +27,7 @@ import { CalorieRing } from '../components/CalorieRing'
 import { PressableButton } from '../components/PressableButton'
 import { levelFromXp, xpForLevel, xpForNextLevel } from '../lib/xp'
 import type { XpEvent } from '../types'
+import { startLogFlow, track } from '../lib/analytics'
 
 const REVEAL_DELAY_MS = 420
 
@@ -45,15 +44,13 @@ function greeting(): string {
   return 'Good evening'
 }
 
-interface JustLogged { calories: number; name: string }
-
-/** How far back to look for the XP events belonging to the log just made. */
-const CELEBRATION_AWARD_WINDOW_MS = 10_000
+interface JustLogged { id?: string; calories: number; name: string }
 
 interface CelebrationState {
   foodName: string
   calories: number
   awards: XpEvent[]
+  questJustCompleted: boolean
 }
 
 export function HomePage() {
@@ -63,7 +60,6 @@ export function HomePage() {
   const navigate = useNavigate()
   const vibrate = useHaptic()
   const [selectedDate, setSelectedDate] = useState(() => startOfDay())
-  const [showConfetti, setShowConfetti] = useState(false)
   const [ringPop, setRingPop] = useState(false)
   const [activePreset, setActivePreset] = useState<ActivityPreset | null>(null)
   const [revealed, setRevealed] = useState(false)
@@ -71,7 +67,6 @@ export function HomePage() {
   // Transient mascot reaction, held for MASCOT_BEAT_MS after a log lands.
   const [mascotBeat, setMascotBeat] = useState<MascotState | null>(null)
   const [celebration, setCelebration] = useState<CelebrationState | null>(null)
-  const celebratedKey = useRef('')
   const loggedNavKey = useRef('')
   const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
 
@@ -87,7 +82,6 @@ export function HomePage() {
     .reduce((sum, e) => sum + e.caloriesBurned, 0)
 
   const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
-  const motivation = getMotivation(totals.calories, goal + burned)
   const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
   const streakAtRisk = streak > 0 && !hasLoggedToday
   const paused = Boolean(profile.trackingPaused)
@@ -151,7 +145,13 @@ export function HomePage() {
     navigate('.', { replace: true, state: null })
     // No toast here — the celebration overlay below says the same thing, and
     // the two stack on top of each other.
-    const questDone = Boolean(state.gamification.quest?.completedAt)
+    const mealEvent = justLogged.id
+      ? state.gamification.xpEvents.find(event => event.key === `meal-${justLogged.id}`)
+      : undefined
+    const fresh = mealEvent
+      ? state.gamification.xpEvents.filter(event => event.timestamp === mealEvent.timestamp)
+      : []
+    const questDone = fresh.some(event => event.key.startsWith('quest-'))
     playLogConfirm({ questJustCompleted: questDone })
     if (!prefersReducedMotion()) {
       vibrate(15)
@@ -161,14 +161,14 @@ export function HomePage() {
     // A quest finishing is the bigger moment; a plain log is still worth a nod.
     setMascotBeat(questDone ? 'celebrating' : 'happy')
 
-    // The XP events this log just produced, so the celebration can itemise
-    // what was earned rather than showing a bare total.
-    const since = Date.now() - CELEBRATION_AWARD_WINDOW_MS
-    const fresh = state.gamification.xpEvents
-      .filter(e => new Date(e.timestamp).getTime() >= since)
-      .slice(0, 4)
-
-    setCelebration({ foodName: justLogged.name, calories: justLogged.calories, awards: fresh })
+    setCelebration({
+      foodName: justLogged.name,
+      calories: justLogged.calories,
+      // Keep every event produced by this exact log. The celebration total
+      // must match the ledger even when a meal, quest, and streak coincide.
+      awards: fresh,
+      questJustCompleted: questDone,
+    })
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /*
@@ -189,24 +189,12 @@ export function HomePage() {
     return () => clearTimeout(t)
   }, [mascotBeat])
 
-  // Calorie goal confetti
-  useEffect(() => {
-    if (goal <= 0) return
-    const dateKey = selectedDate.toDateString()
-    const near = totals.calories >= goal && totals.calories <= goal * 1.08
-    if (near && celebratedKey.current !== dateKey) {
-      celebratedKey.current = dateKey
-      setShowConfetti(true)
-      if (sameDay(selectedDate, new Date())) toast('🎉 Goal reached! Great work!')
-    }
-  }, [totals.calories]) // eslint-disable-line react-hooks/exhaustive-deps
-
   // Badge unlock toast (uses gamification.seenBadgeIds, not old localStorage key)
   useEffect(() => {
     const prev = prevSeenBadgeCount.current
     const current = state.gamification.seenBadgeIds.length
     if (current > prev) {
-      const allBadges = getAllBadges(state.foodEntries, streak, state.gamification)
+      const allBadges = getAllBadges(state.foodEntries, streak)
       const newIds = state.gamification.seenBadgeIds.slice(prev)
       const newBadge = allBadges.find(b => newIds.includes(b.id))
       if (newBadge) toast(`${newBadge.emoji} Badge unlocked: ${newBadge.name}!`)
@@ -227,11 +215,7 @@ export function HomePage() {
 
   return (
     <div className="app-shell home-shell">
-      <div className={`home-ambient-glow zone-${motivation.zone}`} aria-hidden />
-
-      {showConfetti && !pendingLevelUp && !prefersReducedMotion() && (
-        <Confetti onDone={() => setShowConfetti(false)} />
-      )}
+      <div className="home-ambient-glow" aria-hidden />
       {pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
 
       {/* The signature moment. Held behind the level-up overlay so the two
@@ -246,6 +230,7 @@ export function HomePage() {
             title: questTitle(quest),
             progress: quest.progress,
             target: quest.target,
+            justCompleted: celebration.questJustCompleted,
           } : null}
           onDone={() => setCelebration(null)}
         />
@@ -362,26 +347,21 @@ export function HomePage() {
               )}
             </div>
 
-            {/* Quick activity presets */}
+            {/* Activity is optional detail, not a competing primary action. */}
             <div className="home-section-enter" style={{ '--enter-delay': '90ms' } as React.CSSProperties}>
-              <div className="activity-quick-row">
-                {ACTIVITY_PRESETS.map(preset => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    className="activity-quick-chip"
-                    onClick={() => { setActivePreset(preset); vibrate(8) }}
-                  >
-                    <span>{preset.emoji}</span>
-                    <span>{preset.name}</span>
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                className="activity-detail-row"
+                onClick={() => { setActivePreset(ACTIVITY_PRESETS[0]); vibrate(8) }}
+              >
+                <span>Activity</span>
+                <span>{burned > 0 ? `${burned.toLocaleString()} kcal logged` : 'Add optional details'} →</span>
+              </button>
             </div>
 
             {!paused && (
             <div className="home-section-enter" style={{ '--enter-delay': '120ms' } as React.CSSProperties}>
-              <MacroGrid
+              <MacroProgressGroup
                 protein={{ current: totals.protein, goal: effectiveProtein(profile) }}
                 carbs={{ current: totals.carbs, goal: effectiveCarbs(profile) }}
                 fat={{ current: totals.fat, goal: effectiveFat(profile) }}
@@ -400,7 +380,15 @@ export function HomePage() {
 
       {/* §9.2: the primary action is pinned, not scrolled to. */}
       <div className="home-log-dock">
-        <PressableButton fullWidth label="Log a meal" onClick={() => navigate('/log')} />
+        <PressableButton
+          fullWidth
+          label="Log a meal"
+          onClick={() => {
+            track({ name: 'home_primary_action_used' })
+            startLogFlow('search', state.foodEntries.length === 0)
+            navigate('/log')
+          }}
+        />
       </div>
 
       <Link to="/coach" className="fab" aria-label="Chat with your coach">

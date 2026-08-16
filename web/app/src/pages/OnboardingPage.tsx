@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import welcome1 from '@assets/welcome-1.webp'
 import welcome2 from '@assets/welcome-2.webp'
 import welcome3 from '@assets/welcome-3.webp'
 import { useApp } from '../store/AppContext'
-import type { ActivityLevel, Gender, UserProfile, WeightGoal } from '../types'
-import { ACTIVITY_LABELS, GOAL_LABELS } from '../types'
+import { useAuth } from '../store/AuthContext'
+import type { ActivityLevel, Gender, MealType, UserProfile, WeightGoal } from '../types'
+import { ACTIVITY_LABELS, GOAL_LABELS, MEAL_LABELS } from '../types'
 import { IconChevronLeft, IconChevronRight } from '../components/icons'
 import {
   computeTargets,
@@ -13,12 +14,23 @@ import {
   effectiveCarbs,
   effectiveFat,
   defaultProfile,
-  ageFromBirthday,
+  goalWeightIssue,
   maxWeeklyChangeKg,
+  profileInputIssue,
 } from '../lib/profile'
-import { track } from '../lib/analytics'
+import {
+  birthdayEligibility,
+  birthdayToIso,
+  clearOnboardingDraft,
+  loadOnboardingDraft,
+  localDateInputValue,
+  saveOnboardingDraft,
+  type OnboardingDraft,
+} from '../lib/onboarding'
+import { selectLogMethod, startLogFlow, track } from '../lib/analytics'
 
-const STEPS = ['About you', 'Body', 'Activity', 'Goal', 'Review']
+const STEPS = ['Age', 'About you', 'Body', 'Activity', 'Goal', 'Review', 'First meal']
+const FIRST_MEAL_STEP = STEPS.length - 1
 
 const WELCOME_SLIDES = [
   {
@@ -47,54 +59,218 @@ const ACTIVITY_ICONS: Record<ActivityLevel, string> = {
   extraActive: '🔥',
 }
 
+function positiveNumber(value: string): number | null {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : null
+}
+
+function nonnegativeNumber(value: string): number {
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0 ? number : 0
+}
+
+function validBody(profile: UserProfile): boolean {
+  return Number.isFinite(profile.heightCm)
+    && profile.heightCm > 0
+    && Number.isFinite(profile.weightKg)
+    && profile.weightKg > 0
+}
+
+function birthdayMessage(status: ReturnType<typeof birthdayEligibility>): string {
+  if (status === 'missing') return 'Enter your date of birth to continue.'
+  if (status === 'invalid') return 'Enter a valid date of birth.'
+  return ''
+}
+
 export function OnboardingPage() {
-  const { updateProfile, setOnboarded } = useApp()
+  const { state, updateProfile, setOnboarded, addEntry } = useApp()
+  const { user } = useAuth()
   const navigate = useNavigate()
-  const [welcomeIndex, setWelcomeIndex] = useState(0)
-  const [step, setStep] = useState(0)
-  const [blocked, setBlocked] = useState(false)
-  const [profile, setProfile] = useState<UserProfile>(defaultProfile())
-  const showingWelcome = welcomeIndex < WELCOME_SLIDES.length
-  const targets = computeTargets(profile)
+  const userId = user?.sub ?? 'anonymous'
+  const finishing = useRef(false)
+  const trackedSteps = useRef(new Set<number>())
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [draft, setDraft] = useState<OnboardingDraft>(() => {
+    const initialProfile = {
+      ...defaultProfile(),
+      name: state.profile.name ?? user?.name,
+      birthday: '',
+    }
+    const loaded = loadOnboardingDraft(userId, initialProfile)
+    if (!loaded.blocked && loaded.step > 0 && birthdayEligibility(loaded.birthdayInput) !== 'eligible') {
+      return { ...loaded, step: 0 }
+    }
+    return loaded
+  })
+
+  const { profile, firstMeal, step } = draft
+  const showingWelcome = draft.welcomeIndex < WELCOME_SLIDES.length
+  const birthdayStatus = birthdayEligibility(draft.birthdayInput)
+  const targets = birthdayStatus === 'eligible' ? computeTargets(profile) : null
+  const firstMealCalories = positiveNumber(firstMeal.calories)
+  const firstMealReady = firstMeal.name.trim().length > 0 && firstMealCalories !== null
+
+  useEffect(() => {
+    saveOnboardingDraft(userId, draft)
+  }, [draft, userId])
+
+  useEffect(() => {
+    if (showingWelcome || draft.blocked || trackedSteps.current.has(step)) return
+    trackedSteps.current.add(step)
+    track({ name: 'onboarding_step_viewed', step: STEPS[step], step_index: step })
+
+    if (step === 5 && targets) {
+      track({ name: 'target_calculated', adjusted: targets.reasons.length > 0 })
+      if (targets.reasons.length > 0) {
+        track({ name: 'target_adjustment_explained', reasons: targets.reasons })
+      }
+    }
+
+    if (step === FIRST_MEAL_STEP) {
+      startLogFlow('manual', true)
+      selectLogMethod('manual')
+    }
+  }, [draft.blocked, showingWelcome, step, targets])
+
+  function updateDraft(update: (current: OnboardingDraft) => OnboardingDraft) {
+    setDraft(update)
+    setValidationError(null)
+  }
+
+  function updateDraftProfile(update: (current: UserProfile) => UserProfile) {
+    updateDraft(current => ({ ...current, profile: update(current.profile) }))
+  }
 
   function nextWelcome() {
-    setWelcomeIndex(i => Math.min(i + 1, WELCOME_SLIDES.length))
+    updateDraft(current => ({
+      ...current,
+      welcomeIndex: Math.min(current.welcomeIndex + 1, WELCOME_SLIDES.length),
+    }))
   }
 
   function skipWelcome() {
-    setWelcomeIndex(WELCOME_SLIDES.length)
+    updateDraft(current => ({ ...current, welcomeIndex: WELCOME_SLIDES.length }))
   }
 
   function next() {
-    if (step === 0 && ageFromBirthday(profile.birthday) < 18) {
-      setBlocked(true)
+    if (step === 0) {
+      const status = birthdayEligibility(draft.birthdayInput)
+      if (status === 'underage') {
+        track({ name: 'age_gate_blocked' })
+        setDraft(current => ({ ...current, blocked: true }))
+        return
+      }
+      if (status !== 'eligible') {
+        setValidationError(birthdayMessage(status))
+        return
+      }
+      track({ name: 'age_gate_passed' })
+    }
+
+    if (step === 2 && !validBody(profile)) {
+      setValidationError('Enter a valid height and weight to continue.')
       return
     }
-    if (step < STEPS.length - 1) setStep(s => s + 1)
-    else finish()
+
+    if (step === 4) {
+      const issue = profileInputIssue(profile) ?? goalWeightIssue(profile)
+      if (issue) {
+        setValidationError(issue)
+        return
+      }
+    }
+
+    if (step < FIRST_MEAL_STEP) {
+      updateDraft(current => ({ ...current, step: current.step + 1 }))
+    }
   }
 
   function back() {
-    if (step > 0) setStep(s => s - 1)
+    if (step > 0) updateDraft(current => ({ ...current, step: current.step - 1 }))
   }
 
-  function finish() {
+  function handleBirthdayChange(value: string) {
+    const birthday = birthdayToIso(value) ?? ''
+    updateDraft(current => ({
+      ...current,
+      birthdayInput: value,
+      profile: { ...current.profile, birthday },
+    }))
+  }
+
+  function updateFirstMeal(field: keyof OnboardingDraft['firstMeal'], value: string) {
+    updateDraft(current => ({
+      ...current,
+      firstMeal: { ...current.firstMeal, [field]: value },
+    }))
+  }
+
+  function finishWithFirstMeal() {
+    if (finishing.current) return
+    if (birthdayEligibility(draft.birthdayInput) !== 'eligible' || !targets) {
+      setDraft(current => ({ ...current, step: 0 }))
+      setValidationError('Confirm your date of birth before continuing.')
+      return
+    }
+    if (!firstMealReady || firstMealCalories === null) {
+      setValidationError('Enter a meal name and calories to log your first meal.')
+      return
+    }
+
+    finishing.current = true
+    const name = firstMeal.name.trim()
+    const calories = Math.round(firstMealCalories)
+    const entryId = crypto.randomUUID()
     if (targets.clamped) track({ name: 'goal_clamped' })
     updateProfile(profile)
+    addEntry({
+      id: entryId,
+      name,
+      calories,
+      protein: nonnegativeNumber(firstMeal.protein),
+      carbs: nonnegativeNumber(firstMeal.carbs),
+      fat: nonnegativeNumber(firstMeal.fat),
+      timestamp: new Date().toISOString(),
+      emoji: '🍽️',
+      source: 'manual',
+      mealType: firstMeal.mealType,
+    })
     setOnboarded(true)
-    navigate('/')
+    track({ name: 'onboarding_completed' })
+    clearOnboardingDraft(userId)
+    // Switching the route table from onboarding-only to the main app first
+    // triggers its wildcard redirect. Navigate with the celebration payload on
+    // the next task so that redirect cannot discard the location state.
+    window.setTimeout(() => {
+      navigate('/', { replace: true, state: { justLogged: { id: entryId, calories, name } } })
+    }, 0)
+  }
+
+  if (draft.blocked) {
+    return (
+      <div className="app-shell">
+        <main className="app-main onboarding-main">
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">This one is built for adults</h1>
+            <p className="onboarding-sub">
+              Fud AI is only available to adults. A doctor, dietitian, parent, or guardian is the right place to start.
+            </p>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   if (showingWelcome) {
-    const slide = WELCOME_SLIDES[welcomeIndex]
-    const isLast = welcomeIndex === WELCOME_SLIDES.length - 1
+    const slide = WELCOME_SLIDES[draft.welcomeIndex]
+    const isLast = draft.welcomeIndex === WELCOME_SLIDES.length - 1
 
     return (
       <div className="welcome-shell">
-        <img key={welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
+        <img key={draft.welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
         <div className="welcome-scrim" aria-hidden />
 
-        {welcomeIndex < WELCOME_SLIDES.length - 1 && (
+        {draft.welcomeIndex < WELCOME_SLIDES.length - 1 && (
           <button type="button" className="welcome-skip" onClick={skipWelcome}>
             Skip
           </button>
@@ -102,18 +278,19 @@ export function OnboardingPage() {
 
         <div className="welcome-content">
           <div className="welcome-dots">
-            {WELCOME_SLIDES.map((_, i) => (
+            {WELCOME_SLIDES.map((_, index) => (
               <button
-                key={i}
+                key={index}
                 type="button"
-                className={`welcome-dot${i === welcomeIndex ? ' active' : ''}`}
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => setWelcomeIndex(i)}
+                className={`welcome-dot${index === draft.welcomeIndex ? ' active' : ''}`}
+                aria-label={`Go to slide ${index + 1}`}
+                aria-current={index === draft.welcomeIndex ? 'step' : undefined}
+                onClick={() => updateDraft(current => ({ ...current, welcomeIndex: index }))}
               />
             ))}
           </div>
-          <h1 className="welcome-title" key={`t-${welcomeIndex}`}>{slide.title}</h1>
-          <p className="welcome-sub" key={`s-${welcomeIndex}`}>{slide.sub}</p>
+          <h1 className="welcome-title" key={`t-${draft.welcomeIndex}`}>{slide.title}</h1>
+          <p className="welcome-sub" key={`s-${draft.welcomeIndex}`}>{slide.sub}</p>
           <button type="button" className="welcome-cta" onClick={nextWelcome}>
             {isLast ? 'Get started' : 'Continue'}
             <IconChevronRight size={16} strokeWidth={2.4} />
@@ -123,71 +300,37 @@ export function OnboardingPage() {
     )
   }
 
-  if (blocked) {
-    return (
-      <div className="app-shell">
-        <main className="app-main onboarding-main">
-          <div className="onboarding-step-content">
-            <h1 className="onboarding-title">This one is built for adults</h1>
-            <p className="onboarding-sub">
-              A doctor or a parent is the right place to start. There is no way around this from here.
-            </p>
-          </div>
-        </main>
-      </div>
-    )
-  }
-
   return (
     <div className="app-shell">
       <main className="app-main onboarding-main">
-        {/* Step indicator */}
         <div className="onboarding-header">
-          <div className="onboarding-steps">
-            {STEPS.map((_, i) => (
+          <div className="onboarding-steps" aria-hidden>
+            {STEPS.map((_, index) => (
               <div
-                key={i}
-                className={`onboarding-step-dot${i < step ? ' done' : i === step ? ' current' : ''}`}
+                key={index}
+                className={`onboarding-step-dot${index < step ? ' done' : index === step ? ' current' : ''}`}
               />
             ))}
           </div>
-          <span className="onboarding-step-label">{STEPS[step]}</span>
+          <span className="onboarding-step-label">Step {step + 1} of {STEPS.length}: {STEPS[step]}</span>
         </div>
+
+        {validationError && <div className="error-banner" role="alert">{validationError}</div>}
 
         {step === 0 && (
           <div className="onboarding-step-content">
-            <h1 className="onboarding-title">Welcome to Fud AI 👋</h1>
-            <p className="onboarding-sub">Let's set up your profile to calculate your daily targets.</p>
+            <h1 className="onboarding-title">What is your date of birth?</h1>
+            <p className="onboarding-sub">We use this to keep goal calculations appropriate for adults.</p>
             <div className="field">
-              <label>Your name (optional)</label>
+              <label htmlFor="onboarding-birthday">Date of birth</label>
               <input
-                value={profile.name ?? ''}
-                onChange={e => setProfile(p => ({ ...p, name: e.target.value }))}
-                placeholder="e.g. Alex"
-                autoFocus
-              />
-            </div>
-            <div className="field">
-              <label>Gender</label>
-              <div className="onboarding-chip-row">
-                {(['male', 'female', 'other'] as Gender[]).map(g => (
-                  <button
-                    key={g}
-                    type="button"
-                    className={`onboarding-chip${profile.gender === g ? ' active' : ''}`}
-                    onClick={() => setProfile(p => ({ ...p, gender: g }))}
-                  >
-                    {g.charAt(0).toUpperCase() + g.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="field">
-              <label>Birthday</label>
-              <input
+                id="onboarding-birthday"
                 type="date"
-                value={profile.birthday.slice(0, 10)}
-                onChange={e => setProfile(p => ({ ...p, birthday: new Date(e.target.value).toISOString() }))}
+                value={draft.birthdayInput}
+                max={localDateInputValue()}
+                onChange={event => handleBirthdayChange(event.target.value)}
+                autoFocus
+                required
               />
             </div>
           </div>
@@ -195,32 +338,84 @@ export function OnboardingPage() {
 
         {step === 1 && (
           <div className="onboarding-step-content">
+            <h1 className="onboarding-title">About you</h1>
+            <p className="onboarding-sub">A name is optional. The equation uses the selection below to estimate your needs.</p>
+            <div className="field">
+              <label htmlFor="onboarding-name">Your name <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span></label>
+              <input
+                id="onboarding-name"
+                value={profile.name ?? ''}
+                onChange={event => updateDraftProfile(current => ({ ...current, name: event.target.value }))}
+                placeholder="e.g. Alex"
+                autoComplete="name"
+              />
+            </div>
+            <div className="field">
+              <span className="onboarding-step-label">Sex used by the equation</span>
+              <div className="onboarding-chip-row">
+                {(['male', 'female', 'other'] as Gender[]).map(gender => (
+                  <button
+                    key={gender}
+                    type="button"
+                    className={`onboarding-chip${profile.gender === gender ? ' active' : ''}`}
+                    aria-pressed={profile.gender === gender}
+                    onClick={() => updateDraftProfile(current => ({ ...current, gender }))}
+                  >
+                    {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your body</h1>
             <p className="onboarding-sub">Used to calculate your basal metabolic rate.</p>
             <div className="field">
-              <label>Height (cm)</label>
-              <input type="number" value={profile.heightCm} onChange={e => setProfile(p => ({ ...p, heightCm: Number(e.target.value) }))} />
-            </div>
-            <div className="field">
-              <label>Weight (kg)</label>
-              <input type="number" value={profile.weightKg} onChange={e => setProfile(p => ({ ...p, weightKg: Number(e.target.value) }))} />
-            </div>
-            <div className="field">
-              <label>Body fat % <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span></label>
+              <label htmlFor="onboarding-height">Height (cm)</label>
               <input
-                type="number" step="0.1" min="0" max="60"
+                id="onboarding-height"
+                type="number"
+                min="1"
+                value={profile.heightCm}
+                onChange={event => updateDraftProfile(current => ({ ...current, heightCm: Number(event.target.value) }))}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="onboarding-weight">Weight (kg)</label>
+              <input
+                id="onboarding-weight"
+                type="number"
+                min="1"
+                value={profile.weightKg}
+                onChange={event => updateDraftProfile(current => ({ ...current, weightKg: Number(event.target.value) }))}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="onboarding-body-fat">Body fat % <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span></label>
+              <input
+                id="onboarding-body-fat"
+                type="number"
+                step="0.1"
+                min="0"
+                max="60"
                 placeholder="e.g. 18"
                 value={profile.bodyFatPercentage != null ? profile.bodyFatPercentage * 100 : ''}
-                onChange={e => {
-                  const v = e.target.value
-                  setProfile(p => ({ ...p, bodyFatPercentage: v ? Number(v) / 100 : undefined }))
+                onChange={event => {
+                  const value = event.target.value
+                  updateDraftProfile(current => ({
+                    ...current,
+                    bodyFatPercentage: value ? Number(value) / 100 : undefined,
+                  }))
                 }}
               />
             </div>
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Activity level</h1>
             <p className="onboarding-sub">How active are you on a typical day?</p>
@@ -230,7 +425,8 @@ export function OnboardingPage() {
                   key={level}
                   type="button"
                   className={`activity-option${profile.activityLevel === level ? ' active' : ''}`}
-                  onClick={() => setProfile(p => ({ ...p, activityLevel: level }))}
+                  aria-pressed={profile.activityLevel === level}
+                  onClick={() => updateDraftProfile(current => ({ ...current, activityLevel: level }))}
                 >
                   <span className="activity-option-icon">{ACTIVITY_ICONS[level]}</span>
                   <span className="activity-option-label">{ACTIVITY_LABELS[level]}</span>
@@ -240,51 +436,73 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your goal</h1>
             <p className="onboarding-sub">This adjusts your calorie target.</p>
             <div className="onboarding-chip-row" style={{ flexDirection: 'column' }}>
-              {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(g => (
+              {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(goal => (
                 <button
-                  key={g}
+                  key={goal}
                   type="button"
-                  className={`onboarding-chip goal-chip${profile.goal === g ? ' active' : ''}`}
-                  onClick={() => setProfile(p => ({ ...p, goal: g }))}
+                  className={`onboarding-chip goal-chip${profile.goal === goal ? ' active' : ''}`}
+                  aria-pressed={profile.goal === goal}
+                  onClick={() => updateDraftProfile(current => ({
+                    ...current,
+                    goal,
+                    goalWeightKg: goal === 'maintain' ? undefined : current.goalWeightKg,
+                  }))}
                 >
-                  {GOAL_LABELS[g]}
+                  {GOAL_LABELS[goal]}
                 </button>
               ))}
             </div>
             {profile.goal !== 'maintain' && (
-              <div className="field" style={{ marginTop: 16 }}>
-                <label>Weekly change (kg)</label>
-                <input
-                  type="number" step="0.1" min="0.1" max={maxWeeklyChangeKg(profile)}
-                  value={profile.weeklyChangeKg ?? 0.5}
-                  onChange={e => setProfile(p => ({
-                    ...p,
-                    // Held to 1% of bodyweight per week. §2.1.
-                    weeklyChangeKg: Math.min(Number(e.target.value), maxWeeklyChangeKg(p)),
-                  }))}
-                />
-                <p className="onboarding-clamp-hint">
-                  Up to {maxWeeklyChangeKg(profile)} kg a week, which is 1% of your bodyweight.
-                </p>
-              </div>
+              <>
+                <div className="field" style={{ marginTop: 16 }}>
+                  <label htmlFor="onboarding-rate">Weekly change (kg)</label>
+                  <input
+                    id="onboarding-rate"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max={maxWeeklyChangeKg(profile)}
+                    value={profile.weeklyChangeKg ?? 0.5}
+                    onChange={event => updateDraftProfile(current => ({
+                      ...current,
+                      weeklyChangeKg: Number(event.target.value),
+                    }))}
+                  />
+                  <p className="onboarding-clamp-hint">
+                    Up to {maxWeeklyChangeKg(profile)} kg a week, which is 1% of your bodyweight.
+                  </p>
+                </div>
+                <div className="field">
+                  <label htmlFor="onboarding-goal-weight">
+                    Goal weight (kg) <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span>
+                  </label>
+                  <input
+                    id="onboarding-goal-weight"
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    value={profile.goalWeightKg ?? ''}
+                    onChange={event => updateDraftProfile(current => ({
+                      ...current,
+                      goalWeightKg: event.target.value ? Number(event.target.value) : undefined,
+                    }))}
+                  />
+                </div>
+              </>
             )}
           </div>
         )}
 
-        {step === 4 && (
+        {step === 5 && targets && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your daily targets</h1>
-            <p className="onboarding-sub">Calculated from your profile — you can adjust these in Settings.</p>
-            {/* §2.1: a floor that moved the number always says so, in plain
-                language, above the number it changed. */}
-            {targets.clamped && (
-              <p className="onboarding-clamp-note">{targets.clamped}</p>
-            )}
+            <p className="onboarding-sub">A calm starting estimate based on the profile you entered.</p>
+            {targets.clamped && <p className="onboarding-clamp-note">{targets.clamped}</p>}
             <div className="onboarding-goals-grid">
               <div className="onboarding-goal-card" style={{ gridColumn: '1 / -1' }}>
                 <span className="onboarding-goal-label">Calories</span>
@@ -293,15 +511,79 @@ export function OnboardingPage() {
               </div>
               <div className="onboarding-goal-card">
                 <span className="onboarding-goal-label">Protein</span>
-                <span className="onboarding-goal-value" style={{ color: '#6B9FFF' }}>{effectiveProtein(profile)}g</span>
+                <span className="onboarding-goal-value" style={{ color: 'var(--protein)' }}>{effectiveProtein(profile)}g</span>
               </div>
               <div className="onboarding-goal-card">
                 <span className="onboarding-goal-label">Carbs</span>
-                <span className="onboarding-goal-value" style={{ color: '#FFB347' }}>{effectiveCarbs(profile)}g</span>
+                <span className="onboarding-goal-value" style={{ color: 'var(--carbs)' }}>{effectiveCarbs(profile)}g</span>
               </div>
               <div className="onboarding-goal-card">
                 <span className="onboarding-goal-label">Fat</span>
-                <span className="onboarding-goal-value" style={{ color: '#FF6B9D' }}>{effectiveFat(profile)}g</span>
+                <span className="onboarding-goal-value" style={{ color: 'var(--fat)' }}>{effectiveFat(profile)}g</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === FIRST_MEAL_STEP && (
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Log your first meal</h1>
+            <p className="onboarding-sub">Use a real meal or snack. You can edit it later from Home.</p>
+            <div className="field">
+              <label htmlFor="first-meal-name">Meal name</label>
+              <input
+                id="first-meal-name"
+                value={firstMeal.name}
+                onChange={event => updateFirstMeal('name', event.target.value)}
+                placeholder="e.g. Greek yogurt and berries"
+                autoFocus
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="first-meal-calories">Calories</label>
+              <input
+                id="first-meal-calories"
+                type="number"
+                min="1"
+                value={firstMeal.calories}
+                onChange={event => updateFirstMeal('calories', event.target.value)}
+                placeholder="e.g. 320"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="review-grid">
+              {([
+                ['protein', 'Protein (g)'],
+                ['carbs', 'Carbs (g)'],
+                ['fat', 'Fat (g)'],
+              ] as const).map(([field, label]) => (
+                <div className="field" key={field}>
+                  <label htmlFor={`first-meal-${field}`}>{label}</label>
+                  <input
+                    id={`first-meal-${field}`}
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={firstMeal[field]}
+                    onChange={event => updateFirstMeal(field, event.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="field">
+              <span className="onboarding-step-label">Meal type</span>
+              <div className="chip-row">
+                {(Object.keys(MEAL_LABELS) as MealType[]).map(mealType => (
+                  <button
+                    key={mealType}
+                    type="button"
+                    className={`chip${firstMeal.mealType === mealType ? ' active' : ''}`}
+                    aria-pressed={firstMeal.mealType === mealType}
+                    onClick={() => updateFirstMeal('mealType', mealType)}
+                  >
+                    {MEAL_LABELS[mealType]}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -309,10 +591,22 @@ export function OnboardingPage() {
 
         <div className="onboarding-actions">
           {step > 0 && (
-            <button type="button" className="btn btn-ghost" onClick={back}><IconChevronLeft size={15} strokeWidth={2.4} /> Back</button>
+            <button type="button" className="btn btn-ghost" onClick={back}>
+              <IconChevronLeft size={15} strokeWidth={2.4} /> Back
+            </button>
           )}
-          <button type="button" className="btn btn-primary" style={{ flex: 1 }} onClick={next}>
-            {step === STEPS.length - 1 ? <>🚀 Get started</> : <>Continue <IconChevronRight size={16} strokeWidth={2.4} /></>}
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            onClick={step === FIRST_MEAL_STEP ? finishWithFirstMeal : next}
+            disabled={(step === 2 && !validBody(profile)) || (step === FIRST_MEAL_STEP && !firstMealReady)}
+          >
+            {step === FIRST_MEAL_STEP
+              ? 'Log first meal'
+              : step === 5
+                ? <>Continue to first meal <IconChevronRight size={16} strokeWidth={2.4} /></>
+                : <>Continue <IconChevronRight size={16} strokeWidth={2.4} /></>}
           </button>
         </div>
       </main>

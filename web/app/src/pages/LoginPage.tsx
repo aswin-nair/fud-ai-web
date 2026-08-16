@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import logo from '@assets/calorie logo transparent.png'
 import { GoogleLogin } from '@react-oauth/google'
 import { isGoogleAuthConfigured } from '../lib/auth'
 import { GoogleOriginHelp } from '../components/GoogleOriginHelp'
 import { useAuth } from '../store/AuthContext'
+import { track } from '../lib/analytics'
 
 type AuthMode = 'signin' | 'signup'
 
@@ -19,6 +20,8 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => track({ name: 'welcome_viewed' }), [])
+
   async function handleEmailSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
@@ -29,6 +32,7 @@ export function LoginPage() {
     }
 
     setLoading(true)
+    track({ name: 'auth_method_selected', method: 'email', mode })
     try {
       if (mode === 'signup') {
         await signUpWithEmail(name, email, password)
@@ -56,8 +60,8 @@ export function LoginPage() {
         <h1 className="login-title">Fud AI</h1>
         <p className="login-sub">
           {mode === 'signin'
-            ? 'Sign in to your calorie tracker'
-            : 'Create your free account'}
+            ? 'Log a meal in seconds. Build a habit that lasts.'
+            : 'Create an account to start your first log.'}
         </p>
 
         <div className="auth-tabs">
@@ -147,6 +151,7 @@ export function LoginPage() {
               <GoogleLogin
                 onSuccess={async cred => {
                   try {
+                    track({ name: 'auth_method_selected', method: 'google', mode })
                     await signInWithGoogle(cred)
                   } catch (err) {
                     setError(err instanceof Error ? err.message : 'Google sign-in failed')

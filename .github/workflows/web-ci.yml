@@ -1,25 +1,29 @@
-name: Web CI
+name: Product CI
 
 on:
   push:
     branches: [main, master]
     paths:
       - 'web/**'
+      - 'mobile/**'
+      - 'packages/**'
       - 'package.json'
       - '.github/workflows/web-ci.yml'
   pull_request:
     paths:
       - 'web/**'
+      - 'mobile/**'
+      - 'packages/**'
       - 'package.json'
       - '.github/workflows/web-ci.yml'
 
-defaults:
-  run:
-    working-directory: web/app
-
 jobs:
-  test:
+  web-unit:
+    name: Web unit, lint, and build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/app
     steps:
       - uses: actions/checkout@v4
 
@@ -32,11 +36,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+        env:
+          CI: true
+
+      - name: Typecheck and build
+        run: npm run build
+        env:
+          VITE_GOOGLE_CLIENT_ID: ''
+
+  web-e2e:
+    name: Web e2e smoke
+    needs: web-unit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
         run: npx playwright install chromium --with-deps
 
-      - name: Lint, build, and e2e tests
-        run: npm run ci
+      - name: E2e smoke tests
+        run: npm run test:e2e
         env:
           CI: true
           VITE_GOOGLE_CLIENT_ID: ''
@@ -48,3 +84,50 @@ jobs:
           name: playwright-report
           path: web/app/playwright-report/
           retention-days: 7
+
+  web-api:
+    name: Web API typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck API
+        run: npx tsc -p api/tsconfig.json --noEmit
+
+  mobile-unit:
+    name: Mobile typecheck, unit, and migrations
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit and migration tests
+        run: npm test
+        env:
+          CI: true

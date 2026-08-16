@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { UserProfile } from '../types'
 import {
   CALORIE_FLOOR,
+  ageFromBirthday,
   computeBMR,
   computeTDEE,
   computeTargets,
@@ -11,6 +12,7 @@ import {
   goalWeightIssue,
   maxWeeklyChangeKg,
   minHealthyWeightKg,
+  profileInputIssue,
 } from './profile'
 
 /**
@@ -39,13 +41,13 @@ describe('deficit cap', () => {
   it('holds a deficit to 25% of TDEE', () => {
     // 1.5 kg/week is a ~1500 kcal deficit, far past 25% of any normal TDEE.
     const profile = profileOf({ goal: 'lose', weeklyChangeKg: 1.5, weightKg: 200 })
-    const tdee = Math.round(computeTDEE(profile))
+    const tdee = computeTDEE(profile)
     const { calories, reasons } = computeTargets(profile)
 
     expect(reasons).toContain('deficit')
     // The rule is about the deficit, not the remainder — stated that way it is
     // immune to which side of a half-kcal the rounding lands on.
-    expect(tdee - calories).toBeLessThanOrEqual(Math.ceil(tdee * 0.25))
+    expect(calories).toBeGreaterThanOrEqual(tdee * 0.75)
   })
 
   it('leaves a modest deficit untouched', () => {
@@ -93,7 +95,7 @@ describe('calorie floors', () => {
     })
 
     expect(computeTargets(profile).calories).toBeGreaterThanOrEqual(
-      Math.round(computeBMR(profile)),
+      computeBMR(profile),
     )
   })
 })
@@ -117,6 +119,18 @@ describe('clamp explanations', () => {
 
   it('stays silent when nothing was clamped', () => {
     expect(computeTargets(profileOf()).clamped).toBeNull()
+  })
+
+  it('explains every adjustment when rate and deficit caps both apply', () => {
+    const result = computeTargets(profileOf({
+      goal: 'lose',
+      weightKg: 100,
+      weeklyChangeKg: 2,
+    }))
+
+    expect(result.reasons).toEqual(['rate', 'deficit'])
+    expect(result.clamped).toContain('1% of your bodyweight')
+    expect(result.clamped).toContain('25% deficit')
   })
 
   it('never moralises about food', () => {
@@ -147,14 +161,19 @@ describe('rate of change', () => {
 
     expect(effectiveWeeklyChangeKg(profile)).toBe(0.5)
   })
+
+  it('floors fractional maximums and never accepts a negative rate', () => {
+    expect(maxWeeklyChangeKg(profileOf({ weightKg: 66.6 }))).toBe(0.66)
+    expect(effectiveWeeklyChangeKg(profileOf({ weeklyChangeKg: -1 }))).toBe(0)
+  })
 })
 
 describe('goal weight', () => {
   it('refuses a goal implying BMI below 18.5', () => {
-    // 18.5 BMI at 180cm is 59.9 kg.
+    // Round the one-decimal UI boundary upward so it is not fractionally low.
     const profile = profileOf({ heightCm: 180, goalWeightKg: 55 })
 
-    expect(minHealthyWeightKg(180)).toBe(59.9)
+    expect(minHealthyWeightKg(180)).toBe(60)
     expect(goalWeightIssue(profile)).toBeTruthy()
   })
 
@@ -168,6 +187,16 @@ describe('goal weight', () => {
 })
 
 describe('custom targets', () => {
+  it('holds a hand-entered target to the same 25% deficit cap', () => {
+    const profile = profileOf({ customCalories: 1800 })
+    const tdee = computeTDEE(profile)
+    const result = computeTargets(profile)
+
+    expect(result.calories).toBeGreaterThanOrEqual(tdee * 0.75)
+    expect(result.reasons).toContain('deficit')
+    expect(result.clamped).toContain('25% deficit')
+  })
+
   it('holds a hand-entered target to the same floors', () => {
     const profile = profileOf({ gender: 'female', customCalories: 800 })
 
@@ -179,5 +208,24 @@ describe('custom targets', () => {
     const profile = profileOf({ customCalories: 2400 })
 
     expect(effectiveCalories(profile)).toBe(2400)
+  })
+})
+
+describe('date of birth validation', () => {
+  it('rejects missing and impossible dates instead of treating them as adults', () => {
+    expect(ageFromBirthday('')).toBeNaN()
+    expect(ageFromBirthday('2020-02-31')).toBeNaN()
+  })
+})
+
+describe('profile input validation', () => {
+  it('refuses non-finite or non-positive body inputs', () => {
+    expect(profileInputIssue(profileOf({ heightCm: Number.NaN }))).toMatch(/height/i)
+    expect(profileInputIssue(profileOf({ weightKg: 0 }))).toMatch(/weight/i)
+  })
+
+  it('refuses a negative or non-finite weekly change', () => {
+    expect(profileInputIssue(profileOf({ goal: 'lose', weeklyChangeKg: -1 }))).toMatch(/weekly/i)
+    expect(profileInputIssue(profileOf({ goal: 'gain', weeklyChangeKg: Number.NaN }))).toMatch(/weekly/i)
   })
 })

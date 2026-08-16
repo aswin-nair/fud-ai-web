@@ -160,7 +160,10 @@ export function computeTargets(input: TargetInput): TargetResult {
     );
   }
 
-  dailyKcalTarget = Math.round(raised);
+  // Persist the final target conservatively. Display BMR/TDEE may be rounded
+  // normally, but a nearest-integer target could otherwise land fractionally
+  // below the raw BMR or 75%-of-TDEE safety boundary.
+  dailyKcalTarget = Math.ceil(raised);
 
   return {
     ok: true,

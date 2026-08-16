@@ -25,7 +25,7 @@ test.describe('Navigation', () => {
 
     await nav(page).getByRole('link', { name: 'Home' }).click()
     await expect(page).toHaveURL('/')
-    await expect(page.getByText("Today's Food")).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
   })
 
   test('journey card and coach FAB reach their full pages', async ({ page }) => {

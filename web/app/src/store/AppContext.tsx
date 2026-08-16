@@ -8,19 +8,28 @@ import type {
 
 } from '../types'
 
-import { loadState, saveState, clearUserState, freshState, importData } from '../lib/storage'
+import {
+  clearPrivateAIKey,
+  clearUserState,
+  freshState,
+  importData,
+  loadPrivateAIKey,
+  loadState,
+  savePrivateAIKey,
+  saveState,
+} from '../lib/storage'
 
 import { mealKey, entryToSaved, savedToEntry } from '../lib/meals'
 
 import { useAuth } from './AuthContext'
 
-import { apiLoadState, apiSaveState } from '../lib/apiClient'
+import { ApiError, apiLoadState, apiSaveState } from '../lib/apiClient'
 
 import { isCloudBackend } from '../lib/dataBackend'
 
-import { levelFromXp } from '../lib/xp'
 
 import { advanceAfterLog, openSession } from '../lib/gamification'
+import { clearAnalytics, finishLogFlow } from '../lib/analytics'
 
 import { SplashScreen } from '../components/SplashScreen'
 
@@ -58,7 +67,7 @@ interface AppContextValue {
 
   toggleFavorite: (entry: FoodEntry | SavedMeal) => void
 
-  logSavedMeal: (meal: SavedMeal) => void
+  logSavedMeal: (meal: SavedMeal) => FoodEntry
 
   addChatMessage: (msg: ChatMessage) => void
 
@@ -92,7 +101,7 @@ const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
 
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
 
   const cloud = isCloudBackend()
 
@@ -101,6 +110,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => (cloud ? freshState() : loadState(userId)))
 
   const [loading, setLoading] = useState(true)
+
+  const [cloudLoadError, setCloudLoadError] = useState(false)
+
+  const [hydrateAttempt, setHydrateAttempt] = useState(0)
 
   const [splashExiting, setSplashExiting] = useState(false)
 
@@ -113,6 +126,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const hydrated = useRef(false)
+  const cloudWritable = useRef(!cloud)
 
 
 
@@ -121,6 +135,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     hydrated.current = false
+    cloudWritable.current = !cloud
+
+    setLoading(true)
+
+    setCloudLoadError(false)
 
     setPendingAnalysis(null)
 
@@ -134,6 +153,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const minTime = delay(MIN_SPLASH_MS)
 
+      let hydrationFailed = false
+
       let hydration: Promise<void>
 
       if (cloud) {
@@ -143,20 +164,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
           try {
 
             const remote = await apiLoadState()
+            cloudWritable.current = true
 
             if (!cancelled && remote) {
 
-              setState(importData(JSON.stringify(remote)))
+              setState(importData(JSON.stringify(remote), loadPrivateAIKey(userId)))
 
             } else if (!cancelled) {
 
-              setState(freshState())
+              const next = freshState()
+              next.aiSettings.apiKey = loadPrivateAIKey(userId)
+              setState(next)
 
             }
 
-          } catch {
+          } catch (error) {
 
-            if (!cancelled) setState(freshState())
+            if (!cancelled) {
+              if (error instanceof ApiError && error.status === 401) {
+                signOut()
+                return
+              }
+              // Never expose the initial empty snapshot as an editable account.
+              // The blocking retry state below keeps writes and local mutations
+              // disabled until the authoritative read succeeds.
+              hydrationFailed = true
+            }
 
           }
 
@@ -171,6 +204,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await Promise.all([hydration, minTime])
 
       if (cancelled) return
+
+      if (hydrationFailed) {
+        hydrated.current = false
+        cloudWritable.current = false
+        setLoading(false)
+        setCloudLoadError(true)
+        return
+      }
 
       hydrated.current = true
 
@@ -209,7 +250,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     }
 
-  }, [userId, cloud])
+  }, [userId, cloud, hydrateAttempt, signOut])
 
 
 
@@ -220,6 +261,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
     if (cloud) {
+
+      // Never turn a failed GET into an empty-state PUT. A later successful
+      // hydration (or an explicit deletion action) is required before writes.
+      if (!cloudWritable.current) return
 
       if (saveTimer.current) clearTimeout(saveTimer.current)
 
@@ -267,16 +312,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     updateProfile: (profile) => setState(s => ({ ...s, profile })),
 
-    updateAISettings: (aiSettings) => setState(s => ({ ...s, aiSettings })),
+    updateAISettings: (aiSettings) => {
+      savePrivateAIKey(userId, aiSettings.apiKey)
+      setState(s => ({ ...s, aiSettings }))
+    },
 
-    addEntry: (entry) => setState(s => {
-      const advanced = advanceAfterLog(s, entry)
-      return {
-        ...s,
-        foodEntries: [...s.foodEntries, entry],
-        gamification: advanced.gamification,
-      }
-    }),
+    addEntry: (entry) => {
+      finishLogFlow({
+        entryId: entry.id,
+        source: entry.source,
+        mealSlot: entry.mealType,
+        firstLog: state.foodEntries.length === 0,
+      })
+      setState(s => {
+        const advanced = advanceAfterLog(s, entry)
+        return {
+          ...s,
+          foodEntries: [...s.foodEntries, entry],
+          gamification: advanced.gamification,
+        }
+      })
+    },
 
     updateEntry: (entry) => setState(s => ({
 
@@ -350,11 +406,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     },
 
-    logSavedMeal: (meal) => setState(s => {
+    logSavedMeal: (meal) => {
       const entry = savedToEntry(meal)
-      const advanced = advanceAfterLog(s, entry)
-      return { ...s, foodEntries: [...s.foodEntries, entry], gamification: advanced.gamification }
-    }),
+      finishLogFlow({
+        entryId: entry.id,
+        source: entry.source,
+        mealSlot: entry.mealType,
+        firstLog: state.foodEntries.length === 0,
+      })
+      setState(s => {
+        const advanced = advanceAfterLog(s, entry)
+        return { ...s, foodEntries: [...s.foodEntries, entry], gamification: advanced.gamification }
+      })
+      return entry
+    },
 
     addChatMessage: (msg) => setState(s => ({
 
@@ -373,36 +438,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       gamification: { ...s.gamification, pendingLevelUp: null },
     })),
 
-    addExercise: (entry: ExerciseEntry) => setState(s => {
-
-      const earnedXp = 20
-      const newXp = s.gamification.xp + earnedXp
-      const newLevel = levelFromXp(newXp)
-      const didLevelUp = newLevel > s.gamification.level
-      const xpEvent = {
-        id: crypto.randomUUID(),
-        key: `exercise-${entry.id}`,
-        xp: earnedXp,
-        label: 'Exercise logged!',
-        timestamp: new Date().toISOString(),
-      }
-      const alreadyAwarded = s.gamification.xpEvents.some(e => e.key === xpEvent.key)
-
-      return {
-        ...s,
-        exerciseEntries: [...s.exerciseEntries, entry],
-        gamification: {
-          ...s.gamification,
-          xp: alreadyAwarded ? s.gamification.xp : newXp,
-          level: alreadyAwarded ? s.gamification.level : newLevel,
-          pendingLevelUp: (!alreadyAwarded && didLevelUp) ? newLevel : s.gamification.pendingLevelUp,
-          xpEvents: alreadyAwarded
-            ? s.gamification.xpEvents
-            : [xpEvent, ...s.gamification.xpEvents].slice(0, 50),
-        },
-      }
-
-    }),
+    // The habit loop rewards meal logging. Optional activity data never
+    // changes XP or mascot state.
+    addExercise: (entry: ExerciseEntry) => setState(s => ({
+      ...s,
+      exerciseEntries: [...s.exerciseEntries, entry],
+    })),
 
     deleteExercise: (id: string) => setState(s => ({
 
@@ -415,10 +456,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     clearAllData: () => {
 
       if (!cloud) clearUserState(userId)
+      else clearPrivateAIKey(userId)
 
       setState(freshState())
 
       setPendingAnalysis(null)
+
+      clearAnalytics()
 
       if (cloud) {
 
@@ -443,6 +487,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   if (loading) {
 
     return <SplashScreen exiting={splashExiting} />
+
+  }
+
+  if (cloudLoadError) {
+
+    return (
+      <div className="app-shell">
+        <main className="app-main onboarding-main">
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">We could not load your account</h1>
+            <p className="onboarding-sub">
+              Your saved data was not changed. Check your connection and try again before logging anything new.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => setHydrateAttempt(attempt => attempt + 1)}
+            >
+              Retry
+            </button>
+            <button type="button" className="btn btn-ghost btn-block" onClick={signOut}>
+              Sign out
+            </button>
+          </div>
+        </main>
+      </div>
+    )
 
   }
 

@@ -1,12 +1,42 @@
 import type { AppState, FoodEntry, GamificationState, ExerciseEntry } from '../types'
 import { localDayKey } from './dates'
-import { defaultProfile } from './profile'
+import { defaultProfile, profileInputIssue } from './profile'
 import { defaultAISettings, normalizeAISettings } from './aiConfig'
 
 const LEGACY_KEY = 'fud-ai-web-state'
+const PRIVATE_AI_KEY_PREFIX = 'fud-ai-private-ai-key-'
 
 function storageKey(userId: string): string {
   return `fud-ai-web-state-${userId}`
+}
+
+function privateAIKey(userId: string): string {
+  return `${PRIVATE_AI_KEY_PREFIX}${userId}`
+}
+
+/**
+ * BYOK credentials are device-local secrets. They are deliberately stored
+ * outside AppState so exports and cloud sync cannot include them accidentally.
+ */
+export function loadPrivateAIKey(userId: string): string {
+  return localStorage.getItem(privateAIKey(userId)) ?? ''
+}
+
+export function savePrivateAIKey(userId: string, apiKey: string): void {
+  if (apiKey.trim()) localStorage.setItem(privateAIKey(userId), apiKey)
+  else localStorage.removeItem(privateAIKey(userId))
+}
+
+export function clearPrivateAIKey(userId: string): void {
+  localStorage.removeItem(privateAIKey(userId))
+}
+
+/** A copy suitable for export or transport across the network. */
+export function stateWithoutPrivateSecrets(state: AppState): AppState {
+  return {
+    ...state,
+    aiSettings: { ...state.aiSettings, apiKey: '' },
+  }
 }
 
 export function loadState(userId: string): AppState {
@@ -26,18 +56,30 @@ export function loadState(userId: string): AppState {
 
     if (!raw) return freshState()
     const parsed = JSON.parse(raw) as AppState
-    return normalizeState(parsed)
+    const normalized = normalizeState(parsed)
+
+    // One-time migration from older state blobs that embedded the key.
+    const localKey = loadPrivateAIKey(userId)
+    const legacyKey = normalized.aiSettings.apiKey
+    if (!localKey && legacyKey) savePrivateAIKey(userId, legacyKey)
+
+    return {
+      ...normalized,
+      aiSettings: { ...normalized.aiSettings, apiKey: localKey || legacyKey },
+    }
   } catch {
     return freshState()
   }
 }
 
 export function saveState(userId: string, state: AppState): void {
-  localStorage.setItem(storageKey(userId), JSON.stringify(state))
+  savePrivateAIKey(userId, state.aiSettings.apiKey)
+  localStorage.setItem(storageKey(userId), JSON.stringify(stateWithoutPrivateSecrets(state)))
 }
 
 export function clearUserState(userId: string): void {
   localStorage.removeItem(storageKey(userId))
+  clearPrivateAIKey(userId)
 }
 
 function normalizeState(parsed: AppState): AppState {
@@ -76,9 +118,17 @@ function normalizeGamification(g: GamificationState | undefined): GamificationSt
     freezeUsedDates: g.freezeUsedDates ?? [],
     freezeEarnedMonth: g.freezeEarnedMonth ?? '',
     xpEvents: g.xpEvents ?? [],
+    awardedKeys: [...new Set([
+      ...(g.awardedKeys ?? []),
+      ...(g.xpEvents ?? []).map(event => event.key),
+    ])],
     pendingLevelUp: g.pendingLevelUp ?? null,
     seenBadgeIds: g.seenBadgeIds ?? base.seenBadgeIds,
-    quest: g.quest,
+    // Nutrition-outcome quests were removed from the healthy-engagement
+    // policy. A legacy same-day quest is regenerated on the next session.
+    quest: (g.quest as { type?: string } | undefined)?.type === 'hit_protein'
+      ? undefined
+      : g.quest,
   }
 }
 
@@ -90,6 +140,7 @@ export function defaultGamification(): GamificationState {
     freezeUsedDates: [],
     freezeEarnedMonth: new Date().toISOString().slice(0, 7),
     xpEvents: [],
+    awardedKeys: [],
     pendingLevelUp: null,
     seenBadgeIds: [],
   }
@@ -110,12 +161,18 @@ export function freshState(): AppState {
 }
 
 export function exportData(state: AppState): string {
-  return JSON.stringify(state, null, 2)
+  return JSON.stringify(stateWithoutPrivateSecrets(state), null, 2)
 }
 
-export function importData(json: string): AppState {
+export function importData(json: string, localApiKey = ''): AppState {
   const parsed = JSON.parse(json) as AppState
-  return normalizeState(parsed)
+  const normalized = normalizeState(parsed)
+  const profileIssue = profileInputIssue(normalized.profile)
+  if (profileIssue) throw new Error(profileIssue)
+  return {
+    ...normalized,
+    aiSettings: { ...normalized.aiSettings, apiKey: localApiKey },
+  }
 }
 
 export function dayKey(date: Date): string {

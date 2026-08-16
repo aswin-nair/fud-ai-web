@@ -6,7 +6,6 @@
 export const POINTS = {
   meal_logged: 10,
   first_log_of_day: 15,
-  protein_target_hit: 20,
   quest_completed: 25,
   streak_milestone: 50,
 } as const;

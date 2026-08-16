@@ -71,7 +71,7 @@ export function ReviewFoodPage() {
   function save() {
     if (!analysis) return
     const cals = Math.round(Number(analysis.calories))
-    addEntry({
+    const entry = {
       id: crypto.randomUUID(),
       name: analysis.name,
       calories: cals,
@@ -84,9 +84,10 @@ export function ReviewFoodPage() {
       mealType,
       servingSizeGrams: analysis.servingSizeGrams,
       ingredients: analysis.ingredients,
-    })
+    } as const
+    addEntry(entry)
     setPendingAnalysis(null)
-    navigate('/', { state: { justLogged: { calories: cals, name: analysis.name } } })
+    navigate('/', { state: { justLogged: { id: entry.id, calories: cals, name: analysis.name } } })
   }
 
   return (

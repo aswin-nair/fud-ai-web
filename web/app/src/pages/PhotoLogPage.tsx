@@ -5,6 +5,7 @@ import { analyzeImageFood, fileToBase64 } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
 import { BackLink } from '../components/BackLink'
 import { IconClose } from '../components/icons'
+import { track } from '../lib/analytics'
 
 export function PhotoLogPage() {
   const { state, setPendingAnalysis, setPendingSource } = useApp()
@@ -19,13 +20,16 @@ export function PhotoLogPage() {
     setPreview(URL.createObjectURL(file))
     setError(null)
     setLoading(true)
+    track({ name: 'ai_analysis_started', method: 'photo_ai' })
     try {
       const { base64, mimeType } = await fileToBase64(file)
       const analysis = await analyzeImageFood(base64, state.aiSettings, mimeType)
+      track({ name: 'ai_analysis_completed', method: 'photo_ai' })
       setPendingSource('snapFood')
       setPendingAnalysis(analysis)
       navigate('/review')
     } catch (e) {
+      track({ name: 'ai_analysis_failed', method: 'photo_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
       setLoading(false)
     }
@@ -57,12 +61,19 @@ export function PhotoLogPage() {
         <h1 className="page-title" style={{ marginTop: 12 }}>Photo log</h1>
         <p className="page-sub">AI reads the food and estimates your macros.</p>
 
+        <div className="no-key-banner" role="note">
+          When you analyze, the selected image is sent directly to {providerLabel(state.aiSettings.provider)}
+          {' '}to estimate nutrition. Fud AI does not store the image; that provider controls any retention
+          under its policy. <Link to="/log/manual">Log manually instead</Link> without uploading a photo.
+        </div>
+
         {error && <div className="error-banner">{error}</div>}
 
         {!hasKey && (
           <div className="no-key-banner">
             Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings.
-            Use a vision-capable model (e.g. <code>gemini-2.0-flash</code>).
+            Use a vision-capable model (e.g. <code>gemini-2.0-flash</code>), or{' '}
+            <Link to="/log/manual">log manually</Link>.
           </div>
         )}
 

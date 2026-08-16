@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import {
   IconCamera, IconClipboard, IconEdit, IconHome, IconProgress, IconScan, IconSettings, IconStar,
 } from './icons'
+import { selectLogMethod, startLogFlow, type LogMethod } from '../lib/analytics'
 
 const TABS_LEFT = [
   { to: '/', end: true, label: 'Home', Icon: IconHome },
@@ -14,12 +15,18 @@ const TABS_RIGHT = [
   { to: '/settings', label: 'Settings', Icon: IconSettings },
 ] as const
 
-const LOG_OPTIONS = [
-  { to: '/log/text', label: 'Text Entry', Icon: IconEdit, accent: 'coral' },
-  { to: '/log/photo', label: 'Photo', Icon: IconCamera, accent: 'blue' },
-  { to: '/log/saved', label: 'Saved Meals', Icon: IconStar, accent: 'gold' },
-  { to: '/log/manual', label: 'Manual Entry', Icon: IconClipboard, accent: 'teal' },
-] as const
+const LOG_OPTIONS: ReadonlyArray<{
+  to: string
+  label: string
+  Icon: typeof IconEdit
+  accent: string
+  method: LogMethod
+}> = [
+  { to: '/log/text', label: 'Text Entry', Icon: IconEdit, accent: 'coral', method: 'text_ai' },
+  { to: '/log/photo', label: 'Photo', Icon: IconCamera, accent: 'blue', method: 'photo_ai' },
+  { to: '/log/saved', label: 'Saved Meals', Icon: IconStar, accent: 'gold', method: 'saved' },
+  { to: '/log/manual', label: 'Manual Entry', Icon: IconClipboard, accent: 'teal', method: 'manual' },
+]
 
 function NavTab({ to, end, label, Icon }: { to: string; end?: boolean; label: string; Icon: typeof IconHome }) {
   return (
@@ -65,7 +72,10 @@ export function BottomNav() {
             aria-label="Log food"
             aria-expanded={open}
             aria-haspopup="menu"
-            onClick={() => setOpen(v => !v)}
+            onClick={() => {
+              startLogFlow()
+              setOpen(v => !v)
+            }}
           >
             <IconScan size={23} strokeWidth={2.2} />
           </button>
@@ -79,7 +89,10 @@ export function BottomNav() {
                   to={opt.to}
                   className="nav-log-item"
                   role="menuitem"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    selectLogMethod(opt.method)
+                    setOpen(false)
+                  }}
                 >
                   <span className={`nav-log-item-icon icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={16} /></span>
                   {opt.label}

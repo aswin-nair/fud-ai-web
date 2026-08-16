@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ACTIVITY_MULTIPLIER,
   ageOn,
   computeBmi,
   computeBmr,
@@ -67,6 +68,41 @@ describe('computeTargets', () => {
   });
 
   describe('clamping', () => {
+    it('rounds persisted targets up across fractional safety boundaries', () => {
+      const bmrFloorInput: TargetInput = {
+        sex: 'female',
+        ageYears: 30,
+        heightCm: 165,
+        weightKg: 65,
+        activityLevel: 'sedentary',
+        goal: 'lose',
+        weeklyRatePct: 1,
+      };
+      const bmrFloor = unwrap(bmrFloorInput);
+      const rawBmr = computeBmr(bmrFloorInput);
+
+      expect(bmrFloor.bmr).toBe(Math.round(rawBmr));
+      expect(bmrFloor.dailyKcalTarget).toBe(Math.ceil(rawBmr));
+      expect(bmrFloor.dailyKcalTarget).toBeGreaterThanOrEqual(rawBmr);
+
+      const deficitFloorInput: TargetInput = {
+        sex: 'male',
+        ageYears: 40,
+        heightCm: 175,
+        weightKg: 100,
+        activityLevel: 'light',
+        goal: 'lose',
+        weeklyRatePct: 2,
+      };
+      const deficitFloor = unwrap(deficitFloorInput);
+      const rawTdee = computeBmr(deficitFloorInput) * ACTIVITY_MULTIPLIER.light;
+      const rawDeficitFloor = rawTdee * (1 - MAX_DEFICIT_FRACTION);
+
+      expect(deficitFloor.tdee).toBe(Math.round(rawTdee));
+      expect(deficitFloor.dailyKcalTarget).toBe(Math.ceil(rawDeficitFloor));
+      expect(deficitFloor.dailyKcalTarget).toBeGreaterThanOrEqual(rawDeficitFloor);
+    });
+
     it('caps the deficit at a quarter of maintenance and explains why', () => {
       const t = unwrap({ ...base, weeklyRatePct: 1 });
       const floorOfDeficit = t.tdee * (1 - MAX_DEFICIT_FRACTION);

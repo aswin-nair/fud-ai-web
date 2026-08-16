@@ -18,7 +18,6 @@ export default function EditEntry() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const timezone = useProfileStore((s) => s.timezone)();
-  const proteinTarget = useProfileStore((s) => s.profile?.proteinGTarget ?? 0);
 
   const [entry, setEntry] = useState<MealEntry | null>(null);
   const [servings, setServings] = useState(1);
@@ -66,7 +65,7 @@ export default function EditEntry() {
         fatG: preview.fatG,
       });
 
-      await recordChange(timezone, { proteinG: proteinTarget });
+      await recordChange(timezone);
       router.back();
     } finally {
       setSaving(false);
@@ -82,7 +81,7 @@ export default function EditEntry() {
         onPress: () => {
           void (async () => {
             await deleteEntry(Number(id));
-            await recordChange(timezone, { proteinG: proteinTarget });
+            await recordChange(timezone);
             router.back();
           })();
         },

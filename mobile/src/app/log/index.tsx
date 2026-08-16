@@ -31,7 +31,6 @@ export default function LogSearch() {
   const theme = useTheme();
   const pick = useLogStore((s) => s.pick);
   const timezone = useProfileStore((s) => s.timezone);
-  const proteinTarget = useProfileStore((s) => s.profile?.proteinGTarget ?? 0);
 
   const input = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
@@ -180,7 +179,6 @@ export default function LogSearch() {
 
       <QuickAdd
         onDismiss={() => setQuickAddOpen(false)}
-        proteinTarget={proteinTarget}
         timezone={timezone()}
         visible={quickAddOpen}
       />
@@ -248,12 +246,10 @@ function QuickAdd({
   visible,
   onDismiss,
   timezone,
-  proteinTarget,
 }: {
   visible: boolean;
   onDismiss: () => void;
   timezone: string;
-  proteinTarget: number;
 }) {
   const theme = useTheme();
   const [kcal, setKcal] = useState('');
@@ -278,7 +274,7 @@ function QuickAdd({
         timezone,
       });
 
-      await recordLog(timezone, { proteinG: proteinTarget });
+      await recordLog(timezone);
       setKcal('');
       onDismiss();
       router.dismissAll();

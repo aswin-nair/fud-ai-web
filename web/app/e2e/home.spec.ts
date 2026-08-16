@@ -6,13 +6,17 @@ test.describe('Home & food logging', () => {
     await signUpAndOnboard(page)
   })
 
-  test('shows calorie hero and macro cards', async ({ page }) => {
-    await expect(page.locator('.calorie-hero-value')).toBeVisible()
-    await expect(page.locator('.calorie-hero-goal-line')).toContainText('Goal')
-    await expect(page.getByText('Protein')).toBeVisible()
-    await expect(page.getByText('Carbs')).toBeVisible()
-    await expect(page.getByText('Fat')).toBeVisible()
-    await expect(page.getByText("Today's Food")).toBeVisible()
+  test('shows calorie ring and macro progress group', async ({ page }) => {
+    await expect(page.locator('.calorie-ring')).toBeVisible()
+    await expect(page.locator('.home-ring-sub')).toContainText('of')
+    await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
+    await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
+    await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Breakfast' })).toBeVisible()
+
+    // The pinned action must stay inside the 480px app shell on wide screens.
+    const dockBox = await page.locator('.home-log-dock').boundingBox()
+    expect(dockBox?.width).toBeLessThanOrEqual(480)
   })
 
   test('logs food via manual entry', async ({ page }) => {
@@ -37,16 +41,16 @@ test.describe('Home & food logging', () => {
       fat: '6',
     })
 
-    await expect(page.locator('.calorie-hero-value')).toHaveText('320 kcal')
+    await expect(page.locator('.home-ring-sub')).toContainText('560 of')
 
     // The strip runs Sunday to Saturday, so yesterday is off-screen whenever
     // today is a Sunday. Step the whole week rather than assuming a given day
     // cell is rendered.
     await page.getByRole('button', { name: 'Previous week' }).click()
-    await expect(page.locator('.calorie-hero-value')).toHaveText('0 kcal')
+    await expect(page.locator('.home-ring-sub')).toContainText('0 of')
 
     await page.getByRole('button', { name: 'Next week' }).click()
-    await expect(page.locator('.calorie-hero-value')).toHaveText('320 kcal')
+    await expect(page.locator('.home-ring-sub')).toContainText('560 of')
     await expect(page.getByText('Oatmeal')).toBeVisible()
   })
 
@@ -78,15 +82,17 @@ test.describe('Home & food logging', () => {
     await expect(page.getByRole('menuitem', { name: 'Manual Entry' })).toBeVisible()
   })
 
-  test('shows +kcal logged toast after manual entry', async ({ page }) => {
+  test('shows the exact post-log celebration after manual entry', async ({ page }) => {
     await logManualMeal(page, {
       name: 'Toast Test Meal',
       calories: '420',
       protein: '22',
       carbs: '45',
       fat: '10',
-    })
+    }, { dismissCelebration: false })
 
-    await expect(page.getByText('+420 kcal logged')).toBeVisible()
+    const celebration = page.getByRole('dialog', { name: 'Meal logged' })
+    await expect(celebration).toContainText('Toast Test Meal')
+    await expect(celebration).toContainText('XP added')
   })
 })

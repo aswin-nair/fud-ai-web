@@ -19,7 +19,17 @@ const PROTEIN_PER_KG: Record<ActivityLevel, number> = {
 }
 
 export function ageFromBirthday(birthday: string): number {
-  const birth = new Date(birthday)
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(birthday)
+  if (!match) return Number.NaN
+
+  const [, year, month, day] = match
+  const birth = new Date(Number(year), Number(month) - 1, Number(day))
+  if (
+    birth.getFullYear() !== Number(year)
+    || birth.getMonth() !== Number(month) - 1
+    || birth.getDate() !== Number(day)
+  ) return Number.NaN
+
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
@@ -73,13 +83,13 @@ function calorieFloor(profile: UserProfile): number {
 
 /** The fastest weekly change allowed for this bodyweight. */
 export function maxWeeklyChangeKg(profile: UserProfile): number {
-  return Math.round(profile.weightKg * MAX_WEEKLY_CHANGE_FRACTION * 100) / 100
+  return Math.floor(profile.weightKg * MAX_WEEKLY_CHANGE_FRACTION * 100) / 100
 }
 
 /** The lightest goal weight allowed for this height. */
 export function minHealthyWeightKg(heightCm: number): number {
   const metres = heightCm / 100
-  return Math.round(MIN_HEALTHY_BMI * metres * metres * 10) / 10
+  return Math.ceil(MIN_HEALTHY_BMI * metres * metres * 10) / 10
 }
 
 /**
@@ -99,7 +109,58 @@ export function goalWeightIssue(profile: UserProfile): string | null {
 /** The requested rate, held to the §2.1 cap. */
 export function effectiveWeeklyChangeKg(profile: UserProfile): number {
   const requested = profile.weeklyChangeKg ?? 0.5
-  return Math.min(requested, maxWeeklyChangeKg(profile))
+  if (!Number.isFinite(requested)) return 0
+  return Math.min(Math.max(0, requested), maxWeeklyChangeKg(profile))
+}
+
+/** A plain-language refusal for profile values that cannot safely be saved. */
+export function profileInputIssue(profile: UserProfile): string | null {
+  if (!Number.isFinite(profile.heightCm) || profile.heightCm <= 0) {
+    return 'Enter a valid height greater than zero.'
+  }
+  if (!Number.isFinite(profile.weightKg) || profile.weightKg <= 0) {
+    return 'Enter a valid weight greater than zero.'
+  }
+
+  const age = ageFromBirthday(profile.birthday)
+  if (!Number.isFinite(age)) return 'Enter a valid date of birth.'
+  if (age < 18) return 'Fud AI is only available to adults.'
+
+  if (profile.goal !== 'maintain') {
+    const weekly = profile.weeklyChangeKg ?? 0.5
+    if (!Number.isFinite(weekly) || weekly < 0) {
+      return 'Enter a weekly change of zero or more.'
+    }
+  }
+
+  if (
+    profile.bodyFatPercentage != null
+    && (!Number.isFinite(profile.bodyFatPercentage)
+      || profile.bodyFatPercentage < 0
+      || profile.bodyFatPercentage > 1)
+  ) {
+    return 'Enter body fat as a percentage from 0 to 100.'
+  }
+
+  for (const [label, value] of [
+    ['calorie target', profile.customCalories],
+    ['protein target', profile.customProtein],
+    ['carbohydrate target', profile.customCarbs],
+    ['fat target', profile.customFat],
+  ] as const) {
+    if (value != null && (!Number.isFinite(value) || value < 0)) {
+      return `Enter a valid ${label}.`
+    }
+  }
+
+  if (
+    profile.goalWeightKg != null
+    && (!Number.isFinite(profile.goalWeightKg) || profile.goalWeightKg <= 0)
+  ) {
+    return 'Enter a valid goal weight greater than zero.'
+  }
+
+  return goalWeightIssue(profile)
 }
 
 export function calorieAdjustment(profile: UserProfile): number {
@@ -114,20 +175,19 @@ function explainClamp(
   floor: number,
   bmr: number,
 ): string | null {
-  // Most restrictive first: only the binding constraint is worth explaining.
-  if (reasons.includes('bmr')) {
-    return `Your target is held at ${bmr} kcal, roughly what your body uses at rest. This app will not plan below that.`
-  }
-  if (reasons.includes('floor')) {
-    return `Your target is held at ${floor} kcal, the lowest daily intake this app will set.`
-  }
-  if (reasons.includes('deficit')) {
-    return 'Your target is held to a 25% deficit, the fastest pace this app will plan for.'
-  }
-  if (reasons.includes('rate')) {
-    return `Your rate is held to ${maxWeeklyChangeKg(profile)} kg per week, which is 1% of your bodyweight.`
-  }
-  return null
+  const messages = reasons.map(reason => {
+    switch (reason) {
+      case 'rate':
+        return `Your rate is held to ${maxWeeklyChangeKg(profile)} kg per week, which does not exceed 1% of your bodyweight.`
+      case 'deficit':
+        return 'Your calorie target is held to a 25% deficit, the fastest pace this app will plan for.'
+      case 'floor':
+        return `Your target is held at ${floor} kcal, the lowest daily intake this app will set.`
+      case 'bmr':
+        return `Your target is held at ${bmr} kcal, at or above what your body uses at rest. This app will not plan below that.`
+    }
+  })
+  return messages.length ? messages.join(' ') : null
 }
 
 /**
@@ -139,8 +199,9 @@ function explainClamp(
  * through the same floors.
  */
 export function computeTargets(profile: UserProfile): CalorieTarget {
-  const bmr = Math.round(computeBMR(profile))
-  const tdee = Math.round(computeTDEE(profile))
+  const rawBmr = computeBMR(profile)
+  const rawTdee = computeTDEE(profile)
+  const bmr = Math.ceil(rawBmr)
   const floor = calorieFloor(profile)
   const reasons: ClampReason[] = []
 
@@ -151,10 +212,15 @@ export function computeTargets(profile: UserProfile): CalorieTarget {
   let calories: number
 
   if (profile.customCalories != null) {
+    const minimumFromDeficitCap = Math.ceil(rawTdee * (1 - MAX_DEFICIT_FRACTION))
     calories = profile.customCalories
+    if (calories < minimumFromDeficitCap) {
+      calories = minimumFromDeficitCap
+      reasons.push('deficit')
+    }
   } else {
     const requested = calorieAdjustment(profile)
-    const maxDeficit = Math.round(tdee * MAX_DEFICIT_FRACTION)
+    const maxDeficit = Math.floor(rawTdee * MAX_DEFICIT_FRACTION)
 
     // Surpluses are not capped here; only deficits carry a floor.
     const adjustment = requested < 0 && Math.abs(requested) > maxDeficit
@@ -162,7 +228,7 @@ export function computeTargets(profile: UserProfile): CalorieTarget {
       : requested
 
     if (adjustment !== requested) reasons.push('deficit')
-    calories = tdee + adjustment
+    calories = rawTdee + adjustment
   }
 
   if (calories < floor) {
@@ -175,7 +241,7 @@ export function computeTargets(profile: UserProfile): CalorieTarget {
   }
 
   return {
-    calories: Math.round(calories),
+    calories: Math.ceil(calories),
     clamped: explainClamp(reasons, profile, floor, bmr),
     reasons,
   }

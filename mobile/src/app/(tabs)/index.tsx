@@ -28,7 +28,6 @@ import { type IconName } from '@/components/icons/Icon';
 
 const QUEST_ICON: Record<QuestType, IconName> = {
   log_n_meals: 'plus',
-  hit_protein: 'target',
   log_before: 'history',
   log_streak: 'flame',
 };
@@ -43,16 +42,12 @@ export default function Home() {
   // True for a couple of seconds after a log lands. §11.1.
   const happy = useFeedbackStore((s) => s.happy);
 
-  const proteinTarget = profile?.proteinGTarget ?? 0;
-
   useFocusEffect(
     useCallback(() => {
       // The freeze must be applied before anything reads the streak, or a user
       // whose freeze covered yesterday sees a zero flash before it is rescued.
-      void openSession(timezone).then(() =>
-        recordChange(timezone, { proteinG: proteinTarget }),
-      );
-    }, [timezone, proteinTarget]),
+      void openSession(timezone).then(() => recordChange(timezone));
+    }, [timezone]),
   );
 
   if (!profile) return null;
@@ -67,7 +62,7 @@ export default function Home() {
 
   async function remove(id: number) {
     await deleteEntry(id);
-    await recordChange(timezone, { proteinG: proteinTarget });
+    await recordChange(timezone);
   }
 
   return (
@@ -87,7 +82,7 @@ export default function Home() {
             justifyContent: 'space-between',
           }}
         >
-          <StreakBadge count={streak.count} loggedToday={streak.loggedToday} />
+          <StreakBadge atRisk={streak.atRisk} count={streak.count} />
           <View style={{ alignItems: 'flex-end' }}>
             <Text variant="label">{points} pts</Text>
             <Text color="textMuted" variant="caption">

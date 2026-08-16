@@ -1,17 +1,14 @@
 import type { FoodEntry, GamificationState, MealType } from '../types'
 import { localDayKey } from './dates'
-import { effectiveProtein } from './profile'
-import type { UserProfile } from '../types'
 
 /**
  * §10.1: every quest is about logging behaviour. There is no quest for staying
  * under target, running a deficit, or avoiding a food group.
  */
-export type QuestType = 'log_n_meals' | 'hit_protein' | 'log_before' | 'log_streak'
+export type QuestType = 'log_n_meals' | 'log_before' | 'log_streak'
 
 export const QUEST_TYPES: readonly QuestType[] = [
   'log_n_meals',
-  'hit_protein',
   'log_before',
   'log_streak',
 ]
@@ -29,7 +26,6 @@ function seedFor(date: string): number {
 
 const CANDIDATES: readonly { type: QuestType; targets: readonly number[]; hours?: readonly number[] }[] = [
   { type: 'log_n_meals', targets: [2, 3, 4] },
-  { type: 'hit_protein', targets: [1] },
   { type: 'log_before', targets: [1], hours: [10, 11] },
   { type: 'log_streak', targets: [2, 3] },
 ]
@@ -60,8 +56,6 @@ export function questTitle(quest: Pick<DailyQuest, 'type' | 'target' | 'beforeHo
   switch (quest.type) {
     case 'log_n_meals':
       return `Log ${quest.target} ${quest.target === 1 ? 'meal' : 'meals'} today`
-    case 'hit_protein':
-      return 'Hit your protein target'
     case 'log_before': {
       const hour = quest.beforeHour ?? 10
       const suffix = hour < 12 ? 'am' : 'pm'
@@ -81,13 +75,11 @@ function distinctSlots(entries: FoodEntry[]): number {
 
 export function questProgress(
   quest: Pick<DailyQuest, 'type' | 'target' | 'beforeHour'>,
-  input: { entriesToday: FoodEntry[]; proteinG: number; proteinTargetG: number; streakCount: number },
+  input: { entriesToday: FoodEntry[]; streakCount: number },
 ): number {
   switch (quest.type) {
     case 'log_n_meals':
       return distinctSlots(input.entriesToday)
-    case 'hit_protein':
-      return input.proteinTargetG > 0 && input.proteinG >= input.proteinTargetG ? 1 : 0
     case 'log_before': {
       const cutoff = quest.beforeHour ?? 10
       return input.entriesToday.some(e => new Date(e.timestamp).getHours() < cutoff) ? 1 : 0
@@ -101,16 +93,12 @@ export function syncQuest(
   existing: DailyQuest | undefined,
   today: string,
   entries: FoodEntry[],
-  proteinG: number,
-  profile: UserProfile,
   streakCount: number,
 ): DailyQuest {
   const spec = existing?.date === today ? existing : { ...questForDate(today), progress: 0, completedAt: null }
   const todayEntries = entries.filter(e => localDayKey(new Date(e.timestamp)) === today)
   const progress = questProgress(spec, {
     entriesToday: todayEntries,
-    proteinG,
-    proteinTargetG: effectiveProtein(profile),
     streakCount,
   })
   const complete = progress >= spec.target

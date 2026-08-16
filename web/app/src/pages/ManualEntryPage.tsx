@@ -35,7 +35,7 @@ export function ManualEntryPage() {
 
   function save() {
     if (!name.trim() || !calories) return
-    addEntry({
+    const entry = {
       id: crypto.randomUUID(),
       name: name.trim(),
       calories: scaledCalories,
@@ -46,8 +46,9 @@ export function ManualEntryPage() {
       emoji: '🍽️',
       source: 'manual',
       mealType,
-    })
-    navigate('/', { state: { justLogged: { calories: scaledCalories, name: name.trim() } } })
+    } as const
+    addEntry(entry)
+    navigate('/', { state: { justLogged: { id: entry.id, calories: scaledCalories, name: name.trim() } } })
   }
 
   return (

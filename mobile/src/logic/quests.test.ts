@@ -5,7 +5,9 @@ import {
   QUEST_TYPES,
   questForDate,
   questProgress,
+  questSpecFromStored,
   questTitle,
+  seedFor,
   type QuestSpec,
 } from '@/logic/quests';
 
@@ -27,6 +29,8 @@ describe('questForDate', () => {
   });
 
   it('only ever emits an allowed type', () => {
+    expect(QUEST_TYPES).toEqual(['log_n_meals', 'log_before', 'log_streak']);
+
     for (const date of dates) {
       expect(QUEST_TYPES).toContain(questForDate(date).type);
     }
@@ -57,10 +61,24 @@ describe('questForDate', () => {
       expect(target).toBeLessThanOrEqual(4);
     }
   });
+
+  it('keeps legacy hit_protein rows readable as logging quests', () => {
+    // The old generator used candidate slot 1 for `hit_protein`. The slot is
+    // deliberately retained so other dates do not reroll after an upgrade.
+    const legacyDate = dates.find((date) => seedFor(date) % 4 === 1);
+    expect(legacyDate).toBeDefined();
+
+    const spec = questSpecFromStored(legacyDate as string, 'hit_protein', 1);
+
+    expect(QUEST_TYPES).toContain(spec.type);
+    expect(spec.type).toBe('log_n_meals');
+    expect(spec.target).toBe(1);
+    expect(questTitle(spec)).toBe('Log 1 meal today');
+  });
 });
 
 describe('quest copy', () => {
-  it('never references restriction, deficit, or avoiding food', () => {
+  it('never references nutrition outcomes, restriction, deficit, or avoiding food', () => {
     // §2.3 and the Phase 6 acceptance criterion. Checks generated copy, not
     // just the type union, so a reworded title cannot smuggle a limit in.
     // Whole words only — "breakfast" legitimately contains "fast".
@@ -77,6 +95,10 @@ describe('quest copy', () => {
       /\bburn\b/,
       /\bbelow\b/,
       /\bcheat\b/,
+      /\bprotein\b/,
+      /\bmacro(s)?\b/,
+      /\bcalorie(s)?\b/,
+      /\btarget\b/,
     ];
 
     for (const date of dates) {
@@ -90,13 +112,13 @@ describe('quest copy', () => {
 
   it('phrases every quest as an action', () => {
     for (const date of dates) {
-      expect(questTitle(questForDate(date))).toMatch(/^(Log|Hit)\b/);
+      expect(questTitle(questForDate(date))).toMatch(/^Log\b/);
     }
   });
 });
 
 describe('questProgress', () => {
-  const empty = { entriesToday: [], proteinG: 0, proteinTargetG: 140, streakCount: 0 };
+  const empty = { entriesToday: [], streakCount: 0 };
 
   it('counts distinct meal slots, not rows', () => {
     const spec: QuestSpec = { type: 'log_n_meals', target: 3 };
@@ -116,19 +138,6 @@ describe('questProgress', () => {
     ];
 
     expect(questProgress(spec, { ...empty, entriesToday: threeMeals })).toBe(3);
-  });
-
-  it('completes hit_protein only at or above target', () => {
-    const spec: QuestSpec = { type: 'hit_protein', target: 1 };
-
-    expect(questProgress(spec, { ...empty, proteinG: 139 })).toBe(0);
-    expect(questProgress(spec, { ...empty, proteinG: 140 })).toBe(1);
-    expect(questProgress(spec, { ...empty, proteinG: 200 })).toBe(1);
-  });
-
-  it('does not complete hit_protein when there is no target to hit', () => {
-    const spec: QuestSpec = { type: 'hit_protein', target: 1 };
-    expect(questProgress(spec, { ...empty, proteinG: 50, proteinTargetG: 0 })).toBe(0);
   });
 
   it('completes log_before only on an entry before the cutoff', () => {

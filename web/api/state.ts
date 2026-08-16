@@ -4,6 +4,23 @@ import { bearerToken, verifySession } from './_lib/jwt.js'
 import { loadUserState, saveUserState } from './_lib/state.js'
 import { json, methodNotAllowed, readJson, serverError, unauthorized } from './_lib/http.js'
 
+const MAX_STATE_BYTES = 2_000_000
+const STATE_ARRAY_FIELDS = [
+  'foodEntries',
+  'weightEntries',
+  'exerciseEntries',
+  'favoriteMeals',
+  'chatMessages',
+] as const
+
+function validStateEnvelope(state: Record<string, unknown>): boolean {
+  if (typeof state.onboarded !== 'boolean') return false
+  if (!state.profile || typeof state.profile !== 'object' || Array.isArray(state.profile)) return false
+  if (!state.aiSettings || typeof state.aiSettings !== 'object' || Array.isArray(state.aiSettings)) return false
+  if (!state.gamification || typeof state.gamification !== 'object' || Array.isArray(state.gamification)) return false
+  return STATE_ARRAY_FIELDS.every(field => Array.isArray(state[field]))
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
 
@@ -22,6 +39,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const body = await readJson<{ state?: Record<string, unknown> }>(req)
       if (!body.state || typeof body.state !== 'object') {
         return json(res, 400, { error: 'Missing state object' })
+      }
+      if (!validStateEnvelope(body.state)) {
+        return json(res, 400, { error: 'Invalid state shape' })
+      }
+      if (Buffer.byteLength(JSON.stringify(body.state), 'utf8') > MAX_STATE_BYTES) {
+        return json(res, 413, { error: 'State payload is too large' })
       }
       await saveUserState(session.sub, body.state)
       return json(res, 200, { ok: true })

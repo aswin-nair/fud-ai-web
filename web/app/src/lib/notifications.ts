@@ -1,5 +1,4 @@
 import { localDayKey } from './dates'
-import { track } from './analytics'
 
 /**
  * Two scheduled notifications, hard-capped. Per §2.6 / Phase 8.
@@ -75,7 +74,6 @@ async function deliver(kind: NotifyKind, streak: number): Promise<boolean> {
   try {
     new Notification('Fud AI', { body, silent: true })
     record(kind)
-    track({ name: 'notification_opened', kind })
     return true
   } catch {
     return false

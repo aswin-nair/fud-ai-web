@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { clearAppStorage, clickAuthTab, signUp, uniqueEmail, signInWithEmail } from './helpers'
+import {
+  clearAppStorage,
+  clickAuthTab,
+  completeOnboarding,
+  signUp,
+  uniqueEmail,
+  signInWithEmail,
+} from './helpers'
 
 test.describe('Authentication', () => {
   test.beforeEach(async ({ page }) => {
@@ -22,7 +29,7 @@ test.describe('Authentication', () => {
     await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Skip' }).click()
-    await expect(page.getByRole('heading', { name: 'Welcome to Fud AI' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'What is your date of birth?' })).toBeVisible()
   })
 
   test('rejects mismatched passwords on sign up', async ({ page }) => {
@@ -43,12 +50,7 @@ test.describe('Authentication', () => {
     const password = 'TestPass123!'
 
     await signUp(page, { email, password })
-    await page.getByRole('button', { name: 'Skip' }).click()
-    for (let i = 0; i < 4; i++) {
-      await page.getByRole('button', { name: 'Continue' }).click()
-    }
-    await page.getByRole('button', { name: 'Get started' }).click()
-    await page.waitForURL('/')
+    await completeOnboarding(page)
 
     await page.getByLabel('Main').getByRole('link', { name: 'Settings' }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
@@ -57,6 +59,7 @@ test.describe('Authentication', () => {
     await signInWithEmail(page, email, password)
 
     await expect(page).toHaveURL('/')
-    await expect(page.getByText("Today's Food")).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    await expect(page.getByText('Onboarding yogurt bowl')).toBeVisible()
   })
 })

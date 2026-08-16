@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "asOfDate": "2026-08-17",
+  "cases": [
+    {
+      "id": "adult-male-maintenance",
+      "input": {
+        "sex": "male",
+        "ageYears": 30,
+        "heightCm": 180,
+        "weightKg": 80,
+        "activityLevel": "moderate",
+        "goal": "maintain",
+        "weeklyRatePct": 0,
+        "weeklyChangeKg": 0
+      },
+      "web": {
+        "goalRefused": false,
+        "bmr": 1780,
+        "tdee": 2608,
+        "calories": 2608,
+        "reasons": []
+      },
+      "mobile": {
+        "ok": true,
+        "bmr": 1780,
+        "tdee": 2759,
+        "dailyKcalTarget": 2759,
+        "proteinGTarget": 144,
+        "carbsGTarget": 373,
+        "fatGTarget": 77,
+        "clamped": false
+      }
+    },
+    {
+      "id": "female-deficit-bmr-floor",
+      "input": {
+        "sex": "female",
+        "ageYears": 30,
+        "heightCm": 165,
+        "weightKg": 65,
+        "activityLevel": "sedentary",
+        "goal": "lose",
+        "weeklyRatePct": 1,
+        "weeklyChangeKg": 0.65
+      },
+      "web": {
+        "goalRefused": false,
+        "bmr": 1370,
+        "tdee": 1644,
+        "calories": 1371,
+        "reasons": ["deficit", "bmr"]
+      },
+      "mobile": {
+        "ok": true,
+        "bmr": 1370,
+        "tdee": 1644,
+        "dailyKcalTarget": 1371,
+        "proteinGTarget": 117,
+        "carbsGTarget": 140,
+        "fatGTarget": 38,
+        "clamped": true
+      }
+    },
+    {
+      "id": "rate-and-deficit-cap",
+      "input": {
+        "sex": "male",
+        "ageYears": 40,
+        "heightCm": 175,
+        "weightKg": 100,
+        "activityLevel": "light",
+        "goal": "lose",
+        "weeklyRatePct": 2,
+        "weeklyChangeKg": 2
+      },
+      "web": {
+        "goalRefused": false,
+        "bmr": 1899,
+        "tdee": 2611,
+        "calories": 1959,
+        "reasons": ["rate", "deficit"]
+      },
+      "mobile": {
+        "ok": true,
+        "bmr": 1899,
+        "tdee": 2611,
+        "dailyKcalTarget": 1959,
+        "proteinGTarget": 180,
+        "carbsGTarget": 188,
+        "fatGTarget": 54,
+        "clamped": true
+      }
+    },
+    {
+      "id": "goal-below-bmi-boundary",
+      "input": {
+        "sex": "male",
+        "ageYears": 30,
+        "heightCm": 180,
+        "weightKg": 80,
+        "activityLevel": "moderate",
+        "goal": "lose",
+        "weeklyRatePct": 0.5,
+        "weeklyChangeKg": 0.4,
+        "goalWeightKg": 55
+      },
+      "web": {
+        "goalRefused": true
+      },
+      "mobile": {
+        "ok": false
+      }
+    }
+  ]
+}

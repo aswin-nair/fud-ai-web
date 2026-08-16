@@ -3,15 +3,15 @@ import { type LocalDate } from '@/logic/dates';
 
 /**
  * §10.1: every quest is about logging *behaviour*. There is deliberately no
- * quest type for staying under target, running a deficit, or avoiding a food
- * group — see §2.3. This union is the enforcement point: adding a restriction
- * quest means adding a member here, which the test suite rejects.
+ * quest type for reaching a nutrition outcome, staying under target, running a
+ * deficit, or avoiding a food group — see §2.3. This union is the enforcement
+ * point: adding an outcome-based quest means adding a member here, which the
+ * test suite rejects.
  */
-export type QuestType = 'log_n_meals' | 'hit_protein' | 'log_before' | 'log_streak';
+export type QuestType = 'log_n_meals' | 'log_before' | 'log_streak';
 
 export const QUEST_TYPES: readonly QuestType[] = [
   'log_n_meals',
-  'hit_protein',
   'log_before',
   'log_streak',
 ];
@@ -27,8 +27,6 @@ export type QuestSpec = {
 export type QuestProgressInput = {
   /** Today's entries, in the profile's timezone. */
   entriesToday: readonly { mealSlot: MealSlot; loggedLocalHour: number }[];
-  proteinG: number;
-  proteinTargetG: number;
   streakCount: number;
 };
 
@@ -58,7 +56,11 @@ type Candidate = {
 
 const CANDIDATES: readonly Candidate[] = [
   { type: 'log_n_meals', targets: [2, 3, 4] },
-  { type: 'hit_protein', targets: [1] },
+  // Keep this second slot in place. Older releases generated `hit_protein`
+  // here and persisted that string. Replacing the slot instead of removing it
+  // keeps every other date's deterministic quest stable while legacy rows are
+  // safely reinterpreted as logging quests.
+  { type: 'log_n_meals', targets: [2] },
   { type: 'log_before', targets: [1], hours: [10, 11] },
   { type: 'log_streak', targets: [2, 3] },
 ];
@@ -88,6 +90,46 @@ export function questForDate(date: LocalDate): QuestSpec {
   };
 }
 
+/**
+ * Restores a persisted quest without allowing an old nutrition-outcome type
+ * back into the live domain. `quests.type` is plain text, so installs upgraded
+ * from a release that stored `hit_protein` must remain readable. The stable
+ * candidate slot above turns those rows into a logging quest; known current
+ * types retain their persisted target and unknown strings fall back safely.
+ */
+export function questSpecFromStored(
+  date: LocalDate,
+  storedType: string,
+  storedTarget: number,
+): QuestSpec {
+  const generated = questForDate(date);
+  const type = isQuestType(storedType) ? storedType : generated.type;
+
+  return {
+    type,
+    target: reachableTarget(type, storedTarget, generated.target),
+    beforeHour:
+      type === 'log_before'
+        ? generated.type === 'log_before'
+          ? generated.beforeHour
+          : 10
+        : undefined,
+  };
+}
+
+function isQuestType(value: string): value is QuestType {
+  return (QUEST_TYPES as readonly string[]).includes(value);
+}
+
+function reachableTarget(type: QuestType, stored: number, fallback: number): number {
+  if (!Number.isFinite(stored)) return fallback;
+
+  const rounded = Math.max(1, Math.round(stored));
+  if (type === 'log_n_meals') return Math.min(rounded, 4);
+  if (type === 'log_before') return 1;
+  return Math.min(rounded, 3);
+}
+
 function pick<T>(options: readonly T[], draw: number): T {
   return options[draw % options.length] as T;
 }
@@ -100,9 +142,6 @@ export function questProgress(spec: QuestSpec, input: QuestProgressInput): numbe
   switch (spec.type) {
     case 'log_n_meals':
       return distinctSlots(input.entriesToday);
-
-    case 'hit_protein':
-      return input.proteinTargetG > 0 && input.proteinG >= input.proteinTargetG ? 1 : 0;
 
     case 'log_before': {
       const cutoff = spec.beforeHour ?? 10;
@@ -130,10 +169,7 @@ function distinctSlots(entries: QuestProgressInput['entriesToday']): number {
 export function questTitle(spec: QuestSpec): string {
   switch (spec.type) {
     case 'log_n_meals':
-      return `Log ${spec.target} meals today`;
-
-    case 'hit_protein':
-      return 'Hit your protein target';
+      return `Log ${spec.target} ${spec.target === 1 ? 'meal' : 'meals'} today`;
 
     case 'log_before':
       return `Log breakfast before ${formatHour(spec.beforeHour ?? 10)}`;

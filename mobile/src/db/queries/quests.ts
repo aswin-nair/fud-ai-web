@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { quests, type Quest } from '@/db/schema';
 import { type LocalDate } from '@/logic/dates';
-import { questForDate, type QuestSpec } from '@/logic/quests';
+import { questForDate, questSpecFromStored, type QuestSpec } from '@/logic/quests';
 
 /**
  * The row for a day, creating it on first open. `questForDate` is deterministic
@@ -25,17 +25,12 @@ export async function getOrCreateQuest(date: LocalDate): Promise<Quest> {
 }
 
 /**
- * `beforeHour` is re-derived rather than stored, so a persisted row and a fresh
- * generation always describe the same quest.
+ * `beforeHour` is re-derived rather than stored. The stored type remains a
+ * plain string for upgrade compatibility; legacy `hit_protein` rows are
+ * translated into a safe logging quest by the pure domain helper.
  */
 export function specOf(row: Quest): QuestSpec {
-  const generated = questForDate(row.localDate);
-
-  return {
-    type: generated.type,
-    target: row.target,
-    beforeHour: generated.beforeHour,
-  };
+  return questSpecFromStored(row.localDate, row.type, row.target);
 }
 
 /**
@@ -46,22 +41,25 @@ export async function setQuestProgress(
   id: number,
   progress: number,
   completed: boolean,
+  commitCompletion: boolean,
 ): Promise<{ newlyCompleted: boolean }> {
   const rows = await db.select().from(quests).where(eq(quests.id, id)).limit(1);
   const row = rows[0];
   if (!row) return { newlyCompleted: false };
 
   const wasComplete = row.completedAt !== null;
+  const newlyCompleted = !wasComplete && completed && commitCompletion;
 
   await db
     .update(quests)
     .set({
       progress,
       // Once completed, the timestamp stays put. Deleting an entry may walk the
-      // progress bar back, but it does not claw back a finished quest.
-      completedAt: row.completedAt ?? (completed ? new Date().toISOString() : null),
+      // progress bar back, but it does not claw back a finished quest. A
+      // progress-only sync cannot stamp a new completion before a real log.
+      completedAt: row.completedAt ?? (newlyCompleted ? new Date().toISOString() : null),
     })
     .where(eq(quests.id, id));
 
-  return { newlyCompleted: !wasComplete && completed };
+  return { newlyCompleted };
 }

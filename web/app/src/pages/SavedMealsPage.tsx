@@ -152,7 +152,7 @@ export function SavedMealsPage() {
 
   function logEntry(entry: FoodEntry, servings: number) {
     const cals = Math.round(entry.calories * servings)
-    logSavedMeal({
+    const logged = logSavedMeal({
       id: mealKey(entry),
       name: entry.name,
       calories: cals,
@@ -163,19 +163,19 @@ export function SavedMealsPage() {
       mealType: entry.mealType,
       servingSizeGrams: entry.servingSizeGrams,
     })
-    navigate('/', { state: { justLogged: { calories: cals, name: entry.name } } })
+    navigate('/', { state: { justLogged: { id: logged.id, calories: cals, name: entry.name } } })
   }
 
   function logMeal(meal: SavedMeal, servings: number) {
     const cals = Math.round(meal.calories * servings)
-    logSavedMeal({
+    const logged = logSavedMeal({
       ...meal,
       calories: cals,
       protein: Math.round(meal.protein * servings * 10) / 10,
       carbs: Math.round(meal.carbs * servings * 10) / 10,
       fat: Math.round(meal.fat * servings * 10) / 10,
     })
-    navigate('/', { state: { justLogged: { calories: cals, name: meal.name } } })
+    navigate('/', { state: { justLogged: { id: logged.id, calories: cals, name: meal.name } } })
   }
 
   return (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { Mascot } from './Mascot'
 import { PressableButton } from './PressableButton'
+import { track } from '../lib/analytics'
 import { useCountUp } from '../hooks/useCountUp'
 import { prefersReducedMotion } from '../lib/tokens'
 import type { XpEvent } from '../types'
@@ -9,7 +10,7 @@ import type { XpEvent } from '../types'
 /**
  * The signature moment, §11.1: the whole screen becomes the reward.
  *
- * Everything shown here is about the act of logging — what was earned, the
+ * Everything shown here is about the act of logging — what was added, the
  * streak, the quest. Per §2.5 and §2.4 it never comments on the calorie total,
  * the macro split, or the food itself; there is no version of this screen that
  * appears because someone ate "well" or "badly".
@@ -20,7 +21,7 @@ export interface LogCelebrationProps {
   streak: number
   /** XP events awarded by this log, newest first. */
   awards: XpEvent[]
-  quest?: { title: string; progress: number; target: number } | null
+  quest?: { title: string; progress: number; target: number; justCompleted: boolean } | null
   onDone: () => void
 }
 
@@ -43,7 +44,7 @@ export function LogCelebration({
     return () => clearTimeout(t)
   }, [])
 
-  const questDone = quest ? quest.progress >= quest.target : false
+  const questDone = Boolean(quest?.justCompleted)
 
   return (
     <div
@@ -65,7 +66,7 @@ export function LogCelebration({
         <div className="celebrate-stats">
           <div className="celebrate-stat">
             <span className="celebrate-stat-value">+{countedXp}</span>
-            <span className="celebrate-stat-label">XP earned</span>
+            <span className="celebrate-stat-label">XP added</span>
           </div>
           <div className="celebrate-stat">
             <span className="celebrate-stat-value">
@@ -103,7 +104,14 @@ export function LogCelebration({
           </div>
         )}
 
-        <PressableButton fullWidth label="Keep going" onClick={onDone} />
+        <PressableButton
+          fullWidth
+          label="Keep going"
+          onClick={() => {
+            track({ name: 'log_celebration_completed' })
+            onDone()
+          }}
+        />
       </div>
     </div>
   )

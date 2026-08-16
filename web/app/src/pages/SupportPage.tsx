@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
 import { IconArrowUpRight } from '../components/icons'
+import { track } from '../lib/analytics'
 
 /**
  * §2.8. Deliberately plain: no imagery, no mascot, no encouragement copy.
@@ -51,6 +53,8 @@ const HELPLINES: Helpline[] = [
 ]
 
 export function SupportPage() {
+  useEffect(() => track({ name: 'support_opened' }), [])
+
   return (
     <div className="app-shell">
       <main className="app-main">

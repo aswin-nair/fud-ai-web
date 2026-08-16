@@ -1,6 +1,5 @@
 import type { FoodEntry, GamificationState, XpEvent } from '../types'
 import { localDayKey } from './dates'
-import { macroTotals } from './storage'
 
 // ── Level thresholds (cumulative XP required) ─────────────────
 export const LEVEL_XP = [0, 100, 250, 500, 850, 1300, 1900, 2700, 3700, 5000]
@@ -42,7 +41,10 @@ export function computeXpAwards(
 ): XpAward[] {
   const awards: XpAward[] = []
   const dayKey = localDayKey(new Date(newEntry.timestamp))
-  const usedKeys = new Set(gamification.xpEvents.map(e => e.key))
+  const usedKeys = new Set([
+    ...gamification.awardedKeys,
+    ...gamification.xpEvents.map(e => e.key),
+  ])
 
   // Always award for logging a meal
   awards.push({ key: `meal-${newEntry.id}`, label: 'Logged a meal', xp: 15 })
@@ -77,30 +79,16 @@ export function computeXpAwards(
     awards.push({ key: `new-food-${newEntry.id}`, label: 'New food discovered!', xp: 20 })
   }
 
-  // Balanced macro day (protein 15-35%, carbs 35-60%, fat 20-40%)
-  if (!usedKeys.has(`balanced-${dayKey}`)) {
-    const withNew = [...todayEntries, newEntry]
-    const t = macroTotals(withNew)
-    if (t.calories >= 800) {
-      const p = (t.protein * 4) / t.calories
-      const c = (t.carbs * 4) / t.calories
-      const f = (t.fat * 9) / t.calories
-      if (p >= 0.15 && p <= 0.35 && c >= 0.35 && c <= 0.60 && f >= 0.20 && f <= 0.40) {
-        awards.push({ key: `balanced-${dayKey}`, label: 'Balanced macros today!', xp: 25 })
-      }
-    }
-  }
-
   // Filter already-awarded keys
   return awards.filter(a => !usedKeys.has(a.key))
 }
 
-export function makeXpEvents(awards: XpAward[]): XpEvent[] {
+export function makeXpEvents(awards: XpAward[], timestamp = new Date().toISOString()): XpEvent[] {
   return awards.map(a => ({
     id: crypto.randomUUID(),
     key: a.key,
     xp: a.xp,
     label: a.label,
-    timestamp: new Date().toISOString(),
+    timestamp,
   }))
 }

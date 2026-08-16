@@ -173,7 +173,7 @@ export function applyFreeze(
 }
 
 // ── Badges ─────────────────────────────────────────────────────
-export type BadgeCategory = 'milestone' | 'consistency' | 'variety' | 'balance'
+export type BadgeCategory = 'milestone' | 'consistency' | 'variety'
 
 export interface JourneyBadge {
   id: string
@@ -188,16 +188,8 @@ function uniqueFoodCount(entries: FoodEntry[]): number {
   return new Set(entries.map(e => e.name.toLowerCase().trim())).size
 }
 
-function balancedDayCount(gamification: GamificationState): number {
-  return new Set(
-    gamification.xpEvents
-      .filter(e => e.key.startsWith('balanced-'))
-      .map(e => e.key),
-  ).size
-}
-
 const BADGE_DEFS: Array<Omit<JourneyBadge, 'unlocked'> & {
-  check: (total: number, streak: number, days: number, foods: number, balanced: number) => boolean
+  check: (total: number, streak: number, days: number, foods: number) => boolean
 }> = [
   // Milestones
   { id: 'first_bite',  emoji: '🍽️', name: 'First Bite',       desc: 'Log your first meal',          category: 'milestone',    check: (t)               => t >= 1   },
@@ -216,25 +208,18 @@ const BADGE_DEFS: Array<Omit<JourneyBadge, 'unlocked'> & {
   { id: 'unique_5',   emoji: '🎨', name: 'Explorer',          desc: '5 unique foods logged',         category: 'variety',      check: (_t, _s, _d, f)            => f >= 5   },
   { id: 'unique_20',  emoji: '🌍', name: 'Adventurous',       desc: '20 unique foods logged',        category: 'variety',      check: (_t, _s, _d, f)            => f >= 20  },
   { id: 'unique_50',  emoji: '🧑‍🍳', name: 'Master Taster',  desc: '50 unique foods logged',        category: 'variety',      check: (_t, _s, _d, f)            => f >= 50  },
-  // Balance
-  { id: 'balanced_1', emoji: '⚖️', name: 'Balanced Day',      desc: 'First day with balanced macros', category: 'balance',   check: (_t, _s, _d, _f, b)        => b >= 1  },
-  { id: 'balanced_5', emoji: '🌈', name: 'Harmony',           desc: '5 days with balanced macros',    category: 'balance',   check: (_t, _s, _d, _f, b)        => b >= 5  },
-  { id: 'balanced_10',emoji: '✨', name: 'Balance Master',     desc: '10 days with balanced macros',   category: 'balance',   check: (_t, _s, _d, _f, b)        => b >= 10 },
 ]
 
 export function getAllBadges(
   entries: FoodEntry[],
   streak: number,
-  gamification: GamificationState,
 ): JourneyBadge[] {
   const total = entries.length
   const days = getTotalLoggedDays(entries)
   const foods = uniqueFoodCount(entries)
-  const balanced = balancedDayCount(gamification)
-
   return BADGE_DEFS.map(({ check, ...def }) => ({
     ...def,
-    unlocked: check(total, streak, days, foods, balanced),
+    unlocked: check(total, streak, days, foods),
   }))
 }
 
@@ -242,5 +227,4 @@ export const BADGE_CATEGORIES: Array<{ key: BadgeCategory; label: string; emoji:
   { key: 'milestone',   label: 'Milestones',    emoji: '🎯' },
   { key: 'consistency', label: 'Consistency',   emoji: '🔥' },
   { key: 'variety',     label: 'Variety',       emoji: '🌍' },
-  { key: 'balance',     label: 'Balance',       emoji: '⚖️' },
 ]

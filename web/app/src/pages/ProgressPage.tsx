@@ -58,7 +58,7 @@ export function ProgressPage() {
   const { state, addWeightEntry, deleteWeightEntry } = useApp()
   const [range, setRange] = useState<RangeId>('1W')
   const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
-  const badges = getAllBadges(state.foodEntries, streak, state.gamification)
+  const badges = getAllBadges(state.foodEntries, streak)
   const consistency = getMonthConsistency(state.foodEntries)
   const [showLog, setShowLog] = useState(false)
   const [weight, setWeight] = useState(String(state.profile.weightKg ?? ''))

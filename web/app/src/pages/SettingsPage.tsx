@@ -17,6 +17,9 @@ import {
   effectiveProtein,
   effectiveCarbs,
   effectiveFat,
+  goalWeightIssue,
+  maxWeeklyChangeKg,
+  profileInputIssue,
 } from '../lib/profile'
 import { exportData, importData } from '../lib/storage'
 import { track } from '../lib/analytics'
@@ -56,9 +59,11 @@ export function SettingsPage() {
   const [model, setModel] = useState(state.aiSettings.model)
   const [instructions, setInstructions] = useState(state.aiSettings.customInstructions ?? '')
   const [saved, setSaved] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const goalTargets = computeTargets(profile)
+  const currentProfileIssue = profileInputIssue(profile) ?? goalWeightIssue(profile)
   const modelPresets = provider === 'openrouter' ? OPENROUTER_MODELS : GEMINI_MODELS
 
   function handleProviderChange(next: AIProvider) {
@@ -67,8 +72,13 @@ export function SettingsPage() {
   }
 
   function saveProfile() {
+    if (currentProfileIssue) {
+      setProfileError(currentProfileIssue)
+      return
+    }
     updateProfile(profile)
     updateAISettings({ provider, apiKey, model, customInstructions: instructions || undefined })
+    setProfileError(null)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -81,6 +91,7 @@ export function SettingsPage() {
     a.download = `fud-ai-export-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
+    track({ name: 'export_completed' })
   }
 
   function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -89,7 +100,7 @@ export function SettingsPage() {
     const reader = new FileReader()
     reader.onload = () => {
       try {
-        const next = importData(String(reader.result))
+        const next = importData(String(reader.result), state.aiSettings.apiKey)
         replaceState(next)
         setProfile(next.profile)
         setProvider(next.aiSettings.provider)
@@ -163,6 +174,9 @@ export function SettingsPage() {
 
         {/* Profile */}
         <SectionLabel>Profile</SectionLabel>
+        {(profileError || currentProfileIssue) && (
+          <div className="error-banner" role="alert">{profileError ?? currentProfileIssue}</div>
+        )}
         <SettingsCard>
           <SettingsRow label="Name">
             <input className="settings-input" value={profile.name ?? ''} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />
@@ -188,12 +202,54 @@ export function SettingsPage() {
             </select>
           </SettingsRow>
           <SettingsRow label="Goal">
-            <select className="settings-select" value={profile.goal} onChange={e => setProfile(p => ({ ...p, goal: e.target.value as WeightGoal }))}>
+            <select
+              className="settings-select"
+              value={profile.goal}
+              onChange={e => {
+                const goal = e.target.value as WeightGoal
+                setProfile(p => ({
+                  ...p,
+                  goal,
+                  goalWeightKg: goal === 'maintain' ? undefined : p.goalWeightKg,
+                }))
+              }}
+            >
               {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(k => (
                 <option key={k} value={k}>{GOAL_LABELS[k]}</option>
               ))}
             </select>
           </SettingsRow>
+          {profile.goal !== 'maintain' && (
+            <SettingsRow label="Weekly change" hint={`kg · max ${maxWeeklyChangeKg(profile)}`}>
+              <input
+                className="settings-input"
+                type="number"
+                min="0.1"
+                max={maxWeeklyChangeKg(profile)}
+                step="0.1"
+                value={profile.weeklyChangeKg ?? 0.5}
+                onChange={e => setProfile(p => ({ ...p, weeklyChangeKg: Number(e.target.value) }))}
+              />
+            </SettingsRow>
+          )}
+          {(profile.goal !== 'maintain' || profile.goalWeightKg != null) && (
+            <SettingsRow label="Goal weight" hint="kg · optional">
+              <input
+                className="settings-input"
+                type="number"
+                min="1"
+                step="0.1"
+                value={profile.goalWeightKg ?? ''}
+                onChange={e => {
+                  setProfileError(null)
+                  setProfile(p => ({
+                    ...p,
+                    goalWeightKg: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }}
+              />
+            </SettingsRow>
+          )}
         </SettingsCard>
 
         {/* AI */}
@@ -300,7 +356,7 @@ export function SettingsPage() {
               onChange={e => {
                 const next = e.target.checked
                 setProfile(p => ({ ...p, trackingPaused: next }))
-                if (next) track({ name: 'tracking_paused' })
+                if (next) track({ name: 'pause_tracking_enabled' })
               }}
             />
           </SettingsRow>
@@ -313,7 +369,13 @@ export function SettingsPage() {
           </Link>
         </SettingsCard>
 
-        <button type="button" className="btn btn-primary btn-block" style={{ marginBottom: 24 }} onClick={saveProfile}>
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          style={{ marginBottom: 24 }}
+          onClick={saveProfile}
+          disabled={Boolean(currentProfileIssue)}
+        >
           Save settings
         </button>
 

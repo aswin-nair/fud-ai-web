@@ -104,11 +104,12 @@ export interface GamificationState {
   freezeUsedDates: string[]    // YYYY-MM-DD days covered by a freeze
   freezeEarnedMonth: string    // YYYY-MM of last freeze grant
   xpEvents: XpEvent[]          // last 50 XP events (for feed display)
+  awardedKeys: string[]        // untruncated idempotency ledger; never use the feed as dedup state
   pendingLevelUp: number | null // new level pending celebration
   seenBadgeIds: string[]       // badge IDs already toasted
   quest?: {
     date: string
-    type: 'log_n_meals' | 'hit_protein' | 'log_before' | 'log_streak'
+    type: 'log_n_meals' | 'log_before' | 'log_streak'
     target: number
     progress: number
     completedAt: string | null

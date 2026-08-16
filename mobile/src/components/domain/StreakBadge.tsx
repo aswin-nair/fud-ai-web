@@ -14,25 +14,16 @@ import { useTheme } from '@/theme/useTheme';
 
 export type StreakBadgeProps = {
   count: number;
-  loggedToday: boolean;
-  /** Injectable so the at-risk window can be tested without touching the clock. */
-  now?: Date;
+  /** Derived by logic/streak using the profile's local date and hour. */
+  atRisk: boolean;
 };
 
 const IDLE_SCALE = 1.05;
 const AT_RISK_SCALE = 1.12;
 
-/** Nothing logged before this hour is normal, not a problem. See §2.3. */
-export const AT_RISK_HOUR = 18;
-
-export function isAtRisk(loggedToday: boolean, now: Date): boolean {
-  return !loggedToday && now.getHours() >= AT_RISK_HOUR;
-}
-
-export function StreakBadge({ count, loggedToday, now }: StreakBadgeProps) {
+export function StreakBadge({ atRisk, count }: StreakBadgeProps) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
-  const atRisk = isAtRisk(loggedToday, now ?? new Date());
 
   const scale = useSharedValue(1);
 

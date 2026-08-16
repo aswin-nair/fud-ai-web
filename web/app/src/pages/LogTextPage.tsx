@@ -4,6 +4,7 @@ import { useApp } from '../store/AppContext'
 import { analyzeTextFood } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
 import { BackLink } from '../components/BackLink'
+import { track } from '../lib/analytics'
 
 const EXAMPLES = [
   '2 scrambled eggs, toast with butter',
@@ -24,12 +25,15 @@ export function LogTextPage() {
     if (!trimmed) return
     setLoading(true)
     setError(null)
+    track({ name: 'ai_analysis_started', method: 'text_ai' })
     try {
       const analysis = await analyzeTextFood(trimmed, state.aiSettings)
+      track({ name: 'ai_analysis_completed', method: 'text_ai' })
       setPendingSource('textInput')
       setPendingAnalysis(analysis)
       navigate('/review')
     } catch (e) {
+      track({ name: 'ai_analysis_failed', method: 'text_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
     } finally {
       setLoading(false)
@@ -63,7 +67,8 @@ export function LogTextPage() {
 
         {!hasKey && (
           <div className="no-key-banner">
-            Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings to use AI logging.
+            Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings to use AI logging,
+            or <Link to="/log/manual">log manually</Link> without AI.
           </div>
         )}
 

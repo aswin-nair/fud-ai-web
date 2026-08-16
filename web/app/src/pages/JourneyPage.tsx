@@ -28,8 +28,8 @@ export function JourneyPage() {
   const nextStage = getNextStage(currentStage)
   const streak = getStreakWithFreezes(foodEntries, gamification.freezeUsedDates)
   const allBadges = useMemo(
-    () => getAllBadges(foodEntries, streak, gamification),
-    [foodEntries, streak, gamification],
+    () => getAllBadges(foodEntries, streak),
+    [foodEntries, streak],
   )
 
   const level = levelFromXp(gamification.xp)

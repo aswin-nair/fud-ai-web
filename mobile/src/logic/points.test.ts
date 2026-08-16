@@ -7,17 +7,27 @@ describe('points', () => {
     expect(POINTS).toEqual({
       meal_logged: 10,
       first_log_of_day: 15,
-      protein_target_hit: 20,
       quest_completed: 25,
       streak_milestone: 50,
     });
   });
 
-  it('awards nothing for restriction', () => {
-    // §2.3: no reason may reward eating less or ending under target. This
-    // asserts the shape of the table itself, so adding such a reason fails.
+  it('awards nothing for nutrition outcomes or restriction', () => {
+    // §2.3: points reward logging actions and genuine habit milestones, not
+    // nutrition results. This asserts the shape of the table itself, so adding
+    // an outcome-based reason fails even if its copy sounds encouraging.
     const reasons = Object.keys(POINTS);
-    const banned = ['deficit', 'under_target', 'ate_less', 'skipped_meal', 'fasted'];
+    const banned = [
+      'protein',
+      'macro',
+      'calorie',
+      'target_hit',
+      'deficit',
+      'under_target',
+      'ate_less',
+      'skipped_meal',
+      'fasted',
+    ];
 
     for (const reason of reasons) {
       for (const word of banned) {

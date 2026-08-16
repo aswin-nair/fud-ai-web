@@ -1,11 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
 import { IconCamera, IconClipboard, IconEdit, IconPlus, IconStar } from '../components/icons'
 import { useApp } from '../store/AppContext'
-import { track } from '../lib/analytics'
+import { selectLogMethod, startLogFlow, type LogMethod } from '../lib/analytics'
 import {
   mealKey,
   parseQuickAdd,
@@ -22,6 +22,7 @@ const OTHER_WAYS = [
     accent: 'coral',
     title: 'Describe your meal',
     desc: 'Type anything — AI estimates your macros',
+    method: 'text_ai',
   },
   {
     to: '/log/photo',
@@ -29,6 +30,7 @@ const OTHER_WAYS = [
     accent: 'blue',
     title: 'Snap a photo',
     desc: 'AI reads the nutrition',
+    method: 'photo_ai',
   },
   {
     to: '/log/saved',
@@ -36,6 +38,7 @@ const OTHER_WAYS = [
     accent: 'gold',
     title: 'Saved meals',
     desc: 'Everything you have kept',
+    method: 'saved',
   },
   {
     to: '/log/manual',
@@ -43,6 +46,7 @@ const OTHER_WAYS = [
     accent: 'teal',
     title: 'Manual entry',
     desc: 'Enter known macros',
+    method: 'manual',
   },
 ] as const
 
@@ -60,7 +64,10 @@ export function LogMenuPage() {
   const { state, addEntry } = useApp()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const openedAt = useRef(Date.now())
+
+  useEffect(() => {
+    startLogFlow('search', state.foodEntries.length === 0)
+  }, [state.foodEntries.length])
 
   const recents = useMemo(
     () => recentMeals(state.foodEntries, RECENT_LIMIT),
@@ -87,27 +94,17 @@ export function LogMenuPage() {
     })
   }, [query, favourites, recents])
 
-  /** Seconds from opening this screen to the entry landing. §9 / §13. */
-  function secondsToLog(): number {
-    return Math.round((Date.now() - openedAt.current) / 100) / 10
-  }
-
-  function commit(entry: FoodEntry, source: string) {
+  function commit(entry: FoodEntry, source: LogMethod) {
+    selectLogMethod(source)
     addEntry(entry)
-    track({
-      name: 'meal_logged',
-      slot: entry.mealType,
-      source,
-      seconds_to_log: secondsToLog(),
-    })
-    navigate('/', { state: { justLogged: { calories: entry.calories, name: entry.name } } })
+    navigate('/', { state: { justLogged: { id: entry.id, calories: entry.calories, name: entry.name } } })
   }
 
   function logQuickAdd(calories: number) {
     commit(quickAddEntry(calories), 'quick_add')
   }
 
-  function logAgain(item: FoodEntry | SavedMeal, source: string) {
+  function logAgain(item: FoodEntry | SavedMeal, source: LogMethod) {
     const saved: SavedMeal = 'timestamp' in item
       ? { ...item, id: crypto.randomUUID() }
       : item
@@ -227,7 +224,12 @@ export function LogMenuPage() {
         <p className="log-section-label" style={{ marginTop: 24 }}>Other ways to log</p>
         <div className="log-manual-grid">
           {OTHER_WAYS.map(opt => (
-            <Link key={opt.to} to={opt.to} className="log-menu-card">
+            <Link
+              key={opt.to}
+              to={opt.to}
+              className="log-menu-card"
+              onClick={() => selectLogMethod(opt.method)}
+            >
               <span className={`log-menu-icon icon-tile icon-tile-sm icon-tile-${opt.accent}`}>
                 <opt.Icon size={18} />
               </span>

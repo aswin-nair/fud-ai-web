@@ -24,8 +24,6 @@ const MASCOT_STATES: MascotState[] = [
   'waving',
 ];
 
-const EVENING = new Date(new Date().setHours(20, 0, 0, 0));
-
 /**
  * Phase 2 and 3 scratch screen, not product UI. It exists to exercise every
  * primitive, domain component and variant on a device. Phase 5 replaces this
@@ -172,19 +170,15 @@ export default function Gallery() {
 
         <Section title="Streak badge">
           <View style={{ alignItems: 'flex-start', gap: theme.space.md }}>
-            <StreakBadge count={12} loggedToday />
+            <StreakBadge atRisk={false} count={12} />
             <Text variant="caption" color="textMuted">
               At-risk pulse, forced to 20:00 with nothing logged:
             </Text>
-            <StreakBadge count={12} loggedToday={false} now={EVENING} />
+            <StreakBadge atRisk count={12} />
             <Text variant="caption" color="textMuted">
               Same state at 09:00 stays calm — never nags in the morning:
             </Text>
-            <StreakBadge
-              count={12}
-              loggedToday={false}
-              now={new Date(new Date().setHours(9, 0, 0, 0))}
-            />
+            <StreakBadge atRisk={false} count={12} />
           </View>
         </Section>
 
@@ -199,14 +193,6 @@ export default function Gallery() {
             variant="secondary"
             label="Advance quest"
             onPress={() => setQuestStep((n) => (n >= 3 ? 0 : n + 1))}
-          />
-          <QuestCard
-            color="protein"
-            current={140}
-            goal={140}
-            icon="check"
-            tint="streak"
-            title="Hit your protein target"
           />
         </Section>
 

@@ -7,7 +7,12 @@
     "build": "npm run build --prefix web/app",
     "preview": "npm run preview --prefix web/app",
     "lint": "npm run lint --prefix web/app",
+    "test": "npm run test:web && npm run test:mobile",
+    "test:web": "npm run test --prefix web/app",
+    "test:mobile": "npm run test --prefix mobile",
+    "typecheck:api": "npm exec --prefix web -- tsc -p web/api/tsconfig.json --noEmit",
+    "typecheck:mobile": "npm run typecheck --prefix mobile",
     "test:e2e": "npm run test:e2e --prefix web/app",
-    "ci": "npm run ci --prefix web/app"
+    "ci": "npm run ci --prefix web/app && npm run typecheck:api && npm run typecheck:mobile && npm run test:mobile"
   }
 }

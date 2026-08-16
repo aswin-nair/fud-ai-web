@@ -24,7 +24,6 @@ export default function Portion() {
   const food = useLogStore((s) => s.food);
   const reset = useLogStore((s) => s.reset);
   const timezone = useProfileStore((s) => s.timezone)();
-  const proteinTarget = useProfileStore((s) => s.profile?.proteinGTarget ?? 0);
 
   const [servings, setServings] = useState(1);
   const [slot, setSlot] = useState<MealSlot>(defaultMealSlot(localHourIn(timezone)));
@@ -78,7 +77,7 @@ export default function Portion() {
         timezone,
       });
 
-      const outcome = await recordLog(timezone, { proteinG: proteinTarget });
+      const outcome = await recordLog(timezone);
       reset();
 
       const since = (offset: number) => Math.max(offset - (Date.now() - pressedAt), 0);

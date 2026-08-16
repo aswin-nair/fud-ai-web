@@ -1,4 +1,4 @@
-import { getLoggedDates, getTotalsForDate } from '@/db/queries/entries';
+import { getLoggedDates } from '@/db/queries/entries';
 import {
   consumeFreeze,
   getAvailableFreeze,
@@ -63,10 +63,7 @@ export async function openSession(timezone: string): Promise<FreezeApplied | nul
  * and a refresh of the day. Kept in one place so the log flow and the edit
  * screen cannot drift apart on what a log is worth.
  */
-export async function recordLog(
-  timezone: string,
-  targets: { proteinG: number },
-): Promise<LogOutcome> {
+export async function recordLog(timezone: string): Promise<LogOutcome> {
   const today = toLocalDate(new Date(), timezone);
 
   await awardPoints('meal_logged', today);
@@ -75,24 +72,23 @@ export async function recordLog(
     await awardPoints('first_log_of_day', today);
   }
 
-  const totals = await getTotalsForDate(today);
-  if (
-    targets.proteinG > 0 &&
-    totals.proteinG >= targets.proteinG &&
-    !(await hasAwarded('protein_target_hit', today))
-  ) {
-    await awardPoints('protein_target_hit', today);
-  }
-
   const streakMilestone = await awardStreakMilestone(timezone, today);
 
-  // Quest sync can itself award quest_completed, so it runs before the final
-  // read and Home sees one consistent points total.
-  await syncQuest(timezone, targets.proteinG);
+  // The quest store only computes progress. This command is the sole owner of
+  // turning a completion into points, so edit/delete sync cannot award XP.
+  const { newlyCompleted } = await syncQuest(timezone, true);
+  const questCompleted =
+    newlyCompleted && !(await hasAwarded('quest_completed', today));
+
+  if (questCompleted) {
+    await awardPoints('quest_completed', today);
+  }
+
+  useQuestStore.setState({ justCompleted: questCompleted });
   await refreshDay(timezone);
 
   return {
-    questCompleted: useQuestStore.getState().justCompleted,
+    questCompleted,
     streakMilestone,
   };
 }
@@ -121,8 +117,7 @@ async function awardStreakMilestone(timezone: string, today: LocalDate): Promise
 /** After an edit or delete: no new points, but the quest bar must walk back. */
 export async function recordChange(
   timezone: string,
-  targets: { proteinG: number },
 ): Promise<void> {
-  await syncQuest(timezone, targets.proteinG);
+  await syncQuest(timezone);
   await refreshDay(timezone);
 }
