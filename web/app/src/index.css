@@ -36,6 +36,58 @@
   --surface-2: var(--paper-warm);
   --border: var(--rule);
   --bg: var(--paper-deep);
+
+  /* ── Design tokens (BUILD_SPEC §5) ────────────────────────────
+     Named by role, not by colour, so a rebrand touches this block only.
+     Every value maps onto the existing coral/cream identity — this layer
+     introduces no new hue. */
+
+  /* Nutrition semantics. One job each, never reused. */
+  --on-track: var(--coral);
+  --on-track-deep: var(--coral-deep);
+  /* A lighter tint of the same coral for the over-target arc. Per §2.4 this
+     is NOT a warning colour — going over is a neutral state. */
+  --on-track-soft: #FFC0A8;
+  --streak: var(--coral);
+  --protein: #6B9FFF;
+  --carbs: #FFB347;
+  --fat: #FF6B9D;
+
+  /* Destructive only. Never a nutrition state. §2.4 */
+  --danger: #E5484D;
+  --danger-deep: #C13438;
+
+  /* Spacing rhythm. */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+
+  /* Radii. --radius-sm is the floor; square corners are off-brand. */
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Type scale. */
+  --text-hero: 2.75rem;
+  --text-display: 2rem;
+  --text-title: 1.25rem;
+  --text-subtitle: 1.06rem;
+  --text-body: 0.94rem;
+  --text-label: 0.82rem;
+  --text-caption: 0.7rem;
+
+  /* Motion. */
+  --motion-press: 100ms;
+  --motion-fill: 600ms;
+  --motion-sheet: 260ms;
+  --motion-celebrate: 900ms;
+
+  /* Depth of the raised button's exposed shadow face. §6.1 */
+  --press-depth: 4px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3717,6 +3769,597 @@ a:hover { text-decoration: underline; }
 
 .settings-byok-note a { color: var(--coral-start); }
 
+/* ── Log celebration (§11.1) ─────────────────────────────────
+   The whole screen becomes the reward. Nothing here reacts to the calorie
+   total — only to the act of logging. §2.4 / §2.5 */
+.celebrate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: var(--paper);
+  opacity: 0;
+  transition: opacity var(--motion-sheet) ease-out;
+  overflow-y: auto;
+}
+
+.celebrate-overlay.is-shown { opacity: 1; }
+
+.celebrate-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  transform: translateY(12px);
+  transition: transform var(--motion-sheet) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.celebrate-overlay.is-shown .celebrate-inner { transform: translateY(0); }
+
+.celebrate-title {
+  font-family: var(--serif);
+  font-size: var(--text-display);
+  color: var(--ink);
+  margin-top: var(--space-sm);
+}
+
+.celebrate-sub { font-size: var(--text-body); color: var(--ink-soft); }
+
+.celebrate-stats {
+  display: flex;
+  gap: var(--space-md);
+  width: 100%;
+  margin-top: var(--space-sm);
+}
+
+.celebrate-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-lg) var(--space-md);
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.celebrate-stat-value {
+  font-family: var(--serif);
+  font-size: var(--text-title);
+  color: var(--coral);
+}
+
+.celebrate-flame { margin-right: 4px; }
+
+.celebrate-stat-label {
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.celebrate-awards {
+  width: 100%;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.celebrate-awards li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-label);
+  color: var(--ink-soft);
+}
+
+.celebrate-awards strong { color: var(--coral); }
+
+.celebrate-quest {
+  width: 100%;
+  padding: var(--space-lg);
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.celebrate-quest.is-done { border-color: var(--coral); }
+
+.celebrate-quest-top {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--text-label);
+  color: var(--ink);
+  margin-bottom: var(--space-sm);
+}
+
+.celebrate-quest-track {
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+.celebrate-quest-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--coral);
+  transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-overlay,
+  .celebrate-inner,
+  .celebrate-quest-fill { transition: none; }
+}
+
+/* ── XP bar toward the next level ────────────────────────────*/
+.home-xp {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 108px;
+}
+
+.home-xp-track {
+  width: 100%;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+.home-xp-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--coral);
+  transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Mascot speech bubble ────────────────────────────────────*/
+.mascot-say {
+  position: relative;
+  max-width: 190px;
+  padding: 10px 14px;
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-label);
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+/* The tail, drawn as a rotated square so it inherits the same border. */
+.mascot-say::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  background: var(--paper-card);
+  border-left: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+  transform: rotate(45deg);
+}
+
+.home-say-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-lg) var(--space-sm);
+}
+
+/* ── Streak week strip ───────────────────────────────────────*/
+.streak-week {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 var(--space-lg) var(--space-md);
+  padding: var(--space-md);
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.streak-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.streak-day-label {
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+
+.streak-day-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--paper-deep);
+  border: 2px solid transparent;
+  font-size: 0.72rem;
+}
+
+.streak-day.is-logged .streak-day-dot {
+  background: var(--coral);
+  color: #fff;
+}
+
+.streak-day.is-frozen .streak-day-dot {
+  background: #DCEBFF;
+}
+
+.streak-day.is-today .streak-day-dot { border-color: var(--coral); }
+
+.streak-day.is-today .streak-day-label { color: var(--coral); font-weight: 700; }
+
+/* ── CalorieRing (§7.1) ──────────────────────────────────────
+   The transition is on the arc itself, so it always moves from where it is
+   rather than restarting from empty. */
+.calorie-ring { position: relative; margin: 0 auto; }
+
+.calorie-ring-svg { display: block; }
+
+.calorie-ring-arc {
+  transition: stroke-dashoffset var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calorie-ring-centre {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.calorie-ring-value {
+  font-family: var(--serif);
+  font-size: var(--text-hero);
+  line-height: 1;
+  color: var(--ink);
+}
+
+/* Over target stays calm — §2.4 reserves emphasis for destructive actions. */
+.calorie-ring-value.is-over { color: var(--ink-soft); }
+
+.calorie-ring-unit {
+  font-size: var(--text-label);
+  color: var(--ink-mute);
+}
+
+.calorie-ring-caption {
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calorie-ring-arc { transition: none; }
+}
+
+/* ── Home, rebuilt to §9.2 ordering ──────────────────────────*/
+.home-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg) var(--space-sm);
+}
+
+.home-streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--coral-soft);
+  font-weight: 700;
+  font-size: var(--text-label);
+  color: var(--ink);
+}
+
+.home-streak-flame { font-size: 1rem; }
+
+/* Only when the day is genuinely at risk — §7.3. */
+.home-streak-badge.is-at-risk .home-streak-flame {
+  animation: streak-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes streak-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+
+.home-points { text-align: right; line-height: 1.25; }
+.home-points strong { display: block; font-size: var(--text-label); color: var(--ink); }
+.home-points span { font-size: var(--text-caption); color: var(--ink-mute); }
+
+.home-ring-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg) var(--space-lg);
+}
+
+.home-ring-sub { font-size: var(--text-label); color: var(--ink-mute); }
+
+.home-ring-mascot {
+  position: absolute;
+  right: -28px;
+  bottom: 4px;
+}
+
+/* The primary action is pinned, so it is reachable without scrolling. */
+.home-log-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) - 8px);
+  padding: 0 var(--space-lg);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.home-log-dock > * { pointer-events: auto; }
+
+/* Home pins its own primary action, so the coach FAB moves up to clear it
+   rather than sitting on top of the button. */
+.home-shell .fab {
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 78px);
+}
+
+.home-scroll-pad { height: 116px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-streak-badge.is-at-risk .home-streak-flame { animation: none; }
+}
+
+/* ── PressableButton (§6.1) ──────────────────────────────────
+   Two stacked layers: a static shadow, and a face that slides down onto it.
+   The container reserves --press-depth at the bottom so nothing reflows. */
+.pressable {
+  position: relative;
+  display: inline-block;
+  padding: 0 0 var(--press-depth);
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+
+.pressable.is-full { display: block; width: 100%; }
+
+.pressable-shadow {
+  position: absolute;
+  inset: var(--press-depth) 0 0;
+  border-radius: var(--radius-lg);
+}
+
+.pressable-face {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 54px;
+  padding: 0 var(--space-xl);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  transform: translateY(0);
+  transition: transform var(--motion-press) ease-out;
+}
+
+.pressable.is-pressed .pressable-face { transform: translateY(var(--press-depth)); }
+
+.pressable-primary .pressable-shadow { background: var(--on-track-deep); }
+.pressable-primary .pressable-face { background: var(--on-track); color: #fff; }
+
+.pressable-secondary .pressable-shadow { background: var(--rule-strong); }
+.pressable-secondary .pressable-face {
+  background: var(--paper-card);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+}
+
+.pressable-destructive .pressable-shadow { background: var(--danger-deep); }
+.pressable-destructive .pressable-face { background: var(--danger); color: #fff; }
+
+.pressable:disabled { opacity: 0.5; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable-face { transition: none; }
+}
+
+/* ── Consistency card (§9.3) ─────────────────────────────────
+   The headline metric. Deliberately the largest number on the page. */
+.consistency-streak {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--coral);
+}
+
+.consistency-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.consistency-number {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.consistency-unit { font-size: 0.9rem; color: var(--ink-soft); }
+
+.consistency-sub {
+  font-size: 0.78rem;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+
+.consistency-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.consistency-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+}
+
+.consistency-dot.is-logged {
+  background: var(--coral);
+  border-color: var(--coral);
+}
+
+/* Days that have not happened yet are absent, not missed. */
+.consistency-dot.is-future { opacity: 0.4; }
+
+/* ── Log pick screen (§9.1) ──────────────────────────────────
+   Search first, recents underneath, quick add when the query is a number. */
+.log-search-wrap { margin: 4px 0 14px; }
+
+.log-search-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.log-search-input:focus {
+  outline: none;
+  border-color: var(--coral);
+}
+
+.log-quick-add {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: var(--coral-soft);
+  border: 1px solid var(--coral);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.log-quick-add-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--coral);
+}
+
+.log-quick-add-text { display: flex; flex-direction: column; gap: 2px; }
+.log-quick-add-text strong { font-size: 0.92rem; color: var(--ink); }
+.log-quick-add-text span { font-size: 0.76rem; color: var(--ink-soft); }
+
+.log-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.log-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.log-pick-emoji { font-size: 1.15rem; flex: none; }
+
+.log-pick-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-pick-kcal {
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--coral);
+}
+
+.log-empty {
+  padding: 18px 16px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+}
+
+.log-empty-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.log-empty-sub { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; }
+
 /* ── Mascot (§7.6) ───────────────────────────────────────────
    Colours come from the existing coral/cream palette; the mascot introduces
    no new hue. Every animation is disabled under reduced motion. */
@@ -6348,4 +6991,13 @@ a:hover { text-decoration: underline; }
   .home-ambient-glow {
     animation: none !important;
   }
+}
+
+/* Streak state carried by the existing week strip, so Home has one week row
+   rather than two competing ones. */
+.week-day-streak {
+  display: block;
+  height: 13px;
+  font-size: 0.62rem;
+  line-height: 13px;
 }

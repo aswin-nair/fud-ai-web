@@ -60,6 +60,48 @@ export function getTotalLoggedDays(entries: FoodEntry[]): number {
   return new Set(entries.map(e => localDayKey(new Date(e.timestamp)))).size
 }
 
+export interface MonthConsistency {
+  /** Days this month with at least one entry. */
+  logged: number
+  /** Days of the month that have actually happened yet. */
+  elapsed: number
+  daysInMonth: number
+  /** Whether each day of the month was logged, indexed from the 1st. */
+  days: boolean[]
+}
+
+/**
+ * §9.3 makes this the headline metric rather than calories or weight trend.
+ * What gets shown is what gets optimised, and consistency is the behaviour
+ * worth optimising — the denominator is days elapsed, not days in the month,
+ * so the number never looks like a failure halfway through.
+ */
+export function getMonthConsistency(
+  entries: FoodEntry[],
+  ref: Date = new Date(),
+): MonthConsistency {
+  const year = ref.getFullYear()
+  const month = ref.getMonth()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  const loggedKeys = new Set(entries.map(e => localDayKey(new Date(e.timestamp))))
+  const isCurrentMonth =
+    ref.getFullYear() === new Date().getFullYear() && ref.getMonth() === new Date().getMonth()
+  const elapsed = isCurrentMonth ? ref.getDate() : daysInMonth
+
+  const days: boolean[] = []
+  for (let day = 1; day <= daysInMonth; day++) {
+    days.push(loggedKeys.has(localDayKey(new Date(year, month, day))))
+  }
+
+  return {
+    logged: days.slice(0, elapsed).filter(Boolean).length,
+    elapsed,
+    daysInMonth,
+    days,
+  }
+}
+
 // ── Streak with freeze support ─────────────────────────────────
 export function getStreakWithFreezes(
   entries: FoodEntry[],

@@ -1,43 +1,87 @@
-interface CalorieRingProps {
+import { RING_STROKE_RATIO } from '../lib/tokens'
+
+/**
+ * The hero element on Home, §7.1.
+ *
+ * The arc animates via a CSS transition on stroke-dashoffset, which means it
+ * always moves from wherever it currently is rather than restarting from
+ * empty on every render — the single most common bug in this component.
+ *
+ * Over target draws a second arc on top in --on-track-soft, a lighter tint of
+ * the same coral. Per §2.4 that is not a warning: no colour shift, no icon,
+ * and the label stays factual.
+ */
+export interface CalorieRingProps {
   consumed: number
-  goal: number
+  target: number
+  size?: number
+  /** Shown under the number when set, e.g. a date other than today. */
+  caption?: string
 }
 
-export function CalorieRing({ consumed, goal }: CalorieRingProps) {
-  const remaining = Math.max(0, goal - consumed)
-  const over = consumed > goal
-  const pct = Math.min(1, consumed / Math.max(goal, 1))
-  const r = 70
-  const c = 2 * Math.PI * r
-  const offset = c * (1 - pct)
+export function CalorieRing({ consumed, target, size = 200, caption }: CalorieRingProps) {
+  const strokeWidth = size * RING_STROKE_RATIO
+  const radius = size / 2 - strokeWidth / 2
+  const circumference = 2 * Math.PI * radius
+  const centre = size / 2
+
+  const safeTarget = target > 0 ? target : 1
+  const progress = Math.min(consumed / safeTarget, 1)
+  const overflow = Math.min(Math.max(consumed - safeTarget, 0) / safeTarget, 1)
+
+  const isOver = consumed > target
+  const remaining = Math.max(Math.round(target - consumed), 0)
+  const overBy = Math.round(consumed - target)
 
   return (
-    <div className="ring-wrap">
-      <div className="calorie-ring">
-        <svg width="160" height="160" viewBox="0 0 160 160">
-          <circle cx="80" cy="80" r={r} fill="none" stroke="var(--rule)" strokeWidth="10" />
+    <div className="calorie-ring" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="calorie-ring-svg" aria-hidden>
+        {/* Rotated so the arc starts at twelve o'clock rather than three. */}
+        <g transform={`rotate(-90 ${centre} ${centre})`}>
           <circle
-            cx="80"
-            cy="80"
-            r={r}
+            cx={centre}
+            cy={centre}
+            r={radius}
             fill="none"
-            stroke={over ? 'var(--coral-deep)' : 'var(--coral)'}
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={c}
-            strokeDashoffset={offset}
+            stroke="var(--paper-deep)"
+            strokeWidth={strokeWidth}
           />
-        </svg>
-        <div className="ring-center">
-          <span className="ring-value">{Math.round(consumed)}</span>
-          <span className="ring-label">kcal eaten</span>
-        </div>
+          <circle
+            className="calorie-ring-arc"
+            cx={centre}
+            cy={centre}
+            r={radius}
+            fill="none"
+            stroke="var(--on-track)"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - progress)}
+          />
+          {isOver && (
+            <circle
+              className="calorie-ring-arc"
+              cx={centre}
+              cy={centre}
+              r={radius}
+              fill="none"
+              stroke="var(--on-track-soft)"
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={circumference * (1 - overflow)}
+            />
+          )}
+        </g>
+      </svg>
+
+      <div className="calorie-ring-centre">
+        <strong className={`calorie-ring-value${isOver ? ' is-over' : ''}`}>
+          {(isOver ? overBy : remaining).toLocaleString()}
+        </strong>
+        <span className="calorie-ring-unit">{isOver ? 'kcal over' : 'kcal left'}</span>
+        {caption && <span className="calorie-ring-caption">{caption}</span>}
       </div>
-      <span className="ring-remaining">
-        {over
-          ? `${Math.round(consumed - goal)} over goal`
-          : `${Math.round(remaining)} remaining · ${goal} goal`}
-      </span>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { FoodEntry } from '../types'
 import { localDayKey } from './dates'
-import { getStreakWithFreezes } from './journey'
+import { getMonthConsistency, getStreakWithFreezes } from './journey'
 
 /**
  * §14 requires the streak to survive DST and timezone shifts. The streak walks
@@ -121,6 +121,56 @@ describe('local day boundaries', () => {
     const earlier = new Date(2025, 5, 10, 0, 30, 0)
     expect(localDayKey(earlier)).toBe('2025-06-10')
     expect(getStreakWithFreezes([entryAt(earlier)], [])).toBe(1)
+  })
+})
+
+describe('month consistency', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    // The 10th: nine full days elapsed plus today.
+    vi.setSystemTime(new Date(2025, 5, 10, 12, 0, 0))
+  })
+
+  it('counts distinct days logged this month', () => {
+    const entries = [0, 1, 2].map(entryDaysAgo)
+    const { logged } = getMonthConsistency(entries)
+
+    expect(logged).toBe(3)
+  })
+
+  it('measures against days elapsed, not the whole month', () => {
+    // Halfway through June the denominator is 10, not 30 — otherwise a
+    // perfect record would read as a third of the way there.
+    const { elapsed, daysInMonth } = getMonthConsistency([entryDaysAgo(0)])
+
+    expect(elapsed).toBe(10)
+    expect(daysInMonth).toBe(30)
+  })
+
+  it('counts a day once however many times it was logged', () => {
+    const noon = entryDaysAgo(0)
+    const evening = new Date()
+    evening.setHours(20, 0, 0, 0)
+
+    expect(getMonthConsistency([noon, entryAt(evening, 'x')]).logged).toBe(1)
+  })
+
+  it('ignores entries from other months', () => {
+    const lastMonth = new Date(2025, 4, 20, 12, 0, 0)
+
+    expect(getMonthConsistency([entryAt(lastMonth)]).logged).toBe(0)
+  })
+
+  it('marks a dot for every day of the month', () => {
+    const { days } = getMonthConsistency([entryDaysAgo(0)])
+
+    expect(days).toHaveLength(30)
+    expect(days[9]).toBe(true)
+    expect(days[8]).toBe(false)
+  })
+
+  it('is zero with no entries', () => {
+    expect(getMonthConsistency([]).logged).toBe(0)
   })
 })
 

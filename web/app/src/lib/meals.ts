@@ -1,4 +1,4 @@
-import type { FoodEntry, SavedMeal } from '../types'
+import type { FoodEntry, MealType, SavedMeal } from '../types'
 import { localDayKey } from './dates'
 
 export function mealKey(entry: Pick<FoodEntry, 'name' | 'calories' | 'protein' | 'carbs' | 'fat'>): string {
@@ -35,6 +35,46 @@ export function savedToEntry(saved: SavedMeal, source: FoodEntry['source'] = 'ma
     source,
     timestamp: new Date().toISOString(),
   }
+}
+
+/**
+ * The meal slot implied by the time of day, per §9.1. Pre-selecting this is
+ * one of the taps the twenty-second target cannot afford to spend.
+ */
+export function defaultMealType(hour = new Date().getHours()): MealType {
+  if (hour < 11) return 'breakfast'
+  if (hour < 16) return 'lunch'
+  if (hour < 21) return 'dinner'
+  return 'snack'
+}
+
+/**
+ * A raw calorie entry with no food attached, per §9.1. Some days people will
+ * not log properly, and a quick add that keeps the streak alive beats a
+ * skipped day.
+ */
+export function quickAddEntry(calories: number): FoodEntry {
+  return {
+    id: crypto.randomUUID(),
+    name: 'Quick add',
+    calories: Math.round(calories),
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    emoji: '⚡',
+    source: 'quickAdd',
+    mealType: defaultMealType(),
+    timestamp: new Date().toISOString(),
+  }
+}
+
+/** Parses a search box that is really just a calorie number. */
+export function parseQuickAdd(query: string): number | null {
+  const trimmed = query.trim()
+  if (!/^\d{1,5}$/.test(trimmed)) return null
+
+  const value = Number(trimmed)
+  return value > 0 && value <= 10000 ? value : null
 }
 
 export function recentMeals(entries: FoodEntry[], limit = 20): FoodEntry[] {

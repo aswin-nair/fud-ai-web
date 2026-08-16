@@ -1,9 +1,20 @@
-import { addDays, weekDatesContaining, sameDay, startOfWeek, narrowWeekday } from '../lib/dates'
+import {
+  addDays,
+  weekDatesContaining,
+  sameDay,
+  startOfWeek,
+  narrowWeekday,
+  localDayKey,
+} from '../lib/dates'
 import { IconChevronLeft, IconChevronRight } from './icons'
 
 interface WeekStripProps {
   selectedDate: Date
   onSelect: (date: Date) => void
+  /** local_date keys with at least one entry — shown as streak state. */
+  loggedDays?: Set<string>
+  /** local_date keys covered by a freeze, so a gap does not read as a miss. */
+  frozenDays?: Set<string>
 }
 
 function isFutureDay(date: Date, today: Date): boolean {
@@ -14,7 +25,12 @@ function isFutureDay(date: Date, today: Date): boolean {
   return d > t
 }
 
-export function WeekStrip({ selectedDate, onSelect }: WeekStripProps) {
+export function WeekStrip({
+  selectedDate,
+  onSelect,
+  loggedDays,
+  frozenDays,
+}: WeekStripProps) {
   const today = new Date()
   const days = weekDatesContaining(selectedDate)
 
@@ -47,6 +63,10 @@ export function WeekStrip({ selectedDate, onSelect }: WeekStripProps) {
           const isSelected = sameDay(d, selectedDate)
           const isToday = sameDay(d, today)
           const isFuture = isFutureDay(d, today)
+          const key = localDayKey(d)
+          const isLogged = loggedDays?.has(key) ?? false
+          // A frozen day was covered, not missed — §10.2.
+          const isFrozen = !isLogged && (frozenDays?.has(key) ?? false)
 
           return (
             <button
@@ -67,6 +87,9 @@ export function WeekStrip({ selectedDate, onSelect }: WeekStripProps) {
                 ].filter(Boolean).join(' ')}
               >
                 {d.getDate()}
+              </span>
+              <span className="week-day-streak" aria-hidden>
+                {isLogged ? '🔥' : isFrozen ? '❄️' : ''}
               </span>
             </button>
           )
