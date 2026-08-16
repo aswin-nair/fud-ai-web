@@ -23,10 +23,12 @@ export function getMotivation(current: number, goal: number): MotivationState {
     return { zone: 'pace', status: 'Nice pace', emoji: '🚀', ringClass: '' }
   }
   if (ratio < 1) {
-    return { zone: 'close', status: 'Almost there!', emoji: '⚡', ringClass: 'ring-near-goal' }
+    return { zone: 'close', status: 'Almost there', emoji: '⚡', ringClass: 'ring-near-goal' }
   }
   if (ratio <= 1.08) {
-    return { zone: 'goal', status: 'Goal smashed!', emoji: '🎉', ringClass: 'ring-at-goal' }
+    return { zone: 'goal', status: 'Goal reached', emoji: '🎉', ringClass: 'ring-at-goal' }
   }
-  return { zone: 'over', status: 'Over budget', emoji: '⚠️', ringClass: 'ring-over' }
+  // §2.4: over target is a neutral state. No warning colour, no warning icon,
+  // no evaluative copy — it is a fact about the day, not a verdict on it.
+  return { zone: 'over', status: 'Past your target', emoji: '🍽️', ringClass: 'ring-over' }
 }

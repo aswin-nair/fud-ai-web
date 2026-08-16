@@ -24,8 +24,15 @@ import { ACTIVITY_PRESETS, type ActivityPreset } from '../lib/activities'
 import { playLogConfirm, prefersReducedMotion, setFeelEnabled } from '../lib/feel'
 import { questTitle } from '../lib/quests'
 import { evaluateNotifications } from '../lib/notifications'
+import { Mascot, type MascotState } from '../components/Mascot'
 
 const REVEAL_DELAY_MS = 420
+
+/** How long the mascot holds its post-log reaction. */
+const MASCOT_BEAT_MS = 2400
+
+/** Streak lengths that earn `proud`, per the §7.6 state table. */
+const PROUD_STREAKS = [7, 30, 100]
 
 function greeting(): string {
   const h = new Date().getHours()
@@ -48,6 +55,8 @@ export function HomePage() {
   const [activePreset, setActivePreset] = useState<ActivityPreset | null>(null)
   const [revealed, setRevealed] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  // Transient mascot reaction, held for MASCOT_BEAT_MS after a log lands.
+  const [mascotBeat, setMascotBeat] = useState<MascotState | null>(null)
   const celebratedKey = useRef('')
   const loggedNavKey = useRef('')
   const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
@@ -69,6 +78,18 @@ export function HomePage() {
   const streakAtRisk = streak > 0 && !hasLoggedToday
   const paused = Boolean(profile.trackingPaused)
   const quest = state.gamification.quest
+
+  /**
+   * §2.5 / §7.6: the mascot reads logging behaviour and nothing else. It never
+   * sees totals, macros or a particular food, so there is no path from "went
+   * over" to a reaction — that case lands on `neutral` like any ordinary day.
+   */
+  const mascotState: MascotState = mascotBeat ?? (
+    !hasLoggedToday ? 'sleepy'
+      : PROUD_STREAKS.includes(streak) ? 'proud'
+        : paused ? 'neutral'
+          : 'idle'
+  )
 
   useEffect(() => {
     setFeelEnabled({
@@ -109,9 +130,28 @@ export function HomePage() {
       vibrate(15)
       setRingPop(true)
     }
+
+    // A quest finishing is the bigger moment; a plain log is still worth a nod.
+    setMascotBeat(questDone ? 'celebrating' : 'happy')
+  }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /*
+   * These two resets are keyed to the values themselves, not to location.key.
+   * The effect above navigates to clear the router state, which changes
+   * location.key — so a timer started there is torn down by its own cleanup
+   * before it can fire, and the state would stick on forever.
+   */
+  useEffect(() => {
+    if (!ringPop) return
     const t = setTimeout(() => setRingPop(false), prefersReducedMotion() ? 0 : 600)
     return () => clearTimeout(t)
-  }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ringPop])
+
+  useEffect(() => {
+    if (!mascotBeat) return
+    const t = setTimeout(() => setMascotBeat(null), MASCOT_BEAT_MS)
+    return () => clearTimeout(t)
+  }, [mascotBeat])
 
   // Calorie goal confetti
   useEffect(() => {
@@ -204,6 +244,7 @@ export function HomePage() {
       )}
 
       <div className="home-streak-row">
+        <Mascot state={mascotState} size={46} />
         <StreakCard streak={streak} entries={state.foodEntries} gamification={state.gamification} />
       </div>
       {quest && (

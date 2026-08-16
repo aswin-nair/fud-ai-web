@@ -8,13 +8,15 @@ import type { ActivityLevel, Gender, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS } from '../types'
 import { IconChevronLeft, IconChevronRight } from '../components/icons'
 import {
-  dailyCalories,
+  computeTargets,
   effectiveProtein,
   effectiveCarbs,
   effectiveFat,
   defaultProfile,
   ageFromBirthday,
+  maxWeeklyChangeKg,
 } from '../lib/profile'
+import { track } from '../lib/analytics'
 
 const STEPS = ['About you', 'Body', 'Activity', 'Goal', 'Review']
 
@@ -53,6 +55,7 @@ export function OnboardingPage() {
   const [blocked, setBlocked] = useState(false)
   const [profile, setProfile] = useState<UserProfile>(defaultProfile())
   const showingWelcome = welcomeIndex < WELCOME_SLIDES.length
+  const targets = computeTargets(profile)
 
   function nextWelcome() {
     setWelcomeIndex(i => Math.min(i + 1, WELCOME_SLIDES.length))
@@ -76,6 +79,7 @@ export function OnboardingPage() {
   }
 
   function finish() {
+    if (targets.clamped) track({ name: 'goal_clamped' })
     updateProfile(profile)
     setOnboarded(true)
     navigate('/')
@@ -256,10 +260,17 @@ export function OnboardingPage() {
               <div className="field" style={{ marginTop: 16 }}>
                 <label>Weekly change (kg)</label>
                 <input
-                  type="number" step="0.1" min="0.1" max="1.5"
+                  type="number" step="0.1" min="0.1" max={maxWeeklyChangeKg(profile)}
                   value={profile.weeklyChangeKg ?? 0.5}
-                  onChange={e => setProfile(p => ({ ...p, weeklyChangeKg: Number(e.target.value) }))}
+                  onChange={e => setProfile(p => ({
+                    ...p,
+                    // Held to 1% of bodyweight per week. §2.1.
+                    weeklyChangeKg: Math.min(Number(e.target.value), maxWeeklyChangeKg(p)),
+                  }))}
                 />
+                <p className="onboarding-clamp-hint">
+                  Up to {maxWeeklyChangeKg(profile)} kg a week, which is 1% of your bodyweight.
+                </p>
               </div>
             )}
           </div>
@@ -269,10 +280,15 @@ export function OnboardingPage() {
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your daily targets</h1>
             <p className="onboarding-sub">Calculated from your profile — you can adjust these in Settings.</p>
+            {/* §2.1: a floor that moved the number always says so, in plain
+                language, above the number it changed. */}
+            {targets.clamped && (
+              <p className="onboarding-clamp-note">{targets.clamped}</p>
+            )}
             <div className="onboarding-goals-grid">
               <div className="onboarding-goal-card" style={{ gridColumn: '1 / -1' }}>
                 <span className="onboarding-goal-label">Calories</span>
-                <span className="onboarding-goal-value" style={{ color: 'var(--coral-start)' }}>{dailyCalories(profile)}</span>
+                <span className="onboarding-goal-value" style={{ color: 'var(--coral-start)' }}>{targets.calories}</span>
                 <span className="onboarding-goal-unit">kcal / day</span>
               </div>
               <div className="onboarding-goal-card">

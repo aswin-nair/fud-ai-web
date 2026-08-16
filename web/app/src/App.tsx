@@ -20,6 +20,7 @@ import { CoachPage } from './pages/CoachPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { JourneyPage } from './pages/JourneyPage'
 import { AboutPage } from './pages/AboutPage'
+import { SupportPage } from './pages/SupportPage'
 
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
@@ -63,6 +64,7 @@ function AuthenticatedRoutes() {
       <Route path="/edit/:id" element={<EditFoodPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/support" element={<SupportPage />} />
       <Route path="/journey" element={<JourneyPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

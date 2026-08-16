@@ -13,7 +13,7 @@ import {
   isLowAccuracyModel,
 } from '../lib/aiConfig'
 import {
-  dailyCalories,
+  computeTargets,
   effectiveProtein,
   effectiveCarbs,
   effectiveFat,
@@ -58,6 +58,7 @@ export function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  const goalTargets = computeTargets(profile)
   const modelPresets = provider === 'openrouter' ? OPENROUTER_MODELS : GEMINI_MODELS
 
   function handleProviderChange(next: AIProvider) {
@@ -137,10 +138,14 @@ export function SettingsPage() {
 
         {/* Daily goals summary */}
         <SectionLabel>Daily goals</SectionLabel>
+        {/* §2.1: never clamp silently — say which floor is holding the number. */}
+        {goalTargets.clamped && (
+          <p className="settings-clamp-note">{goalTargets.clamped}</p>
+        )}
         <div className="settings-goals-grid">
           <div className="settings-goal-card">
             <span className="settings-goal-label">Calories</span>
-            <strong className="settings-goal-value">{dailyCalories(profile)}</strong>
+            <strong className="settings-goal-value">{goalTargets.calories}</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Protein</span>
@@ -299,6 +304,13 @@ export function SettingsPage() {
               }}
             />
           </SettingsRow>
+          <div className="settings-divider" />
+          {/* §2.8 keeps this an ordinary visible row, beside Pause rather than
+              buried under About. Two taps from Home: Settings, then here. */}
+          <Link to="/support" className="settings-data-btn settings-link-row">
+            <span>Support</span>
+            <IconChevronRight size={16} className="settings-link-chevron" />
+          </Link>
         </SettingsCard>
 
         <button type="button" className="btn btn-primary btn-block" style={{ marginBottom: 24 }} onClick={saveProfile}>
@@ -329,11 +341,6 @@ export function SettingsPage() {
         {/* About */}
         <SectionLabel>About</SectionLabel>
         <SettingsCard>
-          <Link to="/about" className="settings-data-btn settings-link-row">
-            <span>Support</span>
-            <IconChevronRight size={16} className="settings-link-chevron" />
-          </Link>
-          <div className="settings-divider" />
           <Link to="/about" className="settings-data-btn settings-link-row">
             <span>About Fud AI</span>
             <IconChevronRight size={16} className="settings-link-chevron" />

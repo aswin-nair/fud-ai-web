@@ -371,7 +371,13 @@ a:hover { text-decoration: underline; }
 
 .home-streak-row {
   padding: 10px 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+
+/* The streak pill takes the remaining width; the mascot keeps its size. */
+.home-streak-row > .streak-card { flex: 1; min-width: 0; }
 
 .home-quest-row {
   display: flex;
@@ -3711,6 +3717,115 @@ a:hover { text-decoration: underline; }
 
 .settings-byok-note a { color: var(--coral-start); }
 
+/* ── Mascot (§7.6) ───────────────────────────────────────────
+   Colours come from the existing coral/cream palette; the mascot introduces
+   no new hue. Every animation is disabled under reduced motion. */
+.mascot {
+  display: inline-block;
+  flex: none;
+}
+
+.mascot-svg { display: block; overflow: visible; }
+
+.mascot-body { fill: var(--coral); }
+.mascot-face { fill: var(--paper-warm); }
+.mascot-sprout { fill: var(--coral-deep); }
+.mascot-limb { fill: var(--coral-deep); }
+.mascot-star { fill: var(--carbs-color, #FFB347); }
+.mascot-ink { fill: var(--ink); }
+.mascot-blush { fill: var(--coral-deep); opacity: 0.28; }
+
+.mascot-limb-stroke path {
+  stroke: var(--coral-deep);
+  stroke-width: 9;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.mascot-line path {
+  stroke: var(--ink);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.mascot-zzz path,
+.mascot-sparkle path { stroke: var(--ink-mute); stroke-width: 3; }
+
+/* One slow breath by default; a touch livelier when something just happened. */
+.mascot-bob { animation: mascot-bob 2.6s ease-in-out infinite; transform-origin: 50% 80%; }
+.mascot-happy .mascot-bob { animation-duration: 1.1s; }
+.mascot-celebrating .mascot-bob { animation: mascot-cheer 0.7s ease-in-out infinite; }
+.mascot-sleepy .mascot-bob { animation-duration: 4s; }
+
+@keyframes mascot-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+@keyframes mascot-cheer {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-6px) rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-bob { animation: none !important; }
+}
+
+/* ── Support screen (§2.8) ───────────────────────────────────
+   Quiet by design. The phone number is the one emphatic element. */
+.support-region {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+
+.support-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.support-phone {
+  display: inline-block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--coral);
+  text-decoration: none;
+  margin-bottom: 6px;
+}
+
+.support-detail {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* ── Goal clamp explanations (§2.1) ──────────────────────────
+   Informational, never alarming: a floor doing its job is not an error, so
+   these read in the same calm tint as any other hint. */
+.settings-clamp-note,
+.onboarding-clamp-note {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  background: var(--coral-soft);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.onboarding-clamp-hint {
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+
 .settings-goals-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -4922,7 +5037,9 @@ a:hover { text-decoration: underline; }
 
 .ring-near-goal .calorie-hero-status { color: var(--coral); }
 .ring-at-goal   .calorie-hero-status { color: var(--green-goal); }
-.ring-over      .calorie-hero-status { color: var(--coral-deep); }
+/* Neutral, not a warning. §2.4 reserves emphatic colour for destructive
+   actions — going over target is never one. */
+.ring-over      .calorie-hero-status { color: var(--ink-soft); }
 
 /* ── Press-spring feedback ──────────────────────────────────── */
 .press-spring {
