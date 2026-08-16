@@ -23,7 +23,8 @@ export type IconName =
   | 'close'
   | 'home'
   | 'history'
-  | 'profile';
+  | 'profile'
+  | 'target';
 
 export type IconProps = {
   name: IconName;
@@ -143,6 +144,14 @@ function render(name: IconName, tint: string, stroke: StrokeStyle) {
         <>
           <Circle cx={12} cy={8.5} r={4} {...stroke} />
           <Path d="M4.8 20.4a7.4 7.4 0 0 1 14.4 0" {...stroke} />
+        </>
+      );
+    case 'target':
+      return (
+        <>
+          <Circle cx={12} cy={12} r={8.5} {...stroke} />
+          <Circle cx={12} cy={12} r={4.5} {...stroke} />
+          <Circle cx={12} cy={12} fill={tint} r={1.6} stroke="none" />
         </>
       );
   }

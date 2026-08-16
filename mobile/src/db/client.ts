@@ -6,11 +6,11 @@ import * as schema from '@/db/schema';
 export const DATABASE_NAME = 'calorie-tracker.db';
 
 /**
- * Opened synchronously at module load so the migrator and every query share
- * one connection. `enableChangeListener` powers drizzle's live queries, which
- * is what lets Home update the ring without a manual refetch after a write.
+ * Native uses the synchronous SQLite API, which is what drizzle's expo-sqlite
+ * driver is built on. Web cannot — see client.web.ts, which Metro substitutes
+ * automatically for that platform.
  */
-export const sqlite = openDatabaseSync(DATABASE_NAME, { enableChangeListener: true });
+export const sqlite = openDatabaseSync(DATABASE_NAME);
 
 export const db = drizzle(sqlite, { schema });
 

@@ -40,28 +40,32 @@ describe('points', () => {
 });
 
 describe('levelFor', () => {
+  it('matches the formula in §10.3', () => {
+    for (const points of [0, 37, 99, 100, 250, 399, 400, 1234, 10_000]) {
+      expect(levelFor(points).level).toBe(Math.floor(Math.sqrt(points / 100)) + 1);
+    }
+  });
+
   it('starts everyone at level 1', () => {
-    expect(levelFor(0)).toEqual({ level: 1, into: 0, span: 250 });
+    expect(levelFor(0)).toEqual({ level: 1, into: 0, span: 100 });
   });
 
   it('stays on level 1 just below the threshold', () => {
-    expect(levelFor(249).level).toBe(1);
+    expect(levelFor(99).level).toBe(1);
   });
 
   it('advances at the threshold', () => {
-    expect(levelFor(250).level).toBe(2);
+    expect(levelFor(100).level).toBe(2);
   });
 
   it('widens each level so later ones take longer', () => {
-    const second = levelFor(250);
-    const third = levelFor(250 + 500);
-
-    expect(second.span).toBe(500);
-    expect(third.span).toBe(750);
+    expect(levelFor(100).span).toBe(300);
+    expect(levelFor(400).span).toBe(500);
+    expect(levelFor(900).span).toBe(700);
   });
 
   it('reports progress into the current level', () => {
-    expect(levelFor(300)).toEqual({ level: 2, into: 50, span: 500 });
+    expect(levelFor(250)).toEqual({ level: 2, into: 150, span: 300 });
   });
 
   it('never returns a level below 1', () => {

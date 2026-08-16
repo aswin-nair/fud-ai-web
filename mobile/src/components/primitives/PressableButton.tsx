@@ -1,12 +1,13 @@
-import * as Haptics from 'expo-haptics';
 import { ActivityIndicator, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
+import { tapLight } from '@/feel/haptics';
 import { type ColorToken } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
 
@@ -58,6 +59,7 @@ export function PressableButton({
   style,
 }: PressableButtonProps) {
   const theme = useTheme();
+  const reducedMotion = useReducedMotion();
   const scheme = PALETTES[variant];
   const inert = disabled || loading;
 
@@ -68,13 +70,20 @@ export function PressableButton({
 
   function handlePressIn() {
     if (inert) return;
-    press.value = withTiming(DEPTH, { duration: theme.motion.press });
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Routed through the feel layer so `profile.haptics_enabled` is honoured.
+    // This button fires more haptics than everything else in the app combined,
+    // so calling expo-haptics directly here would make the setting look broken.
+    tapLight();
+
+    press.value = reducedMotion
+      ? DEPTH
+      : withTiming(DEPTH, { duration: theme.motion.press });
   }
 
   function handlePressOut() {
     if (inert) return;
-    press.value = withSpring(0, { damping: 15, stiffness: 400 });
+    press.value = reducedMotion ? 0 : withSpring(0, { damping: 15, stiffness: 400 });
   }
 
   return (

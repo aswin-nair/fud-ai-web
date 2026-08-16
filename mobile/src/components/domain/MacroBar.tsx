@@ -10,11 +10,13 @@ export type MacroBarProps = {
   consumed: number;
   target: number;
   color: ColorToken;
+  /** Held before the fill starts. Set by MacroGroup to stagger the three bars. */
+  delay?: number;
 };
 
 const BAR_HEIGHT = 8;
 
-export function MacroBar({ label, consumed, target, color }: MacroBarProps) {
+export function MacroBar({ label, consumed, target, color, delay }: MacroBarProps) {
   const theme = useTheme();
 
   return (
@@ -29,6 +31,7 @@ export function MacroBar({ label, consumed, target, color }: MacroBarProps) {
       </View>
       <ProgressBar
         color={color}
+        delay={delay}
         height={BAR_HEIGHT}
         max={target}
         overflowColor="onTrackSoft"

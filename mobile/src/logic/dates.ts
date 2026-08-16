@@ -51,3 +51,80 @@ export function daysBetween(from: LocalDate, to: LocalDate): number {
 export function monthOf(date: LocalDate): string {
   return date.slice(0, 7);
 }
+
+/** 'YYYY-MM' shifted by whole months. */
+export function addMonths(month: string, delta: number): string {
+  const [year, index] = month.split('-').map(Number);
+  const total = (year as number) * 12 + ((index as number) - 1) + delta;
+
+  const nextYear = Math.floor(total / 12);
+  const nextMonth = (total % 12) + 1;
+
+  return `${String(nextYear).padStart(4, '0')}-${String(nextMonth).padStart(2, '0')}`;
+}
+
+/** Every calendar day in a 'YYYY-MM' month, in order. */
+export function monthDays(month: string): LocalDate[] {
+  const [year, index] = month.split('-').map(Number);
+  const count = new Date(Date.UTC(year as number, index as number, 0)).getUTCDate();
+
+  return Array.from(
+    { length: count },
+    (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`,
+  );
+}
+
+/** Weekday of the first of the month, 0 = Sunday. */
+export function firstWeekdayOfMonth(month: string): number {
+  const [year, index] = month.split('-').map(Number);
+  return new Date(Date.UTC(year as number, (index as number) - 1, 1)).getUTCDay();
+}
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const;
+
+export function monthLabel(month: string): string {
+  const [year, index] = month.split('-').map(Number);
+  return `${MONTH_NAMES[(index as number) - 1]} ${year}`;
+}
+
+/**
+ * Builds a calendar date from user-entered parts, rejecting anything that is
+ * not a real day. Returns null rather than rolling 31 February forward into
+ * March, which would silently change someone's stated date of birth.
+ */
+export function buildLocalDate(
+  year: number,
+  month: number,
+  day: number,
+): LocalDate | null {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return null;
+  }
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  const ms = Date.UTC(year, month - 1, day);
+  const date = new Date(ms);
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return format(ms);
+}
