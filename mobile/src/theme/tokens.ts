@@ -56,7 +56,7 @@ export const palette = {
     textSecondary: '#B0B3BB',
     textMuted: '#7E828C',
     textOnFill: '#FFFFFF',
-    tintStreak: '#3A211605',
+    tintStreak: '#3A2116',
     tintOnTrack: '#12251D',
   },
 } as const;
@@ -75,6 +75,10 @@ export const type = {
     label: 13,
     caption: 11,
   },
+  /** Letter-spacing, kept here so no component carries a bare number. */
+  tracking: {
+    button: 0.4,
+  },
 } as const;
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
@@ -87,13 +91,16 @@ export const motion = {
   fill: 600, // ring and macro bar fills
   sheet: 260, // bottom sheet
   celebrate: 900, // confetti, badge pop
+  pulse: 2000, // streak badge idle breath
+  pulseAtRisk: 700, // streak badge after 18:00 with nothing logged
 } as const;
 
 export type ColorScheme = keyof typeof palette;
 export type Colors = (typeof palette)[ColorScheme];
 export type ColorToken = keyof Colors;
-export type TypeVariant = Exclude<keyof typeof type, 'size'>;
+export type FontFamilyToken = Exclude<keyof typeof type, 'size' | 'tracking'>;
 export type SizeToken = keyof (typeof type)['size'];
+export type TrackingToken = keyof (typeof type)['tracking'];
 export type SpaceToken = keyof typeof space;
 export type RadiusToken = keyof typeof radius;
 export type MotionToken = keyof typeof motion;
