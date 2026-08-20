@@ -1,4 +1,5 @@
-import { previousDate, type LocalDate } from '@/logic/dates';
+import { planFreeze as sharedPlanFreeze, type FreezePlan as SharedFreezePlan } from '@fud-ai/domain/freezes';
+import { type LocalDate } from '@/logic/dates';
 
 /**
  * §10.2: a freeze is a pressure valve, not a product. Losing a long streak is
@@ -7,12 +8,7 @@ import { previousDate, type LocalDate } from '@/logic/dates';
  * reward for engagement.
  */
 
-export type FreezePlan = {
-  /** Days the freeze should cover, oldest first. Empty when nothing is at risk. */
-  cover: LocalDate[];
-  /** The streak length that survives, for the next-morning notification. */
-  protectedStreak: number;
-};
+export type FreezePlan = SharedFreezePlan;
 
 /**
  * Decides whether an unlogged yesterday should silently consume a freeze.
@@ -27,32 +23,7 @@ export function planFreeze(
   todayLocal: LocalDate,
   freezesAvailable: number,
 ): FreezePlan {
-  const none: FreezePlan = { cover: [], protectedStreak: 0 };
-
-  if (freezesAvailable < 1) return none;
-
-  const covered = new Set([...loggedDates, ...freezeDates]);
-  const yesterday = previousDate(todayLocal);
-
-  // Nothing to rescue if yesterday is already accounted for.
-  if (covered.has(yesterday)) return none;
-
-  // A freeze extends a run; it does not conjure one. If the day before
-  // yesterday is also empty the streak was already gone, and spending the
-  // month's only freeze on it would buy nothing.
-  const dayBefore = previousDate(yesterday);
-  if (!covered.has(dayBefore)) return none;
-
-  let count = 0;
-  let cursor = dayBefore;
-
-  while (covered.has(cursor)) {
-    count += 1;
-    cursor = previousDate(cursor);
-  }
-
-  // +1 for the day the freeze now covers.
-  return { cover: [yesterday], protectedStreak: count + 1 };
+  return sharedPlanFreeze(loggedDates, freezeDates, todayLocal, freezesAvailable);
 }
 
 /** The gentle next-morning message from §10.2. States the fact, asks nothing. */

@@ -1,11 +1,7 @@
+import { defaultMealSlot as sharedDefaultMealSlot, MEAL_SLOTS as SHARED_MEAL_SLOTS } from '@fud-ai/domain/meals';
 import { type MealSlot } from '@/db/schema';
 
-export const MEAL_SLOTS: readonly MealSlot[] = [
-  'breakfast',
-  'lunch',
-  'dinner',
-  'snack',
-] as const;
+export const MEAL_SLOTS: readonly MealSlot[] = SHARED_MEAL_SLOTS;
 
 export const MEAL_SLOT_LABEL: Record<MealSlot, string> = {
   breakfast: 'Breakfast',
@@ -19,8 +15,5 @@ export const MEAL_SLOT_LABEL: Record<MealSlot, string> = {
  * user can always override; this only has to be right more often than not.
  */
 export function defaultMealSlot(localHour: number): MealSlot {
-  if (localHour < 11) return 'breakfast';
-  if (localHour < 16) return 'lunch';
-  if (localHour < 21) return 'dinner';
-  return 'snack';
+  return sharedDefaultMealSlot(localHour);
 }

@@ -1,3 +1,33 @@
+function ChartDataTable({
+  caption,
+  rows,
+  unit = '',
+}: {
+  caption: string
+  rows: { label: string; value: number }[]
+  unit?: string
+}) {
+  return (
+    <table className="sr-only">
+      <caption>{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Period</th>
+          <th scope="col">{unit ? `Value (${unit})` : 'Value'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(row => (
+          <tr key={row.label}>
+            <th scope="row">{row.label}</th>
+            <td>{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
 interface LineChartProps {
   points: { label: string; value: number }[]
   unit?: string
@@ -46,6 +76,7 @@ export function LineChart({ points, unit = '', goal, color = 'var(--coral)' }: L
       <div className="chart-latest">
         Latest: <strong>{points[points.length - 1].value.toFixed(1)}{unit}</strong>
       </div>
+      <ChartDataTable caption="Chart values" rows={points} unit={unit} />
     </div>
   )
 }
@@ -76,6 +107,7 @@ export function BarChart({ bars, goal }: BarChartProps) {
           </div>
         )
       })}
+      <ChartDataTable caption="Chart values" rows={bars} />
     </div>
   )
 }
@@ -188,6 +220,7 @@ export function ProgressLineChart({
           Latest: <strong>{points[points.length - 1].value.toFixed(1)}{unit}</strong>
         </p>
       )}
+      <ChartDataTable caption="Weight over time" rows={points} unit={unit} />
     </div>
   )
 }
@@ -279,6 +312,7 @@ export function ProgressBarChart({
           )
         })}
       </svg>
+      <ChartDataTable caption="Calories by day" rows={bars} />
     </div>
   )
 }

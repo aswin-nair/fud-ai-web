@@ -1,21 +1,24 @@
 # Duplicate domain logic inventory
 
-- Status: Characterization baseline
-- Last reviewed: 2026-08-17
+- Status: Shared policy extracted with recorded exceptions
+- Last reviewed: 2026-08-20
 - Decision reference: `docs/adr/0001-product-source-of-truth-and-shared-domain.md`
 
-This inventory identifies rules that appear in both TypeScript clients. It does not assume they are equivalent. Web behavior remains the current product reference until fixtures make each difference explicit.
+This inventory identifies rules that appear in both TypeScript clients. Web
+behavior remains the current product reference until a difference is explicitly
+approved as a platform exception.
 
-| Domain | Web implementation | Mobile implementation | Known shape difference / extraction risk | First characterization evidence |
-|---|---|---|---|---|
-| Adult age and target safety | `web/app/src/lib/profile.ts` | `mobile/src/logic/nutrition.ts` | Web accepts `other` and `extraActive`, optional body fat, custom macro/calorie targets, and kilogram weekly change. Mobile uses `female/male`, percent rate, explicit time of calculation, and a success/refusal result union. Reason-code vocabularies differ. | Shared adult-boundary dates; BMR cases; 25% deficit; 1% rate; 1,200/1,500 and BMR floors; BMI 18.5 refusal; custom-target cases |
-| Local calendar day | `web/app/src/lib/dates.ts` | `mobile/src/logic/dates.ts` | Web generally uses the runtime device zone and `Date`; mobile requires an explicit IANA zone and stores `LocalDate`. Travel semantics differ. | Both DST transitions, near-midnight UTC offsets, leap day, travel with a persisted origin day |
-| Base streak | `web/app/src/lib/streak.ts` and `journey.ts` | `mobile/src/logic/streak.ts` | Web derives from full `FoodEntry` timestamps and adds journey/badges; mobile derives from stored local dates and exposes at-risk state. | Empty/one-day histories, gaps, today/yesterday boundary, pause behavior, duplicate logs on one day |
-| Streak freezes | `web/app/src/lib/journey.ts` and `gamification.ts` | `mobile/src/logic/freezes.ts` | Web stores counts and used dates in mutable gamification state; mobile plans against a freeze ledger. Grant counts/defaults may differ. | Month boundary, one-free-freeze policy, gap coverage, idempotent reopen/replay, pause interaction |
-| XP / points and levels | `web/app/src/lib/xp.ts` and `gamification.ts` | `mobile/src/logic/points.ts` | Award amounts, level thresholds, labels, and persistence differ. Web has `xpEvents`; mobile uses an append-only points ledger. | One log, first log of day, repeat dispatch, streak milestone, level threshold, unsupported reason, replay idempotency |
-| Daily quests | `web/app/src/lib/quests.ts` | `mobile/src/logic/quests.ts` | Both seed by local date, but stored shapes and progress inputs differ. Web gamification includes an optional quest; mobile has a table row. | Stable quest for date/time zone, each quest type, progress cap, completion timestamp, reopen/retry |
-| Meal-slot default | `web/app/src/lib/meals.ts` | `mobile/src/logic/mealSlot.ts` | Web includes `other` and reads local device hour by default; mobile accepts an hour and has four slots. Cutoff values require comparison. | Hours immediately before/at/after every cutoff and explicit edit preservation |
-| Notification eligibility | `web/app/src/lib/notifications.ts` | No equivalent pure mobile policy found | Web enforces a two-per-day browser log and three notification kinds. This must become a policy module before native scheduling consumes it. | Two/day cap, duplicate kind, local-day rollover, logged-today suppression, content ban, pause state |
+| Domain | Shared owner | Remaining adapter / exception | First characterization evidence |
+|---|---|---|---|
+| Adult age and target safety | Nutrition primitives in `@fud-ai/domain/nutrition` | Full `computeTargets` stays client-specific: web has `other` / `extraActive`, kg weekly change, optional body fat, and custom macros; mobile uses `female/male`, percent rate, and a different moderate multiplier | `targets.v1.json` |
+| Local calendar day | `isLocalDate`, calendar arithmetic, `localDateInZone`, `localHourInZone` | Web `localDayKey` still uses the device zone on read; mobile stores the IANA day at write | `calendar.v1.json` |
+| Base streak | `@fud-ai/domain/streak` | Clients map entries and pause dates into the shared engine | `streaks.v1.json` |
+| Streak freezes | `@fud-ai/domain/freezes` | Web passes pause days as extra coverage; mobile does not. Grant persistence stays in each store | `freezes.v1.json` |
+| XP / points and levels | Web award eligibility and `WEB_LEVEL_XP` in `@fud-ai/domain/xp` | Mobile `points.ts` quadratic curve and ledger amounts stay an exception | `xp.v1.json` |
+| Daily quests | Seed, progress, and titles in `@fud-ai/domain/quests` | Mobile keeps a fourth candidate slot for legacy `hit_protein` dates; web hour progress still uses the device clock | `quests.v1.json` |
+| Meal-slot default | `@fud-ai/domain/meals` | Web may still store `other` as an explicit override; the default never returns it | `meals.v1.json` |
+| Notification eligibility | `@fud-ai/domain/notifications` | Delivery, permission, and storage stay web-only. Mobile has no scheduler | `notifications.v1.json` |
+| State and sync contracts | `@fud-ai/contracts` v1 | Snapshot `PUT /api/state` remains authoritative; entity projection stays fail-closed | Phase 4 / 5 release notes |
 
 ## Extraction order
 
@@ -34,6 +37,7 @@ This inventory identifies rules that appear in both TypeScript clients. It does 
 - Notification delivery APIs and permission prompts.
 - User-facing explanation strings, mascot behavior, sounds, haptics, and navigation.
 - Database row mapping and API transport.
+- Device-zone `localDayKey` on web until a versioned `localDate` field exists.
 
 ## Exit criteria
 
@@ -41,4 +45,3 @@ This inventory identifies rules that appear in both TypeScript clients. It does 
 - The shared package accepts explicit time, zone, and identity inputs.
 - No extracted function imports UI, storage, network, clock, or random APIs.
 - A change to shared rules runs both web and mobile checks in CI.
-

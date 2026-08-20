@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { SettingsRow } from '../components/SettingsRow'
 import { Link } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
@@ -38,20 +39,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function SettingsCard({ children }: { children: React.ReactNode }) {
   return <div className="settings-card">{children}</div>
-}
-
-function SettingsRow({
-  label, hint, children,
-}: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="settings-row">
-      <div className="settings-row-labels">
-        <span className="settings-row-label">{label}</span>
-        {hint && <span className="settings-row-hint">{hint}</span>}
-      </div>
-      <div className="settings-row-control">{children}</div>
-    </div>
-  )
 }
 
 export function SettingsPage() {
@@ -209,7 +196,9 @@ export function SettingsPage() {
         <h1 className="page-title">Settings</h1>
 
         {saved && (
-          <div className="settings-saved-banner"><IconCheck size={15} strokeWidth={2.6} /> Saved</div>
+          <div className="settings-saved-banner" role="status" aria-live="polite">
+            <IconCheck size={15} strokeWidth={2.6} /> Saved
+          </div>
         )}
 
         {/* Account */}
@@ -585,7 +574,14 @@ export function SettingsPage() {
           >
             Delete all data
           </button>
-          <input ref={fileRef} type="file" accept=".json" hidden onChange={handleImport} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json"
+            hidden
+            aria-label="Import backup file"
+            onChange={handleImport}
+          />
         </SettingsCard>
 
         {/* About */}

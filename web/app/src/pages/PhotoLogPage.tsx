@@ -70,7 +70,7 @@ export function PhotoLogPage() {
           {preview && (
             <img src={preview} alt="Food preview" className="photo-preview analyzing-photo" />
           )}
-          <div className="analyzing-overlay">
+          <div className="analyzing-overlay" role="status" aria-live="polite">
             <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
             <p className="analyzing-title">Reading your photo…</p>
             <p className="analyzing-sub">AI is identifying the food</p>
@@ -96,7 +96,7 @@ export function PhotoLogPage() {
           under its policy. <Link to="/log/manual">Log manually instead</Link> without uploading a photo.
         </div>
 
-        {error && <div className="error-banner">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         {!hasKey && (
           <div className="no-key-banner">
@@ -124,11 +124,11 @@ export function PhotoLogPage() {
             </button>
           </div>
         ) : (
-          <div className="photo-upload-zone" onClick={() => galleryRef.current?.click()}>
+          <button type="button" className="photo-upload-zone" onClick={() => galleryRef.current?.click()}>
             <span className="photo-upload-icon" aria-hidden>📷</span>
             <p className="photo-upload-title">Tap to choose a photo</p>
             <p className="photo-upload-sub">JPG, PNG, HEIC — any food image</p>
-          </div>
+          </button>
         )}
 
         {preview && error && selectedFileRef.current && (
@@ -167,6 +167,7 @@ export function PhotoLogPage() {
           accept="image/*"
           capture="environment"
           hidden
+          aria-label="Take a photo"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
         />
         <input
@@ -174,6 +175,7 @@ export function PhotoLogPage() {
           type="file"
           accept="image/*"
           hidden
+          aria-label="Choose a photo from gallery"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
         />
       </main>

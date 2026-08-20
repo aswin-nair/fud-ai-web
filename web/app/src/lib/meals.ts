@@ -1,3 +1,4 @@
+import { defaultMealSlot } from '@fud-ai/domain/meals'
 import type { FoodEntry, MealType, SavedMeal } from '../types'
 import { localDayKey } from './dates'
 
@@ -42,10 +43,7 @@ export function savedToEntry(saved: SavedMeal, source: FoodEntry['source'] = 'ma
  * one of the taps the twenty-second target cannot afford to spend.
  */
 export function defaultMealType(hour = new Date().getHours()): MealType {
-  if (hour < 11) return 'breakfast'
-  if (hour < 16) return 'lunch'
-  if (hour < 21) return 'dinner'
-  return 'snack'
+  return defaultMealSlot(hour)
 }
 
 /**

@@ -83,7 +83,7 @@ export function LoginPage() {
           </button>
         </div>
 
-        {error && <div className="error-banner">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         <form className="auth-form" onSubmit={handleEmailSubmit}>
           {mode === 'signup' && (

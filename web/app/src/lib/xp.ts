@@ -1,8 +1,15 @@
+import {
+  WEB_LEVEL_XP,
+  eligibleMealXpAwards,
+  levelFromXp as sharedLevelFromXp,
+  xpForLevel as sharedXpForLevel,
+  xpForNextLevel as sharedXpForNextLevel,
+  type XpAward as SharedXpAward,
+} from '@fud-ai/domain/xp'
 import type { FoodEntry, GamificationState, XpEvent } from '../types'
 import { localDayKey } from './dates'
 
-// ── Level thresholds (cumulative XP required) ─────────────────
-export const LEVEL_XP = [0, 100, 250, 500, 850, 1300, 1900, 2700, 3700, 5000]
+export const LEVEL_XP = [...WEB_LEVEL_XP]
 
 export const LEVEL_NAMES = [
   '', 'First Steps', 'Curious Explorer', 'Building Habits', 'Finding Balance',
@@ -13,82 +20,51 @@ export const LEVEL_NAMES = [
 export const LEVEL_COMPANIONS = ['', '🌱', '🌿', '🪴', '🌳', '🌲', '🌟', '🏆', '💎', '✨', '🌈']
 
 export function levelFromXp(xp: number): number {
-  for (let i = LEVEL_XP.length - 1; i >= 0; i--) {
-    if (xp >= LEVEL_XP[i]) return i + 1
-  }
-  return 1
+  return sharedLevelFromXp(xp, LEVEL_XP)
 }
 
 export function xpForLevel(level: number): number {
-  return LEVEL_XP[Math.min(level - 1, LEVEL_XP.length - 1)] ?? 0
+  return sharedXpForLevel(level, LEVEL_XP)
 }
 
 export function xpForNextLevel(level: number): number {
-  return LEVEL_XP[Math.min(level, LEVEL_XP.length - 1)] ?? LEVEL_XP[LEVEL_XP.length - 1]
+  return sharedXpForNextLevel(level, LEVEL_XP)
 }
 
-// ── XP award computation ───────────────────────────────────────
-export interface XpAward {
-  key: string
-  label: string
-  xp: number
-}
+export type XpAward = SharedXpAward
 
 export function computeXpAwards(
   newEntry: FoodEntry,
   existingEntries: FoodEntry[],
   gamification: GamificationState,
 ): XpAward[] {
-  const awards: XpAward[] = []
   const dayKey = localDayKey(new Date(newEntry.timestamp))
   const usedKeys = new Set([
     ...gamification.awardedKeys,
-    ...gamification.xpEvents.map(e => e.key),
+    ...gamification.xpEvents.map(event => event.key),
   ])
-
-  // Always award for logging a meal
-  awards.push({ key: `meal-${newEntry.id}`, label: 'Logged a meal', xp: 15 })
-
-  // Today's entries (before adding new)
-  const todayEntries = existingEntries.filter(e => localDayKey(new Date(e.timestamp)) === dayKey)
-  const todayCount = todayEntries.length
-
-  // First meal of the day
-  if (todayCount === 0 && !usedKeys.has(`first-meal-${dayKey}`)) {
-    awards.push({ key: `first-meal-${dayKey}`, label: 'First meal of the day!', xp: 10 })
-  }
-
-  // Third meal bonus
-  if (todayCount === 2 && !usedKeys.has(`three-meals-${dayKey}`)) {
-    awards.push({ key: `three-meals-${dayKey}`, label: 'Three meals tracked!', xp: 20 })
-  }
-
-  // Fourth meal bonus
-  if (todayCount === 3 && !usedKeys.has(`four-meals-${dayKey}`)) {
-    awards.push({ key: `four-meals-${dayKey}`, label: 'Full day logged!', xp: 10 })
-  }
-
-  // New food discovery (not logged in last 14 days)
+  const todayEntries = existingEntries.filter(entry => localDayKey(new Date(entry.timestamp)) === dayKey)
   const twoWeeksAgo = Date.now() - 14 * 86400_000
-  const recentNames = new Set(
-    existingEntries
-      .filter(e => new Date(e.timestamp).getTime() > twoWeeksAgo)
-      .map(e => e.name.toLowerCase().trim()),
-  )
-  if (!recentNames.has(newEntry.name.toLowerCase().trim())) {
-    awards.push({ key: `new-food-${newEntry.id}`, label: 'New food discovered!', xp: 20 })
-  }
+  const recentFoodNames = existingEntries
+    .filter(entry => new Date(entry.timestamp).getTime() > twoWeeksAgo)
+    .map(entry => entry.name)
 
-  // Filter already-awarded keys
-  return awards.filter(a => !usedKeys.has(a.key))
+  return eligibleMealXpAwards({
+    entryId: newEntry.id,
+    entryName: newEntry.name,
+    dayKey,
+    existingSameDayCount: todayEntries.length,
+    recentFoodNames,
+    usedKeys,
+  })
 }
 
 export function makeXpEvents(awards: XpAward[], timestamp = new Date().toISOString()): XpEvent[] {
-  return awards.map(a => ({
+  return awards.map(award => ({
     id: crypto.randomUUID(),
-    key: a.key,
-    xp: a.xp,
-    label: a.label,
+    key: award.key,
+    xp: award.xp,
+    label: award.label,
     timestamp,
   }))
 }

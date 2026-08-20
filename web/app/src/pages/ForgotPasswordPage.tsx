@@ -33,7 +33,7 @@ export function ForgotPasswordPage() {
             ? 'If an account exists for that address, reset instructions are on the way.'
             : 'Enter the email you use to sign in. We will send a reset link if an account exists.'}
         </p>
-        {error && <div className="error-banner">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
         {!submitted && (
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="field">

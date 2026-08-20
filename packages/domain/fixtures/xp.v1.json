@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "levels": [
+    { "xp": 0, "level": 1 },
+    { "xp": 99, "level": 1 },
+    { "xp": 100, "level": 2 },
+    { "xp": 500, "level": 4 },
+    { "xp": 5000, "level": 10 }
+  ],
+  "awards": [
+    {
+      "id": "first-meal",
+      "input": {
+        "entryId": "meal-1",
+        "entryName": "Oats",
+        "dayKey": "2026-08-20",
+        "existingSameDayCount": 0,
+        "recentFoodNames": [],
+        "usedKeys": []
+      },
+      "keys": ["meal-meal-1", "first-meal-2026-08-20", "new-food-meal-1"]
+    },
+    {
+      "id": "replay-same-key",
+      "input": {
+        "entryId": "meal-1",
+        "entryName": "Oats",
+        "dayKey": "2026-08-20",
+        "existingSameDayCount": 0,
+        "recentFoodNames": ["oats"],
+        "usedKeys": ["meal-meal-1", "first-meal-2026-08-20", "new-food-meal-1"]
+      },
+      "keys": []
+    }
+  ]
+}

@@ -1,6 +1,7 @@
+import { grantMonthlyFreeze, planFreeze } from '@fud-ai/domain/freezes'
+import { deriveLoggingStreak } from '@fud-ai/domain/streak'
 import type { FoodEntry, GamificationState } from '../types'
 import { localDayKey } from './dates'
-import { deriveLoggingStreak } from '@fud-ai/domain/streak'
 
 // ── Journey stages ─────────────────────────────────────────────
 export interface JourneyStage {
@@ -126,38 +127,22 @@ export function applyFreeze(
   gamification: GamificationState,
 ): Pick<GamificationState, 'streakFreezes' | 'freezeUsedDates' | 'freezeEarnedMonth'> {
   let { streakFreezes, freezeUsedDates, freezeEarnedMonth } = gamification
+  const today = localDayKey(new Date())
+  const grant = grantMonthlyFreeze(today.slice(0, 7), freezeEarnedMonth, streakFreezes)
+  streakFreezes = grant.count
+  freezeEarnedMonth = grant.earnedMonth
 
-  // Monthly reset
-  const currentMonth = localDayKey(new Date()).slice(0, 7)
-  if (currentMonth !== freezeEarnedMonth) {
-    streakFreezes = 1
-    freezeEarnedMonth = currentMonth
-  }
-
-  const activeDays = new Set([
-    ...entries.map(e => localDayKey(new Date(e.timestamp))),
-    ...freezeUsedDates,
-    ...gamification.pauseProtectedDates,
-  ])
-
-  const yesterday = new Date()
-  yesterday.setHours(0, 0, 0, 0)
-  yesterday.setDate(yesterday.getDate() - 1)
-  const yKey = localDayKey(yesterday)
-
-  const twoDaysAgo = new Date(yesterday)
-  twoDaysAgo.setDate(twoDaysAgo.getDate() - 1)
-  const t2Key = localDayKey(twoDaysAgo)
-
-  // Only freeze yesterday if: missed, not already frozen, had a streak going (2d ago logged)
-  if (
-    !activeDays.has(yKey) &&
-    !freezeUsedDates.includes(yKey) &&
-    streakFreezes > 0 &&
-    activeDays.has(t2Key)
-  ) {
-    streakFreezes--
-    freezeUsedDates = [...freezeUsedDates, yKey]
+  const plan = planFreeze(
+    entries.map(entry => localDayKey(new Date(entry.timestamp))),
+    freezeUsedDates,
+    today,
+    streakFreezes,
+    gamification.pauseProtectedDates,
+  )
+  const covered = plan.cover[0]
+  if (covered) {
+    streakFreezes -= 1
+    freezeUsedDates = [...freezeUsedDates, covered]
   }
 
   return { streakFreezes, freezeUsedDates, freezeEarnedMonth }

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useDialogFocus } from '../hooks/useDialogFocus'
 import { monthGridWeeks, sameDay, startOfDay } from '../lib/dates'
 import { IconChevronLeft, IconChevronRight, IconClose } from './icons'
 
@@ -15,10 +16,12 @@ function isFutureDay(date: Date, today: Date): boolean {
 }
 
 export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null)
   const [viewMonth, setViewMonth] = useState(() => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1))
   const today = startOfDay()
   const weeks = monthGridWeeks(viewMonth)
   const isCurrentMonth = viewMonth.getFullYear() === today.getFullYear() && viewMonth.getMonth() === today.getMonth()
+  useDialogFocus(dialogRef, onClose)
 
   function prevMonth() {
     setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))
@@ -32,6 +35,7 @@ export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerM
   return (
     <div className="date-modal-overlay" onClick={onClose} role="presentation">
       <div
+        ref={dialogRef}
         className="date-modal"
         onClick={e => e.stopPropagation()}
         role="dialog"

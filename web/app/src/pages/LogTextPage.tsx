@@ -82,7 +82,7 @@ export function LogTextPage() {
         <h1 className="page-title" style={{ marginTop: 12 }}>Describe your meal</h1>
         <p className="page-sub">Type what you ate — AI estimates the macros.</p>
 
-        {error && <div className="error-banner">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         {!hasKey && (
           <div className="no-key-banner">

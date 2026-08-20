@@ -36,7 +36,7 @@ export function ResetPasswordPage() {
         <img src={logo} alt="Fud AI" className="login-logo" />
         <h1 className="login-title">Choose a new password</h1>
         <p className="login-sub">This link works once and expires in 30 minutes.</p>
-        {error && <div className="error-banner">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="field">
             <label htmlFor="new-password">New password</label>

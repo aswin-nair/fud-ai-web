@@ -1,14 +1,28 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { PhotoLogPage } from '../pages/PhotoLogPage'
 import { BottomNav } from './BottomNav'
 import { CalorieRing } from './CalorieRing'
+import { LineChart } from './Charts'
 import { DatePickerModal } from './DatePickerModal'
 import { MacroProgressGroup } from './MacroGrid'
 import { PressableButton } from './PressableButton'
+import { SettingsRow } from './SettingsRow'
 import { WeekStrip } from './WeekStrip'
+
+vi.mock('../store/AppContext', () => ({
+  useApp: () => ({
+    state: { aiSettings: { apiKey: 'test-key', provider: 'gemini' } },
+    setPendingAnalysis: () => undefined,
+    setPendingSource: () => undefined,
+  }),
+}))
 
 function count(haystack: string, needle: RegExp): number {
   return [...haystack.matchAll(needle)].length
@@ -112,5 +126,67 @@ describe('primary component accessibility contracts', () => {
     expect(html).toMatch(/^<button type="submit" disabled=""/)
     expect(html).toContain('Save settings')
     expect(html).toContain('aria-hidden="true"')
+  })
+
+  it('uses a real button for photo upload', () => {
+    const html = renderToStaticMarkup(createElement(
+      MemoryRouter,
+      { initialEntries: ['/log/photo'] },
+      createElement(PhotoLogPage),
+    ))
+
+    expect(html).toContain('<button type="button" class="photo-upload-zone"')
+    expect(html).toContain('Tap to choose a photo')
+    expect(html).toContain('aria-label="Take a photo"')
+    expect(html).toContain('aria-label="Choose a photo from gallery"')
+  })
+
+  it('gives settings controls an accessible name and description', () => {
+    const html = renderToStaticMarkup(createElement(SettingsRow, {
+      label: 'Pause tracking',
+      hint: 'Hold your streak where it is.',
+      children: createElement('input', { type: 'checkbox' }),
+    }))
+
+    expect(html).toMatch(/aria-labelledby="[^"]+-label"/)
+    expect(html).toMatch(/aria-describedby="[^"]+-hint"/)
+    expect(html).toContain('Pause tracking')
+    expect(html).toContain('Hold your streak where it is.')
+  })
+
+  it('exposes a text table beside a chart', () => {
+    const html = renderToStaticMarkup(createElement(LineChart, {
+      points: [{ label: 'Mon', value: 70.2 }],
+      unit: ' kg',
+    }))
+
+    expect(html).toContain('class="sr-only"')
+    expect(html).toContain('<caption>Chart values</caption>')
+    expect(html).toContain('70.2')
+  })
+
+  it('marks visible errors as alerts and save progress as live status', () => {
+    const pagesDir = fileURLToPath(new URL('../pages/', import.meta.url))
+    const sources = [
+      'PhotoLogPage.tsx',
+      'LoginPage.tsx',
+      'ForgotPasswordPage.tsx',
+      'ResetPasswordPage.tsx',
+      'LogTextPage.tsx',
+      'SettingsPage.tsx',
+    ].map(name => readFileSync(`${pagesDir}${name}`, 'utf8'))
+
+    for (const source of sources) {
+      for (const match of source.matchAll(/<div className="error-banner"[^>]*>/g)) {
+        expect(match[0]).toContain('role="alert"')
+      }
+    }
+
+    expect(readFileSync(`${pagesDir}SettingsPage.tsx`, 'utf8')).toMatch(
+      /className="settings-saved-banner"[^>]*role="status"[^>]*aria-live="polite"/,
+    )
+    expect(readFileSync(`${pagesDir}PhotoLogPage.tsx`, 'utf8')).toMatch(
+      /className="analyzing-overlay"[^>]*role="status"[^>]*aria-live="polite"/,
+    )
   })
 })

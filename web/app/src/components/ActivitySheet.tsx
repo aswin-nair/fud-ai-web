@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../store/AppContext'
 import { ACTIVITY_PRESETS, DURATION_OPTIONS, estimateKcal, type ActivityPreset } from '../lib/activities'
+import { useDialogFocus } from '../hooks/useDialogFocus'
 import { useHaptic } from '../hooks/useHaptic'
 
 interface ActivitySheetProps {
@@ -19,6 +20,7 @@ export function ActivitySheet({ defaultPreset, onClose, onLogged }: ActivityShee
   const [kcalOverride, setKcalOverride] = useState<string>('')
   const [saved, setSaved] = useState(false)
   const backdropRef = useRef<HTMLDivElement>(null)
+  useDialogFocus(backdropRef, onClose)
 
   const estimatedKcal = estimateKcal(selected.met, weightKg, durationMins)
   const finalKcal = kcalOverride !== '' ? Math.max(1, parseInt(kcalOverride) || 1) : estimatedKcal

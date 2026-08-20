@@ -7,7 +7,12 @@
     ".": "./src/index.ts",
     "./calendar": "./src/calendar.ts",
     "./nutrition": "./src/nutrition.ts",
-    "./streak": "./src/streak.ts"
+    "./streak": "./src/streak.ts",
+    "./meals": "./src/meals.ts",
+    "./freezes": "./src/freezes.ts",
+    "./notifications": "./src/notifications.ts",
+    "./xp": "./src/xp.ts",
+    "./quests": "./src/quests.ts"
   },
   "types": "./src/index.ts"
 }

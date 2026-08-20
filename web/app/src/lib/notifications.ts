@@ -1,3 +1,9 @@
+import {
+  bannedNotificationCopy as sharedBannedNotificationCopy,
+  eligibleNotificationKinds,
+  routineHour as sharedRoutineHour,
+  type NotificationKind,
+} from '@fud-ai/domain/notifications'
 import { localDayKey } from './dates'
 
 /**
@@ -8,7 +14,7 @@ import { localDayKey } from './dates'
 const LOG_KEY = 'fud-notify-log'
 const MAX_PER_DAY = 2
 
-type NotifyKind = 'routine' | 'save' | 'freeze'
+type NotifyKind = NotificationKind
 
 type NotifyLog = { date: string; kinds: NotifyKind[] }
 
@@ -64,7 +70,7 @@ const COPY: Record<NotifyKind, (streak: number) => string> = {
 }
 
 export function bannedNotificationCopy(text: string): boolean {
-  return /\b(calorie|kcal|weight|over|under|deficit|disappointed|broken your promise)\b/i.test(text)
+  return sharedBannedNotificationCopy(text)
 }
 
 async function deliver(kind: NotifyKind, streak: number): Promise<boolean> {
@@ -86,13 +92,7 @@ async function deliver(kind: NotifyKind, streak: number): Promise<boolean> {
 
 /** Median first-log hour over the last 14 days, or 19:00 when data is thin. */
 export function routineHour(firstLogHours: number[]): number {
-  if (firstLogHours.length < 5) return 19
-  const sorted = [...firstLogHours].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  const median = sorted.length % 2 === 0
-    ? (sorted[mid - 1]! + sorted[mid]!) / 2
-    : sorted[mid]!
-  return Math.min(22, Math.max(8, Math.round(median + 0.5)))
+  return sharedRoutineHour(firstLogHours)
 }
 
 export async function requestNotifyPermission(): Promise<boolean> {
@@ -116,23 +116,21 @@ export async function evaluateNotifications(input: {
   trackingPaused?: boolean
   freezeJustApplied?: { protectedStreak: number }
 }): Promise<void> {
-  if (input.trackingPaused) return
+  const kinds = eligibleNotificationKinds({
+    loggedToday: input.loggedToday,
+    streak: input.streak,
+    freezeAvailable: input.freezeAvailable,
+    firstLogHours: input.firstLogHours,
+    localHour: input.localHour,
+    trackingPaused: input.trackingPaused,
+    freezeJustApplied: Boolean(input.freezeJustApplied),
+    sentKinds: readLog().kinds,
+  })
 
-  if (input.freezeJustApplied) {
-    await deliver('freeze', input.freezeJustApplied.protectedStreak)
-  }
-
-  if (!input.loggedToday && input.localHour >= routineHour(input.firstLogHours)) {
-    await deliver('routine', input.streak)
-  }
-
-  if (
-    !input.loggedToday
-    && input.streak > 0
-    && input.freezeAvailable < 1
-    && input.localHour >= 20
-    && input.localHour < 21
-  ) {
-    await deliver('save', input.streak)
+  for (const kind of kinds) {
+    const streak = kind === 'freeze' && input.freezeJustApplied
+      ? input.freezeJustApplied.protectedStreak
+      : input.streak
+    await deliver(kind, streak)
   }
 }

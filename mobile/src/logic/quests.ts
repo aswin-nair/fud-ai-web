@@ -1,3 +1,12 @@
+import {
+  MOBILE_QUEST_CANDIDATES,
+  QUEST_TYPES as SHARED_QUEST_TYPES,
+  questForDate as sharedQuestForDate,
+  questProgress as sharedQuestProgress,
+  questTitle as sharedQuestTitle,
+  seedFor as sharedSeedFor,
+  type QuestType as SharedQuestType,
+} from '@fud-ai/domain/quests';
 import { type MealSlot } from '@/db/schema';
 import { type LocalDate } from '@/logic/dates';
 
@@ -8,13 +17,9 @@ import { type LocalDate } from '@/logic/dates';
  * point: adding an outcome-based quest means adding a member here, which the
  * test suite rejects.
  */
-export type QuestType = 'log_n_meals' | 'log_before' | 'log_streak';
+export type QuestType = SharedQuestType;
 
-export const QUEST_TYPES: readonly QuestType[] = [
-  'log_n_meals',
-  'log_before',
-  'log_streak',
-];
+export const QUEST_TYPES: readonly QuestType[] = SHARED_QUEST_TYPES;
 
 export type QuestSpec = {
   type: QuestType;
@@ -36,58 +41,19 @@ export type QuestProgressInput = {
  * start would let someone reroll an inconvenient quest by force-quitting.
  */
 export function seedFor(date: LocalDate): number {
-  let hash = 0x811c9dc5;
-
-  for (let i = 0; i < date.length; i += 1) {
-    hash ^= date.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-
-  return hash;
+  return sharedSeedFor(date);
 }
-
-type Candidate = {
-  type: QuestType;
-  /** Completion thresholds to choose between. */
-  targets: readonly number[];
-  /** Cutoff hours, for `log_before` only. */
-  hours?: readonly number[];
-};
-
-const CANDIDATES: readonly Candidate[] = [
-  { type: 'log_n_meals', targets: [2, 3, 4] },
-  // Keep this second slot in place. Older releases generated `hit_protein`
-  // here and persisted that string. Replacing the slot instead of removing it
-  // keeps every other date's deterministic quest stable while legacy rows are
-  // safely reinterpreted as logging quests.
-  { type: 'log_n_meals', targets: [2] },
-  { type: 'log_before', targets: [1], hours: [10, 11] },
-  { type: 'log_streak', targets: [2, 3] },
-];
 
 /**
  * Deterministic in `date`, so the same day always yields the same quest no
  * matter how many times the app is relaunched, and so the cutoff hour can be
  * recovered without a column to store it in.
+ *
+ * Mobile keeps a fourth candidate slot so older `hit_protein` dates stay
+ * stable. That list is a recorded platform exception.
  */
 export function questForDate(date: LocalDate): QuestSpec {
-  const seed = seedFor(date);
-
-  const candidate = CANDIDATES[seed % CANDIDATES.length] as Candidate;
-
-  // Independent draws off the same seed, so the target does not move in
-  // lockstep with the type across consecutive days.
-  const target = pick(candidate.targets, Math.floor(seed / CANDIDATES.length));
-
-  if (!candidate.hours) {
-    return { type: candidate.type, target };
-  }
-
-  return {
-    type: candidate.type,
-    target,
-    beforeHour: pick(candidate.hours, Math.floor(seed / 7)),
-  };
+  return sharedQuestForDate(date, MOBILE_QUEST_CANDIDATES);
 }
 
 /**
@@ -130,58 +96,25 @@ function reachableTarget(type: QuestType, stored: number, fallback: number): num
   return Math.min(rounded, 3);
 }
 
-function pick<T>(options: readonly T[], draw: number): T {
-  return options[draw % options.length] as T;
-}
-
 /**
  * Recomputed from today's entries rather than incremented, so deleting an
  * entry correctly walks the quest back instead of leaving it inflated.
  */
 export function questProgress(spec: QuestSpec, input: QuestProgressInput): number {
-  switch (spec.type) {
-    case 'log_n_meals':
-      return distinctSlots(input.entriesToday);
-
-    case 'log_before': {
-      const cutoff = spec.beforeHour ?? 10;
-      return input.entriesToday.some((e) => e.loggedLocalHour < cutoff) ? 1 : 0;
-    }
-
-    case 'log_streak':
-      return Math.min(input.streakCount, spec.target);
-  }
+  return sharedQuestProgress(spec, {
+    entriesToday: input.entriesToday.map((entry) => ({
+      mealSlot: entry.mealSlot,
+      localHour: entry.loggedLocalHour,
+    })),
+    streakCount: input.streakCount,
+  });
 }
 
 export function isComplete(spec: QuestSpec, progress: number): boolean {
   return progress >= spec.target;
 }
 
-/**
- * Distinct slots rather than rows, so "log 3 meals" is not satisfied by three
- * snacks logged in one sitting.
- */
-function distinctSlots(entries: QuestProgressInput['entriesToday']): number {
-  return new Set(entries.map((e) => e.mealSlot)).size;
-}
-
 /** Player-facing copy. Always an action to take, never a limit to stay under. */
 export function questTitle(spec: QuestSpec): string {
-  switch (spec.type) {
-    case 'log_n_meals':
-      return `Log ${spec.target} ${spec.target === 1 ? 'meal' : 'meals'} today`;
-
-    case 'log_before':
-      return `Log breakfast before ${formatHour(spec.beforeHour ?? 10)}`;
-
-    case 'log_streak':
-      return `Log something ${spec.target} days running`;
-  }
-}
-
-function formatHour(hour: number): string {
-  const suffix = hour < 12 ? 'am' : 'pm';
-  const display = hour % 12 === 0 ? 12 : hour % 12;
-
-  return `${display}${suffix}`;
+  return sharedQuestTitle(spec);
 }

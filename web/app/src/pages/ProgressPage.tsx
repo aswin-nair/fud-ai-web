@@ -183,6 +183,13 @@ export function ProgressPage() {
               />
             ))}
           </div>
+          <ol className="sr-only">
+            {consistency.days.map((logged, i) => (
+              <li key={i}>
+                Day {i + 1}: {i >= consistency.elapsed ? 'upcoming' : logged ? 'logged' : 'not logged'}
+              </li>
+            ))}
+          </ol>
         </div>
 
         {/* Weight card */}

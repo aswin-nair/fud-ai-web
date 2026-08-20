@@ -1,6 +1,7 @@
-import { formatInTimeZone } from 'date-fns-tz';
 import {
+  localDateInZone,
   localDaysBetween,
+  localHourInZone,
   nextLocalDate,
   previousLocalDate,
   type LocalDate as DomainLocalDate,
@@ -16,12 +17,12 @@ export type LocalDate = DomainLocalDate;
  */
 export function toLocalDate(instant: Date | string, timeZone: string): LocalDate {
   const date = typeof instant === 'string' ? new Date(instant) : instant;
-  return formatInTimeZone(date, timeZone, 'yyyy-MM-dd');
+  return localDateInZone(date, timeZone);
 }
 
 /** Hour of day (0-23) in the given zone. Drives the 18:00 at-risk window. */
 export function localHourIn(timeZone: string, instant: Date = new Date()): number {
-  return Number(formatInTimeZone(instant, timeZone, 'H'));
+  return localHourInZone(instant, timeZone);
 }
 
 /**
