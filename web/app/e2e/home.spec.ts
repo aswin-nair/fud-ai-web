@@ -12,11 +12,35 @@ test.describe('Home & food logging', () => {
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Breakfast' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Breakfast|Lunch|Dinner|Snack/ })).toBeVisible()
 
     // The pinned action must stay inside the 480px app shell on wide screens.
     const dockBox = await page.locator('.home-log-dock').boundingBox()
     expect(dockBox?.width).toBeLessThanOrEqual(480)
+  })
+
+  test('pause hides nutrition and engagement numbers on Home and Progress', async ({ page }) => {
+    const mainNav = page.getByLabel('Main')
+    await mainNav.getByRole('link', { name: 'Settings' }).click()
+
+    const pauseRow = page.locator('.settings-row').filter({ hasText: 'Pause tracking' })
+    await pauseRow.locator('input[type="checkbox"]').check()
+    await page.getByRole('button', { name: 'Save settings' }).click()
+
+    await mainNav.getByRole('link', { name: 'Home' }).click()
+    await expect(page.getByText('Tracking is paused')).toBeVisible()
+    await expect(page.locator('.home-top-row')).toHaveCount(0)
+    await expect(page.locator('.home-quest-row')).toHaveCount(0)
+    await expect(page.locator('.calorie-ring')).toHaveCount(0)
+    await expect(page.locator('.activity-detail-row')).toHaveCount(0)
+    await expect(page.getByRole('progressbar', { name: 'Protein' })).toHaveCount(0)
+    await expect(page.getByText('Onboarding yogurt bowl')).toHaveCount(0)
+
+    await mainNav.getByRole('link', { name: 'Progress' }).click()
+    await expect(page.getByRole('heading', { name: 'Tracking is paused' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Weight', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Calories', exact: true })).toHaveCount(0)
+    await expect(page.locator('.progress-stat-value')).toHaveCount(0)
   })
 
   test('logs food via manual entry', async ({ page }) => {

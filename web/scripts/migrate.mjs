@@ -10,7 +10,10 @@ if (!url) {
 }
 
 const root = dirname(fileURLToPath(import.meta.url))
-const schema = readFileSync(join(root, '../db/schema.sql'), 'utf8')
+const target = process.argv[2] === 'security'
+  ? '../db/migrations/20260820_account_security.sql'
+  : '../db/schema.sql'
+const schema = readFileSync(join(root, target), 'utf8')
 const pool = new Pool({ connectionString: url })
 
 console.log('Applying schema to Neon…')

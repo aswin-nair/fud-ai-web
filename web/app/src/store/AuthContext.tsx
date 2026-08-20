@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import type { CredentialResponse } from '@react-oauth/google'
 
@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode'
 
 import type { AuthUser, GoogleJwtPayload } from '../lib/auth'
 
-import { loadAuthSession, saveAuthSession } from '../lib/auth'
+import { AUTH_SESSION_STORAGE_KEY, loadAuthSession, saveAuthSession } from '../lib/auth'
 
 import { googleAccount, loginAccount, logoutAccount, registerAccount } from '../lib/authService'
 
@@ -49,6 +49,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const cloud = isCloudBackend()
 
   const [user, setUser] = useState<AuthUser | null>(() => loadAuthSession())
+
+  useEffect(() => {
+    function refreshFromSharedStorage(event: StorageEvent) {
+      if (event.key !== null && event.key !== AUTH_SESSION_STORAGE_KEY) return
+      setUser(loadAuthSession())
+    }
+
+    window.addEventListener('storage', refreshFromSharedStorage)
+    return () => window.removeEventListener('storage', refreshFromSharedStorage)
+  }, [])
 
 
 
@@ -108,9 +118,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => {
 
-    logoutAccount(cloud)
-
     setUser(null)
+
+    void logoutAccount(cloud)
 
   }, [cloud])
 

@@ -24,11 +24,34 @@ const FALLBACK_MODELS = {
 const memoryUsage = globalThis.__fudAIPremiumUsage ?? new Map();
 globalThis.__fudAIPremiumUsage = memoryUsage;
 
+// Managed AI must remain fail-closed until this endpoint verifies a server-side
+// App Store/RevenueCat entitlement that is bound to an authenticated user. An
+// install ID or client-cached entitlement is not an authorization boundary.
+//
+// Do not replace this with an environment flag: deployment configuration alone
+// cannot prove that an individual request owns an active entitlement. The
+// implementation below is intentionally retained for a future, authenticated
+// entitlement rollout, but GET and POST cannot reach it while this guard exists.
+const MANAGED_AI_UNAVAILABLE = Object.freeze({
+  error: Object.freeze({
+    code: "managed_ai_unavailable",
+    message: "Managed AI is unavailable. Use Bring Your Own Key.",
+  }),
+});
+
 export default async function handler(request, response) {
+  setFailClosedSecurityHeaders(response);
+
   if (request.method !== "POST" && request.method !== "GET") {
     response.setHeader("Allow", "GET, POST");
     return response.status(405).json({ error: "Method not allowed." });
   }
+
+  // This return must stay ahead of install-ID parsing, quota reads, and provider
+  // calls. GET and POST deliberately share one stable, redacted response.
+  return response.status(503).json(MANAGED_AI_UNAVAILABLE);
+
+  /* c8 ignore start -- retained future implementation, unreachable by design */
 
   const installID = String(request.headers["x-fudai-install-id"] || "").trim();
   if (!installID) {
@@ -92,6 +115,18 @@ export default async function handler(request, response) {
   }
 
   return response.status(502).json({ error: lastError || "Gemini request failed." });
+  /* c8 ignore stop */
+}
+
+function setFailClosedSecurityHeaders(response) {
+  response.setHeader("Cache-Control", "no-store");
+  response.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+  response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  response.setHeader("Referrer-Policy", "no-referrer");
+  response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("X-Frame-Options", "DENY");
 }
 
 function normalizeTask(task) {

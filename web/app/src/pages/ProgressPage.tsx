@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
@@ -30,18 +31,10 @@ interface StatCardProps {
   value: string
   sub?: string
   accent?: boolean
-  positive?: boolean
-  negative?: boolean
 }
 
-function StatCard({ label, value, sub, accent, positive, negative }: StatCardProps) {
-  const valueColor = positive
-    ? '#34C759'
-    : negative
-    ? 'var(--coral-deep)'
-    : accent
-    ? 'var(--coral-start)'
-    : undefined
+function StatCard({ label, value, sub, accent }: StatCardProps) {
+  const valueColor = accent ? 'var(--coral-start)' : undefined
 
   return (
     <div className="progress-stat-card">
@@ -57,7 +50,11 @@ function StatCard({ label, value, sub, accent, positive, negative }: StatCardPro
 export function ProgressPage() {
   const { state, addWeightEntry, deleteWeightEntry } = useApp()
   const [range, setRange] = useState<RangeId>('1W')
-  const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
+  const streak = getStreakWithFreezes(
+    state.foodEntries,
+    state.gamification.freezeUsedDates,
+    state.gamification.pauseProtectedDates,
+  )
   const badges = getAllBadges(state.foodEntries, streak)
   const consistency = getMonthConsistency(state.foodEntries)
   const [showLog, setShowLog] = useState(false)
@@ -111,6 +108,28 @@ export function ProgressPage() {
     if (!v || v <= 0) return
     addWeightEntry(v)
     setShowLog(false)
+  }
+
+  if (state.profile.trackingPaused) {
+    return (
+      <div className="app-shell progress-shell">
+        <main className="app-main progress-main">
+          <div className="progress-page-header">
+            <h1 className="screen-title" style={{ marginBottom: 0 }}>Progress</h1>
+          </div>
+          <div className="progress-card" style={{ textAlign: 'center' }}>
+            <h2 className="progress-card-title">Tracking is paused</h2>
+            <p className="page-sub" style={{ marginTop: 8 }}>
+              Your progress numbers are hidden and your streak is being held.
+            </p>
+            <Link to="/settings" className="btn btn-primary" style={{ marginTop: 18 }}>
+              Manage pause
+            </Link>
+          </div>
+        </main>
+        <BottomNav />
+      </div>
+    )
   }
 
   return (
@@ -184,8 +203,6 @@ export function ProgressPage() {
             <StatCard
               label="Net change"
               value={`${netChange >= 0 ? '+' : ''}${netChange.toFixed(1)} kg`}
-              positive={netChange < 0}
-              negative={netChange > 0}
             />
             <StatCard label="Average" value={`${avgWeight.toFixed(1)} kg`} />
           </div>

@@ -143,7 +143,13 @@ Then run `vercel dev` from the `web` folder (install Vercel CLI: `npm i -g verce
 
 ## 7. CI (GitHub Actions)
 
-`.github/workflows/web-ci.yml` runs lint, build, and e2e tests on push. E2e uses **local** storage (no Neon required in CI).
+`.github/workflows/web-ci.yml` runs four checks for relevant pushes and pull
+requests:
+
+- web client lint, unit tests, and production build;
+- Playwright browser tests using **local** storage (no Neon required);
+- API boundary tests and API typechecking; and
+- mobile typechecking plus unit and database-migration tests.
 
 ---
 

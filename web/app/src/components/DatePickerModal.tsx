@@ -76,6 +76,9 @@ export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerM
                 className={`date-modal-cell${selected ? ' selected' : ''}${isToday && !selected ? ' today' : ''}`}
                 disabled={future}
                 onClick={() => { onSelect(d); onClose() }}
+                aria-label={d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                aria-pressed={selected}
+                aria-current={isToday ? 'date' : undefined}
               >
                 {d.getDate()}
               </button>

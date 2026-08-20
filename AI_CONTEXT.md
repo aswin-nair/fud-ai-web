@@ -14,7 +14,7 @@ them is the most expensive mistake available here.
 | **Status** | **The live product.** Deployed to Vercel. | Second app, newer, not shipped. |
 | Stack | Vite + React 19 + react-router-dom | Expo SDK 57 + React Native + expo-router |
 | Language | TypeScript (strict) | TypeScript (strict) |
-| Storage | `localStorage` | `expo-sqlite` + drizzle-orm |
+| Storage | Per-user IndexedDB snapshot/outbox, with versioned Neon in cloud mode | `expo-sqlite` + drizzle-orm |
 | State | React Context (`store/AppContext.tsx`) | zustand stores |
 | Styling | One large `src/index.css` + CSS custom properties | `src/theme/tokens.ts` |
 | Look | **Coral / cream, warm, editorial** | Green / white |
@@ -100,7 +100,8 @@ is ever added it is opt-in, friends-only, and shares streak length only.
 
 ### 3.8 Off-ramps
 - One free streak freeze per calendar month, auto-applied, never sold.
-- **Pause tracking** — hides all numbers, holds the streak indefinitely.
+- **Pause tracking** — hides calorie, macro, and weight numbers, and holds the
+  streak indefinitely.
 - **Support** screen with eating-disorder helplines, reachable in two taps from
   Home (Settings → Support). US entry is the **National Alliance for Eating
   Disorders**. **Do not link NEDA** — its helpline is permanently disconnected.
@@ -127,11 +128,28 @@ favoriteMeals, chatMessages, aiSettings, gamification }`.
   source, mealType, servingSizeGrams?, ingredients? }`
 - `FoodSource` — `'textInput' | 'manual' | 'snapFood' | 'quickAdd' | 'recent'`
 - `GamificationState` — `{ xp, level, streakFreezes, freezeUsedDates,
-  freezeEarnedMonth, xpEvents, pendingLevelUp, seenBadgeIds, quest? }`
+  freezeEarnedMonth, pauseStartedDate, pauseProtectedDates, xpEvents,
+  awardedKeys, pendingLevelUp, seenBadgeIds, quest? }`. `xpEvents` is a capped
+  display feed; `awardedKeys` is the untruncated XP idempotency ledger.
 
 ### Persistence
-`localStorage`, keyed **per user**: `fud-ai-web-state-<userId>`
-(`lib/storage.ts`). No backend for app data. Export/import to JSON is supported.
+There are two explicit modes:
+
+- Both modes use a schema-versioned, per-user IndexedDB record
+  (`lib/durableState.ts`) as the browser authority. Existing
+  `fud-ai-web-state-<userId>` localStorage snapshots migrate only after a
+  successful durable commit; unavailable IndexedDB falls back visibly to a
+  secret-free localStorage record. Invalid records are quarantined, never
+  hydrated as empty state.
+- Cloud mode uses the authenticated `/api/state` endpoint and a versioned Neon
+  JSON snapshot. The shared runtime contract (`web/shared/appStateContract.ts`)
+  validates upload and download boundaries. Its ordered outbox persists stable
+  mutation UUIDs and retry metadata across relaunch; optimistic versions reject
+  stale writers, then require an exported-copy server/device choice instead of
+  silently overwriting either side.
+
+Export/import to JSON is supported. The private BYOK credential is deliberately
+outside `AppState`, so it is never included in an export or cloud snapshot.
 
 ### State
 Single `AppContext` (`store/AppContext.tsx`) exposing `addEntry`, `updateEntry`,
@@ -155,18 +173,30 @@ Do not award XP by hand elsewhere.
 | `lib/notifications.ts` | Two-per-day cap, copy, `routineHour` |
 | `lib/analytics.ts` | Typed events → local ring buffer in `localStorage` |
 | `lib/meals.ts` | Recents, favourites, `quickAddEntry`, `defaultMealType` |
+| `lib/durableState.ts` | Validated IndexedDB snapshot, ordered cloud outbox, retry leases, explicit conflict rebase |
 | `lib/feel.ts` | Synthesised sounds + haptics, honours profile toggles |
 | `lib/tokens.ts` | JS-side motion durations, ring geometry |
 | `lib/dates.ts` | **`localDayKey()` — local calendar date, never UTC** |
+| `lib/storage.ts` | Local migration, strict validation, quarantine, device-only BYOK storage |
+| `lib/apiClient.ts` | Bounded, session-bound, versioned cloud state transport |
+| `web/shared/appStateContract.ts` | Runtime allowlist, field/bounds/age validation, cloud-secret policy |
+| `web/api/state.ts` | Authenticated state API with optimistic concurrency |
 
 ### Auth
 Local email/password (`lib/localAuth.ts`, stored in browser) **plus** Google
-OAuth (`@react-oauth/google`). In dev, Google sign-in throws origin errors — this
-is expected and harmless.
+OAuth (`@react-oauth/google`). Cloud mode exchanges the identity for a signed API
+session; state requests are pinned to the token captured for that provider
+session so a second-tab account change cannot redirect an old user's snapshot.
+Expired or invalid sessions return to sign-in. Normal sign-out attempts server
+revocation before expiry; Settings also exposes logout-all and transactional
+typed-confirmation account deletion. In dev, Google sign-in can report
+unregistered-origin errors until that origin is configured.
 
 ### AI features (BYOK)
 Photo and text meal logging call an LLM using the **user's own API key**
-(OpenRouter or Gemini), stored in-browser. `lib/aiClient.ts`, `lib/foodAI.ts`,
+(OpenRouter or Gemini). The key is stored in a separate, device-local browser
+record, never in `AppState`; the cloud/API contract rejects a non-empty key even
+if a client attempts to upload one. `lib/aiClient.ts`, `lib/foodAI.ts`,
 `lib/coachAI.ts`. No key ships with the app.
 
 ---
@@ -215,11 +245,17 @@ genuine milestones. Never moralise food — descriptive, never evaluative.
 ## 6. Testing and verification
 
 ```bash
-npm run test     --prefix web/app   # vitest, 58 unit tests
-npm run build    --prefix web/app   # tsc -b && vite build
-npm run lint     --prefix web/app   # oxlint
-npm run test:e2e --prefix web/app   # playwright
+npm test                  # web app + API contract + mobile unit suites
+npm run build             # web TypeScript + production bundle
+npm run lint              # web oxlint
+npm run typecheck:api     # server/API TypeScript
+npm run typecheck:mobile  # mobile TypeScript
+npm run test:e2e          # Playwright browser flows
 ```
+
+At the 2026-08-20 foundation checkpoint this is 114 web unit tests, 3 API
+boundary tests, and 135 mobile unit tests. Treat counts as a snapshot, not a
+target; the commands above are authoritative.
 
 - **Unit tests are scoped to `src/**/*.test.ts`** via `vitest.config.ts`, so they
   do not collide with the Playwright specs in `e2e/`.
@@ -230,8 +266,9 @@ npm run test:e2e --prefix web/app   # playwright
   convention is to write a throwaway `_probe-*.mjs` that drives the real app via
   Playwright, prints assertions, and screenshots. Use it — visual claims about
   this app should be verified, not assumed.
-- **`npm run ci` does NOT run the unit tests.** It is
-  `lint && build && test:e2e`. Adding `npm test` to that chain is an open task.
+- **CI runs unit, API-boundary, type, build, and Playwright checks.** Keep package
+  installation at both `web/` and `web/app/`: the API and client intentionally
+  own different dependency boundaries.
 
 ---
 
@@ -262,12 +299,24 @@ explanations, Home (streak badge, XP bar, mascot + speech bubble, calorie ring,
 macros, quest, meals by slot, pinned raised log button), search-first log flow
 with recents/favourites and quick add, AI photo/text logging, manual entry, saved
 meals, Progress led by logging consistency, journey/badges, coach chat, settings
-with pause tracking, support screen, export/import.
+with pause tracking, support screen, export/import, strict local-state quarantine,
+and authenticated versioned cloud snapshots. Pause hides numeric nutrition and
+weight surfaces, suppresses engagement nudges, and bridges rather than increments
+the streak.
 
-Known gaps:
-- Macro cards and activity chips still use the older three-card treatment rather
-  than the labelled progress-bar group.
-- `npm run ci` does not run unit tests.
-- Sub-20-second log time and haptics are unverified on real hardware.
-- The `mobile/` app is at feature parity through its own Phase 7 but is not
-  shipped.
+Release gates still open:
+- Apply `web/db/schema.sql` in every deployed Neon environment and audit dormant
+  rows for historical BYOK values. If any are found, treat it as a credential
+  incident and make an explicit rotation/notification decision.
+- Cloud edits now use a durable, per-account IndexedDB snapshot and ordered
+  outbox with stable mutation UUIDs, session/version metadata, reconnect retry,
+  and explicit exported-copy conflict resolution. It is still whole-snapshot
+  synchronization rather than entity-level reconciliation, so do not market it
+  as automatic cross-device merging.
+- Run the ten-log, under-20-second protocol plus haptic/accessibility checks on
+  representative physical devices.
+- Require a clean Playwright run in hosted CI; some managed Windows sandboxes
+  cannot launch Chromium and therefore cannot supply local browser evidence.
+- Complete production-like auth expiry/revocation, export/delete/restore,
+  observability, rate-limit, security, accessibility, and app-store rehearsals.
+- The `mobile/` app remains unshipped.

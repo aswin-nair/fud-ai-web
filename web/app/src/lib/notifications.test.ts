@@ -81,6 +81,17 @@ describe('the two-per-day cap', () => {
 })
 
 describe('suppression rules', () => {
+  it('sends nothing while tracking is paused', async () => {
+    await evaluateNotifications({
+      ...RIPE,
+      trackingPaused: true,
+      freezeJustApplied: { protectedStreak: RIPE.streak },
+    })
+
+    expect(sent).toEqual([])
+    expect(notificationsSentToday()).toBe(0)
+  })
+
   it('sends nothing once the user has logged today', async () => {
     await evaluateNotifications({ ...RIPE, loggedToday: true })
 

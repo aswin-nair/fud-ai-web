@@ -5,15 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/build.mjs",
+    "build:local": "node scripts/build.mjs local",
+    "build:cloud": "node scripts/build.mjs neon",
     "lint": "oxlint",
     "preview": "vite preview --mode production",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "ci": "npm run lint && npm run test && npm run build && npm run test:e2e"
+    "ci": "npm run lint && npm run test && npm run build:local && npm run test:e2e"
   },
   "dependencies": {
+    "@fud-ai/domain": "file:../../packages/domain",
     "@react-oauth/google": "^0.13.5",
     "jwt-decode": "^4.0.0",
     "react": "^19.2.7",

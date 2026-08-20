@@ -4,15 +4,22 @@
   "scripts": {
     "dev": "npm run dev --prefix web/app",
     "dev:all": "npm run dev:all --prefix web",
-    "build": "npm run build --prefix web/app",
+    "build": "npm run build:local --prefix web/app",
+    "build:cloud": "npm run build:cloud --prefix web/app",
     "preview": "npm run preview --prefix web/app",
     "lint": "npm run lint --prefix web/app",
-    "test": "npm run test:web && npm run test:mobile",
+    "test": "npm run test:web && npm run test:api && npm run test:mobile",
     "test:web": "npm run test --prefix web/app",
+    "test:api": "npm run test:api --prefix web",
     "test:mobile": "npm run test --prefix mobile",
-    "typecheck:api": "npm exec --prefix web -- tsc -p web/api/tsconfig.json --noEmit",
+    "typecheck:api": "npm run typecheck:api --prefix web",
     "typecheck:mobile": "npm run typecheck --prefix mobile",
+    "security:scan": "node scripts/security-scan.mjs",
+    "security:scan:test": "node --test scripts/security-scan.test.mjs",
+    "release:check": "node scripts/release-readiness.mjs",
+    "release:check:structure": "node scripts/release-readiness.mjs --structure-only",
+    "support:check": "node scripts/support-resource-check.mjs",
     "test:e2e": "npm run test:e2e --prefix web/app",
-    "ci": "npm run ci --prefix web/app && npm run typecheck:api && npm run typecheck:mobile && npm run test:mobile"
+    "ci": "npm run security:scan:test && npm run security:scan && npm run release:check:structure && npm run support:check && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run typecheck:mobile && npm run test:mobile"
   }
 }

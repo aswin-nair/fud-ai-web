@@ -1,6 +1,25 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
+export class InvalidJsonError extends Error {
+  constructor() {
+    super('Invalid JSON body')
+    this.name = 'InvalidJsonError'
+  }
+}
+
+export function applySecurityHeaders(res: VercelResponse) {
+  res.setHeader('Cache-Control', 'no-store')
+  res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  res.setHeader('Referrer-Policy', 'no-referrer')
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+}
+
 export function json(res: VercelResponse, status: number, body: unknown) {
+  applySecurityHeaders(res)
   res.setHeader('Content-Type', 'application/json')
   res.status(status).json(body)
 }
@@ -18,12 +37,22 @@ export function unauthorized(res: VercelResponse, message = 'Unauthorized') {
 }
 
 export function serverError(res: VercelResponse, err: unknown) {
-  console.error(err)
+  // Never serialize thrown messages, stacks, request bodies, tokens, or user
+  // data. Provider and database errors can contain credentials or SQL values.
+  const rawName = err instanceof Error ? err.name : 'UnknownError'
+  const errorName = rawName.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || 'Error'
+  console.error(JSON.stringify({ event: 'api_unhandled_error', errorName }))
   json(res, 500, { error: 'Internal server error' })
 }
 
 export async function readJson<T>(req: VercelRequest): Promise<T> {
-  if (typeof req.body === 'string') return JSON.parse(req.body) as T
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body) as T
+    } catch {
+      throw new InvalidJsonError()
+    }
+  }
   if (req.body && typeof req.body === 'object') return req.body as T
   return {} as T
 }

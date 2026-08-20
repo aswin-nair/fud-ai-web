@@ -10,6 +10,7 @@ import Svg, { Circle, G } from 'react-native-svg';
 
 import { Text } from '@/components/primitives/Text';
 import { useTheme } from '@/theme/useTheme';
+import { calorieProgress } from '@fud-ai/domain/nutrition';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -35,13 +36,7 @@ export function CalorieRing({ consumed, target, size = DEFAULT_SIZE }: CalorieRi
   const circumference = 2 * Math.PI * radius;
   const centre = size / 2;
 
-  const safeTarget = target > 0 ? target : 1;
-  const progress = Math.min(consumed / safeTarget, 1);
-  const overflow = Math.min(Math.max(consumed - safeTarget, 0) / safeTarget, 1);
-
-  const isOver = consumed > target;
-  const remaining = Math.max(Math.round(target - consumed), 0);
-  const overBy = Math.round(consumed - target);
+  const { progress, overflow, isOver, remaining, overBy } = calorieProgress(consumed, target);
 
   const fill = useSharedValue(progress);
   const over = useSharedValue(overflow);

@@ -15,15 +15,15 @@ Please include:
 
 - A description of the vulnerability
 - Steps to reproduce (a minimal PoC is ideal)
-- Affected platform + version (iOS — check **Settings → About**, or `MARKETING_VERSION` in `ios/calorietracker.xcodeproj/project.pbxproj`; Android — check About screen, or `versionName` in `android/app/build.gradle.kts`)
+- Affected platform + version (iOS — check **Settings → About**, or `MARKETING_VERSION` in `ios/calorietracker.xcodeproj/project.pbxproj`; Android — check About screen, or `versionName` in `android/app/build.gradle.kts`; web — include the deployed URL, approximate time, browser, and whether the deployment was using local or cloud data mode)
 - Any potential impact — data exposure, API-key leakage, code execution, etc.
 - Your name / handle if you want credit in the release notes (optional)
 
-You can expect an initial acknowledgement within **7 days**, and a more detailed response (triage + estimated fix timeline) within **14 days**. Please do not disclose the issue publicly until a fix has shipped to the App Store and Play Store.
+You can expect an initial acknowledgement within **7 days**, and a more detailed response (triage + estimated fix timeline) within **14 days**. Please do not disclose the issue publicly until the affected fix has been deployed to the web app or shipped through the relevant app store.
 
 ## Supported Versions
 
-Only the latest released version on each store (App Store for iOS, Play Store for Android) is supported with security updates. The repository's `main` branch tracks the next release for both clients.
+Only the latest released version on each store (App Store for iOS, Play Store for Android) and the current production web deployment are supported with security updates. The repository's `main` branch tracks the next release for all clients.
 
 ## Scope
 
@@ -51,7 +51,10 @@ Only the latest released version on each store (App Store for iOS, Play Store fo
 
 **In scope (web):**
 
-- The marketing site source in `web/` (static HTML/CSS, no JS framework, no backend)
+- The browser application in `web/app/`, including authentication, per-user browser storage, import/export, deletion, local analytics, and device-local BYOK handling
+- The Vercel API in `web/api/`, including email and Google authentication, bearer sessions, object authorization, request validation, and versioned state reads/writes
+- The optional Neon persistence boundary and schema in `web/db/`, including account records, cloud-state snapshots, migrations, and secret-removal behavior
+- The marketing and legal site source in `web/`
 - Privacy policy + terms pages (`web/privacy.html`, `web/terms.html`) — accuracy of disclosures
 
 **Out of scope:**
@@ -63,6 +66,7 @@ Only the latest released version on each store (App Store for iOS, Play Store fo
 - Issues requiring physical device access with the device unlocked
 - Social-engineering attacks against users' own API keys
 - Denial-of-service against the user's own AI provider via API quota exhaustion (that's a user-controlled cost, not a security boundary)
+- Vulnerabilities in Vercel, Neon, or Google identity infrastructure that are independent of Fud AI's code or configuration (report those to the provider; Fud AI integration and configuration errors remain in scope)
 
 ## Safe Harbor
 

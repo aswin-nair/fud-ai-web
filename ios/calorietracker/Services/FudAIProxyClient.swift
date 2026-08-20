@@ -11,6 +11,7 @@ enum FudAIProxyClient {
     }
 
     enum ProxyError: LocalizedError {
+        case managedAIUnavailable
         case subscriptionRequired
         case quotaExceeded(String)
         case apiError(String)
@@ -19,6 +20,8 @@ enum FudAIProxyClient {
 
         var errorDescription: String? {
             switch self {
+            case .managedAIUnavailable:
+                return AIAccessSettings.managedAIUnavailableMessage
             case .subscriptionRequired:
                 return "Fud AI Premium is not active. Subscribe or switch back to Bring Your Own Key in Settings."
             case .quotaExceeded(let message):
@@ -34,6 +37,9 @@ enum FudAIProxyClient {
     }
 
     static func quotaSnapshot() async throws -> AIAccessQuotaSnapshot {
+        guard AIAccessSettings.managedAIAvailable else {
+            throw ProxyError.managedAIUnavailable
+        }
         guard AIAccessSettings.hasActivePremiumEntitlement else {
             throw ProxyError.subscriptionRequired
         }
@@ -61,6 +67,9 @@ enum FudAIProxyClient {
     }
 
     static func generateContent(task: ProxyTask, body: [String: Any]) async throws -> Data {
+        guard AIAccessSettings.managedAIAvailable else {
+            throw ProxyError.managedAIUnavailable
+        }
         guard AIAccessSettings.hasActivePremiumEntitlement else {
             throw ProxyError.subscriptionRequired
         }
@@ -96,6 +105,9 @@ enum FudAIProxyClient {
     }
 
     static func transcribeSpeech(audioData: Data, languageCode: String?) async throws -> String {
+        guard AIAccessSettings.managedAIAvailable else {
+            throw ProxyError.managedAIUnavailable
+        }
         guard AIAccessSettings.hasActivePremiumEntitlement else {
             throw ProxyError.subscriptionRequired
         }

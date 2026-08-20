@@ -131,3 +131,11 @@ export async function loginWithEmail(email: string, password: string): Promise<A
     provider: 'email',
   }
 }
+
+export function deleteLocalAccount(email: string): void {
+  const normalized = normalizeEmail(email)
+  const users = loadUsers()
+  delete users[normalized]
+  if (Object.keys(users).length === 0) localStorage.removeItem(USERS_KEY)
+  else saveUsers(users)
+}

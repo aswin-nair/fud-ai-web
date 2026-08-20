@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { analyzeTextFood } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
 import { BackLink } from '../components/BackLink'
 import { track } from '../lib/analytics'
+import { clearLogDraft, loadLogDrafts, saveTextLogDraft } from '../lib/logDrafts'
+import { useAuth } from '../store/AuthContext'
 
 const EXAMPLES = [
   '2 scrambled eggs, toast with butter',
@@ -15,27 +17,41 @@ const EXAMPLES = [
 
 export function LogTextPage() {
   const { state, setPendingAnalysis, setPendingSource } = useApp()
+  const { user } = useAuth()
   const navigate = useNavigate()
-  const [text, setText] = useState('')
+  const userId = user?.sub ?? ''
+  const [text, setText] = useState(() => loadLogDrafts(userId).text?.text ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const requestRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    saveTextLogDraft(userId, text)
+  }, [text, userId])
+
+  useEffect(() => () => requestRef.current?.abort(), [])
 
   async function handleAnalyze() {
     const trimmed = text.trim()
     if (!trimmed) return
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
     setLoading(true)
     setError(null)
     track({ name: 'ai_analysis_started', method: 'text_ai' })
     try {
-      const analysis = await analyzeTextFood(trimmed, state.aiSettings)
+      const analysis = await analyzeTextFood(trimmed, state.aiSettings, controller.signal)
       track({ name: 'ai_analysis_completed', method: 'text_ai' })
       setPendingSource('textInput')
       setPendingAnalysis(analysis)
+      clearLogDraft(userId, 'text')
       navigate('/review')
     } catch (e) {
       track({ name: 'ai_analysis_failed', method: 'text_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
     } finally {
+      if (requestRef.current === controller) requestRef.current = null
       setLoading(false)
     }
   }
@@ -49,6 +65,9 @@ export function LogTextPage() {
           </div>
           <p className="analyzing-title">Estimating nutrition…</p>
           <p className="analyzing-sub">AI is reading your description</p>
+          <button type="button" className="btn btn-secondary" onClick={() => requestRef.current?.abort()}>
+            Cancel analysis
+          </button>
         </main>
       </div>
     )

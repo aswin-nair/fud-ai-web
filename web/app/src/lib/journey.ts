@@ -1,5 +1,6 @@
 import type { FoodEntry, GamificationState } from '../types'
 import { localDayKey } from './dates'
+import { deriveLoggingStreak } from '@fud-ai/domain/streak'
 
 // ── Journey stages ─────────────────────────────────────────────
 export interface JourneyStage {
@@ -106,31 +107,17 @@ export function getMonthConsistency(
 export function getStreakWithFreezes(
   entries: FoodEntry[],
   freezeUsedDates: string[],
+  pauseProtectedDates: string[] = [],
 ): number {
   if (!entries.length) return 0
 
-  const loggedDays = new Set([
-    ...entries.map(e => localDayKey(new Date(e.timestamp))),
-    ...freezeUsedDates,
-  ])
-
-  const check = new Date()
-  check.setHours(0, 0, 0, 0)
-
-  function dayKey(d: Date) {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  }
-
-  if (!loggedDays.has(dayKey(check))) {
-    check.setDate(check.getDate() - 1)
-  }
-
-  let streak = 0
-  while (loggedDays.has(dayKey(check))) {
-    streak++
-    check.setDate(check.getDate() - 1)
-  }
-  return streak
+  return deriveLoggingStreak({
+    loggedDates: entries.map(e => localDayKey(new Date(e.timestamp))),
+    freezeDates: freezeUsedDates,
+    neutralDates: pauseProtectedDates,
+    today: localDayKey(new Date()),
+    localHour: new Date().getHours(),
+  }).count
 }
 
 /** Apply freeze for yesterday if: gap exists, streak was active, freeze credit available. */
@@ -141,13 +128,17 @@ export function applyFreeze(
   let { streakFreezes, freezeUsedDates, freezeEarnedMonth } = gamification
 
   // Monthly reset
-  const currentMonth = new Date().toISOString().slice(0, 7)
+  const currentMonth = localDayKey(new Date()).slice(0, 7)
   if (currentMonth !== freezeEarnedMonth) {
     streakFreezes = 1
     freezeEarnedMonth = currentMonth
   }
 
-  const loggedDays = new Set(entries.map(e => localDayKey(new Date(e.timestamp))))
+  const activeDays = new Set([
+    ...entries.map(e => localDayKey(new Date(e.timestamp))),
+    ...freezeUsedDates,
+    ...gamification.pauseProtectedDates,
+  ])
 
   const yesterday = new Date()
   yesterday.setHours(0, 0, 0, 0)
@@ -160,10 +151,10 @@ export function applyFreeze(
 
   // Only freeze yesterday if: missed, not already frozen, had a streak going (2d ago logged)
   if (
-    !loggedDays.has(yKey) &&
+    !activeDays.has(yKey) &&
     !freezeUsedDates.includes(yKey) &&
     streakFreezes > 0 &&
-    loggedDays.has(t2Key)
+    activeDays.has(t2Key)
   ) {
     streakFreezes--
     freezeUsedDates = [...freezeUsedDates, yKey]

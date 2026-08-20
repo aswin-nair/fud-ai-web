@@ -1,10 +1,13 @@
 # Fud AI Web Tracker
 
-Privacy-first AI calorie tracker for the browser. Sign in with Google; food logs are stored per-account in your browser.
+Privacy-first AI calorie tracker for the browser. It supports per-user device-local
+storage or authenticated, versioned Neon cloud snapshots, selected with
+`VITE_DATA_BACKEND`.
 
 ## Features
 
-- **Google Sign-In** — one account per browser profile, separate local data per user
+- Email/password sign-in in local or cloud mode, plus Google Sign-In in cloud mode
+- Per-user browser storage in local mode; authenticated Neon sync with optimistic version checks in cloud mode
 - Onboarding with BMR/TDEE/macro goal calculation (same formulas as iOS/Android)
 - Home dashboard with calorie ring, macro bars, and meal list
 - Text food logging via Gemini (Bring Your Own Key)
@@ -18,7 +21,8 @@ Privacy-first AI calorie tracker for the browser. Sign in with Google; food logs
 cd web/app
 npm install
 cp .env.example .env.local
-# Add your Google OAuth Client ID to .env.local (see below)
+# Leave VITE_DATA_BACKEND=local for device-local development.
+# Cloud and Google setup are covered below and in DEPLOYMENT.md.
 npm run dev
 ```
 
@@ -28,18 +32,21 @@ Open **http://localhost:5173/login**
 
 ```bash
 cd web/app
-npm run ci          # lint + build + e2e (15 tests)
+npm run ci          # lint + unit tests + build + e2e
 npm run test:e2e    # Playwright only
 npm run test:e2e:ui # interactive mode
 ```
 
-E2e tests use email/password auth (no Google required). CI runs on GitHub Actions via `.github/workflows/web-ci.yml`.
+`npm run ci` includes lint, unit tests, the production build, and Playwright.
+E2e tests use local email/password auth (no Google or Neon required). GitHub
+Actions also checks the API boundary and mobile app; see
+`.github/workflows/web-ci.yml`.
 
 ## Deployment
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for Vercel setup, env vars, and production checklist.
 
-## Google Auth setup
+## Google Auth setup (cloud mode)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create or select a project
@@ -76,7 +83,8 @@ Also add your production URL (e.g. `https://fud-ai.app`) to **Authorized JavaScr
 2. Open **Settings → AI Access** in the app and paste your key
 3. Describe your meal on the **Log** screen
 
-Your Gemini key stays in localStorage on your device only.
+Your Gemini key stays in a separate device-local browser record. It is excluded
+from app-state exports and cloud snapshots.
 
 ## Production build
 
@@ -92,5 +100,5 @@ Output goes to `web/app/dist/` and is served at `/app/` alongside the marketing 
 - Vite + React + TypeScript
 - `@react-oauth/google` for Google Sign-In
 - React Router
-- localStorage (per Google user ID)
+- Per-user `localStorage` or authenticated, versioned Neon snapshots
 - Direct Gemini API calls (BYOK)

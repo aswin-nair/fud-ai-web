@@ -162,7 +162,7 @@ export function finishLogFlow(input: {
   if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(FLOW_KEY)
 }
 
-function sourceToMethod(source: string): LogMethod {
+export function sourceToMethod(source: string): LogMethod {
   switch (source) {
     case 'textInput': return 'text_ai'
     case 'snapFood': return 'photo_ai'

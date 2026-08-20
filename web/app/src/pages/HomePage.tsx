@@ -81,10 +81,14 @@ export function HomePage() {
     .filter(e => localDayKey(new Date(e.timestamp)) === selectedDayKey)
     .reduce((sum, e) => sum + e.caloriesBurned, 0)
 
-  const streak = getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates)
-  const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
-  const streakAtRisk = streak > 0 && !hasLoggedToday
   const paused = Boolean(profile.trackingPaused)
+  const streak = getStreakWithFreezes(
+    state.foodEntries,
+    state.gamification.freezeUsedDates,
+    state.gamification.pauseProtectedDates,
+  )
+  const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
+  const streakAtRisk = !paused && streak > 0 && !hasLoggedToday
   const quest = state.gamification.quest
 
   const loggedDayKeys = new Set(state.foodEntries.map(e => localDayKey(new Date(e.timestamp))))
@@ -119,6 +123,7 @@ export function HomePage() {
   }, [profile.soundEnabled, profile.hapticsEnabled])
 
   useEffect(() => {
+    if (paused) return
     const hours = state.foodEntries
       .map(e => new Date(e.timestamp).getHours())
     void evaluateNotifications({
@@ -127,8 +132,9 @@ export function HomePage() {
       freezeAvailable: state.gamification.streakFreezes,
       firstLogHours: hours,
       localHour: new Date().getHours(),
+      trackingPaused: paused,
     })
-  }, [hasLoggedToday, streak, state.gamification.streakFreezes, state.foodEntries])
+  }, [paused, hasLoggedToday, streak, state.gamification.streakFreezes, state.foodEntries])
 
   // Brief choreographed skeleton reveal so the splash hands off smoothly into content.
   useEffect(() => {
@@ -216,11 +222,11 @@ export function HomePage() {
   return (
     <div className="app-shell home-shell">
       <div className="home-ambient-glow" aria-hidden />
-      {pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
+      {!paused && pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
 
       {/* The signature moment. Held behind the level-up overlay so the two
           never stack on top of each other. */}
-      {celebration && !pendingLevelUp && (
+      {!paused && celebration && !pendingLevelUp && (
         <LogCelebration
           foodName={celebration.foodName}
           calories={celebration.calories}
@@ -282,21 +288,23 @@ export function HomePage() {
       )}
 
       {/* §9.2 opens with the streak, then points and level. */}
-      <div className="home-top-row">
-        <span className={`home-streak-badge${streakAtRisk ? ' is-at-risk' : ''}`}>
-          <span className="home-streak-flame">🔥</span>
-          {streak} day{streak === 1 ? '' : 's'}
-        </span>
-        <div className="home-xp">
-          <div className="home-points">
-            <strong>{state.gamification.xp} XP</strong>
-            <span>Level {level}</span>
-          </div>
-          <div className="home-xp-track">
-            <span className="home-xp-fill" style={{ width: `${levelProgress * 100}%` }} />
+      {!paused && (
+        <div className="home-top-row">
+          <span className={`home-streak-badge${streakAtRisk ? ' is-at-risk' : ''}`}>
+            <span className="home-streak-flame">🔥</span>
+            {streak} day{streak === 1 ? '' : 's'}
+          </span>
+          <div className="home-xp">
+            <div className="home-points">
+              <strong>{state.gamification.xp} XP</strong>
+              <span>Level {level}</span>
+            </div>
+            <div className="home-xp-track">
+              <span className="home-xp-fill" style={{ width: `${levelProgress * 100}%` }} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {!paused && (
         <div className="home-say-row">
@@ -305,7 +313,7 @@ export function HomePage() {
         </div>
       )}
 
-      {quest && (
+      {!paused && quest && (
         <Link to="/journey" className="home-quest-row">
           <span>{questTitle(quest)}</span>
           <span>{Math.min(quest.progress, quest.target)}/{quest.target}</span>
@@ -329,7 +337,7 @@ export function HomePage() {
               {paused ? (
                 <div className="onboarding-goal-card" style={{ textAlign: 'center' }}>
                   <p className="onboarding-title" style={{ fontSize: '1.2rem' }}>Tracking is paused</p>
-                  <p className="page-sub">Numbers are hidden. Your streak is held where it is.</p>
+                  <p className="page-sub">Calorie and macro numbers are hidden. Your streak is held where it is.</p>
                 </div>
               ) : (
                 <div className={`home-ring-block${ringPop ? ' ring-pop' : ''}`}>
@@ -348,16 +356,18 @@ export function HomePage() {
             </div>
 
             {/* Activity is optional detail, not a competing primary action. */}
-            <div className="home-section-enter" style={{ '--enter-delay': '90ms' } as React.CSSProperties}>
-              <button
-                type="button"
-                className="activity-detail-row"
-                onClick={() => { setActivePreset(ACTIVITY_PRESETS[0]); vibrate(8) }}
-              >
-                <span>Activity</span>
-                <span>{burned > 0 ? `${burned.toLocaleString()} kcal logged` : 'Add optional details'} →</span>
-              </button>
-            </div>
+            {!paused && (
+              <div className="home-section-enter" style={{ '--enter-delay': '90ms' } as React.CSSProperties}>
+                <button
+                  type="button"
+                  className="activity-detail-row"
+                  onClick={() => { setActivePreset(ACTIVITY_PRESETS[0]); vibrate(8) }}
+                >
+                  <span>Activity</span>
+                  <span>{burned > 0 ? `${burned.toLocaleString()} kcal logged` : 'Add optional details'} →</span>
+                </button>
+              </div>
+            )}
 
             {!paused && (
             <div className="home-section-enter" style={{ '--enter-delay': '120ms' } as React.CSSProperties}>
@@ -368,9 +378,11 @@ export function HomePage() {
               />
             </div>
             )}
-            <div className="home-section-enter" style={{ '--enter-delay': '180ms' } as React.CSSProperties}>
-              <FoodList entries={dayEntries} selectedDate={selectedDate} dailyGoal={goal} />
-            </div>
+            {!paused && (
+              <div className="home-section-enter" style={{ '--enter-delay': '180ms' } as React.CSSProperties}>
+                <FoodList entries={dayEntries} selectedDate={selectedDate} dailyGoal={goal} />
+              </div>
+            )}
 
             {/* Clears the pinned button so the last meal is never hidden. */}
             <div className="home-scroll-pad" />

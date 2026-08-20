@@ -1,4 +1,10 @@
 import { type ActivityLevel, type Goal, type Sex } from '@/db/schema';
+import {
+  NUTRITION_SAFETY,
+  bodyMassIndex,
+  mifflinStJeor,
+  minimumWeightForBmi,
+} from '@fud-ai/domain/nutrition';
 
 /**
  * Implements §2.1. Every number here is a safety floor, not a preference —
@@ -14,19 +20,43 @@ export const ACTIVITY_MULTIPLIER: Record<ActivityLevel, number> = {
 };
 
 /** Hard calorie floors. Never produce a target below these. */
-export const KCAL_FLOOR: Record<Sex, number> = { female: 1200, male: 1500 };
+export const KCAL_FLOOR: Record<Sex, number> = {
+  female: NUTRITION_SAFETY.calorieFloor.female,
+  male: NUTRITION_SAFETY.calorieFloor.other,
+};
 
 /** Deficits are capped at a quarter of maintenance. */
-export const MAX_DEFICIT_FRACTION = 0.25;
+export const MAX_DEFICIT_FRACTION = NUTRITION_SAFETY.maximumDeficitFraction;
 
 /** Rate-of-change selector cap, as a percent of bodyweight per week. */
-export const MAX_WEEKLY_RATE_PCT = 1;
+export const MAX_WEEKLY_RATE_PCT = NUTRITION_SAFETY.maximumWeeklyRateFraction * 100;
 
 /** Below this BMI a goal weight is refused outright. */
-export const MIN_BMI = 18.5;
+export const MIN_BMI = NUTRITION_SAFETY.minimumHealthyBmi;
 
 const KCAL_PER_KG = 7700;
 const DAYS_PER_WEEK = 7;
+
+const INPUT_RANGE = {
+  ageYears: { min: 18, max: 130 },
+  heightCm: { min: 1, max: 300 },
+  weightKg: { min: 1, max: 1000 },
+  // Finite values above the planning cap remain valid so they can receive the
+  // existing plain-language clamp explanation. Values above 100% are invalid
+  // measurements rather than meaningful rate requests.
+  weeklyRatePct: { min: 0, max: 100 },
+  goalWeightKg: { min: 1, max: 1000 },
+} as const;
+
+const VALID_SEXES = new Set<Sex>(['female', 'male']);
+const VALID_ACTIVITY_LEVELS = new Set<ActivityLevel>([
+  'sedentary',
+  'light',
+  'moderate',
+  'active',
+  'veryActive',
+]);
+const VALID_GOALS = new Set<Goal>(['lose', 'maintain', 'gain']);
 
 /** Grams of protein per kg of bodyweight, and the share of energy from fat. */
 const PROTEIN_G_PER_KG = 1.8;
@@ -71,27 +101,48 @@ export function computeBmr(input: {
   heightCm: number;
   ageYears: number;
 }): number {
-  const base = 10 * input.weightKg + 6.25 * input.heightCm - 5 * input.ageYears;
-  return input.sex === 'male' ? base + 5 : base - 161;
+  return mifflinStJeor(input);
 }
 
 export function computeBmi(weightKg: number, heightCm: number): number {
-  const metres = heightCm / 100;
-  return weightKg / (metres * metres);
+  return bodyMassIndex(weightKg, heightCm);
 }
 
 /** The lowest weight that still clears MIN_BMI at this height. */
 export function minimumHealthyWeightKg(heightCm: number): number {
-  const metres = heightCm / 100;
-  return MIN_BMI * metres * metres;
+  return minimumWeightForBmi(heightCm, MIN_BMI);
+}
+
+function finiteInRange(value: number, range: { min: number; max: number }): boolean {
+  return Number.isFinite(value) && value >= range.min && value <= range.max;
 }
 
 export function computeTargets(input: TargetInput): TargetResult {
-  if (input.heightCm <= 0 || input.weightKg <= 0 || input.ageYears <= 0) {
+  if (
+    !VALID_SEXES.has(input.sex) ||
+    !VALID_ACTIVITY_LEVELS.has(input.activityLevel) ||
+    !VALID_GOALS.has(input.goal)
+  ) {
+    return { ok: false, reason: 'Select a valid sex, activity level and goal to continue.' };
+  }
+
+  if (
+    !finiteInRange(input.heightCm, INPUT_RANGE.heightCm) ||
+    !finiteInRange(input.weightKg, INPUT_RANGE.weightKg) ||
+    !finiteInRange(input.ageYears, INPUT_RANGE.ageYears)
+  ) {
     return { ok: false, reason: 'Enter a valid height, weight and date of birth to continue.' };
   }
 
+  if (!finiteInRange(input.weeklyRatePct, INPUT_RANGE.weeklyRatePct)) {
+    return { ok: false, reason: 'Enter a valid weekly rate to continue.' };
+  }
+
   if (input.goalWeightKg !== undefined) {
+    if (!finiteInRange(input.goalWeightKg, INPUT_RANGE.goalWeightKg)) {
+      return { ok: false, reason: 'Enter a valid goal weight to continue.' };
+    }
+
     const goalBmi = computeBmi(input.goalWeightKg, input.heightCm);
 
     if (goalBmi < MIN_BMI) {
@@ -117,8 +168,6 @@ export function computeTargets(input: TargetInput): TargetResult {
         `which is the fastest pace this app will plan for.`,
     );
   }
-  if (rate < 0) rate = 0;
-
   const bmr = computeBmr(input);
   const tdee = bmr * ACTIVITY_MULTIPLIER[input.activityLevel];
 

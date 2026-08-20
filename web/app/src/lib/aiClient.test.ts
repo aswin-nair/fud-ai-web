@@ -1,0 +1,60 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import type { AISettings } from './aiConfig'
+import { completeChat } from './aiClient'
+
+const settings: AISettings = {
+  provider: 'openrouter',
+  apiKey: 'test-device-only-key',
+  model: 'test-model',
+}
+
+function abortableFetch() {
+  return vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+  }))
+}
+
+describe('AI request boundaries', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('lets a caller cancel analysis without losing the draft-facing message', async () => {
+    vi.stubGlobal('fetch', abortableFetch())
+    const controller = new AbortController()
+    const request = completeChat(settings, [{ role: 'user', content: 'meal' }], 100, undefined, {
+      signal: controller.signal,
+    })
+
+    controller.abort()
+
+    await expect(request).rejects.toThrow('Analysis cancelled. Your draft is still here.')
+  })
+
+  it('bounds a stalled provider request with a useful timeout', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('fetch', abortableFetch())
+    const request = completeChat(settings, [{ role: 'user', content: 'meal' }], 100, undefined, {
+      timeoutMs: 50,
+    })
+    const rejection = expect(request).rejects.toThrow('Analysis took too long')
+
+    await vi.advanceTimersByTimeAsync(51)
+
+    await rejection
+  })
+
+  it('does not copy a provider response body into a user-visible error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('private-provider-detail', { status: 400 })))
+
+    const error: Error = await completeChat(settings, [{ role: 'user', content: 'meal' }]).then(
+      () => new Error('Request unexpectedly succeeded.'),
+      value => value instanceof Error ? value : new Error(String(value)),
+    )
+
+    expect(error.message).toBe('OpenRouter could not complete the request (400).')
+    expect(error.message).not.toContain('private-provider-detail')
+  })
+})

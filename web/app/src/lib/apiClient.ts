@@ -28,7 +28,11 @@ export function clearAuthToken(): void {
   localStorage.removeItem(TOKEN_KEY)
 }
 
-async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+  sessionToken?: string,
+): Promise<T> {
   const base = apiBaseUrl()
   const url = `${base}${path}`
   const headers = new Headers(init.headers)
@@ -37,24 +41,31 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json')
   }
 
-  const token = loadAuthToken()
+  const token = sessionToken === undefined ? loadAuthToken() : sessionToken
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
   const controller = new AbortController()
   const timeout = globalThis.setTimeout(() => controller.abort(), API_TIMEOUT_MS)
   let res: Response
+  let data: ({ error?: string } & T)
   try {
     res = await fetch(url, { ...init, headers, signal: controller.signal })
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
+    try {
+      data = await res.json() as { error?: string } & T
+    } catch (error) {
+      // Invalid or empty JSON is tolerated so the status-based fallback below
+      // remains useful, but an aborted body read must still report a timeout.
+      if (controller.signal.aborted) throw error
+      data = {} as { error?: string } & T
+    }
+  } catch {
+    if (controller.signal.aborted) {
       throw new ApiError('Request timed out. Check your connection and try again.', 0)
     }
-    throw error
+    throw new ApiError('Could not reach the server. Your saved changes will retry automatically.', 0)
   } finally {
     globalThis.clearTimeout(timeout)
   }
-
-  const data = await res.json().catch(() => ({})) as { error?: string } & T
 
   if (!res.ok) {
     throw new ApiError(data.error ?? `Request failed (${res.status})`, res.status)
@@ -83,18 +94,55 @@ export async function apiGoogleAuth(credential: string) {
   })
 }
 
-export async function apiLoadState(): Promise<AppState | null> {
-  if (!isCloudBackend()) return null
-  const { state } = await apiFetch<{ state: Partial<AppState> }>('/api/state')
-  return state as AppState
+export async function apiLoadState(
+  sessionToken: string,
+): Promise<{ state: unknown | null; version: number }> {
+  if (!isCloudBackend()) return { state: null, version: 0 }
+  const result = await apiFetch<{ state: unknown | null; version: number }>(
+    '/api/state',
+    {},
+    sessionToken,
+  )
+  if (!Number.isSafeInteger(result.version) || result.version < 0) {
+    throw new ApiError('The account state version is invalid.', 0)
+  }
+  return result
 }
 
-export async function apiSaveState(state: AppState): Promise<void> {
-  if (!isCloudBackend()) return
-  await apiFetch('/api/state', {
+export async function apiLogout(sessionToken: string): Promise<void> {
+  await apiFetch<{ ok: true }>('/api/auth/logout', { method: 'POST' }, sessionToken)
+}
+
+export async function apiLogoutAll(sessionToken: string): Promise<void> {
+  await apiFetch<{ ok: true }>('/api/auth/logout-all', { method: 'POST' }, sessionToken)
+}
+
+export async function apiDeleteAccount(sessionToken: string): Promise<void> {
+  await apiFetch<{ ok: true }>('/api/account', {
+    method: 'DELETE',
+    body: JSON.stringify({ confirmation: 'DELETE' }),
+  }, sessionToken)
+}
+
+export async function apiSaveState(
+  state: AppState,
+  baseVersion: number,
+  sessionToken: string,
+  mutationId: string,
+): Promise<number> {
+  if (!isCloudBackend()) return baseVersion
+  const result = await apiFetch<{ version: number }>('/api/state', {
     method: 'PUT',
-    body: JSON.stringify({ state: stateWithoutPrivateSecrets(state) }),
-  })
+    body: JSON.stringify({
+      state: stateWithoutPrivateSecrets(state),
+      baseVersion,
+      mutationId,
+    }),
+  }, sessionToken)
+  if (!Number.isSafeInteger(result.version) || result.version <= baseVersion) {
+    throw new ApiError('The saved account version is invalid.', 0)
+  }
+  return result.version
 }
 
 export async function apiHealth(): Promise<{ ok: boolean; database: boolean }> {

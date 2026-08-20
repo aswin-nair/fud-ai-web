@@ -14,6 +14,14 @@ export type LogAdvance = {
 
 type Quest = NonNullable<GamificationState['quest']>
 
+function entriesOutsidePausedDays(
+  entries: FoodEntry[],
+  gamification: GamificationState,
+): FoodEntry[] {
+  const protectedDays = new Set(gamification.pauseProtectedDates)
+  return entries.filter(entry => !protectedDays.has(localDayKey(new Date(entry.timestamp))))
+}
+
 /** A completed quest is new when this quest itself was not already complete. */
 export function isNewQuestCompletion(previous: Quest | undefined, current: Quest): boolean {
   return Boolean(
@@ -24,11 +32,62 @@ export function isNewQuestCompletion(previous: Quest | undefined, current: Quest
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365]
 
+/**
+ * Persist the local calendar days covered by a tracking pause. Completed pause
+ * days bridge the streak without adding to its count; the resume day is left
+ * active so the person can choose to log it normally.
+ */
+export function transitionTrackingPause(
+  gamification: GamificationState,
+  wasPaused: boolean,
+  nextPaused: boolean,
+  now = new Date(),
+): GamificationState {
+  const today = localDayKey(now)
+
+  if (nextPaused) {
+    if (wasPaused && gamification.pauseStartedDate) return gamification
+    return { ...gamification, pauseStartedDate: today }
+  }
+
+  if (!wasPaused) return gamification
+
+  const protectedDates = new Set(gamification.pauseProtectedDates)
+  const [year, month, day] = (gamification.pauseStartedDate ?? today).split('-').map(Number)
+  const cursor = new Date(year, month - 1, day, 12)
+  const resumeDay = new Date(now)
+  resumeDay.setHours(12, 0, 0, 0)
+
+  while (cursor < resumeDay) {
+    protectedDates.add(localDayKey(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  return {
+    ...gamification,
+    pauseStartedDate: null,
+    pauseProtectedDates: [...protectedDates].sort(),
+  }
+}
+
 export function openSession(state: AppState): LogAdvance {
+  if (state.profile.trackingPaused) {
+    return {
+      gamification: transitionTrackingPause(state.gamification, true, true),
+      freezeApplied: null,
+      questJustCompleted: false,
+      streakMilestone: false,
+    }
+  }
+
   const beforeFreezes = state.gamification.freezeUsedDates.length
   const freezeUpdate = applyFreeze(state.foodEntries, state.gamification)
   const freezeApplied = freezeUpdate.freezeUsedDates.length > beforeFreezes
-    ? { protectedStreak: getStreakWithFreezes(state.foodEntries, freezeUpdate.freezeUsedDates) }
+    ? { protectedStreak: getStreakWithFreezes(
+        state.foodEntries,
+        freezeUpdate.freezeUsedDates,
+        state.gamification.pauseProtectedDates,
+      ) }
     : null
 
   if (freezeApplied) {
@@ -36,8 +95,20 @@ export function openSession(state: AppState): LogAdvance {
   }
 
   const today = localDayKey(new Date())
-  const streak = getStreakWithFreezes(state.foodEntries, freezeUpdate.freezeUsedDates)
-  const quest = syncQuest(state.gamification.quest, today, state.foodEntries, streak)
+  const streak = getStreakWithFreezes(
+    state.foodEntries,
+    freezeUpdate.freezeUsedDates,
+    state.gamification.pauseProtectedDates,
+  )
+  // Opening the app may refresh visible progress, but it must not manufacture
+  // a completion timestamp or award. Only a real log commits completion.
+  const quest = syncQuest(
+    state.gamification.quest,
+    today,
+    entriesOutsidePausedDays(state.foodEntries, state.gamification),
+    streak,
+    false,
+  )
 
   return {
     gamification: { ...state.gamification, ...freezeUpdate, quest },
@@ -48,11 +119,30 @@ export function openSession(state: AppState): LogAdvance {
 }
 
 export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
+  if (state.profile.trackingPaused) {
+    const paused = transitionTrackingPause(state.gamification, true, true)
+    const pauseProtectedDates = new Set(paused.pauseProtectedDates)
+    // If someone reaches a logging route while paused, the record can still be
+    // saved, but its calendar day stays neutral even when pause and resume both
+    // happen on that same day.
+    pauseProtectedDates.add(localDayKey(new Date(entry.timestamp)))
+    return {
+      gamification: { ...paused, pauseProtectedDates: [...pauseProtectedDates].sort() },
+      freezeApplied: null,
+      questJustCompleted: false,
+      streakMilestone: false,
+    }
+  }
+
   const allEntries = [...state.foodEntries, entry]
   const beforeFreezes = new Set(state.gamification.freezeUsedDates)
   const freezeUpdate = applyFreeze(state.foodEntries, state.gamification)
   const freezeApplied = freezeUpdate.freezeUsedDates.some(d => !beforeFreezes.has(d))
-    ? { protectedStreak: getStreakWithFreezes(allEntries, freezeUpdate.freezeUsedDates) }
+    ? { protectedStreak: getStreakWithFreezes(
+        allEntries,
+        freezeUpdate.freezeUsedDates,
+        state.gamification.pauseProtectedDates,
+      ) }
     : null
 
   const awards = computeXpAwards(entry, state.foodEntries, { ...state.gamification, ...freezeUpdate })
@@ -66,9 +156,19 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
   const didLevelUp = newLevel > state.gamification.level
 
   const today = localDayKey(new Date(entry.timestamp))
-  const streak = getStreakWithFreezes(allEntries, freezeUpdate.freezeUsedDates)
+  const streak = getStreakWithFreezes(
+    allEntries,
+    freezeUpdate.freezeUsedDates,
+    state.gamification.pauseProtectedDates,
+  )
   const prevQuest = state.gamification.quest
-  const quest = syncQuest(prevQuest, today, allEntries, streak)
+  const quest = syncQuest(
+    prevQuest,
+    today,
+    entriesOutsidePausedDays(allEntries, state.gamification),
+    streak,
+    true,
+  )
   const questJustCompleted = isNewQuestCompletion(prevQuest, quest)
 
   let xp = newXp

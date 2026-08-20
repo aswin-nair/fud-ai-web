@@ -67,6 +67,7 @@ export function WeekStrip({
           const isLogged = loggedDays?.has(key) ?? false
           // A frozen day was covered, not missed — §10.2.
           const isFrozen = !isLogged && (frozenDays?.has(key) ?? false)
+          const stateLabel = isLogged ? ', logged' : isFrozen ? ', freeze used' : ''
 
           return (
             <button
@@ -75,6 +76,9 @@ export function WeekStrip({
               className="week-day"
               disabled={isFuture}
               onClick={() => onSelect(d)}
+              aria-label={`${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${stateLabel}`}
+              aria-pressed={isSelected}
+              aria-current={isToday ? 'date' : undefined}
             >
               <span className={`week-day-label${isSelected ? ' selected' : ''}`}>
                 {narrowWeekday(d)}

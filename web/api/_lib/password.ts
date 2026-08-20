@@ -26,12 +26,14 @@ export function verifyPassword(password: string, hash: string, saltB64: string):
 export function validateEmail(email: string): string | null {
   const normalized = email.trim().toLowerCase()
   if (!normalized) return 'Email is required'
+  if (normalized.length > 254) return 'Enter a valid email address'
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return 'Enter a valid email address'
   return null
 }
 
 export function validatePasswordInput(password: string, isSignUp: boolean): string | null {
   if (!password) return 'Password is required'
+  if (password.length > 128) return 'Password must be 128 characters or fewer'
   if (isSignUp && password.length < 8) return 'Password must be at least 8 characters'
   return null
 }

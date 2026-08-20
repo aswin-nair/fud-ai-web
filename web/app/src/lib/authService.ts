@@ -1,6 +1,14 @@
 import type { AuthUser } from './auth'
 import { saveAuthSession, clearAuthSession } from './auth'
-import { apiGoogleAuth, apiLogin, apiRegister, clearAuthToken, saveAuthToken } from './apiClient'
+import {
+  apiGoogleAuth,
+  apiLogin,
+  apiLogout,
+  apiRegister,
+  clearAuthToken,
+  loadAuthToken,
+  saveAuthToken,
+} from './apiClient'
 import { registerWithEmail, loginWithEmail } from './localAuth'
 
 export async function registerAccount(
@@ -46,7 +54,17 @@ export async function googleAccount(credential: string, cloud: boolean): Promise
   throw new Error('Google sign-in requires cloud backend')
 }
 
-export function logoutAccount(cloud: boolean): void {
+export async function logoutAccount(cloud: boolean): Promise<boolean> {
+  const token = cloud ? loadAuthToken() : null
   clearAuthSession()
   if (cloud) clearAuthToken()
+  if (!cloud || !token) return true
+  try {
+    await apiLogout(token)
+    return true
+  } catch {
+    // Local sign-out must always work. The server session expires on its own if
+    // a best-effort revocation cannot reach the account service.
+    return false
+  }
 }

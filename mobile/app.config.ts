@@ -10,24 +10,36 @@ import { palette } from './src/theme/tokens.ts';
  * place a hex value is written.
  */
 const config: ExpoConfig = {
-  name: 'mobile',
-  slug: 'mobile',
+  name: 'Fud AI',
+  slug: 'fud-ai',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'mobile',
+  scheme: 'fudai',
   userInterfaceStyle: 'automatic',
   ios: {
+    buildNumber: '1',
+    bundleIdentifier: 'com.fudai.mobile',
+    config: {
+      // SecureStore uses the operating-system keychain/keystore. Fud AI does
+      // not ship a custom, non-exempt encryption implementation.
+      usesNonExemptEncryption: false,
+    },
     icon: './assets/expo.icon',
   },
   android: {
+    // The local SQLite log can contain health-adjacent data. Keep it out of
+    // Android/Google Drive Auto Backup; export/sync must be an explicit flow.
+    allowBackup: false,
     adaptiveIcon: {
       backgroundColor: palette.light.background,
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
+    package: 'com.fudai.mobile',
     predictiveBackGestureEnabled: false,
+    versionCode: 1,
   },
   web: {
     output: 'static',
@@ -37,6 +49,19 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-sqlite',
     'expo-audio',
+    [
+      'expo-local-authentication',
+      {
+        faceIDPermission: 'Allow Fud AI to use Face ID to unlock the app.',
+      },
+    ],
+    [
+      'expo-secure-store',
+      {
+        configureAndroidBackup: true,
+        faceIDPermission: 'Allow Fud AI to use Face ID to unlock the app.',
+      },
+    ],
     [
       'expo-splash-screen',
       {

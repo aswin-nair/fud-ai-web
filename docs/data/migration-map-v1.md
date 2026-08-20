@@ -50,6 +50,8 @@ Each attempt records:
 | `gamification.xp`, `level`, freeze count/month, quest progress | derived server state | Recompute from accepted meal/points/freeze events using the shared domain. | Compare computed and client values; record only a non-sensitive mismatch reason. Server computation wins. |
 | `gamification.xpEvents[]` | append-only XP-event input/audit candidate | Validate dedup key, related accepted action, amount, and timestamp. Do not trust arbitrary labels or totals. | Accept once by dedup key; reject unsupported awards. |
 | `gamification.freezeUsedDates[]` | freeze ledger input | Validate local dates and monthly policy. | Shared policy/server ledger wins. |
+| `gamification.pauseStartedDate`, `pauseProtectedDates[]` | pause interval/neutral-day input | Validate exact local dates; preserve neutral days without adding streak credit or consuming freezes. | Merge the protected-date set and reconcile any active interval before streak calculation. |
+| `gamification.awardedKeys[]` | idempotency ledger input | Validate supported key formats and reconcile against accepted actions; never truncate with the presentation feed. | Set union of verified keys; unsupported client awards are rejected. |
 | `gamification.seenBadgeIds[]` | user presentation preference | Merge valid known IDs after merging `fud-seen-badges`. | Set union of known IDs. |
 | `gamification.pendingLevelUp` | none | Drop as ephemeral UI state. | Recreate presentation state only from a new post-migration event. |
 

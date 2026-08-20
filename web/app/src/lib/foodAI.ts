@@ -144,12 +144,16 @@ Entry: "${description}"`
 
 const imagePrompt = `Identify the food in this photo and estimate its nutrition, including every visible component — sauces, oil sheen, cheese, toppings, and sides. Use the plate, utensils, container, or hands in the photo as a scale reference for the portion size.`
 
-export async function analyzeTextFood(description: string, settings: AISettings): Promise<FoodAnalysis> {
+export async function analyzeTextFood(
+  description: string,
+  settings: AISettings,
+  signal?: AbortSignal,
+): Promise<FoodAnalysis> {
   const messages = [
     { role: 'system' as const, content: buildFoodSystemPrompt(settings.customInstructions) },
     { role: 'user' as const, content: textPrompt(description) },
   ]
-  const text = await completeChat(settings, messages, FOOD_MAX_TOKENS, FOOD_TEMPERATURE)
+  const text = await completeChat(settings, messages, FOOD_MAX_TOKENS, FOOD_TEMPERATURE, { signal })
   return toAnalysis(extractJSON(text))
 }
 
@@ -157,6 +161,7 @@ export async function analyzeImageFood(
   imageBase64: string,
   settings: AISettings,
   mimeType = 'image/jpeg',
+  signal?: AbortSignal,
 ): Promise<FoodAnalysis> {
   const text = await completeVision(
     settings,
@@ -166,6 +171,7 @@ export async function analyzeImageFood(
     FOOD_MAX_TOKENS,
     FOOD_TEMPERATURE,
     buildFoodSystemPrompt(settings.customInstructions),
+    { signal },
   )
   return toAnalysis(extractJSON(text))
 }

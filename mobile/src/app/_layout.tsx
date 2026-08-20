@@ -17,6 +17,7 @@ import { seedBuiltinFoods } from '@/db/seed';
 import { setHapticsEnabled } from '@/feel/haptics';
 import { initMotion } from '@/feel/motion';
 import { initSound, releaseSound, setSoundEnabled } from '@/feel/sound';
+import { AppLockGate } from '@/security/AppLockGate';
 import { useProfileStore } from '@/stores/profileStore';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 
@@ -95,15 +96,17 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <ThemeProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(onboarding)" />
-          {/* The two log steps sit on the root stack rather than a nested one so
-              that dismissAll() on confirm returns all the way to Home. */}
-          <Stack.Screen name="log/index" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="log/portion" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="entry/[id]" options={{ presentation: 'modal' }} />
-        </Stack>
+        <AppLockGate>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(onboarding)" />
+            {/* The two log steps sit on the root stack rather than a nested one so
+                that dismissAll() on confirm returns all the way to Home. */}
+            <Stack.Screen name="log/index" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="log/portion" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="entry/[id]" options={{ presentation: 'modal' }} />
+          </Stack>
+        </AppLockGate>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

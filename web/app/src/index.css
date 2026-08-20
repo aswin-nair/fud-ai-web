@@ -877,6 +877,34 @@ a:hover { text-decoration: underline; }
   padding-bottom: 14px;
 }
 
+.cloud-sync-banner {
+  position: fixed;
+  z-index: 500;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 24px), 456px);
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 85, 42, 0.3);
+  border-radius: var(--radius-sm);
+  background: var(--paper-card);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.cloud-sync-banner > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cloud-sync-banner button {
+  color: var(--coral-deep);
+  font-weight: 700;
+}
+
 .home-macro-group {
   display: flex;
   flex-direction: column;
@@ -1971,10 +1999,6 @@ a:hover { text-decoration: underline; }
   transition: height 0.3s;
 }
 
-.bar-fill.over {
-  background: var(--coral-deep);
-}
-
 .bar-val {
   font-family: var(--mono);
   font-size: 0.65rem;
@@ -2450,6 +2474,27 @@ a:hover { text-decoration: underline; }
 
 .chat-bubble.user {
   flex-direction: row-reverse;
+}
+
+.coach-message-delete {
+  align-self: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coach-message-delete:hover,
+.coach-message-delete:focus-visible {
+  background: var(--paper-deep);
+  color: var(--ink);
+  outline: 2px solid transparent;
 }
 
 .chat-bubble-avatar {
@@ -4534,7 +4579,7 @@ a:hover { text-decoration: underline; }
 }
 
 .settings-data-btn:hover { background: var(--paper-deep); }
-.settings-data-btn.danger { color: var(--coral-deep); }
+.settings-data-btn.danger { color: var(--danger); }
 
 .settings-link-row {
   display: flex;

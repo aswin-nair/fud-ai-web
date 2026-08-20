@@ -3,8 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { BackLink } from '../components/BackLink'
 import { IconMinus, IconPlus } from '../components/icons'
-import type { FoodAnalysis, MealType } from '../types'
+import type { FoodAnalysis, FoodSource, MealType } from '../types'
 import { MEAL_LABELS } from '../types'
+import { clearLogDraft, loadLogDrafts, saveReviewLogDraft, type ReviewNumericField } from '../lib/logDrafts'
+import { reviewFoodIssue } from '../lib/foodEntryValidation'
+import { useAuth } from '../store/AuthContext'
+import { sourceToMethod, track } from '../lib/analytics'
 
 const MEAL_ICONS: Record<MealType, string> = {
   breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎', other: '🍽️',
@@ -26,27 +30,83 @@ const MACROS = [
 
 export function ReviewFoodPage() {
   const { pendingAnalysis, setPendingAnalysis, addEntry, pendingSource } = useApp()
+  const { user } = useAuth()
   const navigate = useNavigate()
-  const [analysis, setAnalysis] = useState<FoodAnalysis | null>(pendingAnalysis)
-  const [mealType, setMealType] = useState<MealType>(inferMealType)
-  const [servings, setServings] = useState(1)
-  const baseRef = useRef<FoodAnalysis | null>(pendingAnalysis)
+  const userId = user?.sub ?? ''
+  const saved = loadLogDrafts(userId).review
+  const initialAnalysis = pendingAnalysis ?? saved?.analysis ?? null
+  const [analysis, setAnalysis] = useState<FoodAnalysis | null>(initialAnalysis)
+  const [mealType, setMealType] = useState<MealType>(pendingAnalysis ? inferMealType() : (saved?.mealType ?? inferMealType()))
+  const [servings, setServings] = useState(pendingAnalysis ? 1 : (saved?.servings ?? 1))
+  const [source] = useState<FoodSource>(pendingAnalysis ? pendingSource : (saved?.source ?? pendingSource))
+  const [emptyNumericFields, setEmptyNumericFields] = useState<Set<ReviewNumericField>>(
+    () => new Set(pendingAnalysis ? [] : (saved?.emptyNumericFields ?? [])),
+  )
+  const [error, setError] = useState<string | null>(null)
+  const baseRef = useRef<FoodAnalysis | null>(pendingAnalysis ?? saved?.baseAnalysis ?? null)
+  const reviewTracked = useRef(false)
+  const correctionTracked = useRef(false)
 
   useEffect(() => {
-    if (!pendingAnalysis) navigate('/log', { replace: true })
-  }, [pendingAnalysis, navigate])
+    if (!analysis) navigate('/log', { replace: true })
+  }, [analysis, navigate])
+
+  useEffect(() => {
+    if (!analysis || !baseRef.current) return
+    saveReviewLogDraft(userId, {
+      analysis,
+      baseAnalysis: baseRef.current,
+      mealType,
+      servings,
+      source,
+      emptyNumericFields: [...emptyNumericFields],
+    })
+  }, [analysis, emptyNumericFields, mealType, servings, source, userId])
+
+  useEffect(() => {
+    if (!analysis || reviewTracked.current) return
+    reviewTracked.current = true
+    track({ name: 'entry_reviewed', method: sourceToMethod(source) })
+  }, [analysis, source])
 
   if (!analysis) return null
 
+  function markCorrected() {
+    if (correctionTracked.current) return
+    correctionTracked.current = true
+    track({ name: 'entry_corrected', method: sourceToMethod(source) })
+  }
+
   function update(field: keyof FoodAnalysis, value: string | number) {
+    markCorrected()
+    setError(null)
     setAnalysis(a => a ? { ...a, [field]: value } : a)
     if (baseRef.current) {
       baseRef.current = { ...baseRef.current, [field]: value }
     }
   }
 
+  function updateNumeric(field: ReviewNumericField, raw: string) {
+    markCorrected()
+    setError(null)
+    const empty = raw.trim() === ''
+    setEmptyNumericFields(current => {
+      const next = new Set(current)
+      if (empty) next.add(field)
+      else next.delete(field)
+      return next
+    })
+    const value = empty ? 0 : Number(raw)
+    if (!Number.isFinite(value)) return
+    setAnalysis(current => current ? { ...current, [field]: value } : current)
+    if (baseRef.current) baseRef.current = { ...baseRef.current, [field]: value / servings }
+  }
+
   function changeServings(next: number) {
-    const s = Math.max(0.25, Math.round(next * 4) / 4)
+    if (!Number.isFinite(next)) return
+    markCorrected()
+    setError(null)
+    const s = Math.min(1_000, Math.max(0.25, Math.round(next * 4) / 4))
     setServings(s)
     if (!baseRef.current) return
     const b = baseRef.current
@@ -70,6 +130,11 @@ export function ReviewFoodPage() {
 
   function save() {
     if (!analysis) return
+    const issue = reviewFoodIssue(analysis, emptyNumericFields)
+    if (issue) {
+      setError(issue)
+      return
+    }
     const cals = Math.round(Number(analysis.calories))
     const entry = {
       id: crypto.randomUUID(),
@@ -80,13 +145,14 @@ export function ReviewFoodPage() {
       fat: Number(analysis.fat),
       timestamp: new Date().toISOString(),
       emoji: analysis.emoji,
-      source: pendingSource,
+      source,
       mealType,
       servingSizeGrams: analysis.servingSizeGrams,
       ingredients: analysis.ingredients,
     } as const
     addEntry(entry)
     setPendingAnalysis(null)
+    clearLogDraft(userId, 'review')
     navigate('/', { state: { justLogged: { id: entry.id, calories: cals, name: analysis.name } } })
   }
 
@@ -94,6 +160,8 @@ export function ReviewFoodPage() {
     <div className="app-shell">
       <main className="app-main review-page">
         <BackLink onClick={() => navigate('/log')} />
+
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         {/* Food identity row */}
         <div className="review-hero">
@@ -104,6 +172,7 @@ export function ReviewFoodPage() {
               value={analysis.name}
               onChange={e => update('name', e.target.value)}
               aria-label="Food name"
+              maxLength={500}
             />
             <span className="review-hero-hint">Tap to edit name</span>
           </div>
@@ -124,6 +193,7 @@ export function ReviewFoodPage() {
               className="review-serving-input"
               type="number"
               min="0.25"
+              max="1000"
               step="0.25"
               value={servings}
               onChange={e => changeServings(Number(e.target.value))}
@@ -147,8 +217,10 @@ export function ReviewFoodPage() {
           <input
             className="review-cal-hero-input"
             type="number"
-            value={analysis.calories}
-            onChange={e => update('calories', Number(e.target.value))}
+            min="0"
+            max="100000"
+            value={emptyNumericFields.has('calories') ? '' : analysis.calories}
+            onChange={e => updateNumeric('calories', e.target.value)}
             aria-label="Calories"
           />
           <span className="review-cal-hero-unit">kcal</span>
@@ -168,9 +240,11 @@ export function ReviewFoodPage() {
                 <input
                   className="review-macro-input"
                   type="number"
+                  min="0"
+                  max="10000"
                   step="0.1"
-                  value={analysis[m.key]}
-                  onChange={e => update(m.key, Number(e.target.value))}
+                  value={emptyNumericFields.has(m.key) ? '' : analysis[m.key]}
+                  onChange={e => updateNumeric(m.key, e.target.value)}
                   aria-label={m.label}
                 />
                 <span className="review-macro-unit">{m.unit}</span>
@@ -208,7 +282,8 @@ export function ReviewFoodPage() {
               key={m}
               type="button"
               className={`meal-type-btn${mealType === m ? ' active' : ''}`}
-              onClick={() => setMealType(m)}
+              onClick={() => { markCorrected(); setMealType(m) }}
+              aria-pressed={mealType === m}
             >
               <span className="meal-type-icon">{MEAL_ICONS[m]}</span>
               <span className="meal-type-label">{MEAL_LABELS[m]}</span>

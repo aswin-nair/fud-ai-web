@@ -14,6 +14,7 @@ local.properties
 .cxx/
 
 # Local configuration
+node_modules/
 ios/Local.xcconfig
 .DS_Store
 .env
@@ -26,3 +27,7 @@ web/app/.env.local
 .claude/
 ios/build-sim/
 .vercel
+
+# Local verification screenshots (kept on disk, not release evidence)
+web/app/p[0-9]*.png
+web/app/probe.png

@@ -35,18 +35,18 @@ const FIRST_MEAL_STEP = STEPS.length - 1
 const WELCOME_SLIDES = [
   {
     image: welcome1,
-    title: 'Track what you eat, not what you fear',
-    sub: 'Snap a photo or type a few words — Fud AI handles the nutrition math instantly.',
+    title: 'Log a meal in seconds',
+    sub: 'Build a habit that lasts with simple tracking and a small reward for showing up.',
   },
   {
     image: welcome2,
-    title: 'Progress you can actually see',
-    sub: 'Streaks, XP, and a journey map turn everyday consistency into a game worth playing.',
+    title: 'A calmer view of progress',
+    sub: 'See logging consistency, streaks, and milestones without judging what you ate.',
   },
   {
     image: welcome3,
     title: 'Built around your pace',
-    sub: 'Cut, bulk, or maintain — your targets adapt to your body and your goals, never the other way round.',
+    sub: 'Your starting estimate adapts to your profile and stays inside clear safety limits.',
   },
 ] as const
 

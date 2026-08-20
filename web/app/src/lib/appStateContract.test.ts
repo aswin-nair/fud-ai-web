@@ -1,0 +1,133 @@
+import { describe, expect, it } from 'vitest'
+
+import { validateAppState } from '../../../shared/appStateContract'
+import { freshState } from './storage'
+
+const NOW = new Date('2026-08-20T12:00:00.000Z')
+
+function validState() {
+  const state = freshState()
+  return {
+    ...state,
+    profile: {
+      ...state.profile,
+      birthday: '1996-04-12',
+    },
+  }
+}
+
+describe('shared AppState runtime contract', () => {
+  it('accepts a fresh state with every required nested collection', () => {
+    expect(validateAppState(validState(), NOW)).toEqual({ ok: true })
+  })
+
+  it('rejects an onboarded user who is not yet 18', () => {
+    const state = validState()
+    state.onboarded = true
+    state.profile.birthday = '2008-08-21'
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'onboarded profile must be adult',
+    })
+  })
+
+  it('accepts an onboarded user on their exact 18th birthday', () => {
+    const state = validState()
+    state.onboarded = true
+    state.profile.birthday = '2008-08-20'
+
+    expect(validateAppState(state, NOW)).toEqual({ ok: true })
+  })
+
+  it('does not accept trailing junk after an otherwise valid birthday', () => {
+    const state = validState()
+    state.profile.birthday = '2008-08-20-not-a-date'
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'profile.birthday is invalid',
+    })
+  })
+
+  it('rejects a malformed nested profile value', () => {
+    const state: Record<string, unknown> = structuredClone(validState())
+    ;(state.profile as Record<string, unknown>).heightCm = '175'
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'profile.heightCm is invalid',
+    })
+  })
+
+  it('rejects unknown nested fields instead of persisting arbitrary data', () => {
+    const state: Record<string, unknown> = structuredClone(validState())
+    ;(state.aiSettings as Record<string, unknown>).forwardedAuthorization = 'not-allowed'
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'aiSettings contains unknown fields',
+    })
+  })
+
+  it('rejects null inside foodEntries instead of trusting the array shape', () => {
+    const state: Record<string, unknown> = structuredClone(validState())
+    state.foodEntries = [null]
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'foodEntries is invalid',
+    })
+  })
+
+  it('applies the cloud boundary policy and rejects a non-empty BYOK key', () => {
+    const state = validState()
+    state.aiSettings.apiKey = 'sk-device-only-secret'
+
+    expect(validateAppState(state, NOW, { allowApiKey: false })).toEqual({
+      ok: false,
+      error: 'private API keys cannot be synced',
+    })
+  })
+
+  it('accepts the secret-free representation sent by current clients', () => {
+    const state = validState()
+    state.aiSettings.apiKey = ''
+
+    expect(validateAppState(state, NOW, { allowApiKey: false })).toEqual({ ok: true })
+
+    const storedState: Record<string, unknown> = structuredClone(state)
+    delete (storedState.aiSettings as Record<string, unknown>).apiKey
+    expect(validateAppState(storedState, NOW, { allowApiKey: false })).toEqual({ ok: true })
+  })
+
+  it('requires exact, real calendar days for pause protection', () => {
+    const state = validState()
+    state.gamification.pauseStartedDate = '2026-02-30'
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'gamification.pauseStartedDate is invalid',
+    })
+
+    state.gamification.pauseStartedDate = null
+    state.gamification.pauseProtectedDates = ['2026-08-19T00:00:00.000Z']
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'gamification.pauseProtectedDates is invalid',
+    })
+  })
+
+  it('allows missing pause metadata only on the legacy import path', () => {
+    const state: Record<string, unknown> = structuredClone(validState())
+    const gamification = state.gamification as Record<string, unknown>
+    delete gamification.pauseStartedDate
+    delete gamification.pauseProtectedDates
+
+    expect(validateAppState(state, NOW)).toEqual({
+      ok: false,
+      error: 'gamification.pauseStartedDate is invalid',
+    })
+    expect(validateAppState(state, NOW, { allowLegacyGamification: true })).toEqual({ ok: true })
+  })
+})

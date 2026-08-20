@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { analyzeImageFood, fileToBase64 } from '../lib/foodAI'
@@ -12,18 +12,42 @@ export function PhotoLogPage() {
   const navigate = useNavigate()
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
+  const requestRef = useRef<AbortController | null>(null)
+  const selectedFileRef = useRef<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => () => requestRef.current?.abort(), [])
+
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview)
+  }, [preview])
+
   async function handleFile(file: File) {
-    setPreview(URL.createObjectURL(file))
+    if (!file.type.startsWith('image/')) {
+      setError('Choose an image file, or log the meal manually.')
+      return
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setError('That image is larger than 15 MB. Choose a smaller image or log manually.')
+      return
+    }
+    selectedFileRef.current = file
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
+    setPreview(current => {
+      if (current) URL.revokeObjectURL(current)
+      return URL.createObjectURL(file)
+    })
     setError(null)
     setLoading(true)
     track({ name: 'ai_analysis_started', method: 'photo_ai' })
     try {
       const { base64, mimeType } = await fileToBase64(file)
-      const analysis = await analyzeImageFood(base64, state.aiSettings, mimeType)
+      if (controller.signal.aborted) throw new Error('Analysis cancelled. Your selected photo is still here.')
+      const analysis = await analyzeImageFood(base64, state.aiSettings, mimeType, controller.signal)
       track({ name: 'ai_analysis_completed', method: 'photo_ai' })
       setPendingSource('snapFood')
       setPendingAnalysis(analysis)
@@ -31,6 +55,8 @@ export function PhotoLogPage() {
     } catch (e) {
       track({ name: 'ai_analysis_failed', method: 'photo_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
+    } finally {
+      if (requestRef.current === controller) requestRef.current = null
       setLoading(false)
     }
   }
@@ -48,6 +74,9 @@ export function PhotoLogPage() {
             <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
             <p className="analyzing-title">Reading your photo…</p>
             <p className="analyzing-sub">AI is identifying the food</p>
+            <button type="button" className="btn btn-secondary" onClick={() => requestRef.current?.abort()}>
+              Cancel analysis
+            </button>
           </div>
         </main>
       </div>
@@ -83,7 +112,13 @@ export function PhotoLogPage() {
             <button
               type="button"
               className="photo-retake-btn"
-              onClick={() => { setPreview(null); setError(null) }}
+              onClick={() => {
+                selectedFileRef.current = null
+                if (cameraRef.current) cameraRef.current.value = ''
+                if (galleryRef.current) galleryRef.current.value = ''
+                setPreview(null)
+                setError(null)
+              }}
             >
               <IconClose size={14} strokeWidth={2.4} /> Remove
             </button>
@@ -94,6 +129,17 @@ export function PhotoLogPage() {
             <p className="photo-upload-title">Tap to choose a photo</p>
             <p className="photo-upload-sub">JPG, PNG, HEIC — any food image</p>
           </div>
+        )}
+
+        {preview && error && selectedFileRef.current && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-block"
+            disabled={!hasKey}
+            onClick={() => selectedFileRef.current && handleFile(selectedFileRef.current)}
+          >
+            Analyze this photo again
+          </button>
         )}
 
         <div className="photo-btn-row">

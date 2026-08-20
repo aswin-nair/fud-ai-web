@@ -245,8 +245,8 @@ function PausedCard() {
         Tracking is paused
       </Text>
       <Text align="center" color="textSecondary" variant="body">
-        Numbers are hidden and your streak is held where it is. Turn tracking
-        back on in settings whenever you want to.
+        Calorie and macro numbers are hidden and your streak is held where it
+        is. Turn tracking back on in settings whenever you want to.
       </Text>
     </Card>
   );

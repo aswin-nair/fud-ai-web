@@ -1,0 +1,13 @@
+{
+  "name": "@fud-ai/domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./calendar": "./src/calendar.ts",
+    "./nutrition": "./src/nutrition.ts",
+    "./streak": "./src/streak.ts"
+  },
+  "types": "./src/index.ts"
+}

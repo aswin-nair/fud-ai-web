@@ -48,7 +48,7 @@ export default function Pause() {
 
         <Card style={{ gap: theme.space.md }}>
           <Text variant="subtitle">While paused</Text>
-          <Bullet text="Every number is hidden — no ring, no macros, no totals." />
+          <Bullet text="Calorie, macro, and weight numbers are hidden." />
           <Bullet text="Your streak is held exactly where it is, indefinitely." />
           <Bullet text="No notifications, of any kind." />
           <Bullet text="Nothing is deleted. It is all here when you come back." />

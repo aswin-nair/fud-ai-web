@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "empty-morning",
+      "today": "2026-03-10",
+      "localHour": 9,
+      "loggedDates": [],
+      "freezeDates": [],
+      "neutralDates": [],
+      "expected": { "count": 0, "loggedToday": false, "atRisk": false }
+    },
+    {
+      "id": "consecutive-through-today",
+      "today": "2026-03-10",
+      "localHour": 20,
+      "loggedDates": ["2026-03-10", "2026-03-09", "2026-03-08"],
+      "freezeDates": [],
+      "neutralDates": [],
+      "expected": { "count": 3, "loggedToday": true, "atRisk": false }
+    },
+    {
+      "id": "today-open-evening",
+      "today": "2026-03-10",
+      "localHour": 20,
+      "loggedDates": ["2026-03-09", "2026-03-08", "2026-03-07"],
+      "freezeDates": [],
+      "neutralDates": [],
+      "expected": { "count": 3, "loggedToday": false, "atRisk": true }
+    },
+    {
+      "id": "consumed-freeze-counts-and-bridges",
+      "today": "2026-03-10",
+      "localHour": 9,
+      "loggedDates": ["2026-03-10", "2026-03-08", "2026-03-07"],
+      "freezeDates": ["2026-03-09"],
+      "neutralDates": [],
+      "expected": { "count": 4, "loggedToday": true, "atRisk": false }
+    },
+    {
+      "id": "tracking-pause-bridges-without-counting",
+      "today": "2026-03-10",
+      "localHour": 9,
+      "loggedDates": ["2026-03-10", "2026-03-08", "2026-03-06", "2026-03-05"],
+      "freezeDates": [],
+      "neutralDates": ["2026-03-09", "2026-03-08", "2026-03-07"],
+      "expected": { "count": 3, "loggedToday": true, "atRisk": false }
+    },
+    {
+      "id": "leap-day-and-duplicates",
+      "today": "2028-03-01",
+      "localHour": 9,
+      "loggedDates": ["2028-03-01", "2028-03-01", "2028-02-29", "2028-02-28"],
+      "freezeDates": [],
+      "neutralDates": [],
+      "expected": { "count": 3, "loggedToday": true, "atRisk": false }
+    },
+    {
+      "id": "spring-forward-calendar-labels",
+      "today": "2026-03-09",
+      "localHour": 9,
+      "loggedDates": ["2026-03-09", "2026-03-08", "2026-03-07", "2026-03-06"],
+      "freezeDates": [],
+      "neutralDates": [],
+      "expected": { "count": 4, "loggedToday": true, "atRisk": false }
+    },
+    {
+      "id": "fall-back-calendar-labels",
+      "today": "2026-11-02",
+      "localHour": 9,
+      "loggedDates": ["2026-11-02", "2026-11-01", "2026-10-31"],
+      "freezeDates": [],
+      "neutralDates": [],
+      "expected": { "count": 3, "loggedToday": true, "atRisk": false }
+    }
+  ]
+}

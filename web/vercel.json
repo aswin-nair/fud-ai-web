@@ -1,7 +1,7 @@
 {
-  "buildCommand": "npm install && cd app && npm install && npm run build",
+  "buildCommand": "npm run build:cloud --prefix app",
   "devCommand": "cd app && npm run dev",
-  "installCommand": "npm install && cd app && npm install",
+  "installCommand": "npm ci && npm ci --prefix app",
   "outputDirectory": "app/dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },

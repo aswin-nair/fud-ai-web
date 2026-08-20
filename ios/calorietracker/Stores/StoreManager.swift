@@ -21,6 +21,7 @@ enum RevenueCatConfig {
     }
 
     static func configureIfNeeded() {
+        guard AIAccessSettings.managedAIAvailable else { return }
         guard !didConfigure, let apiKey else { return }
         #if DEBUG
         Purchases.logLevel = .debug
@@ -82,6 +83,14 @@ class StoreManager {
     }
 
     init() {
+        guard AIAccessSettings.managedAIAvailable else {
+            products = []
+            isSubscribed = false
+            hasCheckedEntitlements = true
+            purchaseError = AIAccessSettings.managedAIUnavailableMessage
+            return
+        }
+
         RevenueCatConfig.configureIfNeeded()
 
         if !RevenueCatConfig.isConfigured {
@@ -95,6 +104,12 @@ class StoreManager {
     }
 
     func loadProducts() async {
+        guard AIAccessSettings.managedAIAvailable else {
+            products = []
+            purchaseError = AIAccessSettings.managedAIUnavailableMessage
+            return
+        }
+
         if RevenueCatConfig.isConfigured {
             await loadRevenueCatProducts()
             if !products.isEmpty {
@@ -151,6 +166,11 @@ class StoreManager {
 
     @discardableResult
     func purchase(_ product: PremiumProduct) async -> Bool {
+        guard AIAccessSettings.managedAIAvailable else {
+            purchaseError = AIAccessSettings.managedAIUnavailableMessage
+            return false
+        }
+
         isPurchasing = true
         purchaseError = nil
         defer { isPurchasing = false }
@@ -213,6 +233,11 @@ class StoreManager {
 
     @discardableResult
     func restorePurchases() async -> Bool {
+        guard AIAccessSettings.managedAIAvailable else {
+            purchaseError = AIAccessSettings.managedAIUnavailableMessage
+            return false
+        }
+
         if RevenueCatConfig.isConfigured {
             do {
                 let customerInfo = try await Purchases.shared.restorePurchases()
@@ -235,6 +260,12 @@ class StoreManager {
     }
 
     func checkEntitlements(fallbackActiveProductID: String? = nil) async {
+        guard AIAccessSettings.managedAIAvailable else {
+            applySubscriptionState(isSubscribed: false, productID: nil)
+            hasCheckedEntitlements = true
+            return
+        }
+
         if RevenueCatConfig.isConfigured {
             do {
                 let customerInfo = try await Purchases.shared.customerInfo()

@@ -15,44 +15,45 @@ type Helpline = {
 };
 
 /**
- * NEDA is deliberately absent. Its helpline was retired and the number is no
- * longer answered, so linking it would send someone in difficulty to a dead
- * line. §2.8 names the National Alliance for Eating Disorders for the US.
+ * NEDA is deliberately absent. The current US entry is the National Alliance
+ * for Eating Disorders, whose helpline is staffed by licensed clinicians.
  */
 const HELPLINES: Helpline[] = [
   {
     region: 'United States',
     organisation: 'National Alliance for Eating Disorders',
-    detail: 'Staffed by licensed therapists, weekdays.',
+    detail: 'Licensed eating-disorder therapists, weekdays 9am–7pm ET.',
     phone: '1-866-662-1235',
     url: 'https://www.allianceforeatingdisorders.com',
   },
   {
-    region: 'United Kingdom',
+    region: 'England',
     organisation: 'Beat',
-    detail: 'Helpline open every day of the year.',
+    detail:
+      'Phone and webchat, weekdays 3pm–8pm. The site lists separate lines for Scotland, Wales and Northern Ireland.',
     phone: '0808 801 0677',
-    url: 'https://www.beateatingdisorders.org.uk',
+    url: 'https://www.beateatingdisorders.org.uk/get-information-and-support/get-help-for-myself/support-now/',
   },
   {
     region: 'Canada',
     organisation: 'NEDIC',
-    detail: 'National Eating Disorder Information Centre.',
+    detail: 'Phone, chat and email support from trained helpline staff.',
     phone: '1-866-633-4220',
-    url: 'https://nedic.ca',
+    url: 'https://nedic.ca/hey-there/',
   },
   {
     region: 'Australia',
     organisation: 'Butterfly Foundation',
-    detail: 'Support for eating disorders and body image.',
+    detail:
+      'Qualified counsellors, seven days a week, 8am–midnight Australian Eastern time.',
     phone: '1800 33 4673',
-    url: 'https://butterfly.org.au',
+    url: 'https://butterfly.org.au/get-support/helpline/',
   },
   {
     region: 'Elsewhere',
     organisation: 'Academy for Eating Disorders',
-    detail: 'A directory of services by country.',
-    url: 'https://www.aedweb.org',
+    detail: 'Search its international professional directory by country.',
+    url: 'https://community.aedweb.org/expert-directory',
   },
 ];
 
@@ -72,8 +73,8 @@ export default function Support() {
       >
         <Text color="textSecondary" variant="body">
           If counting is starting to take up more room in your head than you
-          want it to, that is worth talking to someone about. These are free and
-          confidential.
+          want it to, that is worth talking to someone about. The helplines are
+          free and confidential; the directory can help you find local support.
         </Text>
 
         {HELPLINES.map((line) => (

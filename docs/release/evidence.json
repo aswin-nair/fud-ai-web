@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "candidate": {
+    "version": "unassigned",
+    "commit": "unassigned",
+    "builtAt": null
+  },
+  "gates": [
+    {
+      "id": "eligible-onboarding-completion",
+      "category": "product",
+      "description": "Eligible onboarding completion is at least 75% in beta.",
+      "owner": "product",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "first-session-first-log",
+      "category": "product",
+      "description": "First-session first-log rate is at least 65%.",
+      "owner": "product",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "standard-log-time",
+      "category": "product",
+      "description": "p75 standard logging time is at most 20 seconds on the supported device matrix.",
+      "owner": "quality",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "safety-regression-suite",
+      "category": "safety",
+      "description": "Age, targets, BMI, local day, streak, freeze, pause, notification, copy, and mascot policies pass.",
+      "owner": "engineering",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "support-resources",
+      "category": "safety",
+      "description": "Support is reachable in two taps and every regional resource is manually verified current.",
+      "owner": "product",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "crash-free-sessions",
+      "category": "reliability",
+      "description": "Crash-free internal sessions are at least 99.8% for two consecutive weekly cohorts.",
+      "owner": "engineering",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "accepted-entry-persistence",
+      "category": "reliability",
+      "description": "Accepted entry persistence and exactly-once sync are at least 99.95%.",
+      "owner": "engineering",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "production-data-rehearsal",
+      "category": "reliability",
+      "description": "Export, restore, migration, account deletion, backup, and restore rehearsals succeed in a production-like environment.",
+      "owner": "quality",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "browser-matrix",
+      "category": "quality",
+      "description": "Hosted browser and production-path suites pass on the supported matrix.",
+      "owner": "quality",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "device-matrix",
+      "category": "quality",
+      "description": "Current and older supported phones pass launch, camera, keyboard, haptic, notification, background, and deep-link checks.",
+      "owner": "quality",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "accessibility",
+      "category": "accessibility",
+      "description": "WCAG 2.2 AA primary web flows and VoiceOver, TalkBack, keyboard, zoom, large text, contrast, and reduced motion pass.",
+      "owner": "accessibility",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "security-review",
+      "category": "security",
+      "description": "ASVS/MASVS evidence and independent auth, authorization, upload, AI, and deletion review have no unresolved high findings.",
+      "owner": "security",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "privacy-data-flow-review",
+      "category": "privacy",
+      "description": "Deployed storage, analytics, photo, AI, export, retention, and deletion behavior matches approved disclosures.",
+      "owner": "privacy",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "neon-byok-audit",
+      "category": "privacy",
+      "description": "Every deployed Neon environment is migrated and historical rows are audited for BYOK material.",
+      "owner": "security",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "operations-readiness",
+      "category": "operations",
+      "description": "Rollback, incident ownership, support escalation, backups, restore, status communication, and on-call contacts are exercised.",
+      "owner": "operations",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "observability-alerts",
+      "category": "operations",
+      "description": "Dashboards and actionable alerts cover auth, API, sync, AI, notifications, crash rate, and migrations.",
+      "owner": "operations",
+      "status": "pending",
+      "evidence": []
+    }
+  ]
+}

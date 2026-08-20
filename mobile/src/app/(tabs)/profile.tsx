@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
 
@@ -92,13 +92,22 @@ export default function ProfileTab() {
           />
         </Section>
 
+        <Section title="Privacy">
+          <SettingRow
+            detail="Optionally ask for device authentication after launch and when returning to the app."
+            kind="navigate"
+            label="App lock"
+            onPress={() => router.push('/settings/app-lock' as Href)}
+          />
+        </Section>
+
         {/* Pause and Support are ordinary visible rows, not buried. §2.8. */}
         <Section title="Taking a break">
           <SettingRow
             detail={
               profile.trackingPaused
-                ? 'Numbers are hidden and your streak is held.'
-                : 'Hide every number and hold your streak where it is.'
+                ? 'Calorie, macro, and weight numbers are hidden and your streak is held.'
+                : 'Hide calorie, macro, and weight numbers and hold your streak where it is.'
             }
             kind="navigate"
             label="Pause tracking"

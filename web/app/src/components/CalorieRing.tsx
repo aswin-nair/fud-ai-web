@@ -1,4 +1,5 @@
 import { RING_STROKE_RATIO } from '../lib/tokens'
+import { calorieProgress } from '@fud-ai/domain/nutrition'
 
 /**
  * The hero element on Home, §7.1.
@@ -25,16 +26,23 @@ export function CalorieRing({ consumed, target, size = 200, caption }: CalorieRi
   const circumference = 2 * Math.PI * radius
   const centre = size / 2
 
-  const safeTarget = target > 0 ? target : 1
-  const progress = Math.min(consumed / safeTarget, 1)
-  const overflow = Math.min(Math.max(consumed - safeTarget, 0) / safeTarget, 1)
-
-  const isOver = consumed > target
-  const remaining = Math.max(Math.round(target - consumed), 0)
-  const overBy = Math.round(consumed - target)
+  const progressState = calorieProgress(consumed, target)
+  const { progress, overflow, isOver, remaining, overBy } = progressState
+  const valueText = isOver
+    ? `${Math.round(progressState.consumed)} of ${Math.round(progressState.target)} kilocalories, ${overBy} over`
+    : `${Math.round(progressState.consumed)} of ${Math.round(progressState.target)} kilocalories, ${remaining} left`
 
   return (
-    <div className="calorie-ring" style={{ width: size, height: size }}>
+    <div
+      className="calorie-ring"
+      style={{ width: size, height: size }}
+      role="progressbar"
+      aria-label="Calories consumed"
+      aria-valuemin={0}
+      aria-valuemax={Math.round(progressState.target)}
+      aria-valuenow={Math.min(Math.round(progressState.consumed), Math.round(progressState.target))}
+      aria-valuetext={valueText}
+    >
       <svg width={size} height={size} className="calorie-ring-svg" aria-hidden>
         {/* Rotated so the arc starts at twelve o'clock rather than three. */}
         <g transform={`rotate(-90 ${centre} ${centre})`}>

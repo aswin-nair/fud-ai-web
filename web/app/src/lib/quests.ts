@@ -94,6 +94,7 @@ export function syncQuest(
   today: string,
   entries: FoodEntry[],
   streakCount: number,
+  commitCompletion = true,
 ): DailyQuest {
   const spec = existing?.date === today ? existing : { ...questForDate(today), progress: 0, completedAt: null }
   const todayEntries = entries.filter(e => localDayKey(new Date(e.timestamp)) === today)
@@ -105,6 +106,6 @@ export function syncQuest(
   return {
     ...spec,
     progress,
-    completedAt: spec.completedAt ?? (complete ? new Date().toISOString() : null),
+    completedAt: spec.completedAt ?? (complete && commitCompletion ? new Date().toISOString() : null),
   }
 }

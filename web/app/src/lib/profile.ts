@@ -1,4 +1,9 @@
 import type { ActivityLevel, UserProfile, WeightGoal } from '../types'
+import {
+  NUTRITION_SAFETY,
+  mifflinStJeor,
+  minimumWeightForBmi,
+} from '@fud-ai/domain/nutrition'
 
 const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentary: 1.2,
@@ -42,8 +47,12 @@ export function computeBMR(profile: UserProfile): number {
     return 370 + 21.6 * (1 - profile.bodyFatPercentage) * profile.weightKg
   }
   const age = ageFromBirthday(profile.birthday)
-  const base = 10 * profile.weightKg + 6.25 * profile.heightCm - 5 * age - 161
-  return profile.gender === 'male' ? base + 166 : base
+  return mifflinStJeor({
+    sex: profile.gender === 'male' ? 'male' : 'female',
+    weightKg: profile.weightKg,
+    heightCm: profile.heightCm,
+    ageYears: age,
+  })
 }
 
 export function computeTDEE(profile: UserProfile): number {
@@ -57,16 +66,16 @@ export function computeTDEE(profile: UserProfile): number {
  */
 
 /** The lowest daily intake the app will set. §2.1. */
-export const CALORIE_FLOOR = { female: 1200, other: 1500 } as const
+export const CALORIE_FLOOR = NUTRITION_SAFETY.calorieFloor
 
 /** A deficit may not exceed this share of TDEE. §2.1. */
-export const MAX_DEFICIT_FRACTION = 0.25
+export const MAX_DEFICIT_FRACTION = NUTRITION_SAFETY.maximumDeficitFraction
 
 /** Rate of loss is capped at this share of bodyweight per week. §2.1. */
-export const MAX_WEEKLY_CHANGE_FRACTION = 0.01
+export const MAX_WEEKLY_CHANGE_FRACTION = NUTRITION_SAFETY.maximumWeeklyRateFraction
 
 /** A goal weight below this BMI is refused outright. §2.1. */
-export const MIN_HEALTHY_BMI = 18.5
+export const MIN_HEALTHY_BMI = NUTRITION_SAFETY.minimumHealthyBmi
 
 export type ClampReason = 'rate' | 'deficit' | 'floor' | 'bmr'
 
@@ -88,8 +97,7 @@ export function maxWeeklyChangeKg(profile: UserProfile): number {
 
 /** The lightest goal weight allowed for this height. */
 export function minHealthyWeightKg(heightCm: number): number {
-  const metres = heightCm / 100
-  return Math.ceil(MIN_HEALTHY_BMI * metres * metres * 10) / 10
+  return Math.ceil(minimumWeightForBmi(heightCm, MIN_HEALTHY_BMI) * 10) / 10
 }
 
 /**

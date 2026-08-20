@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { useApp } from '../store/AppContext'
 import { sendCoachMessage } from '../lib/coachAI'
+import { coachSafetyResponse } from '../lib/coachSafety'
 import { providerLabel } from '../lib/aiConfig'
 import { IconSend } from '../components/icons'
+import { track } from '../lib/analytics'
 
 /** Render AI message with paragraphs, bullet lists, and **bold**. */
 function CoachMessage({ text }: { text: string }) {
@@ -52,14 +54,14 @@ function renderInline(text: string): ReactNode[] {
 }
 
 const STARTERS = [
-  'How am I doing today?',
-  'What should I eat to hit my protein goal?',
-  'Am I on track for my weight goal?',
+  'Summarize my recent logging pattern.',
+  'What are some protein-rich meal ideas?',
+  'Help me plan a balanced next meal.',
 ]
 
 function TypingIndicator() {
   return (
-    <div className="chat-bubble assistant chat-typing">
+    <div className="chat-bubble assistant chat-typing" role="status" aria-label="Coach is responding">
       <span className="typing-dot" />
       <span className="typing-dot" />
       <span className="typing-dot" />
@@ -68,12 +70,16 @@ function TypingIndicator() {
 }
 
 export function CoachPage() {
-  const { state, addChatMessage, clearChat } = useApp()
+  const { state, addChatMessage, clearChat, replaceState } = useApp()
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showSafetySupport, setShowSafetySupport] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const requestRef = useRef<AbortController | null>(null)
+
+  useEffect(() => () => requestRef.current?.abort(), [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -82,7 +88,8 @@ export function CoachPage() {
   async function send(text: string) {
     const trimmed = text.trim()
     if (!trimmed || loading) return
-    if (!state.aiSettings.apiKey) {
+    const safety = coachSafetyResponse(trimmed)
+    if (!state.aiSettings.apiKey && !safety) {
       setError(`Add your ${providerLabel(state.aiSettings.provider)} API key in Settings.`)
       return
     }
@@ -95,12 +102,27 @@ export function CoachPage() {
       timestamp: new Date().toISOString(),
     }
     addChatMessage(userMsg)
+    if (safety) {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: safety.message,
+        timestamp: new Date().toISOString(),
+      })
+      setShowSafetySupport(true)
+      inputRef.current?.focus()
+      return
+    }
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
     setLoading(true)
     try {
       const reply = await sendCoachMessage(
         { ...state, chatMessages: [...state.chatMessages, userMsg] },
         state.chatMessages,
         trimmed,
+        controller.signal,
       )
       addChatMessage({
         id: crypto.randomUUID(),
@@ -111,6 +133,7 @@ export function CoachPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Coach request failed')
     } finally {
+      if (requestRef.current === controller) requestRef.current = null
       setLoading(false)
       inputRef.current?.focus()
     }
@@ -130,7 +153,12 @@ export function CoachPage() {
           <button
             type="button"
             className="coach-clear-btn"
-            onClick={() => { if (confirm('Clear chat history?')) clearChat() }}
+            onClick={() => {
+              if (confirm('Clear chat history?')) {
+                clearChat()
+                setShowSafetySupport(false)
+              }
+            }}
           >
             Clear
           </button>
@@ -138,7 +166,7 @@ export function CoachPage() {
       </header>
 
       <main className="app-main coach-main">
-        {error && <div className="error-banner">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         {!hasKey && (
           <div className="coach-no-key-card">
@@ -152,7 +180,11 @@ export function CoachPage() {
             <div className="chat-empty-state">
               <div className="chat-empty-icon" aria-hidden>💬</div>
               <p className="chat-empty-title">Ask me anything</p>
-              <p className="chat-empty-sub">About your diet, goals, or progress — I have your full log context.</p>
+              <p className="chat-empty-sub">Reflect on recent logging patterns or ask for general meal ideas.</p>
+              <p className="chat-empty-sub">
+                Your chat is stored with your Fud AI data. When you send a message, limited recent log context is sent
+                directly to {providerLabel(state.aiSettings.provider)}; that provider controls its own retention.
+              </p>
               <div className="starter-chips">
                 {STARTERS.map(s => (
                   <button
@@ -178,15 +210,42 @@ export function CoachPage() {
                 ? <CoachMessage text={msg.content} />
                 : <span className="chat-bubble-text">{msg.content}</span>
               }
+              <button
+                type="button"
+                className="coach-message-delete"
+                aria-label={`Delete ${msg.role === 'assistant' ? 'Coach response' : 'your message'}`}
+                onClick={() => replaceState({
+                  ...state,
+                  chatMessages: state.chatMessages.filter(candidate => candidate.id !== msg.id),
+                })}
+              >
+                Delete
+              </button>
             </div>
           ))}
 
           {loading && <TypingIndicator />}
+          {showSafetySupport && (
+            <div className="no-key-banner" role="note">
+              <Link to="/support" onClick={() => track({ name: 'support_opened' })}>Open eating-disorder support</Link>
+              {' · '}
+              <a href="https://findahelpline.com/" target="_blank" rel="noreferrer">Find a crisis helpline worldwide</a>
+              {' · '}
+              <a href="https://988lifeline.org/" target="_blank" rel="noreferrer">U.S. 988</a>
+              {' · '}
+              <a href="https://988.ca/" target="_blank" rel="noreferrer">Canada 9-8-8</a>
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
       </main>
 
       <div className="chat-input-bar">
+        {loading && (
+          <button type="button" className="btn btn-secondary" onClick={() => requestRef.current?.abort()}>
+            Cancel response
+          </button>
+        )}
         <form
           className="chat-input-form"
           onSubmit={e => { e.preventDefault(); send(input) }}
@@ -196,13 +255,13 @@ export function CoachPage() {
             className="chat-input"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder={hasKey ? 'Ask Coach…' : 'Add API key in Settings first'}
-            disabled={loading || !hasKey}
+            placeholder={hasKey ? 'Ask Coach…' : 'Ask for support, or add an API key for coaching'}
+            disabled={loading}
           />
           <button
             type="submit"
             className="chat-send-btn"
-            disabled={loading || !input.trim() || !hasKey}
+            disabled={loading || !input.trim()}
             aria-label="Send"
           >
             <IconSend size={16} />

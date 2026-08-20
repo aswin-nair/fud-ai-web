@@ -1,7 +1,7 @@
 # Local data inventory
 
-- Status: Phase 0 baseline
-- Last reviewed: 2026-08-17
+- Status: Versioned web-sync and account-security baseline
+- Last reviewed: 2026-08-20
 - Code baseline: `web/app/src/types.ts`, `web/app/src/lib/*.ts`, and `mobile/src/db/schema.ts`
 
 This document inventories the current web and Expo persistence surfaces. It is descriptive, not permission to sync a field. The migration decision for each group is recorded in `migration-map-v1.md`.
@@ -18,7 +18,13 @@ This document inventories the current web and Expo persistence surfaces. It is d
 
 ## Web `AppState`
 
-The current record is unversioned JSON stored under `fud-ai-web-state-<userId>`. Runtime `AppState` still carries the BYOK key for AI calls, but persistence and transport must serialize a secret-free copy. The current hardening path stores the key separately under `fud-ai-private-ai-key-<userId>`, clears it from the state blob, and strips it again at the server boundary.
+The current browser authority is a schema-versioned, per-account IndexedDB record
+containing the latest validated secret-free snapshot and ordered sync outbox.
+`fud-ai-web-state-<userId>` is now a migration-only legacy source that is removed
+only after durable commit. Runtime `AppState` still carries the BYOK key for AI
+calls, but persistence and transport serialize a secret-free copy. The key is
+stored separately under `fud-ai-private-ai-key-<userId>` and is rejected again at
+the server boundary.
 
 | Field path | Shape | Class | Authority and notes |
 |---|---|---|---|
@@ -63,7 +69,10 @@ The current record is unversioned JSON stored under `fud-ai-web-state-<userId>`.
 | `gamification.streakFreezes` | number | Derived | Compare with the freeze ledger/policy |
 | `gamification.freezeUsedDates[]` | local-date strings | Sensitive | Migration input for freeze reconciliation |
 | `gamification.freezeEarnedMonth` | `YYYY-MM` string | Derived | Recompute under the current policy |
+| `gamification.pauseStartedDate` | local-date string or null | Sensitive | Active pause start; required to hold streak/freeze/quest progression across relaunches |
+| `gamification.pauseProtectedDates[]` | local-date strings | Sensitive | Neutral days that bridge a streak without increasing it |
 | `gamification.xpEvents[]` | `{ id, key, xp, label, timestamp }[]` | Sensitive | Dedup keys and audit input; labels are display content |
+| `gamification.awardedKeys[]` | string array | Sensitive | Untruncated idempotency ledger; display-feed truncation must never remove these keys |
 | `gamification.pendingLevelUp` | number or null | Derived | Ephemeral presentation state; do not migrate |
 | `gamification.seenBadgeIds[]` | string array | Preference | May migrate after legacy-key merge |
 | `gamification.quest` | optional object | Derived | Contains `date`, `type`, `target`, `progress`, `completedAt`, and optional `beforeHour`; regenerate/verify by local day |
@@ -73,15 +82,29 @@ The current record is unversioned JSON stored under `fud-ai-web-state-<userId>`.
 | Key | Shape | Class | Current lifecycle |
 |---|---|---|---|
 | `fud-ai-web-state` | legacy raw `AppState` | Sensitive plus Secret | Copied into the per-user key and immediately removed when no per-user state exists |
+| `fud-ai-web-state-<userId>-quarantine` | last malformed raw state blob | Sensitive plus possible Secret | Retained locally for recovery when hydration validation fails; removed by explicit data deletion |
 | `fud-ai-private-ai-key-<userId>` | raw provider API key | Secret | Device-local compatibility store; removed when cleared and excluded from AppState export/transport |
-| `fud-ai-local-users` | email-keyed `{ sub, email, name, passwordHash, salt, createdAt }` records | Secret | Local-only email/password database |
+| `fud-onboarding-draft-<userId>` | versioned onboarding step, profile draft, and first-meal draft | Sensitive | Resumable during setup; removed on completion or explicit data deletion |
+| IndexedDB `fud-ai-web-durable` / `accounts` | schema-v1 per-user `{ state, serverVersion, origin, updatedAt, outbox[] }` | Sensitive | Primary offline authority; each ordered mutation has a stable UUID, account/session binding, base version, timestamp, local day, bounded IANA time zone, retry/lease state, and a secret-free snapshot; removed after confirmed destructive deletion |
+| `fud-ai-durable-account-<userId>` | serialized durable account record | Sensitive | Explicitly surfaced fallback only when IndexedDB cannot be opened; same validation and deletion rules as the primary record |
+| `fud-ai-durable-recovery-<userId>` | malformed durable record | Sensitive | Quarantined device-recovery copy; never hydrated as state; removed by confirmed deletion |
+| `fud-log-drafts-v1-<encodedUserId>` | schema-v1 text/manual/review drafts | Sensitive | Per-account browser draft; removed after successful log or explicit data/account deletion; never contains a BYOK key or photo bytes |
+| `fud-log-drafts-recovery-v1-<encodedUserId>` | malformed draft blob | Sensitive | Quarantined locally and removed by explicit data/account deletion |
+| `fud-ai-local-users` | email-keyed `{ sub, email, name, passwordHash, salt, createdAt }` records | Secret | Development/local-backend compatibility only; production cloud mode uses the API account store |
 | `fud-ai-auth-session` | `{ sub, email, name, picture?, provider? }` | Sensitive | Removed on sign-out |
 | `fud-ai-auth-token` | bearer JWT | Secret | Stored in `localStorage`; removed on cloud sign-out |
-| `fud-analytics` | newest-first event rows with `at` timestamp, capped at 200 | Pseudonymous | Local ring buffer; no schema version |
-| `fud-notify-log` | `{ date, kinds[] }`, where kind is `routine`, `save`, or `freeze` | Preference | Replaced as the local day changes |
-| `fud-seen-badges` | badge-ID string array | Preference | Legacy side store; partially normalized into `AppState` |
+| `fud-analytics-v1` | newest-first `{ schema_version: 1, event_id, at, app_surface, app_version, platform: "web", event }` rows, capped at 200 | Pseudonymous | Current device-local ring buffer; `event` is restricted to the typed analytics allowlist |
+| `fud-analytics` | legacy unversioned event rows | Pseudonymous | No longer read or written; removed by explicit data deletion |
+| `fud-notify-log` | `{ date, kinds[] }`, where kind is `routine`, `save`, or `freeze` | Preference | Replaced as the local day changes and removed by explicit data deletion |
+| `fud-seen-badges` | badge-ID string array | Preference | Legacy side store; partially normalized into `AppState` and removed by explicit data deletion |
 
-Browser storage currently has no schema-version key, migration ledger, checksum, retained rollback copy, or corruption quarantine.
+The durable browser record is schema-versioned and preserves an ordered,
+idempotent outbox. It retains bounded malformed-state recovery copies and
+surfaces recovery/conflict states, but it is still a full-snapshot protocol,
+not a field-level merge ledger. A version conflict never blind-retries: the user
+must first download a secret-free device backup, then explicitly adopt the
+validated server snapshot or rebase the latest device snapshot onto the newly
+observed server version.
 
 ## Expo SQLite
 
@@ -100,7 +123,15 @@ The Expo schema currently has no weight-history, exercise, coach-chat, ingredien
 
 ## Current server destination
 
-`web/db/schema.sql` contains `users` and `user_states`. `user_states.state` is an unversioned JSONB blob. It is not a field-level synchronization schema and currently has no idempotency key, device ID, tombstone, cursor, per-record version, or migration ledger.
+`web/db/schema.sql` contains `users`, versioned `user_states`, `auth_sessions`,
+`state_mutations`, `password_reset_tokens`, and privacy-keyed
+`rate_limit_buckets`. State writes use a per-user advisory transaction lock,
+optimistic base version, canonical request hash, and per-user UUID mutation
+ledger. Account deletion cascades across user-owned rows. `user_states.state`
+remains a full JSONB snapshot; this is not field-level merge or per-record
+tombstone synchronization. Password-reset delivery is intentionally disabled
+until an approved email provider exists. Retention periods and cleanup status
+are recorded in `retention-schedule.md`.
 
 ## Review triggers
 

@@ -11,6 +11,8 @@ const emptyGamification: GamificationState = {
   streakFreezes: 1,
   freezeUsedDates: [],
   freezeEarnedMonth: '2026-08',
+  pauseStartedDate: null,
+  pauseProtectedDates: [],
   xpEvents: [],
   awardedKeys: [],
   pendingLevelUp: null,
@@ -56,7 +58,12 @@ describe('healthy engagement policy', () => {
     const gamification: GamificationState = {
       ...emptyGamification,
       xpEvents: laterEvents,
-      awardedKeys: ['meal-meal-1', 'new-food-meal-1', ...laterEvents.map(event => event.key)],
+      awardedKeys: [
+        'meal-meal-1',
+        'new-food-meal-1',
+        'first-meal-2026-08-17',
+        ...laterEvents.map(event => event.key),
+      ],
     }
 
     expect(computeXpAwards(entry, [], gamification)).toEqual([])

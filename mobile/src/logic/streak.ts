@@ -1,13 +1,14 @@
-import { previousDate, type LocalDate } from '@/logic/dates';
+import { type LocalDate } from '@/logic/dates';
+import {
+  DEFAULT_AT_RISK_HOUR,
+  deriveLoggingStreak,
+  type LoggingStreak,
+} from '@fud-ai/domain/streak';
 
 /** The hour after which an unlogged day is worth surfacing. See §2.3. */
-export const AT_RISK_HOUR = 18;
+export const AT_RISK_HOUR = DEFAULT_AT_RISK_HOUR;
 
-export type Streak = {
-  count: number;
-  loggedToday: boolean;
-  atRisk: boolean;
-};
+export type Streak = LoggingStreak;
 
 /**
  * Derived on every read, never stored. A stored counter drifts the moment a
@@ -23,23 +24,14 @@ export function deriveStreak(
   freezeDates: LocalDate[],
   todayLocal: LocalDate,
   localHour: number,
+  neutralDates: LocalDate[] = [],
 ): Streak {
-  const covered = new Set([...loggedDates, ...freezeDates]);
-  const loggedToday = loggedDates.includes(todayLocal);
-
-  // A day that has not ended yet is not a broken day. If today is still empty
-  // the streak stays whole and extendable, anchored on yesterday.
-  let cursor = covered.has(todayLocal) ? todayLocal : previousDate(todayLocal);
-
-  let count = 0;
-  while (covered.has(cursor)) {
-    count += 1;
-    cursor = previousDate(cursor);
-  }
-
-  return {
-    count,
-    loggedToday,
-    atRisk: !loggedToday && localHour >= AT_RISK_HOUR,
-  };
+  return deriveLoggingStreak({
+    loggedDates,
+    freezeDates,
+    neutralDates,
+    today: todayLocal,
+    localHour,
+    atRiskHour: AT_RISK_HOUR,
+  });
 }

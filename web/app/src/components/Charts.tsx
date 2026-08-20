@@ -63,12 +63,11 @@ export function BarChart({ bars, goal }: BarChartProps) {
     <div className="bar-chart">
       {bars.map(b => {
         const pct = (b.value / max) * 100
-        const overGoal = goal != null && b.value > goal
         return (
           <div key={b.label} className="bar-col">
             <div className="bar-track">
               <div
-                className={`bar-fill${overGoal ? ' over' : ''}`}
+                className="bar-fill"
                 style={{ height: `${pct}%` }}
               />
             </div>
@@ -164,9 +163,9 @@ export function ProgressLineChart({
           <g>
             <line
               x1={padL} y1={goalY} x2={w - padR} y2={goalY}
-              stroke="#34C759" strokeDasharray="5 4" strokeWidth="1.5" opacity="0.75"
+              stroke="var(--ink-mute)" strokeDasharray="5 4" strokeWidth="1.5" opacity="0.75"
             />
-            <text x={w - padR} y={goalY - 4} textAnchor="end" fill="#34C759" fontSize="9" opacity="0.85">goal</text>
+            <text x={w - padR} y={goalY - 4} textAnchor="end" fill="var(--ink-mute)" fontSize="9" opacity="0.85">goal</text>
           </g>
         )}
 
@@ -226,10 +225,6 @@ export function ProgressBarChart({
             <stop offset="0%" stopColor="var(--coral-start)" stopOpacity="0.9" />
             <stop offset="100%" stopColor="var(--coral-end)" stopOpacity="0.6" />
           </linearGradient>
-          <linearGradient id="bar-over-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--coral-deep)" stopOpacity="1" />
-            <stop offset="100%" stopColor="var(--coral-start)" stopOpacity="0.8" />
-          </linearGradient>
         </defs>
 
         {yTicks.map(tick => {
@@ -259,7 +254,6 @@ export function ProgressBarChart({
           const trackH = chartH
           const x = padL + (i + 0.5) * (chartW / bars.length) - barW / 2
           const y = padT + chartH - barH
-          const over = goal != null && b.value > goal
           return (
             <g key={b.label}>
               <rect
@@ -269,7 +263,7 @@ export function ProgressBarChart({
               {b.value > 0 && (
                 <rect
                   x={x} y={y} width={barW} height={barH}
-                  rx="4" fill={over ? 'url(#bar-over-grad)' : 'url(#bar-grad)'}
+                  rx="4" fill="url(#bar-grad)"
                 />
               )}
               {showLabels && b.value > 0 && (

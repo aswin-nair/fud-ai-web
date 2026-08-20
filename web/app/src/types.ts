@@ -100,9 +100,11 @@ export interface XpEvent {
 export interface GamificationState {
   xp: number
   level: number
-  streakFreezes: number        // available freezes (resets to 2 each month)
+  streakFreezes: number        // available freezes (resets to 1 each month)
   freezeUsedDates: string[]    // YYYY-MM-DD days covered by a freeze
   freezeEarnedMonth: string    // YYYY-MM of last freeze grant
+  pauseStartedDate: string | null // local YYYY-MM-DD where the active pause began
+  pauseProtectedDates: string[] // paused local days that bridge, but never add to, a streak
   xpEvents: XpEvent[]          // last 50 XP events (for feed display)
   awardedKeys: string[]        // untruncated idempotency ledger; never use the feed as dedup state
   pendingLevelUp: number | null // new level pending celebration

@@ -26,7 +26,11 @@ export function JourneyPage() {
   const totalDays = getTotalLoggedDays(foodEntries)
   const currentStage = getJourneyStage(totalDays)
   const nextStage = getNextStage(currentStage)
-  const streak = getStreakWithFreezes(foodEntries, gamification.freezeUsedDates)
+  const streak = getStreakWithFreezes(
+    foodEntries,
+    gamification.freezeUsedDates,
+    gamification.pauseProtectedDates,
+  )
   const allBadges = useMemo(
     () => getAllBadges(foodEntries, streak),
     [foodEntries, streak],

@@ -16,11 +16,11 @@ export interface GoogleJwtPayload {
   email_verified?: boolean
 }
 
-const SESSION_KEY = 'fud-ai-auth-session'
+export const AUTH_SESSION_STORAGE_KEY = 'fud-ai-auth-session'
 
 export function loadAuthSession(): AuthUser | null {
   try {
-    const raw = localStorage.getItem(SESSION_KEY)
+    const raw = localStorage.getItem(AUTH_SESSION_STORAGE_KEY)
     if (!raw) return null
     const user = JSON.parse(raw) as AuthUser
     if (!user.sub || !user.email) return null
@@ -31,11 +31,25 @@ export function loadAuthSession(): AuthUser | null {
 }
 
 export function saveAuthSession(user: AuthUser): void {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+  localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(user))
 }
 
 export function clearAuthSession(): void {
-  localStorage.removeItem(SESSION_KEY)
+  localStorage.removeItem(AUTH_SESSION_STORAGE_KEY)
+}
+
+/** Read a JWT subject without treating the unverified payload as authorization. */
+export function authTokenSubject(token: string): string | null {
+  try {
+    const encoded = token.split('.')[1]
+    if (!encoded) return null
+    const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
+    const payload = JSON.parse(atob(padded)) as { sub?: unknown }
+    return typeof payload.sub === 'string' && payload.sub ? payload.sub : null
+  } catch {
+    return null
+  }
 }
 
 export const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim()

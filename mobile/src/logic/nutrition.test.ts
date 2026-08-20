@@ -228,6 +228,53 @@ describe('computeTargets', () => {
     expect(computeTargets({ ...base, weightKg: 0 }).ok).toBe(false);
     expect(computeTargets({ ...base, ageYears: 0 }).ok).toBe(false);
   });
+
+  it.each(['ageYears', 'heightCm', 'weightKg', 'weeklyRatePct'] as const)(
+    'rejects non-finite %s values',
+    (field) => {
+      for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+        expect(computeTargets({ ...base, [field]: value }).ok).toBe(false);
+      }
+    },
+  );
+
+  it('rejects a non-finite optional goal weight', () => {
+    for (const goalWeightKg of [
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ]) {
+      expect(computeTargets({ ...base, goalWeightKg }).ok).toBe(false);
+    }
+  });
+
+  it('rejects negative measurements and rates instead of converting them into targets', () => {
+    expect(computeTargets({ ...base, ageYears: -1 }).ok).toBe(false);
+    expect(computeTargets({ ...base, heightCm: -1 }).ok).toBe(false);
+    expect(computeTargets({ ...base, weightKg: -1 }).ok).toBe(false);
+    expect(computeTargets({ ...base, weeklyRatePct: -0.1 }).ok).toBe(false);
+    expect(computeTargets({ ...base, goalWeightKg: -1 }).ok).toBe(false);
+  });
+
+  it('rejects finite values outside the supported input ranges', () => {
+    expect(computeTargets({ ...base, ageYears: 131 }).ok).toBe(false);
+    expect(computeTargets({ ...base, heightCm: 301 }).ok).toBe(false);
+    expect(computeTargets({ ...base, weightKg: 1001 }).ok).toBe(false);
+    expect(computeTargets({ ...base, weeklyRatePct: 101 }).ok).toBe(false);
+    expect(computeTargets({ ...base, goalWeightKg: 1001 }).ok).toBe(false);
+  });
+
+  it.each([
+    { field: 'sex', value: 'other' },
+    { field: 'activityLevel', value: 'extreme' },
+    { field: 'goal', value: 'bulk' },
+    { field: 'sex', value: null },
+    { field: 'activityLevel', value: null },
+    { field: 'goal', value: null },
+  ] as const)('rejects an invalid runtime $field enum value', ({ field, value }) => {
+    const input = { ...base, [field]: value } as unknown as TargetInput;
+    expect(computeTargets(input).ok).toBe(false);
+  });
 });
 
 describe('computeBmi', () => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import type {
 
@@ -9,33 +9,78 @@ import type {
 } from '../types'
 
 import {
-  clearPrivateAIKey,
   clearUserState,
+  exportData,
   freshState,
   importData,
   loadPrivateAIKey,
   loadState,
   savePrivateAIKey,
-  saveState,
+  stateWithoutPrivateSecrets,
 } from '../lib/storage'
 
 import { mealKey, entryToSaved, savedToEntry } from '../lib/meals'
 
 import { useAuth } from './AuthContext'
 
-import { ApiError, apiLoadState, apiSaveState } from '../lib/apiClient'
+import { authTokenSubject } from '../lib/auth'
+
+import { ApiError, apiLoadState, apiSaveState, loadAuthToken } from '../lib/apiClient'
+
+import {
+  acknowledgeMutation,
+  claimNextMutation,
+  clearDurableUser,
+  durableOutboxSummary,
+  durableStorageKind,
+  DurableRecoveryError,
+  enqueueDurableMutation,
+  hasDurableMutation,
+  loadDurableState,
+  migrateLegacyState,
+  recordMutationFailure,
+  rebaseDurableConflict,
+  rebindDurableMutations,
+  resolveDurableConflictWithServer,
+  releaseMutationLeases,
+  replaceDurableFromServer,
+  saveDurableLocalSnapshot,
+} from '../lib/durableState'
 
 import { isCloudBackend } from '../lib/dataBackend'
 
 
-import { advanceAfterLog, openSession } from '../lib/gamification'
+import { advanceAfterLog, openSession, transitionTrackingPause } from '../lib/gamification'
 import { clearAnalytics, finishLogFlow } from '../lib/analytics'
+import { clearOnboardingDraft } from '../lib/onboarding'
+import { clearNotificationHistory } from '../lib/notifications'
+import { clearLogDraft } from '../lib/logDrafts'
 
 import { SplashScreen } from '../components/SplashScreen'
 
 const MIN_SPLASH_MS = 1100
 
 const SPLASH_EXIT_MS = 320
+
+class CloudSyncUnavailableError extends Error {
+  constructor() {
+    super('Cloud sync is paused until the account is reloaded.')
+    this.name = 'CloudSyncUnavailableError'
+  }
+}
+
+function tokenIssuedAt(token: string): number | null {
+  try {
+    const encoded = token.split('.')[1]
+    if (!encoded) return null
+    const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
+    const payload = JSON.parse(atob(padded)) as { iat?: unknown }
+    return Number.isSafeInteger(payload.iat) ? payload.iat as number : null
+  } catch {
+    return null
+  }
+}
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -75,7 +120,7 @@ interface AppContextValue {
 
   replaceState: (state: AppState) => void
 
-  clearAllData: () => void
+  clearAllData: () => Promise<boolean>
 
   ackLevelUp: () => void
 
@@ -113,6 +158,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [cloudLoadError, setCloudLoadError] = useState(false)
 
+  const [cloudSyncError, setCloudSyncError] = useState<string | null>(null)
+
+  const [cloudSyncConflict, setCloudSyncConflict] = useState(false)
+
+  const [pendingSyncCount, setPendingSyncCount] = useState(0)
+
+  const [networkOnline, setNetworkOnline] = useState(
+    () => typeof navigator === 'undefined' || navigator.onLine,
+  )
+
+  const [hydratedFromDevice, setHydratedFromDevice] = useState(false)
+
+  const [storageRecovery, setStorageRecovery] = useState<string | null>(null)
+
+  const [destructiveRecovery, setDestructiveRecovery] = useState(false)
+
+  const [conflictExported, setConflictExported] = useState(false)
+
+  const [conflictResolving, setConflictResolving] = useState(false)
+
   const [hydrateAttempt, setHydrateAttempt] = useState(0)
 
   const [splashExiting, setSplashExiting] = useState(false)
@@ -121,12 +186,203 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [pendingSource, setPendingSource] = useState<FoodEntry['source']>('textInput')
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const hydrated = useRef(false)
   const cloudWritable = useRef(!cloud)
+  const cloudVersion = useRef(0)
+  const drainPromise = useRef<Promise<void> | null>(null)
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const drainOutboxRef = useRef<() => Promise<void>>(async () => undefined)
+  const syncEpoch = useRef(0)
+  const clearInFlight = useRef(false)
+  const forceNextPersist = useRef(false)
+  const suppressNextPersist = useRef<string | null>(null)
+  const leaseOwner = useRef(crypto.randomUUID())
+  // AppProvider is keyed by user ID. Bind its token once so a later login in
+  // another tab cannot redirect this provider's queued writes to that account.
+  const cloudSessionToken = useRef(cloud ? loadAuthToken() : null)
+
+  const drainOutbox = useCallback(async (): Promise<void> => {
+    if (!cloud || !cloudWritable.current || !networkOnline) return
+    if (drainPromise.current) return drainPromise.current
+
+    const sessionToken = cloudSessionToken.current
+    const sessionSubject = sessionToken ? authTokenSubject(sessionToken) : null
+    const sessionIssuedAt = sessionToken ? tokenIssuedAt(sessionToken) : null
+    if (!sessionToken || sessionSubject !== userId) throw new CloudSyncUnavailableError()
+    const epoch = syncEpoch.current
+
+    let task: Promise<void>
+    task = (async () => {
+      while (epoch === syncEpoch.current && cloudWritable.current) {
+        const claimed = await claimNextMutation(
+          userId,
+          sessionSubject,
+          sessionIssuedAt,
+          leaseOwner.current,
+        )
+        if (claimed.kind === 'empty') break
+        if (claimed.kind === 'wait') {
+          if (retryTimer.current) clearTimeout(retryTimer.current)
+          retryTimer.current = setTimeout(
+            () => void drainOutboxRef.current(),
+            Math.max(0, claimed.retryAt - Date.now()),
+          )
+          break
+        }
+        if (claimed.kind === 'session-mismatch') {
+          cloudWritable.current = false
+          setCloudSyncConflict(true)
+          setConflictExported(false)
+          setCloudSyncError('Saved changes belong to a different account session.')
+          break
+        }
+
+        const mutation = claimed.mutation
+        setCloudSyncError(null)
+        try {
+          const nextVersion = await apiSaveState(
+            mutation.state,
+            mutation.baseVersion,
+            sessionToken,
+            mutation.mutationId,
+          )
+          if (epoch !== syncEpoch.current) throw new CloudSyncUnavailableError()
+          const acknowledged = await acknowledgeMutation(
+            userId,
+            mutation.mutationId,
+            leaseOwner.current,
+            nextVersion,
+          )
+          cloudVersion.current = Math.max(cloudVersion.current, nextVersion)
+          setPendingSyncCount(acknowledged.remaining)
+          setCloudSyncConflict(false)
+          setCloudSyncError(null)
+          setHydratedFromDevice(false)
+          if (acknowledged.destructive) {
+            const deletionCallerIsWaiting = clearInFlight.current
+            const cleared = freshState()
+            suppressNextPersist.current = JSON.stringify(stateWithoutPrivateSecrets(cleared))
+            try {
+              await clearDurableUser(userId)
+              clearUserState(userId)
+              clearOnboardingDraft(userId)
+              clearLogDraft(userId)
+              clearNotificationHistory()
+              clearAnalytics()
+            } catch {
+              setStorageRecovery('Server deletion was confirmed, but some browser recovery storage still needs cleanup.')
+            }
+            setPendingAnalysis(null)
+            setState(cleared)
+            if (!deletionCallerIsWaiting) {
+              setDestructiveRecovery(false)
+              clearInFlight.current = false
+            }
+          }
+        } catch (error) {
+          if (epoch !== syncEpoch.current || error instanceof CloudSyncUnavailableError) throw error
+          const message = error instanceof Error ? error.message : 'Changes could not be synced.'
+          const retryAt = await recordMutationFailure(
+            userId,
+            mutation.mutationId,
+            leaseOwner.current,
+            message,
+          )
+          if (error instanceof ApiError && error.status === 401) {
+            if (loadAuthToken() === sessionToken) signOut()
+            break
+          }
+          if (error instanceof ApiError && error.status === 409) {
+            // Preserve the exact mutation and device snapshot. Recovery must be
+            // explicit because silently replacing either side loses data.
+            cloudWritable.current = false
+            setCloudSyncConflict(true)
+            setConflictExported(false)
+            setCloudSyncError('This account changed on another device. Your device copy is preserved.')
+            break
+          }
+          if (error instanceof ApiError && (error.status === 400 || error.status === 413)) {
+            cloudWritable.current = false
+            setCloudSyncConflict(true)
+            setConflictExported(false)
+            setCloudSyncError('A saved change needs recovery before the server can accept it. Your device copy is preserved.')
+            break
+          }
+          setCloudSyncError(message)
+          if (retryAt !== null) {
+            if (retryTimer.current) clearTimeout(retryTimer.current)
+            retryTimer.current = setTimeout(
+              () => void drainOutboxRef.current(),
+              Math.max(0, retryAt - Date.now()),
+            )
+          }
+          break
+        }
+      }
+    })().finally(async () => {
+      if (drainPromise.current === task) drainPromise.current = null
+      if (epoch !== syncEpoch.current) return
+      try {
+        const summary = await durableOutboxSummary(userId)
+        setPendingSyncCount(summary.count)
+        if (
+          summary.count > 0
+          && summary.nextAttemptAt !== null
+          && cloudWritable.current
+          && networkOnline
+          && !retryTimer.current
+        ) {
+          retryTimer.current = setTimeout(
+            () => void drainOutboxRef.current(),
+            Math.max(0, summary.nextAttemptAt - Date.now()),
+          )
+        }
+      } catch (error) {
+        setStorageRecovery(error instanceof Error ? error.message : 'Device recovery storage is unavailable.')
+      }
+    })
+
+    drainPromise.current = task
+    return task
+  }, [cloud, networkOnline, signOut, userId])
+
+  drainOutboxRef.current = drainOutbox
+
+  const saveCloudSnapshot = useCallback(async (
+    snapshot: AppState,
+    options: { destructive?: boolean; force?: boolean } = {},
+  ): Promise<void> => {
+    if (!cloud) return
+    const sessionToken = cloudSessionToken.current
+    const sessionSubject = sessionToken ? authTokenSubject(sessionToken) : null
+    if (
+      !sessionToken
+      || sessionSubject !== userId
+      || (clearInFlight.current && !options.destructive)
+      || (options.destructive && (!cloudWritable.current || !networkOnline))
+    ) {
+      throw new CloudSyncUnavailableError()
+    }
+
+    const mutation = await enqueueDurableMutation({
+      userId,
+      sessionSubject,
+      sessionIssuedAt: tokenIssuedAt(sessionToken),
+      state: snapshot,
+      confirmedVersion: cloudVersion.current,
+      destructive: options.destructive,
+      force: options.force,
+    })
+    if (!mutation) return
+    const summary = await durableOutboxSummary(userId)
+    setPendingSyncCount(summary.count)
+    await drainOutbox()
+    if (await hasDurableMutation(userId, mutation.mutationId)) {
+      throw new CloudSyncUnavailableError()
+    }
+  }, [cloud, drainOutbox, networkOnline, userId])
 
 
 
@@ -134,12 +390,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     let cancelled = false
 
+    const epoch = syncEpoch.current + 1
+    const currentLeaseOwner = leaseOwner.current
+    syncEpoch.current = epoch
+    drainPromise.current = null
+    clearInFlight.current = false
+    forceNextPersist.current = false
+    suppressNextPersist.current = null
+
+    if (retryTimer.current) {
+      clearTimeout(retryTimer.current)
+      retryTimer.current = null
+    }
+
     hydrated.current = false
     cloudWritable.current = !cloud
+    cloudVersion.current = 0
 
     setLoading(true)
 
     setCloudLoadError(false)
+
+    setCloudSyncError(null)
+
+    setCloudSyncConflict(false)
+
+    setConflictExported(false)
+
+    setConflictResolving(false)
+
+    setPendingSyncCount(0)
+
+    setHydratedFromDevice(false)
+
+    setStorageRecovery(null)
+
+    setDestructiveRecovery(false)
 
     setPendingAnalysis(null)
 
@@ -155,51 +441,161 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       let hydrationFailed = false
 
-      let hydration: Promise<void>
+      const hydration = (async () => {
+        let cached: Awaited<ReturnType<typeof loadDurableState>> = null
+        try {
+          cached = await loadDurableState(userId)
+          if (!cached) cached = await migrateLegacyState(userId)
+          if (cached?.storage === 'localStorage' || await durableStorageKind() === 'localStorage') {
+            setStorageRecovery('IndexedDB is unavailable. Changes are using limited browser recovery storage.')
+          }
+          if (cached?.destructivePending) setDestructiveRecovery(true)
+        } catch (error) {
+          setStorageRecovery(error instanceof DurableRecoveryError
+            ? 'A damaged device copy was isolated. Recovering from the account server.'
+            : 'Device recovery storage is unavailable.')
+          cached = null
+        }
 
-      if (cloud) {
-
-        hydration = (async () => {
-
+        if (!cloud) {
+          const next = cached?.state ?? loadState(userId)
           try {
+            if (!cached) await saveDurableLocalSnapshot(userId, next)
+            if (!cancelled) setState(next)
+          } catch {
+            hydrationFailed = true
+          }
+          return
+        }
 
-            const remote = await apiLoadState()
+        const sessionToken = cloudSessionToken.current
+        if (!sessionToken || authTokenSubject(sessionToken) !== userId) {
+          signOut()
+          return
+        }
+        const activeSessionIssuedAt = tokenIssuedAt(sessionToken)
+
+        try {
+          const remote = await apiLoadState(sessionToken)
+          if (!Number.isSafeInteger(remote.version) || remote.version < 0) {
+            throw new Error('The account state version is invalid.')
+          }
+          const remoteState = remote.state === null
+            ? null
+            : importData(JSON.stringify(remote.state), loadPrivateAIKey(userId))
+
+          if (cached?.pendingCount) {
+            // Replay the stable device mutations before considering the server
+            // copy; replacing this state here would silently lose offline work.
+            if (cached.pendingSessions.some(session => (
+              session.subject !== userId || session.issuedAt !== activeSessionIssuedAt
+            ))) {
+              // The successful GET authenticated this replacement session, so
+              // it can explicitly adopt same-account queued work.
+              await rebindDurableMutations(userId, userId, activeSessionIssuedAt)
+            }
+            cloudVersion.current = cached.serverVersion
             cloudWritable.current = true
-
-            if (!cancelled && remote) {
-
-              setState(importData(JSON.stringify(remote), loadPrivateAIKey(userId)))
-
-            } else if (!cancelled) {
-
-              const next = freshState()
-              next.aiSettings.apiKey = loadPrivateAIKey(userId)
-              setState(next)
-
-            }
-
-          } catch (error) {
-
-            if (!cancelled) {
-              if (error instanceof ApiError && error.status === 401) {
-                signOut()
-                return
-              }
-              // Never expose the initial empty snapshot as an editable account.
-              // The blocking retry state below keeps writes and local mutations
-              // disabled until the authoritative read succeeds.
-              hydrationFailed = true
-            }
-
+            setPendingSyncCount(cached.pendingCount)
+            setHydratedFromDevice(true)
+            if (!cancelled) setState(cached.state)
+            return
           }
 
-        })()
+          if (
+            remoteState
+            && cached
+            && (cached.origin === 'legacy' || cached.origin === 'local')
+            && JSON.stringify(stateWithoutPrivateSecrets(cached.state))
+              !== JSON.stringify(stateWithoutPrivateSecrets(remoteState))
+          ) {
+            // A pre-cloud device copy and an existing server copy are both
+            // valuable. Queue the device copy against the observed version but
+            // require an explicit retry before it may replace the server copy.
+            cloudVersion.current = remote.version
+            const mutation = await enqueueDurableMutation({
+              userId,
+              sessionSubject: userId,
+              sessionIssuedAt: tokenIssuedAt(sessionToken),
+              state: cached.state,
+              confirmedVersion: remote.version,
+              force: true,
+            })
+            setPendingSyncCount(mutation ? 1 : 0)
+            cloudWritable.current = false
+            setCloudSyncConflict(true)
+            setConflictExported(false)
+            setCloudSyncError('A saved device copy differs from this account. Both copies are preserved.')
+            if (!cancelled) setState(cached.state)
+            return
+          }
 
-      } else {
+          if (remoteState) {
+            await replaceDurableFromServer(userId, remoteState, remote.version)
+            cloudVersion.current = remote.version
+            cloudWritable.current = true
+            if (!cancelled) setState(remoteState)
+            return
+          }
 
-        hydration = Promise.resolve(setState(loadState(userId)))
+          if (cached?.origin === 'legacy' || cached?.origin === 'local') {
+            cloudVersion.current = remote.version
+            cloudWritable.current = true
+            forceNextPersist.current = true
+            if (!cancelled) setState(cached.state)
+            return
+          }
 
-      }
+          const next = freshState()
+          next.aiSettings.apiKey = loadPrivateAIKey(userId)
+          await replaceDurableFromServer(userId, next, remote.version)
+          cloudVersion.current = remote.version
+          cloudWritable.current = true
+          if (!cancelled) setState(next)
+        } catch (error) {
+          if (cancelled) return
+          if (error instanceof ApiError && error.status === 401) {
+            if (loadAuthToken() === cloudSessionToken.current) signOut()
+            return
+          }
+          if (cached) {
+            if (
+              cached.pendingCount > 0
+              && cached.pendingSessions.some(session => (
+                session.subject !== userId || session.issuedAt !== activeSessionIssuedAt
+              ))
+            ) {
+              setStorageRecovery('Reconnect to verify this session before recovering its queued changes.')
+              hydrationFailed = true
+              return
+            }
+            const retryableReadFailure = error instanceof ApiError
+              && (error.status === 0 || error.status === 429 || error.status >= 500)
+            if (!retryableReadFailure) {
+              cloudVersion.current = cached.serverVersion
+              cloudWritable.current = false
+              setPendingSyncCount(cached.pendingCount)
+              setHydratedFromDevice(true)
+              setCloudSyncConflict(true)
+              setConflictExported(false)
+              setCloudSyncError('The account server copy could not be validated. Your device copy is preserved.')
+              setState(cached.state)
+              return
+            }
+            // A validated last-known snapshot is safe to edit offline. New
+            // changes enter the durable outbox before any network retry.
+            cloudVersion.current = cached.serverVersion
+            cloudWritable.current = true
+            setPendingSyncCount(cached.pendingCount)
+            setHydratedFromDevice(true)
+            setCloudSyncError('Offline. Changes are saved on this device.')
+            setState(cached.state)
+            return
+          }
+          // Do not expose an editable fresh state without either source.
+          hydrationFailed = true
+        }
+      })()
 
       await Promise.all([hydration, minTime])
 
@@ -219,6 +615,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const opened = openSession(s)
         return { ...s, gamification: opened.gamification }
       })
+
+      if (cloud) void drainOutboxRef.current()
 
       // Play the splash's fade/scale-out transition before unmounting it.
 
@@ -246,6 +644,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       cancelled = true
 
+      // Invalidate both queued work and the result handlers of in-flight work.
+      if (syncEpoch.current === epoch) syncEpoch.current += 1
+
+      if (retryTimer.current) {
+        clearTimeout(retryTimer.current)
+        retryTimer.current = null
+      }
+
+      void releaseMutationLeases(userId, currentLeaseOwner).catch(() => undefined)
+
       if (exitTimer.current) clearTimeout(exitTimer.current)
 
     }
@@ -258,35 +666,67 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (!hydrated.current) return
 
-
-
-    if (cloud) {
-
-      // Never turn a failed GET into an empty-state PUT. A later successful
-      // hydration (or an explicit deletion action) is required before writes.
-      if (!cloudWritable.current) return
-
-      if (saveTimer.current) clearTimeout(saveTimer.current)
-
-      saveTimer.current = setTimeout(() => {
-
-        apiSaveState(state).catch(err => console.error('Failed to sync state', err))
-
-      }, 500)
-
-      return () => {
-
-        if (saveTimer.current) clearTimeout(saveTimer.current)
-
-      }
-
+    const signature = JSON.stringify(stateWithoutPrivateSecrets(state))
+    if (suppressNextPersist.current === signature) {
+      suppressNextPersist.current = null
+      return
     }
 
 
 
-    saveState(userId, state)
+    if (cloud) {
 
-  }, [userId, state, cloud])
+      // Hydration is the gate that prevents an initial empty-state write. Once
+      // hydrated, keep accepting durable device mutations even while a server
+      // conflict pauses network delivery.
+      if (clearInFlight.current) return
+
+      const force = forceNextPersist.current
+      forceNextPersist.current = false
+      void saveCloudSnapshot(state, { force }).catch(() => undefined)
+      return
+
+    }
+
+    savePrivateAIKey(userId, state.aiSettings.apiKey)
+    void saveDurableLocalSnapshot(userId, state).catch(error => {
+      setStorageRecovery(error instanceof Error ? error.message : 'Device recovery storage is unavailable.')
+    })
+
+  }, [userId, state, cloud, saveCloudSnapshot])
+
+  useEffect(() => {
+    if (!cloud) return
+
+    function online() {
+      setNetworkOnline(true)
+      if (retryTimer.current) {
+        clearTimeout(retryTimer.current)
+        retryTimer.current = null
+      }
+      if (hydratedFromDevice && pendingSyncCount === 0) {
+        setHydrateAttempt(attempt => attempt + 1)
+      } else {
+        void drainOutboxRef.current()
+      }
+    }
+
+    function offline() {
+      setNetworkOnline(false)
+      setCloudSyncError('Offline. Changes are saved on this device.')
+    }
+
+    window.addEventListener('online', online)
+    window.addEventListener('offline', offline)
+    return () => {
+      window.removeEventListener('online', online)
+      window.removeEventListener('offline', offline)
+    }
+  }, [cloud, hydratedFromDevice, pendingSyncCount])
+
+  useEffect(() => {
+    if (cloud && networkOnline && hydrated.current) void drainOutboxRef.current()
+  }, [cloud, networkOnline])
 
 
 
@@ -300,6 +740,93 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   }, [user?.name, state.profile.name])
 
+  function downloadConflictCopy(): void {
+    const blob = new Blob([exportData(state)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `fud-ai-device-copy-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 0)
+    setConflictExported(true)
+  }
+
+  async function resolveCloudConflict(choice: 'server' | 'device', destructive = false): Promise<void> {
+    if (!conflictExported || !networkOnline || conflictResolving) return
+    const sessionToken = cloudSessionToken.current
+    const sessionSubject = sessionToken ? authTokenSubject(sessionToken) : null
+    if (!sessionToken || sessionSubject !== userId) {
+      signOut()
+      return
+    }
+
+    setConflictResolving(true)
+    try {
+      const remote = await apiLoadState(sessionToken)
+
+      if (choice === 'server') {
+        const serverState = remote.state === null
+          ? freshState()
+          : importData(JSON.stringify(remote.state), loadPrivateAIKey(userId))
+        if (remote.state === null) serverState.aiSettings.apiKey = loadPrivateAIKey(userId)
+        await resolveDurableConflictWithServer(userId, serverState, remote.version)
+        suppressNextPersist.current = JSON.stringify(stateWithoutPrivateSecrets(serverState))
+        cloudVersion.current = remote.version
+        cloudWritable.current = true
+        clearInFlight.current = false
+        setPendingSyncCount(0)
+        setCloudSyncConflict(false)
+        setCloudSyncError(null)
+        setHydratedFromDevice(false)
+        setDestructiveRecovery(false)
+        setConflictExported(false)
+        setState(serverState)
+        return
+      }
+
+      const snapshot = destructive ? freshState() : state
+      const rebased = await rebaseDurableConflict({
+        userId,
+        sessionSubject,
+        sessionIssuedAt: tokenIssuedAt(sessionToken),
+        state: snapshot,
+        confirmedVersion: remote.version,
+        destructive,
+      })
+      cloudVersion.current = remote.version
+      cloudWritable.current = true
+      clearInFlight.current = destructive
+      setPendingSyncCount(1)
+      setCloudSyncConflict(false)
+      setCloudSyncError(null)
+      setConflictExported(false)
+      setDestructiveRecovery(destructive)
+      await drainOutboxRef.current()
+      if (await hasDurableMutation(userId, rebased.mutationId)) {
+        throw new CloudSyncUnavailableError()
+      }
+      if (destructive) {
+        clearInFlight.current = false
+        setDestructiveRecovery(false)
+      }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        if (loadAuthToken() === sessionToken) signOut()
+        return
+      }
+      cloudWritable.current = false
+      clearInFlight.current = false
+      setCloudSyncConflict(true)
+      setCloudSyncError(error instanceof Error
+        ? `${error.message} Your downloaded device copy remains available.`
+        : 'Conflict recovery failed. Your downloaded device copy remains available.')
+    } finally {
+      setConflictResolving(false)
+    }
+  }
+
 
 
   const value = useMemo<AppContextValue>(() => ({
@@ -310,7 +837,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setOnboarded: (v) => setState(s => ({ ...s, onboarded: v })),
 
-    updateProfile: (profile) => setState(s => ({ ...s, profile })),
+    updateProfile: (profile) => setState(s => ({
+      ...s,
+      profile,
+      gamification: transitionTrackingPause(
+        s.gamification,
+        Boolean(s.profile.trackingPaused),
+        Boolean(profile.trackingPaused),
+      ),
+    })),
 
     updateAISettings: (aiSettings) => {
       savePrivateAIKey(userId, aiSettings.apiKey)
@@ -453,23 +988,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     })),
 
-    clearAllData: () => {
+    clearAllData: async () => {
 
-      if (!cloud) clearUserState(userId)
-      else clearPrivateAIKey(userId)
-
-      setState(freshState())
-
-      setPendingAnalysis(null)
-
-      clearAnalytics()
-
+      const next = freshState()
       if (cloud) {
-
-        apiSaveState(freshState()).catch(err => console.error('Failed to clear remote state', err))
-
+        // A disabled writer means no server acknowledgement can be claimed.
+        if (!cloudWritable.current || clearInFlight.current || !networkOnline) return false
+        clearInFlight.current = true
+        setDestructiveRecovery(true)
+        try {
+          await saveCloudSnapshot(next, { destructive: true })
+        } catch {
+          // A failed destructive request is ambiguous (the response may have
+          // been lost after commit). Stop all writes until an authoritative
+          // reload establishes which state the server actually holds.
+          cloudWritable.current = false
+          setCloudSyncConflict(true)
+          setConflictExported(false)
+          clearInFlight.current = false
+          try {
+            const durable = await loadDurableState(userId)
+            if (!durable?.destructivePending) setDestructiveRecovery(false)
+          } catch {
+            // Keep the recovery gate closed if device state cannot prove that
+            // no authorized destructive mutation remains.
+          }
+          return false
+        }
+      } else {
+        await clearDurableUser(userId)
+        clearUserState(userId)
       }
 
+      suppressNextPersist.current = JSON.stringify(stateWithoutPrivateSecrets(next))
+      setState(next)
+      clearInFlight.current = false
+      setPendingSyncCount(0)
+      setDestructiveRecovery(false)
+      setPendingAnalysis(null)
+      clearOnboardingDraft(userId)
+      clearLogDraft(userId)
+      clearNotificationHistory()
+      clearAnalytics()
+      return true
     },
 
     pendingAnalysis,
@@ -480,7 +1041,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setPendingSource,
 
-  }), [state, loading, pendingAnalysis, pendingSource, userId, cloud])
+  }), [state, loading, pendingAnalysis, pendingSource, userId, cloud, networkOnline, saveCloudSnapshot])
 
 
 
@@ -498,7 +1059,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">We could not load your account</h1>
             <p className="onboarding-sub">
-              Your saved data was not changed. Check your connection and try again before logging anything new.
+              {storageRecovery
+                ? `${storageRecovery} Connect to the account server and retry before logging anything new.`
+                : 'Your saved data was not changed. Check your connection and try again before logging anything new.'}
             </p>
             <button
               type="button"
@@ -517,9 +1080,117 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   }
 
+  if (destructiveRecovery) {
+    return (
+      <div className="app-shell">
+        <main className="app-main onboarding-main">
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Finishing your data deletion</h1>
+            <p className="onboarding-sub">
+              The deletion request is safely saved on this device. Download the preserved device copy, then choose whether to delete the latest server data or cancel deletion and use it.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={downloadConflictCopy}
+            >
+              Download device copy
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-block"
+              disabled={!networkOnline || !conflictExported || conflictResolving}
+              onClick={() => void resolveCloudConflict('device', true)}
+            >
+              {conflictResolving ? 'Checking account…' : 'Delete latest server data'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-block"
+              disabled={!networkOnline || !conflictExported || conflictResolving}
+              onClick={() => void resolveCloudConflict('server')}
+            >
+              Cancel deletion and use server copy
+            </button>
+            <button type="button" className="btn btn-ghost btn-block" onClick={signOut}>
+              Sign out
+            </button>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+
+  const syncMessage = cloudSyncConflict
+    ? `${cloudSyncError ?? 'Sync needs recovery.'} Download the device copy before choosing which version to keep.`
+    : !networkOnline
+      ? `Offline. ${pendingSyncCount > 0 ? `${pendingSyncCount} change${pendingSyncCount === 1 ? '' : 's'} saved on this device.` : 'Your saved device copy is available.'}`
+      : cloudSyncError
+        ? `${cloudSyncError} ${pendingSyncCount > 0 ? 'Retry is scheduled.' : ''}`
+        : pendingSyncCount > 0
+          ? `Syncing ${pendingSyncCount} saved change${pendingSyncCount === 1 ? '' : 's'}…`
+          : hydratedFromDevice
+            ? 'Recovered your last saved device copy. Sync is checking the account server.'
+            : storageRecovery
+
+
+
+  return (
+    <AppContext.Provider value={value}>
+      {syncMessage && (
+        <div
+          className="cloud-sync-banner"
+          role={cloudSyncConflict ? 'alert' : 'status'}
+          aria-live={cloudSyncConflict ? 'assertive' : 'polite'}
+        >
+          <span>{syncMessage}</span>
+          {(pendingSyncCount > 0 || cloudSyncConflict || cloudSyncError) && (
+            <div>
+              {cloudSyncConflict ? (
+                <>
+                  <button type="button" onClick={downloadConflictCopy}>
+                    Download device copy
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!networkOnline || !conflictExported || conflictResolving}
+                    onClick={() => void resolveCloudConflict('device')}
+                  >
+                    Use device copy
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!networkOnline || !conflictExported || conflictResolving}
+                    onClick={() => void resolveCloudConflict('server')}
+                  >
+                    Use server copy
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!networkOnline}
+                  onClick={() => {
+                    if (hydratedFromDevice && pendingSyncCount === 0) {
+                      setHydrateAttempt(attempt => attempt + 1)
+                      return
+                    }
+                    void drainOutboxRef.current()
+                  }}
+                >
+                  {hydratedFromDevice && pendingSyncCount === 0 ? 'Check account' : 'Sync now'}
+                </button>
+              )}
+              <button type="button" onClick={signOut}>Sign out</button>
+            </div>
+          )}
+        </div>
+      )}
+      {children}
+    </AppContext.Provider>
+  )
 
 }
 

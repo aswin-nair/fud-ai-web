@@ -21,11 +21,16 @@ import {
   maxWeeklyChangeKg,
   profileInputIssue,
 } from '../lib/profile'
-import { exportData, importData } from '../lib/storage'
-import { track } from '../lib/analytics'
-import { requestNotifyPermission } from '../lib/notifications'
+import { clearUserState, exportData, importData } from '../lib/storage'
+import { clearAnalytics, track } from '../lib/analytics'
+import { clearNotificationHistory, requestNotifyPermission } from '../lib/notifications'
 import { userInitials } from '../lib/auth'
 import { IconArrowUpRight, IconCheck, IconChevronRight } from '../components/icons'
+import { apiDeleteAccount, apiLogoutAll, loadAuthToken } from '../lib/apiClient'
+import { isCloudBackend } from '../lib/dataBackend'
+import { deleteLocalAccount } from '../lib/localAuth'
+import { clearDurableUser } from '../lib/durableState'
+import { clearOnboardingDraft } from '../lib/onboarding'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="settings-section-label">{children}</p>
@@ -60,7 +65,12 @@ export function SettingsPage() {
   const [instructions, setInstructions] = useState(state.aiSettings.customInstructions ?? '')
   const [saved, setSaved] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
+  const [accountAction, setAccountAction] = useState<'logout-all' | 'delete' | null>(null)
+  const [accountError, setAccountError] = useState<string | null>(null)
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const cloud = isCloudBackend()
 
   const goalTargets = computeTargets(profile)
   const currentProfileIssue = profileInputIssue(profile) ?? goalWeightIssue(profile)
@@ -76,8 +86,10 @@ export function SettingsPage() {
       setProfileError(currentProfileIssue)
       return
     }
+    const enablingPause = !state.profile.trackingPaused && Boolean(profile.trackingPaused)
     updateProfile(profile)
     updateAISettings({ provider, apiKey, model, customInstructions: instructions || undefined })
+    if (enablingPause) track({ name: 'pause_tracking_enabled' })
     setProfileError(null)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -114,6 +126,63 @@ export function SettingsPage() {
     reader.readAsText(file)
   }
 
+  async function handleSignOutEverywhere() {
+    if (!user || accountAction) return
+    setAccountAction('logout-all')
+    setAccountError(null)
+    try {
+      if (cloud) {
+        const token = loadAuthToken()
+        if (!token) throw new Error('Your session has expired. Sign in again to revoke other sessions.')
+        await apiLogoutAll(token)
+      }
+      signOut()
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : 'Could not sign out other sessions.')
+    } finally {
+      setAccountAction(null)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!user || accountAction || deleteConfirmation !== 'DELETE') return
+    setAccountAction('delete')
+    setAccountError(null)
+    try {
+      if (cloud) {
+        const token = loadAuthToken()
+        if (!token) throw new Error('Your session has expired. Sign in again before deleting the account.')
+        await apiDeleteAccount(token)
+      } else {
+        deleteLocalAccount(user.email)
+      }
+
+      // Emit completion only after the authoritative account deletion succeeds.
+      // The current sink is local and is removed immediately below.
+      track({ name: 'account_deletion_completed' })
+
+      let localCleanupFailed = false
+      try { await clearDurableUser(user.sub) } catch { localCleanupFailed = true }
+      for (const cleanup of [
+        () => clearUserState(user.sub),
+        () => clearOnboardingDraft(user.sub),
+        clearNotificationHistory,
+        clearAnalytics,
+      ]) {
+        try { cleanup() } catch { localCleanupFailed = true }
+      }
+
+      if (localCleanupFailed) {
+        alert('Your account was deleted, but this browser could not confirm removal of every device copy. Clear site data for fud-ai.app before sharing this device.')
+      }
+      signOut()
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : 'Account deletion was not confirmed. Nothing was reported as deleted.')
+    } finally {
+      setAccountAction(null)
+    }
+  }
+
   return (
     <div className="app-shell">
       <main className="app-main">
@@ -126,6 +195,7 @@ export function SettingsPage() {
         {/* Account */}
         <SectionLabel>Account</SectionLabel>
         <SettingsCard>
+          {accountError && <div className="error-banner" role="alert">{accountError}</div>}
           {user && (
             <div className="settings-account-row">
               {user.picture ? (
@@ -142,10 +212,70 @@ export function SettingsPage() {
               </div>
             </div>
           )}
-          <button type="button" className="settings-signout-btn" onClick={signOut}>
+          <button type="button" className="settings-signout-btn" onClick={signOut} disabled={Boolean(accountAction)}>
             Sign out
           </button>
+          {cloud && (
+            <>
+              <div className="settings-divider" />
+              <button
+                type="button"
+                className="settings-data-btn"
+                onClick={() => void handleSignOutEverywhere()}
+                disabled={Boolean(accountAction)}
+              >
+                {accountAction === 'logout-all' ? 'Signing out…' : 'Sign out on all devices'}
+              </button>
+            </>
+          )}
+          <div className="settings-divider" />
+          <button
+            type="button"
+            className="settings-data-btn danger"
+            onClick={() => { setShowDeleteAccount(true); setAccountError(null) }}
+            disabled={Boolean(accountAction)}
+          >
+            Delete account
+          </button>
         </SettingsCard>
+
+        {showDeleteAccount && (
+          <div className="settings-card" role="region" aria-labelledby="delete-account-title">
+            <h2 id="delete-account-title" className="settings-row-label">Permanently delete account</h2>
+            <p className="settings-byok-note">
+              {cloud
+                ? 'This immediately deletes your account, current cloud snapshot, sessions, and sync history. Encrypted backups may retain an inaccessible copy until their scheduled expiry.'
+                : 'This deletes the local account and its saved data from this browser.'}
+            </p>
+            <label className="settings-field-block" htmlFor="delete-account-confirmation">
+              <span className="settings-row-label">Type DELETE to confirm</span>
+              <input
+                id="delete-account-confirmation"
+                className="settings-input"
+                value={deleteConfirmation}
+                onChange={event => setDeleteConfirmation(event.target.value)}
+                autoComplete="off"
+              />
+            </label>
+            <div className="settings-divider" />
+            <button
+              type="button"
+              className="settings-data-btn danger"
+              disabled={deleteConfirmation !== 'DELETE' || Boolean(accountAction)}
+              onClick={() => void handleDeleteAccount()}
+            >
+              {accountAction === 'delete' ? 'Deleting account…' : 'Delete account permanently'}
+            </button>
+            <button
+              type="button"
+              className="settings-data-btn"
+              disabled={Boolean(accountAction)}
+              onClick={() => { setShowDeleteAccount(false); setDeleteConfirmation('') }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         {/* Daily goals summary */}
         <SectionLabel>Daily goals</SectionLabel>
@@ -160,15 +290,15 @@ export function SettingsPage() {
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Protein</span>
-            <strong className="settings-goal-value" style={{ color: '#6B9FFF' }}>{effectiveProtein(profile)}g</strong>
+            <strong className="settings-goal-value" style={{ color: 'var(--protein)' }}>{effectiveProtein(profile)}g</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Carbs</span>
-            <strong className="settings-goal-value" style={{ color: '#FFB347' }}>{effectiveCarbs(profile)}g</strong>
+            <strong className="settings-goal-value" style={{ color: 'var(--carbs)' }}>{effectiveCarbs(profile)}g</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Fat</span>
-            <strong className="settings-goal-value" style={{ color: '#FF6B9D' }}>{effectiveFat(profile)}g</strong>
+            <strong className="settings-goal-value" style={{ color: 'var(--fat)' }}>{effectiveFat(profile)}g</strong>
           </div>
         </div>
 
@@ -348,15 +478,15 @@ export function SettingsPage() {
         <SettingsCard>
           <SettingsRow
             label="Pause tracking"
-            hint={profile.trackingPaused ? 'Numbers are hidden and your streak is held.' : 'Hide every number and hold your streak where it is.'}
+            hint={profile.trackingPaused
+              ? 'Calorie, macro, and weight numbers are hidden and your streak is held.'
+              : 'Hide calorie, macro, and weight numbers and hold your streak where it is.'}
           >
             <input
               type="checkbox"
               checked={Boolean(profile.trackingPaused)}
               onChange={e => {
-                const next = e.target.checked
-                setProfile(p => ({ ...p, trackingPaused: next }))
-                if (next) track({ name: 'pause_tracking_enabled' })
+                setProfile(p => ({ ...p, trackingPaused: e.target.checked }))
               }}
             />
           </SettingsRow>
@@ -393,7 +523,11 @@ export function SettingsPage() {
           <button
             type="button"
             className="settings-data-btn danger"
-            onClick={() => { if (confirm('Delete all local data? This cannot be undone.')) clearAllData() }}
+            onClick={async () => {
+              if (!confirm('Delete all saved data? This cannot be undone.')) return
+              const cleared = await clearAllData()
+              if (!cleared) alert('Your data was not deleted because the server could not confirm the request. Try again.')
+            }}
           >
             Delete all data
           </button>

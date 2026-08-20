@@ -32,6 +32,10 @@ export function notificationsSentToday(): number {
   return readLog().kinds.length
 }
 
+export function clearNotificationHistory(): void {
+  localStorage.removeItem(LOG_KEY)
+}
+
 function canSend(kind: NotifyKind): boolean {
   const log = readLog()
   if (log.kinds.length >= MAX_PER_DAY) return false
@@ -109,8 +113,11 @@ export async function evaluateNotifications(input: {
   freezeAvailable: number
   firstLogHours: number[]
   localHour: number
+  trackingPaused?: boolean
   freezeJustApplied?: { protectedStreak: number }
 }): Promise<void> {
+  if (input.trackingPaused) return
+
   if (input.freezeJustApplied) {
     await deliver('freeze', input.freezeJustApplied.protectedStreak)
   }

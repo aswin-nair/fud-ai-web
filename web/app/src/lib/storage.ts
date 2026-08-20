@@ -1,13 +1,30 @@
-import type { AppState, FoodEntry, GamificationState, ExerciseEntry } from '../types'
+import type { AppState, FoodEntry, GamificationState } from '../types'
 import { localDayKey } from './dates'
 import { defaultProfile, profileInputIssue } from './profile'
 import { defaultAISettings, normalizeAISettings } from './aiConfig'
+import { validateAppState } from '../../../shared/appStateContract'
+import { clearLogDraft } from './logDrafts'
 
 const LEGACY_KEY = 'fud-ai-web-state'
 const PRIVATE_AI_KEY_PREFIX = 'fud-ai-private-ai-key-'
 
 function storageKey(userId: string): string {
   return `fud-ai-web-state-${userId}`
+}
+
+export function hasStoredState(userId: string): boolean {
+  return localStorage.getItem(storageKey(userId)) !== null
+    || localStorage.getItem(LEGACY_KEY) !== null
+}
+
+export function hasQuarantinedState(userId: string): boolean {
+  return localStorage.getItem(`${storageKey(userId)}-quarantine`) !== null
+}
+
+/** Remove only the legacy snapshot after it has been committed durably. */
+export function removeStoredStateSnapshot(userId: string): void {
+  localStorage.removeItem(storageKey(userId))
+  localStorage.removeItem(LEGACY_KEY)
 }
 
 function privateAIKey(userId: string): string {
@@ -40,9 +57,10 @@ export function stateWithoutPrivateSecrets(state: AppState): AppState {
 }
 
 export function loadState(userId: string): AppState {
+  const key = storageKey(userId)
+  let raw: string | null = null
   try {
-    const key = storageKey(userId)
-    let raw = localStorage.getItem(key)
+    raw = localStorage.getItem(key)
 
     // Migrate anonymous data from before Google auth was added.
     if (!raw) {
@@ -57,6 +75,16 @@ export function loadState(userId: string): AppState {
     if (!raw) return freshState()
     const parsed = JSON.parse(raw) as AppState
     const normalized = normalizeState(parsed)
+    // Run migrations first so older, incomplete blobs remain recoverable, then
+    // refuse malformed nested members that would otherwise crash session-open
+    // logic (for example `foodEntries: [null]`).
+    const validation = validateAppState(normalized, new Date(), { allowLegacyGamification: true })
+    if (!validation.ok) {
+      // Keep one recoverable copy before the normal persistence effect replaces
+      // the unusable primary blob with a safe fresh state.
+      localStorage.setItem(`${key}-quarantine`, raw)
+      return freshState()
+    }
 
     // One-time migration from older state blobs that embedded the key.
     const localKey = loadPrivateAIKey(userId)
@@ -68,6 +96,9 @@ export function loadState(userId: string): AppState {
       aiSettings: { ...normalized.aiSettings, apiKey: localKey || legacyKey },
     }
   } catch {
+    if (raw) {
+      try { localStorage.setItem(`${key}-quarantine`, raw) } catch { /* storage may be unavailable */ }
+    }
     return freshState()
   }
 }
@@ -78,32 +109,100 @@ export function saveState(userId: string, state: AppState): void {
 }
 
 export function clearUserState(userId: string): void {
-  localStorage.removeItem(storageKey(userId))
+  const key = storageKey(userId)
+  localStorage.removeItem(key)
+  localStorage.removeItem(`${key}-quarantine`)
+  localStorage.removeItem(LEGACY_KEY)
+  localStorage.removeItem('fud-seen-badges')
   clearPrivateAIKey(userId)
+  clearLogDraft(userId)
+}
+
+function record(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function normalizeState(parsed: AppState): AppState {
-  return {
-    onboarded: parsed.onboarded ?? false,
-    profile: { ...defaultProfile(), ...parsed.profile },
-    foodEntries: parsed.foodEntries ?? [],
-    weightEntries: parsed.weightEntries ?? [],
-    exerciseEntries: normalizeExerciseEntries(parsed.exerciseEntries),
-    favoriteMeals: parsed.favoriteMeals ?? [],
-    chatMessages: parsed.chatMessages ?? [],
-    aiSettings: normalizeAISettings(parsed.aiSettings),
-    gamification: normalizeGamification(parsed.gamification),
+  if (!record(parsed)) return parsed
+
+  const source = parsed as unknown as Record<string, unknown>
+  const foodEntries = source.foodEntries === undefined ? [] : source.foodEntries
+  const gamification = normalizeGamification(source.gamification)
+
+  if (record(gamification) && Array.isArray(gamification.awardedKeys)) {
+    gamification.awardedKeys = [...new Set([
+      ...gamification.awardedKeys,
+      ...historicalAwardKeys(foodEntries),
+    ])]
   }
+
+  const profile = source.profile === undefined
+    ? defaultProfile()
+    : record(source.profile)
+      ? { ...defaultProfile(), ...source.profile }
+      : source.profile
+
+  // Preserve explicit malformed values and unknown fields so the validator can
+  // quarantine them. Only fields absent from an older state receive defaults.
+  return {
+    ...source,
+    onboarded: source.onboarded === undefined ? false : source.onboarded,
+    profile,
+    foodEntries,
+    weightEntries: source.weightEntries === undefined ? [] : source.weightEntries,
+    exerciseEntries: source.exerciseEntries === undefined ? [] : source.exerciseEntries,
+    favoriteMeals: source.favoriteMeals === undefined ? [] : source.favoriteMeals,
+    chatMessages: source.chatMessages === undefined ? [] : source.chatMessages,
+    aiSettings: normalizeAIForValidation(source.aiSettings),
+    gamification,
+  } as unknown as AppState
 }
 
-function normalizeExerciseEntries(raw: unknown): ExerciseEntry[] {
-  if (!Array.isArray(raw)) return []
-  return raw as ExerciseEntry[]
+/**
+ * Older releases used the 50-row display feed as their deduplication store.
+ * Conservatively reconstruct keys from accepted entries during migration so
+ * undo/replay cannot manufacture XP after an old feed row has rolled off.
+ */
+function historicalAwardKeys(entries: unknown): string[] {
+  if (!Array.isArray(entries)) return []
+  const keys: string[] = []
+  const counts = new Map<string, number>()
+
+  for (const entry of entries) {
+    if (!record(entry) || typeof entry.id !== 'string' || typeof entry.timestamp !== 'string') continue
+    const timestamp = new Date(entry.timestamp)
+    if (!Number.isFinite(timestamp.getTime())) continue
+    keys.push(`meal-${entry.id}`, `new-food-${entry.id}`)
+    const date = localDayKey(timestamp)
+    counts.set(date, (counts.get(date) ?? 0) + 1)
+  }
+
+  for (const [date, count] of counts) {
+    keys.push(`first-meal-${date}`)
+    if (count >= 3) keys.push(`three-meals-${date}`)
+    if (count >= 4) keys.push(`four-meals-${date}`)
+  }
+
+  return keys
 }
 
-function normalizeGamification(g: GamificationState | undefined): GamificationState {
+function normalizeAIForValidation(value: unknown): AppState['aiSettings'] {
+  if (value === undefined) return defaultAISettings()
+  if (!record(value)) return value as AppState['aiSettings']
+
+  const migrated = normalizeAISettings(value as Partial<AppState['aiSettings']>)
+  return {
+    ...migrated,
+    ...value,
+    provider: value.provider === undefined ? migrated.provider : value.provider,
+    apiKey: value.apiKey === undefined ? migrated.apiKey : value.apiKey,
+    model: value.model === undefined ? migrated.model : value.model,
+  } as AppState['aiSettings']
+}
+
+function normalizeGamification(value: unknown): GamificationState {
   const base = defaultGamification()
-  if (!g) {
+  if (value === undefined) {
     // Migrate old seen-badge IDs from localStorage
     try {
       const old = localStorage.getItem('fud-seen-badges')
@@ -111,25 +210,39 @@ function normalizeGamification(g: GamificationState | undefined): GamificationSt
     } catch { /* ignore */ }
     return base
   }
+
+  if (!record(value)) return value as GamificationState
+  const g = value
+  const xpEvents = g.xpEvents === undefined ? [] : g.xpEvents
+  const rawAwardedKeys = g.awardedKeys === undefined ? [] : g.awardedKeys
+  const awardedKeys = Array.isArray(rawAwardedKeys)
+    ? [...new Set([
+        ...rawAwardedKeys,
+        ...(Array.isArray(xpEvents)
+          ? xpEvents.flatMap(event => record(event) && typeof event.key === 'string' ? [event.key] : [])
+          : []),
+      ])]
+    : rawAwardedKeys
+
   return {
-    xp: g.xp ?? 0,
-    level: g.level ?? 1,
-    streakFreezes: g.streakFreezes ?? 1,
-    freezeUsedDates: g.freezeUsedDates ?? [],
-    freezeEarnedMonth: g.freezeEarnedMonth ?? '',
-    xpEvents: g.xpEvents ?? [],
-    awardedKeys: [...new Set([
-      ...(g.awardedKeys ?? []),
-      ...(g.xpEvents ?? []).map(event => event.key),
-    ])],
-    pendingLevelUp: g.pendingLevelUp ?? null,
-    seenBadgeIds: g.seenBadgeIds ?? base.seenBadgeIds,
+    ...g,
+    xp: g.xp === undefined ? 0 : g.xp,
+    level: g.level === undefined ? 1 : g.level,
+    streakFreezes: g.streakFreezes === undefined ? 1 : g.streakFreezes,
+    freezeUsedDates: g.freezeUsedDates === undefined ? [] : g.freezeUsedDates,
+    freezeEarnedMonth: g.freezeEarnedMonth === undefined ? '' : g.freezeEarnedMonth,
+    pauseStartedDate: g.pauseStartedDate === undefined ? null : g.pauseStartedDate,
+    pauseProtectedDates: g.pauseProtectedDates === undefined ? [] : g.pauseProtectedDates,
+    xpEvents,
+    awardedKeys,
+    pendingLevelUp: g.pendingLevelUp === undefined ? null : g.pendingLevelUp,
+    seenBadgeIds: g.seenBadgeIds === undefined ? base.seenBadgeIds : g.seenBadgeIds,
     // Nutrition-outcome quests were removed from the healthy-engagement
     // policy. A legacy same-day quest is regenerated on the next session.
-    quest: (g.quest as { type?: string } | undefined)?.type === 'hit_protein'
+    quest: record(g.quest) && g.quest.type === 'hit_protein'
       ? undefined
       : g.quest,
-  }
+  } as unknown as GamificationState
 }
 
 export function defaultGamification(): GamificationState {
@@ -138,7 +251,9 @@ export function defaultGamification(): GamificationState {
     level: 1,
     streakFreezes: 1,
     freezeUsedDates: [],
-    freezeEarnedMonth: new Date().toISOString().slice(0, 7),
+    freezeEarnedMonth: localDayKey(new Date()).slice(0, 7),
+    pauseStartedDate: null,
+    pauseProtectedDates: [],
     xpEvents: [],
     awardedKeys: [],
     pendingLevelUp: null,
@@ -165,7 +280,10 @@ export function exportData(state: AppState): string {
 }
 
 export function importData(json: string, localApiKey = ''): AppState {
-  const parsed = JSON.parse(json) as AppState
+  const raw = JSON.parse(json) as unknown
+  const validation = validateAppState(raw, new Date(), { allowLegacyGamification: true })
+  if (!validation.ok) throw new Error(validation.error)
+  const parsed = raw as AppState
   const normalized = normalizeState(parsed)
   const profileIssue = profileInputIssue(normalized.profile)
   if (profileIssue) throw new Error(profileIssue)

@@ -92,6 +92,19 @@ describe('streak basics', () => {
     expect(getStreakWithFreezes(entries, [localDayKey(missed)])).toBe(5)
   })
 
+  it('bridges pause days without adding them to the streak count', () => {
+    const entries = [0, 2, 4, 5].map(entryDaysAgo)
+    const protectedDays = [1, 2, 3].map(daysAgo => {
+      const date = new Date()
+      date.setDate(date.getDate() - daysAgo)
+      return localDayKey(date)
+    })
+
+    // The entry two days ago happened on a protected day and is deliberately
+    // neutral. Today plus the two pre-pause days remain a three-day streak.
+    expect(getStreakWithFreezes(entries, [], protectedDays)).toBe(3)
+  })
+
   it('ignores duplicate logs on one day', () => {
     const noon = entryDaysAgo(0)
     const evening = new Date()

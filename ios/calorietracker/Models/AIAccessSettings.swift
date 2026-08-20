@@ -1,10 +1,15 @@
 import Foundation
 
-enum AIAccessMode: String, CaseIterable, Codable, Identifiable {
+enum AIAccessMode: String, Codable, Identifiable {
     case bringYourOwnKey = "Bring Your Own Key"
+    // Retained only so previously persisted settings decode safely. Managed AI
+    // is not selectable or usable until entitlement verification is enforced
+    // server-side for every request.
     case fudAIPremium = "Fud AI Premium"
 
     var id: String { rawValue }
+
+    static var allCases: [AIAccessMode] { [.bringYourOwnKey] }
 
     var displayName: String {
         switch self {
@@ -58,6 +63,12 @@ struct AIAccessSettings {
     static let premiumCoachDailyRequestLimit = 25
     static let premiumGlobalDailyRequestLimit = 70
     static let defaultProxyEndpoint = "https://fud-ai.app/api/gemini"
+    static let managedAIUnavailableMessage = "Fud AI managed AI is unavailable while secure subscription verification is being completed. Use Bring Your Own Key in Settings."
+
+    /// This is deliberately source-controlled rather than environment-driven.
+    /// Re-enabling managed AI requires a new server-authenticated entitlement
+    /// design, not a local flag or cached App Store result.
+    static var managedAIAvailable: Bool { false }
 
     private static let modeKey = "aiAccessMode"
     private static let premiumEntitlementCacheKey = "fudAIPremiumEntitlementCached"
@@ -66,27 +77,28 @@ struct AIAccessSettings {
 
     static var mode: AIAccessMode {
         get {
-            guard let raw = UserDefaults.standard.string(forKey: modeKey),
-                  let mode = AIAccessMode(rawValue: raw) else {
-                return .bringYourOwnKey
+            if UserDefaults.standard.string(forKey: modeKey) != AIAccessMode.bringYourOwnKey.rawValue {
+                UserDefaults.standard.set(AIAccessMode.bringYourOwnKey.rawValue, forKey: modeKey)
             }
-            return mode
+            return .bringYourOwnKey
         }
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: modeKey)
+            // Fail closed even if legacy or future UI tries to write Premium.
+            UserDefaults.standard.set(AIAccessMode.bringYourOwnKey.rawValue, forKey: modeKey)
         }
     }
 
     static var isUsingFudAIPremium: Bool {
-        mode == .fudAIPremium
+        false
     }
 
     static var hasActivePremiumEntitlement: Bool {
-        UserDefaults.standard.bool(forKey: premiumEntitlementCacheKey)
+        false
     }
 
     static func setActivePremiumEntitlement(_ active: Bool) {
-        UserDefaults.standard.set(active, forKey: premiumEntitlementCacheKey)
+        // A client-cached entitlement cannot authorize a server-funded request.
+        UserDefaults.standard.removeObject(forKey: premiumEntitlementCacheKey)
     }
 
     static var installID: String {

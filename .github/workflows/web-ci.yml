@@ -45,7 +45,7 @@ jobs:
           CI: true
 
       - name: Typecheck and build
-        run: npm run build
+        run: npm run build:local
         env:
           VITE_GOOGLE_CLIENT_ID: ''
 
@@ -86,7 +86,7 @@ jobs:
           retention-days: 7
 
   web-api:
-    name: Web API typecheck
+    name: Web API test and typecheck
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -103,8 +103,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test API boundaries
+        run: npm run test:api
+        env:
+          CI: true
+
       - name: Typecheck API
-        run: npx tsc -p api/tsconfig.json --noEmit
+        run: npm run typecheck:api
 
   mobile-unit:
     name: Mobile typecheck, unit, and migrations
