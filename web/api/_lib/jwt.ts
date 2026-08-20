@@ -1,6 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { isCanonicalUuid } from './identifiers.js'
 
+export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60
+
 export interface SessionUser {
   sub: string
   email: string
@@ -37,15 +39,16 @@ export async function signSession(
   if (!isCanonicalUuid(user.sub)) throw new Error('User ID must be a canonical UUID')
   if (!isCanonicalUuid(sessionId)) throw new Error('Session ID must be a canonical UUID')
   // Keep identity/profile PII out of the bearer token. The signed token needs
-  // only the account subject and its revocable database-session ID.
-  return new SignJWT({})
+  // only the account subject, its revocable database-session ID, and a short
+  // access lifetime. Legacy 30-day tokens lack `use: access` and are rejected.
+  return new SignJWT({ use: 'access' })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuer('fud-ai-api')
     .setAudience('fud-ai-web')
     .setSubject(user.sub)
     .setJti(sessionId)
     .setIssuedAt()
-    .setExpirationTime(expiresAt ? Math.floor(expiresAt.getTime() / 1000) : '30d')
+    .setExpirationTime(expiresAt ? Math.floor(expiresAt.getTime() / 1000) : '15m')
     .sign(secretKey())
 }
 
@@ -61,6 +64,7 @@ export async function verifySession(token: string): Promise<SessionClaims> {
     })
     if (
       !payload.sub
+      || payload.use !== 'access'
       || !isCanonicalUuid(payload.sub)
       || !isCanonicalUuid(payload.jti)
     ) {

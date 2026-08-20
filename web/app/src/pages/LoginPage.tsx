@@ -3,6 +3,8 @@ import logo from '@assets/calorie logo transparent.png'
 import { GoogleLogin } from '@react-oauth/google'
 import { isGoogleAuthConfigured } from '../lib/auth'
 import { GoogleOriginHelp } from '../components/GoogleOriginHelp'
+import { Link } from 'react-router-dom'
+import { isCloudBackend } from '../lib/dataBackend'
 import { useAuth } from '../store/AuthContext'
 import { track } from '../lib/analytics'
 
@@ -140,6 +142,11 @@ export function LoginPage() {
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
             {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
           </button>
+          {mode === 'signin' && isCloudBackend() && (
+            <p className="login-hint">
+              <Link to="/forgot-password">Forgot password?</Link>
+            </p>
+          )}
         </form>
 
         {googleConfigured && (

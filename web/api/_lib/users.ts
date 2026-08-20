@@ -105,6 +105,32 @@ export async function registerEmailUser(
   return toSession(user)
 }
 
+export async function changeEmailPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<SessionUser> {
+  const user = await findUserById(userId)
+  if (!user || user.provider !== 'email' || !user.password_hash || !user.password_salt) {
+    verifyPassword(currentPassword, DUMMY_CREDENTIAL.hash, DUMMY_CREDENTIAL.salt)
+    throw new InvalidCredentialsError()
+  }
+  if (!verifyPassword(currentPassword, user.password_hash, user.password_salt)) {
+    throw new InvalidCredentialsError()
+  }
+  const credential = hashPassword(newPassword)
+  const sql = getDb()
+  const rows = asRows<DbUser>(await sql`
+    UPDATE users
+    SET password_hash = ${credential.hash}, password_salt = ${credential.salt}
+    WHERE id = ${userId}::uuid AND provider = 'email'
+    RETURNING *
+  `)
+  const next = rows[0]
+  if (!next) throw new InvalidCredentialsError()
+  return toSession(next)
+}
+
 export async function loginEmailUser(email: string, password: string): Promise<SessionUser> {
   const user = await findUserByEmail(email)
   if (!user || user.provider !== 'email' || !user.password_hash || !user.password_salt) {

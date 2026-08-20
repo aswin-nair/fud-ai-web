@@ -69,6 +69,9 @@ git push -u origin main
 | `GOOGLE_CLIENT_ID` | Same as above (for API token verification) |
 | `VITE_DATA_BACKEND` | `neon` (the Vercel build command already forces Neon; do not leave this blank for ad-hoc builds) |
 | `RELEASE_ID` | Optional. Vercel also provides `VERCEL_GIT_COMMIT_SHA`. |
+| `APP_ORIGIN` | Fixed HTTPS origin used in password-reset links. Never taken from the request Host header. |
+| `MAIL_FROM` | Verified Resend from-address. Leave unset to keep recovery silent. |
+| `RESEND_API_KEY` | Resend API key. Leave unset to keep recovery silent. |
 
 7. Click **Deploy**
 

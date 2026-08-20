@@ -25,5 +25,6 @@ unassigned with every gate pending.
 
 - A hosted staging deploy against a real Neon database.
 - Google sign-in and BYOK against the live header policy on that host.
-- Browser session cookies and password recovery (Phase 3).
+- Hosted cookie, replay, and recovery-mail checks. Repo-side Phase 3 is in
+  `phase-3-auth-recovery.md`.
 - Any evidence gate in `docs/release/evidence.json`.

@@ -33,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (passErr) return badRequest(res, passErr)
 
     const user = await registerEmailUser(name, email, password)
-    const session = await issueSession(user)
+    const session = await issueSession(user, req, res)
     json(res, 201, session)
   } catch (err) {
     if (err instanceof DuplicateAccountError) {

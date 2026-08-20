@@ -26,7 +26,7 @@ import { clearAnalytics, track } from '../lib/analytics'
 import { clearNotificationHistory, requestNotifyPermission } from '../lib/notifications'
 import { userInitials } from '../lib/auth'
 import { IconArrowUpRight, IconCheck, IconChevronRight } from '../components/icons'
-import { apiDeleteAccount, apiLogoutAll, loadAuthToken } from '../lib/apiClient'
+import { apiChangePassword, apiDeleteAccount, apiLogoutAll, loadAuthToken, saveAuthToken } from '../lib/apiClient'
 import { isCloudBackend } from '../lib/dataBackend'
 import { deleteLocalAccount } from '../lib/localAuth'
 import { clearDurableUser } from '../lib/durableState'
@@ -69,6 +69,9 @@ export function SettingsPage() {
   const [accountError, setAccountError] = useState<string | null>(null)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordBusy, setPasswordBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const cloud = isCloudBackend()
 
@@ -124,6 +127,23 @@ export function SettingsPage() {
       }
     }
     reader.readAsText(file)
+  }
+
+  async function handleChangePassword() {
+    if (!cloud || user?.provider !== 'email' || passwordBusy) return
+    setAccountError(null)
+    setPasswordBusy(true)
+    try {
+      const next = await apiChangePassword(currentPassword, newPassword)
+      saveAuthToken(next.token)
+      setCurrentPassword('')
+      setNewPassword('')
+      setSaved(true)
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : 'Could not update the password.')
+    } finally {
+      setPasswordBusy(false)
+    }
   }
 
   async function handleSignOutEverywhere() {
@@ -215,6 +235,40 @@ export function SettingsPage() {
           <button type="button" className="settings-signout-btn" onClick={signOut} disabled={Boolean(accountAction)}>
             Sign out
           </button>
+          {cloud && user?.provider === 'email' && (
+            <>
+              <div className="settings-divider" />
+              <div className="field">
+                <label htmlFor="current-password">Current password</label>
+                <input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="settings-new-password">New password</label>
+                <input
+                  id="settings-new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+              </div>
+              <button
+                type="button"
+                className="settings-data-btn"
+                onClick={() => void handleChangePassword()}
+                disabled={passwordBusy || !currentPassword || newPassword.length < 8}
+              >
+                {passwordBusy ? 'Updating…' : 'Update password'}
+              </button>
+            </>
+          )}
           {cloud && (
             <>
               <div className="settings-divider" />

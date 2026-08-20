@@ -6,6 +6,8 @@ import { AuthProvider, useAuth } from './store/AuthContext'
 import { AppProvider, useApp } from './store/AppContext'
 import { ToastProvider } from './components/Toast'
 import { LoginPage } from './pages/LoginPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { HomePage } from './pages/HomePage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { LogMenuPage } from './pages/LogMenuPage'
@@ -72,12 +74,25 @@ function AuthenticatedRoutes() {
 }
 
 function AppGate() {
-  const { user } = useAuth()
+  const { user, sessionReady } = useAuth()
+
+  if (!sessionReady) {
+    return (
+      <div className="login-page">
+        <div className="login-card">
+          <h1 className="login-title">Fud AI</h1>
+          <p className="login-sub">Checking your session…</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!user) {
     return (
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<LoginPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

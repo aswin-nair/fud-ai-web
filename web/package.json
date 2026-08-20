@@ -6,6 +6,7 @@
     "dev:all": "npx vercel dev --yes",
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:security": "node scripts/migrate.mjs security",
+    "db:migrate:refresh": "node scripts/migrate.mjs refresh",
     "db:audit-byok": "node scripts/audit-byok.mjs",
     "db:retention-cleanup": "node scripts/retention-cleanup.mjs",
     "test:api": "vitest run --config test/api/vitest.config.ts",

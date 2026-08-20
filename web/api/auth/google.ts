@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       name: payload.name ?? payload.email,
       picture: payload.picture,
     })
-    const session = await issueSession(user)
+    const session = await issueSession(user, req, res)
     json(res, 200, session)
   } catch (err) {
     if (err instanceof RateLimitExceeded) {

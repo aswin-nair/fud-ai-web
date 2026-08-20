@@ -1564,6 +1564,11 @@ a:hover { text-decoration: underline; }
   font-family: var(--mono);
 }
 
+.login-hint a,
+.login-foot a {
+  color: var(--ink-soft);
+}
+
 .account-card {
   display: flex;
   align-items: center;

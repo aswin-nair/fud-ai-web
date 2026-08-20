@@ -1,6 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { apiDeleteAccount, apiLoadState, apiLogout, apiLogoutAll, apiSaveState } from './apiClient'
+import {
+  accessTokenForAccount,
+  apiDeleteAccount,
+  apiLoadState,
+  apiLogout,
+  apiLogoutAll,
+  apiSaveState,
+  clearAuthToken,
+  clearLegacyAuthToken,
+  saveAuthToken,
+} from './apiClient'
 import { freshState } from './storage'
 
 function memoryStorage(): Storage {
@@ -26,6 +36,7 @@ describe('session-bound state requests', () => {
     const storage = memoryStorage()
     storage.setItem('fud-ai-auth-token', 'replacement-account-token')
     vi.stubGlobal('localStorage', storage)
+    saveAuthToken('replacement-account-token')
 
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer captured-account-token')
@@ -76,6 +87,77 @@ describe('session-bound state requests', () => {
       status: 0,
       message: expect.stringMatching(/retry automatically/i),
     })
+  })
+})
+
+function unsignedToken(sub: string, iat = 1): string {
+  const payload = Buffer.from(JSON.stringify({ sub, iat })).toString('base64url')
+  return `hdr.${payload}.sig`
+}
+
+describe('in-memory access tokens', () => {
+  it('clears a legacy 30-day bearer from ordinary browser storage', () => {
+    const storage = memoryStorage()
+    storage.setItem('fud-ai-auth-token', 'legacy-30-day-token')
+    vi.stubGlobal('localStorage', storage)
+    saveAuthToken('short-lived-access')
+    expect(localStorage.getItem('fud-ai-auth-token')).toBeNull()
+    clearLegacyAuthToken()
+    expect(localStorage.getItem('fud-ai-auth-token')).toBeNull()
+  })
+
+  it('adopts a refreshed token only when it still belongs to the same account', () => {
+    const alice = '00000000-0000-4000-8000-000000000001'
+    const bob = '00000000-0000-4000-8000-000000000002'
+    const captured = unsignedToken(alice)
+    const refreshed = unsignedToken(alice)
+    saveAuthToken(refreshed)
+    expect(accessTokenForAccount(alice, captured)).toBe(refreshed)
+    saveAuthToken(unsignedToken(bob))
+    expect(accessTokenForAccount(alice, captured)).toBe(captured)
+    clearAuthToken()
+    expect(accessTokenForAccount(alice, captured)).toBe(captured)
+  })
+
+  it('sends cookies and refreshes a captured token only for the same account', async () => {
+    vi.stubEnv('VITE_DATA_BACKEND', 'neon')
+    vi.stubGlobal('localStorage', memoryStorage())
+    const alice = unsignedToken('00000000-0000-4000-8000-000000000001', 1)
+    const aliceNext = unsignedToken('00000000-0000-4000-8000-000000000001', 2)
+    const bob = unsignedToken('00000000-0000-4000-8000-000000000002', 3)
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      expect(init?.credentials).toBe('include')
+      if (String(url).includes('/api/auth/refresh')) {
+        return new Response(JSON.stringify({ token: aliceNext, user: { sub: '00000000-0000-4000-8000-000000000001' } }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      const token = new Headers(init?.headers).get('Authorization')
+      if (token === `Bearer ${alice}`) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+      }
+      return new Response(JSON.stringify({ state: null, version: 0 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(apiLoadState(alice)).resolves.toEqual({ state: null, version: 0 })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+
+    fetchMock.mockClear()
+    saveAuthToken(bob)
+    fetchMock.mockImplementation(async (url: string) => {
+      if (String(url).includes('/api/auth/refresh')) {
+        return new Response(JSON.stringify({ token: bob }), { status: 200 })
+      }
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    })
+    await expect(apiLoadState(alice)).rejects.toMatchObject({ status: 401 })
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/state'))).toBe(true)
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/api/state'))).toHaveLength(1)
   })
 })
 

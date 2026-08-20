@@ -1,10 +1,21 @@
-import type { AuthUser } from './auth'
+import { authTokenSubject, type AuthUser } from './auth'
 import type { AppState } from '../types'
 import { apiBaseUrl, isCloudBackend } from './dataBackend'
 import { stateWithoutPrivateSecrets } from './storage'
 
-const TOKEN_KEY = 'fud-ai-auth-token'
+const LEGACY_TOKEN_KEY = 'fud-ai-auth-token'
 const API_TIMEOUT_MS = 12_000
+const NO_REFRESH_PATHS = new Set([
+  '/api/auth/refresh',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/google',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+])
+
+let accessToken: string | null = null
+let refreshInFlight: Promise<boolean> | null = null
 
 export class ApiError extends Error {
   status: number
@@ -17,21 +28,59 @@ export class ApiError extends Error {
 }
 
 export function saveAuthToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token)
+  accessToken = token
+  clearLegacyAuthToken()
 }
 
 export function loadAuthToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
+  return accessToken
 }
 
 export function clearAuthToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
+  accessToken = null
+  clearLegacyAuthToken()
+}
+
+export function clearLegacyAuthToken(): void {
+  try {
+    localStorage.removeItem(LEGACY_TOKEN_KEY)
+  } catch {
+    // Private mode or a blocked storage write must not keep a 30-day bearer.
+  }
+}
+
+/** Prefer a refreshed in-memory token only when it still belongs to this account. */
+export function accessTokenForAccount(userId: string, captured?: string | null): string | null {
+  const live = loadAuthToken()
+  if (live && authTokenSubject(live) === userId) return live
+  if (captured && authTokenSubject(captured) === userId) return captured
+  return null
+}
+
+async function tryRefreshAccessToken(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight
+  refreshInFlight = (async () => {
+    try {
+      const result = await apiFetch<{ token?: string }>('/api/auth/refresh', { method: 'POST' })
+      if (typeof result.token !== 'string' || !result.token) return false
+      saveAuthToken(result.token)
+      return true
+    } catch {
+      return false
+    }
+  })()
+  try {
+    return await refreshInFlight
+  } finally {
+    refreshInFlight = null
+  }
 }
 
 async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
   sessionToken?: string,
+  allowRefresh = true,
 ): Promise<T> {
   const base = apiBaseUrl()
   const url = `${base}${path}`
@@ -49,12 +98,10 @@ async function apiFetch<T>(
   let res: Response
   let data: ({ error?: string } & T)
   try {
-    res = await fetch(url, { ...init, headers, signal: controller.signal })
+    res = await fetch(url, { ...init, headers, credentials: 'include', signal: controller.signal })
     try {
       data = await res.json() as { error?: string } & T
     } catch (error) {
-      // Invalid or empty JSON is tolerated so the status-based fallback below
-      // remains useful, but an aborted body read must still report a timeout.
       if (controller.signal.aborted) throw error
       data = {} as { error?: string } & T
     }
@@ -65,6 +112,24 @@ async function apiFetch<T>(
     throw new ApiError('Could not reach the server. Your saved changes will retry automatically.', 0)
   } finally {
     globalThis.clearTimeout(timeout)
+  }
+
+  if (
+    res.status === 401
+    && allowRefresh
+    && !NO_REFRESH_PATHS.has(path)
+    && await tryRefreshAccessToken()
+  ) {
+    const next = loadAuthToken()
+    const sameAccount = Boolean(
+      token
+      && next
+      && authTokenSubject(token)
+      && authTokenSubject(token) === authTokenSubject(next),
+    )
+    if (next && (sessionToken === undefined || sameAccount)) {
+      return apiFetch<T>(path, init, sessionToken === undefined ? undefined : next, false)
+    }
   }
 
   if (!res.ok) {
@@ -91,6 +156,41 @@ export async function apiGoogleAuth(credential: string) {
   return apiFetch<{ token: string; user: AuthUser }>('/api/auth/google', {
     method: 'POST',
     body: JSON.stringify({ credential }),
+  })
+}
+
+export async function apiRefreshSession(): Promise<{ token: string; user: AuthUser } | null> {
+  try {
+    const result = await apiFetch<{ token: string; user: AuthUser }>('/api/auth/refresh', {
+      method: 'POST',
+    })
+    if (typeof result.token !== 'string' || !result.user?.sub) return null
+    saveAuthToken(result.token)
+    return result
+  } catch {
+    clearAuthToken()
+    return null
+  }
+}
+
+export async function apiForgotPassword(email: string): Promise<void> {
+  await apiFetch<{ ok: true }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function apiResetPassword(token: string, password: string): Promise<void> {
+  await apiFetch<{ ok: true }>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}
+
+export async function apiChangePassword(currentPassword: string, newPassword: string) {
+  return apiFetch<{ token: string; user: AuthUser }>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
   })
 }
 

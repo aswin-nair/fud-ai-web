@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { authenticateRequest } from '../_lib/authenticate.js'
+import { clearRefreshCookie } from '../_lib/cookies.js'
 import { isDbConfigured } from '../_lib/db.js'
 import { json, methodNotAllowed, serverError, unauthorized } from '../_lib/http.js'
 import { InvalidSessionError } from '../_lib/jwt.js'
@@ -18,8 +19,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const session = await authenticateRequest(req)
     await enforceAccountUserRateLimit(session.sub, 'logout')
     await revokeSession(session.sub, session.sessionId)
+    clearRefreshCookie(res, req)
     return json(res, 200, { ok: true })
   } catch (err) {
+    clearRefreshCookie(res, req)
     if (err instanceof InvalidSessionError) return unauthorized(res)
     if (err instanceof RateLimitExceeded) {
       res.setHeader('Retry-After', String(err.retryAfterSeconds))

@@ -5,20 +5,29 @@ deployments can apply only the additive migration with:
 
 ```powershell
 npm.cmd run db:migrate:security
+npm.cmd run db:migrate:refresh
 npm.cmd run db:audit-byok
 ```
 
-Deploy the migration before the API release. Existing bearer tokens do not
-contain a database-backed session ID and will intentionally require sign-in
-again. Retain the audit's two aggregate counts as release evidence. Both must
-be zero; the command exits `1` if any `apiKey` path remains and never prints
+Deploy the migration before the API release. Existing 30-day browser bearers
+and sessions without a refresh hash cannot be reused. Users sign in again.
+Retain the audit's two aggregate counts as release evidence. Both must be
+zero; the command exits `1` if any `apiKey` path remains and never prints
 state values, account data, or the database URL.
 
 ## Session and state guarantees
 
-- JWTs identify a database session. Expired or revoked sessions return `401`.
-- `POST /api/auth/logout` revokes the current session.
-- `POST /api/auth/logout-all` revokes every session for the authenticated user.
+- Access JWTs last 15 minutes, carry `use: access`, and identify a database
+  session. Tokens without that claim, including previous 30-day bearers,
+  return `401`.
+- A rotating refresh token is stored only as a SHA-256 hash. The browser
+  receives it in an HttpOnly, SameSite=Lax cookie (`fud_refresh`), never in
+  `localStorage`.
+- Replaying a replaced refresh token revokes the whole session family.
+- `POST /api/auth/refresh` issues a new access token and rotates the cookie.
+- `POST /api/auth/logout` revokes the current session and clears the cookie.
+- `POST /api/auth/logout-all` revokes every session and clears the cookie.
+- Password change and account deletion revoke every session.
 - `DELETE /api/account` requires `{ "confirmation": "DELETE" }` and deletes the
   user. Foreign-key cascades remove state, sessions, mutation history, and reset
   tokens in the same PostgreSQL transaction.
@@ -43,15 +52,14 @@ by email address alone. A same-address email/Google collision returns `409`.
 Account linking remains disabled until an explicit flow can prove control of
 both existing sign-in methods.
 
-## Password recovery dependency
+## Password recovery
 
-`_lib/passwordReset.ts` provides cryptographically random 256-bit reset tokens,
-SHA-256-at-rest token hashes, 30-minute expiry, one-time consumption, and session
-revocation after a successful reset. There is deliberately no public reset
-request endpoint yet: the project has no verified transactional-email provider.
+`POST /api/auth/forgot-password` always returns the same public response for
+known and unknown addresses. `POST /api/auth/reset-password` consumes a
+one-time SHA-256-hashed token (30-minute expiry) and revokes every session.
 
-Before exposing recovery, connect an email provider that verifies ownership,
-always returns the same public response for known and unknown addresses, uses a
-fixed HTTPS application origin (never the request `Host` header), and never logs
-the token. The raw token returned by the service primitive may only be handed to
-that provider; it must never be stored.
+Mail is sent only when `RESEND_API_KEY`, `MAIL_FROM`, and `APP_ORIGIN` are
+set. `APP_ORIGIN` must be a fixed HTTPS origin, or `http://localhost` for
+local work. The handler never uses the request `Host` header and never logs
+the token, the address, or the reset URL. Without those variables the
+endpoint still returns the generic success body and does not send mail.

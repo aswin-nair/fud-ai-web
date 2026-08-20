@@ -1,0 +1,90 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { request, response } from './helpers.js'
+
+const mocks = vi.hoisted(() => {
+  class RefreshReplayError extends Error {}
+  class RefreshNotFoundError extends Error {}
+  class RateLimitExceeded extends Error {
+    retryAfterSeconds = 60
+  }
+  return {
+    rotate: vi.fn(),
+    sign: vi.fn(),
+    rate: vi.fn(),
+    RefreshReplayError,
+    RefreshNotFoundError,
+    RateLimitExceeded,
+  }
+})
+
+vi.mock('../../api/_lib/sessions.js', () => ({
+  rotateRefreshToken: mocks.rotate,
+  RefreshReplayError: mocks.RefreshReplayError,
+  RefreshNotFoundError: mocks.RefreshNotFoundError,
+}))
+vi.mock('../../api/_lib/jwt.js', () => ({
+  signSession: mocks.sign,
+}))
+vi.mock('../../api/_lib/rateLimit.js', () => ({
+  enforceAuthRateLimit: mocks.rate,
+  RateLimitExceeded: mocks.RateLimitExceeded,
+}))
+
+import refreshHandler from '../../api/auth/refresh.js'
+
+const USER = {
+  sub: '00000000-0000-4000-8000-000000000001',
+  email: 'person@example.com',
+  name: 'Person',
+  provider: 'email' as const,
+}
+
+describe('refresh rotation', () => {
+  beforeEach(() => {
+    vi.stubEnv('DATABASE_URL', 'postgres://configured.example/test')
+    mocks.rate.mockResolvedValue(undefined)
+    mocks.sign.mockResolvedValue('short-lived-access')
+    mocks.rotate.mockResolvedValue({
+      id: '10000000-0000-4000-8000-000000000001',
+      familyId: '20000000-0000-4000-8000-000000000002',
+      expiresAt: new Date('2026-09-19T00:00:00.000Z'),
+      refreshToken: 'rotated-refresh',
+      user: USER,
+    })
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+    vi.unstubAllEnvs()
+  })
+
+  it('rotates the cookie and returns a short-lived access token', async () => {
+    const res = response()
+    await refreshHandler(request({
+      method: 'POST',
+      headers: { cookie: 'fud_refresh=current-refresh-token' },
+    }) as never, res as never)
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toEqual({ token: 'short-lived-access', user: USER })
+    expect(mocks.rotate).toHaveBeenCalledWith('current-refresh-token')
+    expect(res.headers.get('set-cookie')).toContain('fud_refresh=rotated-refresh')
+    expect(res.headers.get('set-cookie')).toContain('HttpOnly')
+    expect(res.headers.get('set-cookie')).toContain('SameSite=Lax')
+    expect(JSON.stringify(res.body)).not.toContain('rotated-refresh')
+  })
+
+  it('revokes the family after a replay and does not issue an access token', async () => {
+    mocks.rotate.mockRejectedValue(new mocks.RefreshReplayError())
+    const res = response()
+    await refreshHandler(request({
+      method: 'POST',
+      headers: { cookie: 'fud_refresh=replayed-refresh-token' },
+    }) as never, res as never)
+
+    expect(res.statusCode).toBe(401)
+    expect(res.body).toEqual({ error: 'Unauthorized' })
+    expect(mocks.sign).not.toHaveBeenCalled()
+    expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
+  })
+})

@@ -44,6 +44,15 @@ describe('database-backed sessions', () => {
     expect(sessions.active).toHaveBeenCalledWith(USER.sub, SESSION_ID)
   })
 
+  it('expires an access token after fifteen minutes', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'))
+    const token = await signSession(USER, SESSION_ID)
+    vi.setSystemTime(new Date('2026-01-01T00:16:00.000Z'))
+    await expect(verifySession(token)).rejects.toBeInstanceOf(InvalidSessionError)
+    expect(sessions.active).not.toHaveBeenCalled()
+  })
+
   it('rejects a validly signed but revoked session', async () => {
     sessions.active.mockResolvedValue(false)
     const token = await signSession(USER, SESSION_ID)
@@ -70,5 +79,21 @@ describe('database-backed sessions', () => {
     const replacement = signature[0] === 'a' ? 'b' : 'a'
     const tampered = `${header}.${payload}.${replacement}${signature.slice(1)}`
     await expect(verifySession(tampered)).rejects.toBeInstanceOf(InvalidSessionError)
+  })
+
+  it('rejects a legacy token that is not a short-lived access token', async () => {
+    const { SignJWT } = await import('jose')
+    const secret = new TextEncoder().encode('session-tests-secret-at-least-32-characters-long')
+    const legacy = await new SignJWT({})
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('fud-ai-api')
+      .setAudience('fud-ai-web')
+      .setSubject(USER.sub)
+      .setJti(SESSION_ID)
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .sign(secret)
+
+    await expect(verifySession(legacy)).rejects.toBeInstanceOf(InvalidSessionError)
   })
 })

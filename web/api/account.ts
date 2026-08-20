@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { deleteUserAccount } from './_lib/accounts.js'
 import { authenticateRequest } from './_lib/authenticate.js'
 import { CLOUD_WRITES_DISABLED_RESPONSE, cloudWritesEnabled } from './_lib/cloudControl.js'
+import { clearRefreshCookie } from './_lib/cookies.js'
 import { isDbConfigured } from './_lib/db.js'
 import {
   badRequest,
@@ -32,6 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return badRequest(res, 'Type DELETE to confirm account deletion')
     }
     await deleteUserAccount(session.sub)
+    clearRefreshCookie(res, req)
     return json(res, 200, { ok: true })
   } catch (err) {
     if (err instanceof InvalidSessionError) return unauthorized(res)

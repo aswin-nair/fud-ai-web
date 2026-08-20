@@ -1,4 +1,4 @@
-import type { VercelRequest } from '@vercel/node'
+import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   bearerToken,
   InvalidSessionError,
@@ -8,10 +8,16 @@ import {
   type SessionUser,
 } from './jwt.js'
 import { createSession, isSessionActive } from './sessions.js'
+import { setRefreshCookie } from './cookies.js'
 
-export async function issueSession(user: SessionUser): Promise<{ token: string; user: SessionUser }> {
+export async function issueSession(
+  user: SessionUser,
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<{ token: string; user: SessionUser }> {
   const session = await createSession(user.sub)
-  const token = await signSession(user, session.id, session.expiresAt)
+  const token = await signSession(user, session.id)
+  setRefreshCookie(res, session.refreshToken, session.expiresAt, req)
   return { token, user }
 }
 

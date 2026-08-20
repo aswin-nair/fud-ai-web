@@ -25,6 +25,9 @@ CREATE TABLE IF NOT EXISTS user_states (
 CREATE TABLE IF NOT EXISTS auth_sessions (
   id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  family_id UUID NOT NULL,
+  refresh_token_hash TEXT,
+  previous_refresh_token_hash TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at TIMESTAMPTZ NOT NULL,
   revoked_at TIMESTAMPTZ
@@ -67,8 +70,18 @@ SET state = state #- '{aiSettings,apiKey}'::text[],
 WHERE state #> '{aiSettings,apiKey}'::text[] IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+ALTER TABLE auth_sessions ADD COLUMN IF NOT EXISTS family_id UUID;
+UPDATE auth_sessions SET family_id = id WHERE family_id IS NULL;
+ALTER TABLE auth_sessions ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT;
+ALTER TABLE auth_sessions ADD COLUMN IF NOT EXISTS previous_refresh_token_hash TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_active
   ON auth_sessions (user_id, expires_at) WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_auth_sessions_family
+  ON auth_sessions (family_id) WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_auth_sessions_refresh_hash
+  ON auth_sessions (refresh_token_hash)
+  WHERE refresh_token_hash IS NOT NULL AND revoked_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_state_mutations_created_at ON state_mutations (created_at);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires ON password_reset_tokens (expires_at);

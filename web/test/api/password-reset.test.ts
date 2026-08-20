@@ -37,10 +37,11 @@ describe('password reset primitives', () => {
     expect(query).toContain('UPDATE auth_sessions')
   })
 
-  it('documents that public recovery is blocked on a verified email provider', () => {
+  it('documents that mail delivery stays fail-closed without a verified provider', () => {
     const notes = readFileSync(new URL('../../api/README.md', import.meta.url), 'utf8')
-    expect(notes).toMatch(/no public reset\s+request endpoint/)
-    expect(notes).toContain('transactional-email provider')
+    expect(notes).toContain('RESEND_API_KEY')
+    expect(notes).toContain('APP_ORIGIN')
     expect(notes).toMatch(/never logs\s+the token/)
+    expect(notes).toMatch(/same public response/)
   })
 })

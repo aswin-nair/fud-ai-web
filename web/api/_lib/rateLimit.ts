@@ -95,7 +95,7 @@ async function requireBucket(parts: readonly string[], policy: TokenBucketPolicy
 
 export async function enforceAuthRateLimit(
   req: VercelRequest,
-  endpoint: 'login' | 'register' | 'google',
+  endpoint: 'login' | 'register' | 'google' | 'forgot' | 'reset' | 'refresh',
   account?: string,
 ): Promise<void> {
   await requireBucket(['auth', endpoint, 'ip', clientIp(req)], AUTH_IP)

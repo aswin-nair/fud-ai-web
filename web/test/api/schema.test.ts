@@ -19,4 +19,10 @@ describe('account security schema', () => {
     expect(schema).toContain('pg_advisory_xact_lock')
     expect(schema).toContain("'mutation_conflict'::TEXT")
   })
+
+  it('records rotating refresh hashes on auth sessions', () => {
+    expect(schema).toContain('refresh_token_hash')
+    expect(schema).toContain('previous_refresh_token_hash')
+    expect(schema).toContain('family_id')
+  })
 })

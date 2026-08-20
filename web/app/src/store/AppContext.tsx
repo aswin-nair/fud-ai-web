@@ -25,7 +25,7 @@ import { useAuth } from './AuthContext'
 
 import { authTokenSubject } from '../lib/auth'
 
-import { ApiError, apiLoadState, apiSaveState, loadAuthToken } from '../lib/apiClient'
+import { accessTokenForAccount, ApiError, apiLoadState, apiSaveState, loadAuthToken } from '../lib/apiClient'
 
 import {
   acknowledgeMutation,
@@ -199,15 +199,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const forceNextPersist = useRef(false)
   const suppressNextPersist = useRef<string | null>(null)
   const leaseOwner = useRef(crypto.randomUUID())
-  // AppProvider is keyed by user ID. Bind its token once so a later login in
-  // another tab cannot redirect this provider's queued writes to that account.
+  // Bind writes to this account. A later login in another tab may replace the
+  // in-memory token; only a same-subject refresh is adopted.
   const cloudSessionToken = useRef(cloud ? loadAuthToken() : null)
+
+  const boundSessionToken = useCallback((): string | null => {
+    const next = accessTokenForAccount(userId, cloudSessionToken.current)
+    if (next) cloudSessionToken.current = next
+    return next
+  }, [userId])
 
   const drainOutbox = useCallback(async (): Promise<void> => {
     if (!cloud || !cloudWritable.current || !networkOnline) return
     if (drainPromise.current) return drainPromise.current
 
-    const sessionToken = cloudSessionToken.current
+    const sessionToken = boundSessionToken()
     const sessionSubject = sessionToken ? authTokenSubject(sessionToken) : null
     const sessionIssuedAt = sessionToken ? tokenIssuedAt(sessionToken) : null
     if (!sessionToken || sessionSubject !== userId) throw new CloudSyncUnavailableError()
@@ -291,7 +297,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             message,
           )
           if (error instanceof ApiError && error.status === 401) {
-            if (loadAuthToken() === sessionToken) signOut()
+            signOut()
             break
           }
           if (error instanceof ApiError && error.status === 409) {
@@ -346,7 +352,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     drainPromise.current = task
     return task
-  }, [cloud, networkOnline, signOut, userId])
+  }, [boundSessionToken, cloud, networkOnline, signOut, userId])
 
   drainOutboxRef.current = drainOutbox
 
@@ -355,7 +361,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     options: { destructive?: boolean; force?: boolean } = {},
   ): Promise<void> => {
     if (!cloud) return
-    const sessionToken = cloudSessionToken.current
+    const sessionToken = boundSessionToken()
     const sessionSubject = sessionToken ? authTokenSubject(sessionToken) : null
     if (
       !sessionToken
@@ -382,7 +388,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (await hasDurableMutation(userId, mutation.mutationId)) {
       throw new CloudSyncUnavailableError()
     }
-  }, [cloud, drainOutbox, networkOnline, userId])
+  }, [boundSessionToken, cloud, drainOutbox, networkOnline, userId])
 
 
 
@@ -468,7 +474,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        const sessionToken = cloudSessionToken.current
+        const sessionToken = boundSessionToken()
         if (!sessionToken || authTokenSubject(sessionToken) !== userId) {
           signOut()
           return
@@ -555,7 +561,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           if (cancelled) return
           if (error instanceof ApiError && error.status === 401) {
-            if (loadAuthToken() === cloudSessionToken.current) signOut()
+            signOut()
             return
           }
           if (cached) {
@@ -658,7 +664,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     }
 
-  }, [userId, cloud, hydrateAttempt, signOut])
+  }, [boundSessionToken, userId, cloud, hydrateAttempt, signOut])
 
 
 
@@ -755,7 +761,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   async function resolveCloudConflict(choice: 'server' | 'device', destructive = false): Promise<void> {
     if (!conflictExported || !networkOnline || conflictResolving) return
-    const sessionToken = cloudSessionToken.current
+    const sessionToken = boundSessionToken()
     const sessionSubject = sessionToken ? authTokenSubject(sessionToken) : null
     if (!sessionToken || sessionSubject !== userId) {
       signOut()
@@ -813,7 +819,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        if (loadAuthToken() === sessionToken) signOut()
+        signOut()
         return
       }
       cloudWritable.current = false

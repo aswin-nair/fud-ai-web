@@ -92,7 +92,8 @@ the server boundary.
 | `fud-log-drafts-recovery-v1-<encodedUserId>` | malformed draft blob | Sensitive | Quarantined locally and removed by explicit data/account deletion |
 | `fud-ai-local-users` | email-keyed `{ sub, email, name, passwordHash, salt, createdAt }` records | Secret | Development/local-backend compatibility only; production cloud mode uses the API account store |
 | `fud-ai-auth-session` | `{ sub, email, name, picture?, provider? }` | Sensitive | Removed on sign-out |
-| `fud-ai-auth-token` | bearer JWT | Secret | Stored in `localStorage`; removed on cloud sign-out |
+| Access JWT | short-lived bearer | Secret | Held in memory only; a leftover `fud-ai-auth-token` in `localStorage` is cleared and rejected |
+| `fud_refresh` cookie | rotating refresh token | Secret | HttpOnly, SameSite=Lax; hashed at rest on the server |
 | `fud-analytics-v1` | newest-first `{ schema_version: 1, event_id, at, app_surface, app_version, platform: "web", event }` rows, capped at 200 | Pseudonymous | Current device-local ring buffer; `event` is restricted to the typed analytics allowlist |
 | `fud-analytics` | legacy unversioned event rows | Pseudonymous | No longer read or written; removed by explicit data deletion |
 | `fud-notify-log` | `{ date, kinds[] }`, where kind is `routine`, `save`, or `freeze` | Preference | Replaced as the local day changes and removed by explicit data deletion |
@@ -131,9 +132,9 @@ The Expo schema currently has no weight-history, exercise, coach-chat, ingredien
 optimistic base version, canonical request hash, and per-user UUID mutation
 ledger. Account deletion cascades across user-owned rows. `user_states.state`
 remains a full JSONB snapshot; this is not field-level merge or per-record
-tombstone synchronization. Password-reset delivery is intentionally disabled
-until an approved email provider exists. Retention periods and cleanup status
-are recorded in `retention-schedule.md`.
+tombstone synchronization. Password-reset mail stays fail-closed until
+`APP_ORIGIN`, `MAIL_FROM`, and `RESEND_API_KEY` are set. Retention periods
+and cleanup status are recorded in `retention-schedule.md`.
 
 ## Review triggers
 
