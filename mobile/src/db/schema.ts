@@ -119,6 +119,40 @@ export const productEvents = sqliteTable('product_events', {
   recordedAt: text('recorded_at').notNull(),
 });
 
+/**
+ * Ordered entity mutations. Tokens never belong in this table — only the
+ * secret-free contract envelope and retry metadata.
+ */
+export const syncOutbox = sqliteTable(
+  'sync_outbox',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    mutationId: text('mutation_id').notNull().unique(),
+    userId: text('user_id').notNull(),
+    deviceId: text('device_id').notNull(),
+    kind: text('kind', { enum: ['upsert', 'delete'] }).notNull(),
+    entityJson: text('entity_json').notNull(),
+    baseCursor: integer('base_cursor').notNull().default(0),
+    queuedAt: text('queued_at').notNull(),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    nextAttemptAt: text('next_attempt_at').notNull(),
+    lastError: text('last_error'),
+    ackedCursor: integer('acked_cursor'),
+    status: text('status', {
+      enum: ['pending', 'inflight', 'acked', 'conflict', 'auth_failed'],
+    }).notNull(),
+  },
+  (table) => [index('sync_outbox_user_queued_idx').on(table.userId, table.queuedAt)],
+);
+
+export const syncState = sqliteTable('sync_state', {
+  userId: text('user_id').primaryKey(),
+  deviceId: text('device_id').notNull(),
+  cursor: integer('cursor').notNull().default(0),
+  lastAckAt: text('last_ack_at'),
+  lastError: text('last_error'),
+});
+
 export type Profile = typeof profile.$inferSelect;
 export type NewProfile = typeof profile.$inferInsert;
 export type Food = typeof foods.$inferSelect;
@@ -130,6 +164,8 @@ export type StreakFreeze = typeof streakFreezes.$inferSelect;
 export type Quest = typeof quests.$inferSelect;
 export type OnboardingDraftRow = typeof onboardingDrafts.$inferSelect;
 export type ProductEvent = typeof productEvents.$inferSelect;
+export type SyncOutboxRow = typeof syncOutbox.$inferSelect;
+export type SyncStateRow = typeof syncState.$inferSelect;
 
 export type Sex = Profile['sex'];
 export type ActivityLevel = Profile['activityLevel'];

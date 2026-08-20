@@ -50,6 +50,8 @@ describe('migrations', () => {
       'quests',
       'onboarding_drafts',
       'product_events',
+      'sync_outbox',
+      'sync_state',
     ]) {
       expect(tables).toContain(table);
     }
@@ -116,6 +118,22 @@ describe('migrations', () => {
         )
         .run(1, 320, 12, 54, 6, 'breakfast', '2026-07-08T06:30:00Z'),
     ).toThrow();
+
+    db.close();
+  });
+
+  it('keeps tokens out of the sync outbox and state tables', () => {
+    const db = new DatabaseSync(':memory:');
+    applyAll(db);
+
+    const columns = db
+      .prepare(`pragma table_info(sync_outbox)`)
+      .all()
+      .map((row) => String(row.name));
+
+    expect(columns).toContain('mutation_id');
+    expect(columns).toContain('entity_json');
+    expect(columns.join(',')).not.toMatch(/token|refresh|password|api_key/i);
 
     db.close();
   });

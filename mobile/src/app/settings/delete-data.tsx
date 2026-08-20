@@ -57,8 +57,8 @@ export default function DeleteAllData() {
           <Text variant="subtitle">This cannot be undone</Text>
           <Text color="textSecondary" style={{ marginTop: theme.space.sm }} variant="body">
             It removes your profile, meals, custom foods, quests, streak freezes, onboarding
-            draft, local events, and app lock from this device. Builtin foods are put back
-            after the wipe confirms.
+            draft, local events, account session, sync queue, and app lock from this
+            device. Builtin foods are put back after the wipe confirms.
           </Text>
         </Card>
 

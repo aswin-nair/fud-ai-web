@@ -11,6 +11,8 @@ import {
   unauthorized,
 } from '../_lib/http.js'
 import { issueSession } from '../_lib/authenticate.js'
+import { MOBILE_AUTH_DISABLED_RESPONSE } from '../_lib/cloudControl.js'
+import { resolveSessionTransport } from '../_lib/mobileClient.js'
 import { AccountProviderConflictError, upsertGoogleUser } from '../_lib/users.js'
 import {
   enforceAuthAccountRateLimit,
@@ -26,8 +28,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!clientId) return json(res, 503, { error: 'Google OAuth not configured' })
 
   try {
-    const body = await readJson<{ credential?: string }>(req)
+    const body = await readJson<{ credential?: string; client?: string }>(req)
     await enforceAuthRateLimit(req, 'google')
+    const transport = resolveSessionTransport(req, body)
+    if (transport === 'unavailable') return json(res, 503, MOBILE_AUTH_DISABLED_RESPONSE)
     if (!body.credential) return badRequest(res, 'Missing Google credential')
 
     const client = new OAuth2Client(clientId)
@@ -52,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       name: payload.name ?? payload.email,
       picture: payload.picture,
     })
-    const session = await issueSession(user, req, res)
+    const session = await issueSession(user, req, res, transport)
     json(res, 200, session)
   } catch (err) {
     if (err instanceof RateLimitExceeded) {

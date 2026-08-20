@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { authenticateRequest, issueSession } from '../_lib/authenticate.js'
+import { MOBILE_AUTH_DISABLED_RESPONSE } from '../_lib/cloudControl.js'
 import { isDbConfigured } from '../_lib/db.js'
+import { resolveSessionTransport } from '../_lib/mobileClient.js'
 import {
   badRequest,
   InvalidJsonError,
@@ -28,14 +30,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await enforceAccountIpRateLimit(req, 'change-password')
     const session = await authenticateRequest(req)
     await enforceAccountUserRateLimit(session.sub, 'change-password')
-    const body = await readJson<{ currentPassword?: string; newPassword?: string }>(req)
+    const body = await readJson<{ currentPassword?: string; newPassword?: string; client?: string }>(req)
+    const transport = resolveSessionTransport(req, body)
+    if (transport === 'unavailable') return json(res, 503, MOBILE_AUTH_DISABLED_RESPONSE)
     const currentPassword = body.currentPassword ?? ''
     const newPassword = body.newPassword ?? ''
     const passErr = validatePasswordInput(newPassword, true)
     if (passErr) return badRequest(res, passErr)
     const user = await changeEmailPassword(session.sub, currentPassword, newPassword)
     await revokeAllSessions(session.sub)
-    const next = await issueSession(user, req, res)
+    const next = await issueSession(user, req, res, transport)
     console.error(JSON.stringify({ event: 'password_changed' }))
     return json(res, 200, next)
   } catch (err) {

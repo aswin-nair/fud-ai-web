@@ -8,6 +8,7 @@ import { Screen, ScreenHeader } from '@/components/primitives/Screen';
 import { Stepper } from '@/components/primitives/Stepper';
 import { Text } from '@/components/primitives/Text';
 import { logEntry } from '@/db/queries/entries';
+import { enqueueLoggedMeal } from '@/sync/enqueueMeal';
 import { type MealSlot } from '@/db/schema';
 import { LOG_CONFIRM, sequence, type Beat } from '@/feel/motion';
 import { play } from '@/feel/sound';
@@ -67,7 +68,7 @@ export default function Portion() {
     setSaving(true);
 
     try {
-      await logEntry({
+      const entry = await logEntry({
         foodId: food.id,
         servings,
         kcal: preview.kcal,
@@ -77,6 +78,7 @@ export default function Portion() {
         mealSlot: slot,
         timezone,
       });
+      await enqueueLoggedMeal(entry, timezone, food.name);
 
       const outcome = await recordLog(timezone);
       await completeFirstLogIfNeeded();

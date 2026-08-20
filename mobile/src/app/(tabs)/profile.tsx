@@ -109,6 +109,12 @@ export default function ProfileTab() {
 
         <Section title="Privacy">
           <SettingRow
+            detail="Sign in, recover a password, or delete the cloud account. Local meals stay on this device."
+            kind="navigate"
+            label="Account"
+            onPress={() => router.push('/settings/account' as Href)}
+          />
+          <SettingRow
             detail="Optionally ask for device authentication after launch and when returning to the app."
             kind="navigate"
             label="App lock"

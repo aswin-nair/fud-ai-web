@@ -42,8 +42,10 @@ state values, account data, or the database URL.
   store calendar-stable records, tombstones, device cursors, and a
   count-only migration ledger. `ENABLE_ENTITY_PROJECTION` and
   `ENABLE_LOCAL_MIGRATION` stay off. `POST /api/migrations` returns `503`
-  until an approved, consented workflow is enabled. The first cloud beta
-  is new accounts only.
+  until an approved, consented workflow is enabled. `POST /api/entities`
+  returns `503` while entity projection is off. `ENABLE_MOBILE_AUTH` stays
+  off; a mobile client grant returns `503` and never puts a refresh token
+  in a browser JSON response. The first cloud beta is new accounts only.
 
 Rate-limit bucket keys are HMACs, so raw IPs and email addresses are not stored.
 Vercel's spoof-resistant `x-forwarded-for` is trusted only on Vercel; other

@@ -74,6 +74,7 @@ git push -u origin main
 | `RESEND_API_KEY` | Resend API key. Leave unset to keep recovery silent. |
 | `ENABLE_ENTITY_PROJECTION` | Leave unset. Snapshot writes stay authoritative. |
 | `ENABLE_LOCAL_MIGRATION` | Leave unset. First cloud beta is new accounts only. |
+| `ENABLE_MOBILE_AUTH` | Leave unset. Mobile refresh tokens stay out of JSON. |
 
 7. Click **Deploy**
 

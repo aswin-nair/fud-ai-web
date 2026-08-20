@@ -80,6 +80,10 @@ const config: ExpoConfig = {
       },
     ],
   ],
+  extra: {
+    // Leave unset. Mobile account and entity sync stay fail-closed.
+    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? '',
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,

@@ -22,6 +22,7 @@ import { type Food } from '@/db/schema';
 import { defaultMealSlot } from '@/logic/mealSlot';
 import { localHourIn } from '@/logic/dates';
 import { logEntry } from '@/db/queries/entries';
+import { enqueueLoggedMeal } from '@/sync/enqueueMeal';
 import { completeFirstLogIfNeeded } from '@/privacy/firstLog';
 import { useLogStore } from '@/stores/logStore';
 import { recordLog } from '@/stores/progression';
@@ -275,7 +276,7 @@ function QuickAdd({
     setSaving(true);
 
     try {
-      await logEntry({
+      const entry = await logEntry({
         customName: 'Quick add',
         servings: 1,
         kcal: value,
@@ -285,6 +286,7 @@ function QuickAdd({
         mealSlot: defaultMealSlot(localHourIn(timezone)),
         timezone,
       });
+      await enqueueLoggedMeal(entry, timezone, 'Quick add');
 
       await recordLog(timezone);
       await completeFirstLogIfNeeded();

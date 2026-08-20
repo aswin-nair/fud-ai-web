@@ -10,6 +10,8 @@ import {
   unauthorized,
 } from '../_lib/http.js'
 import { issueSession } from '../_lib/authenticate.js'
+import { MOBILE_AUTH_DISABLED_RESPONSE } from '../_lib/cloudControl.js'
+import { resolveSessionTransport } from '../_lib/mobileClient.js'
 import { validateEmail, validatePasswordInput } from '../_lib/password.js'
 import { InvalidCredentialsError, loginEmailUser } from '../_lib/users.js'
 import { enforceAuthRateLimit, RateLimitExceeded } from '../_lib/rateLimit.js'
@@ -19,11 +21,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
 
   try {
-    const body = await readJson<{ email?: string; password?: string }>(req)
+    const body = await readJson<{ email?: string; password?: string; client?: string }>(req)
     const email = body.email ?? ''
     const password = body.password ?? ''
 
     await enforceAuthRateLimit(req, 'login', email)
+    const transport = resolveSessionTransport(req, body)
+    if (transport === 'unavailable') return json(res, 503, MOBILE_AUTH_DISABLED_RESPONSE)
 
     const emailErr = validateEmail(email)
     if (emailErr) return badRequest(res, emailErr)
@@ -31,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (passErr) return badRequest(res, passErr)
 
     const user = await loginEmailUser(email, password)
-    const session = await issueSession(user, req, res)
+    const session = await issueSession(user, req, res, transport)
     json(res, 200, session)
   } catch (err) {
     if (err instanceof InvalidCredentialsError) {

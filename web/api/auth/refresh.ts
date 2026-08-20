@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '../_lib/cookies.js'
+import { clearRefreshCookie, setRefreshCookie } from '../_lib/cookies.js'
 import { isDbConfigured } from '../_lib/db.js'
-import { json, methodNotAllowed, serverError, unauthorized } from '../_lib/http.js'
+import { InvalidJsonError, json, methodNotAllowed, readJson, serverError, unauthorized } from '../_lib/http.js'
 import { signSession } from '../_lib/jwt.js'
+import { readPresentedRefreshToken, resolveSessionTransport } from '../_lib/mobileClient.js'
 import { enforceAuthRateLimit, RateLimitExceeded } from '../_lib/rateLimit.js'
 import { RefreshNotFoundError, RefreshReplayError, rotateRefreshToken } from '../_lib/sessions.js'
 
@@ -12,13 +13,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     await enforceAuthRateLimit(req, 'refresh')
-    const presented = readRefreshToken(req)
+    const body = await readJson<{ client?: string; refreshToken?: string }>(req)
+    const presented = readPresentedRefreshToken(req, body)
     if (!presented) {
       clearRefreshCookie(res, req)
       return unauthorized(res)
     }
     const rotated = await rotateRefreshToken(presented)
     const token = await signSession(rotated.user, rotated.id)
+    if (resolveSessionTransport(req, body) === 'mobile') {
+      return json(res, 200, { token, user: rotated.user, refreshToken: rotated.refreshToken })
+    }
     setRefreshCookie(res, rotated.refreshToken, rotated.expiresAt, req)
     return json(res, 200, { token, user: rotated.user })
   } catch (err) {
@@ -26,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (err instanceof RefreshReplayError || err instanceof RefreshNotFoundError) {
       return unauthorized(res)
     }
+    if (err instanceof InvalidJsonError) return unauthorized(res)
     if (err instanceof RateLimitExceeded) {
       res.setHeader('Retry-After', String(err.retryAfterSeconds))
       return json(res, 429, { error: 'Too many requests. Try again later.' })

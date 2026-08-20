@@ -1,6 +1,6 @@
 # Local data migration map v1
 
-- Status: Contract v1 landed; snapshot still authoritative; local upload fail-closed
+- Status: Contract v1 landed; snapshot still authoritative; local upload fail-closed; mobile outbox present but upload disabled
 - Last reviewed: 2026-08-20
 - Source inventory: `docs/data/local-data-inventory.md`
 
@@ -77,7 +77,11 @@ Each attempt records:
 | `streak_freezes` | freeze ledger | Preserve grant/consumption local dates and validate monthly policy. |
 | `quests` | derived quest state | Regenerate the deterministic quest for the stored day and reconcile completion from accepted actions. |
 
-The current Expo schema has no rows for weight history, exercise, chat, ingredient lines, sync queue, devices, or tombstones; absence must not be interpreted as a deletion request for records already on the account.
+The Expo schema now has a local sync outbox and cursor table. Those rows are
+retry metadata for later entity sync; they are not a consented local-to-cloud
+migration. Existing meals are still not uploaded. Absence of weight, exercise,
+chat, or ingredient rows must not be interpreted as a deletion request for
+records already on the account.
 
 ## Execution sequence
 

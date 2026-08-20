@@ -19,6 +19,7 @@ public disclosure, an access owner, and an enforced deletion job.
 | State mutation/idempotency ledger | 90 days | Purged after 90 days; account deletion cascades immediately | Cleanup command implemented; scheduler evidence pending |
 | Entity rows, tombstones, and device cursors | Until replacement, tombstone, or account deletion | Cascade on account deletion; live product still uses snapshots | Schema implemented; projection disabled |
 | Entity mutation/idempotency ledger | 90 days | Purged after 90 days; account deletion cascades immediately | Cleanup command implemented; scheduler evidence pending |
+| Expo sync outbox and device cursor | Until ack, local deletion, or account-session clear | Cleared by local delete; never holds refresh or access tokens | Schema implemented; upload disabled |
 | Migration ledger (`migration_attempts`) | Counts and checksums only | Terminal stages purged after 90 days; no food text or chat | Cleanup command implemented; upload disabled |
 | Password reset token hash | Valid for 30 minutes | Plain token is never stored; consumed/expired hashes retained no more than 7 days, then purged | Primitive and cleanup implemented; email delivery endpoint disabled |
 | Rate-limit bucket hashes | Up to 24 hours after last activity | HMAC-derived keys only; purged after 24 hours idle | Cleanup command implemented; scheduler evidence pending |

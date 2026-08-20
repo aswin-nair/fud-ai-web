@@ -1,6 +1,6 @@
 # Local data inventory
 
-- Status: Versioned web-sync and account-security baseline
+- Status: Versioned web-sync, account-security, and mobile session/outbox baseline
 - Last reviewed: 2026-08-20
 - Code baseline: `web/app/src/types.ts`, `web/app/src/lib/*.ts`, and `mobile/src/db/schema.ts`
 
@@ -121,8 +121,10 @@ The database name is `calorie-tracker.db`. Drizzle migration `0000_lazy_nova.sql
 | `quests` | `id`, `local_date`, `type`, `target`, `progress`, `completed_at` | Sensitive, Derived | Daily quest state; verify against deterministic generation |
 | `onboarding_drafts` | `id`, `schema_version`, `step`, `payload`, `updated_at`, `quarantined` | Sensitive | Resumable onboarding; incompatible or under-age payloads are quarantined |
 | `product_events` | `name`, `recorded_at` | Pseudonymous | Once-only local markers such as `first_log`; no food text or body metrics |
+| `sync_outbox` | mutation id, account/device ids, kind, entity JSON, cursor, retry metadata | Sensitive | Secret-free contract envelopes only; never tokens. Upload stays disabled unless entity sync is explicitly enabled |
+| `sync_state` | `user_id`, `device_id`, cursor, last ack/error | Pseudonymous | Device cursor for an authenticated account; no credentials |
 
-The Expo schema currently has no weight-history, exercise, coach-chat, ingredient-line, device, sync-queue, tombstone, migration-ledger, or secure-token table. Secrets must not be added to SQLite; future tokens belong in platform-protected secure storage. App lock stays in SecureStore and is excluded from export.
+SecureStore also holds `fud.session.refresh.v1`, secret-free session metadata, the stable device id, and the app-lock flag. Access tokens stay in memory. The Expo schema still has no weight-history, exercise, coach-chat, or ingredient-line tables. Secrets must not be added to SQLite.
 
 ## Current server destination
 
@@ -133,10 +135,12 @@ and additive `account_entities`, `entity_tombstones`, `device_cursors`,
 per-user advisory transaction lock, optimistic base version, canonical
 request hash, and per-user UUID mutation ledger. Account deletion cascades
 across user-owned rows. `user_states.state` remains the live JSONB snapshot.
-Entity tables are empty unless projection is explicitly enabled. Password-reset
-mail stays fail-closed until `APP_ORIGIN`, `MAIL_FROM`, and `RESEND_API_KEY`
-are set. Local-to-cloud upload stays fail-closed. Retention periods and
-cleanup status are recorded in `retention-schedule.md`.
+Entity tables are empty unless projection is explicitly enabled.
+`POST /api/entities` stays fail-closed. Mobile account grants stay fail-closed
+until `ENABLE_MOBILE_AUTH=true`. Password-reset mail stays fail-closed until
+`APP_ORIGIN`, `MAIL_FROM`, and `RESEND_API_KEY` are set. Local-to-cloud upload
+stays fail-closed. Retention periods and cleanup status are recorded in
+`retention-schedule.md`.
 
 ## Review triggers
 

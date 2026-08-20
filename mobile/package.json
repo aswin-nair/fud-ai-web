@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@fud-ai/contracts": "file:../packages/contracts",
     "@fud-ai/domain": "file:../packages/domain",
     "@expo-google-fonts/fredoka": "^0.4.1",
     "@expo-google-fonts/nunito-sans": "^0.4.2",

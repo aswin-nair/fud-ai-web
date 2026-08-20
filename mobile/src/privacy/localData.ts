@@ -14,7 +14,10 @@ import { useLogStore } from '@/stores/logStore'
 import { useOnboardingStore } from '@/stores/onboardingStore'
 import { useProfileStore } from '@/stores/profileStore'
 import { useQuestStore } from '@/stores/questStore'
+import { clearAccountBinding } from '@/account/adoptSession'
+import { secureSessionStore } from '@/account/secureSession'
 import { seedBuiltinFoods } from '@/db/seed'
+import { deleteSyncOutbox, deleteSyncState } from '@/db/queries/outbox'
 import {
   deleteFoods,
   deleteFreezes,
@@ -71,6 +74,13 @@ export async function deleteAllLocalData(): Promise<{
         await clearAppLockEnabled()
       }
       await useAppLockStore.getState().initialize(false)
+    },
+    account_session: async () => {
+      await clearAccountBinding(secureSessionStore)
+    },
+    sync_outbox: async () => {
+      await deleteSyncOutbox()
+      await deleteSyncState()
     },
     memory: async () => {
       useProfileStore.setState({ profile: null, loading: false })

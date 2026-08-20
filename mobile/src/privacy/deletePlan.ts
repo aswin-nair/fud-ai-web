@@ -10,6 +10,8 @@ export const DELETE_STORE_IDS = [
   'onboarding_drafts',
   'product_events',
   'app_lock',
+  'account_session',
+  'sync_outbox',
   'memory',
   'builtin_foods_reseed',
 ] as const
