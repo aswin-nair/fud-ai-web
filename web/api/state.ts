@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from './_lib/telemetry.js'
 import { CLOUD_WRITES_DISABLED_RESPONSE, cloudWritesEnabled } from './_lib/cloudControl.js'
 import { isDbConfigured } from './_lib/db.js'
 import { authenticateRequest } from './_lib/authenticate.js'
@@ -26,7 +27,7 @@ import { isCanonicalUuid } from './_lib/identifiers.js'
 import { validateAppState } from '../shared/appStateContract.js'
 
 const MAX_STATE_BYTES = 2_000_000
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
 
   try {
@@ -92,3 +93,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/state', handler)

@@ -31,6 +31,9 @@ tokens, provider prompts/responses, and raw user identifiers are prohibited.
 Thresholds are starting points. Baseline with internal traffic, then record the
 approved values and dashboard links in release evidence.
 
+The repo now emits these signals locally and to allowlisted API stderr. Remote
+collection, dashboards, and paging remain disabled until privacy approval.
+
 ## Redaction verification
 
 Before connecting a sink, automated fixtures must attempt to inject date of

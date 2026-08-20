@@ -1,3 +1,6 @@
+import { requestIdFrom } from './_lib/http.js'
+import { emitManagedAiInvoked, emitStandaloneApiRequest } from './_lib/telemetry.js'
+
 const DEFAULT_TASK_LIMITS = {
   food: 30,
   speech: 20,
@@ -40,15 +43,33 @@ const MANAGED_AI_UNAVAILABLE = Object.freeze({
 });
 
 export default async function handler(request, response) {
+  const startedAt = Date.now();
+  const requestId = requestIdFrom(request);
+  const method = request.method === "POST" ? "POST" : "GET";
   setFailClosedSecurityHeaders(response);
 
   if (request.method !== "POST" && request.method !== "GET") {
     response.setHeader("Allow", "GET, POST");
+    emitStandaloneApiRequest({
+      requestId,
+      route: "/api/gemini",
+      method: "GET",
+      status: 405,
+      startedAt,
+    });
     return response.status(405).json({ error: "Method not allowed." });
   }
 
   // This return must stay ahead of install-ID parsing, quota reads, and provider
   // calls. GET and POST deliberately share one stable, redacted response.
+  emitStandaloneApiRequest({
+    requestId,
+    route: "/api/gemini",
+    method,
+    status: 503,
+    startedAt,
+  });
+  emitManagedAiInvoked(requestId, 503);
   return response.status(503).json(MANAGED_AI_UNAVAILABLE);
 
   /* c8 ignore start -- retained future implementation, unreachable by design */

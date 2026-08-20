@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from './_lib/telemetry.js'
 import { deleteUserAccount } from './_lib/accounts.js'
 import { authenticateRequest } from './_lib/authenticate.js'
 import { CLOUD_WRITES_DISABLED_RESPONSE, cloudWritesEnabled } from './_lib/cloudControl.js'
@@ -20,7 +21,7 @@ import {
   RateLimitExceeded,
 } from './_lib/rateLimit.js'
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'DELETE') return methodNotAllowed(res)
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
   try {
@@ -45,3 +46,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/account', handler)

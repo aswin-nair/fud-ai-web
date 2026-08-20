@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from '../_lib/telemetry.js'
 import { isDbConfigured } from '../_lib/db.js'
 import {
   InvalidJsonError,
@@ -12,7 +13,7 @@ import { consumePasswordResetToken } from '../_lib/passwordReset.js'
 
 const INVALID = { error: 'This reset link is invalid or has expired.' }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
 
@@ -34,3 +35,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/auth/reset-password', handler)

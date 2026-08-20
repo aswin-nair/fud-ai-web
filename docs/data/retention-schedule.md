@@ -28,7 +28,8 @@ public disclosure, an access owner, and an enforced deletion job.
 | Selected photo bytes | Request/session memory only | Fud AI does not persist photos; direct BYOK provider processing and retention follow the provider chosen by the user | Implemented client-side; provider policy links remain the user-facing source |
 | Device-local product analytics | Newest 200 allowlisted events | Cleared by explicit data/account deletion or browser-site-data removal | Implemented locally |
 | Remote product analytics | Disabled | No remote retention until a reviewed sink and schedule are approved | Not enabled |
-| Crash reports and remote application logs | Disabled beyond platform/provider defaults | Must exclude sensitive payloads and use a separately approved retention period before enablement | Not enabled |
+| Device-local crash reports | Newest 200 sanitized crash names | Cleared by explicit data/account deletion; no message, stack, or application state | Implemented locally |
+| Crash reports and remote application logs | Disabled beyond platform/provider defaults | Must exclude sensitive payloads and use a separately approved retention period before enablement | Remote sink not enabled |
 | Database backups | Proposed maximum 30 days | Deleted account data may remain inaccessible in encrypted backups until backup expiry; restore procedures must reapply deletion reconciliation | Provider configuration and rehearsal pending |
 | Security/deletion audit events | Proposed 90 days, metadata only | No raw user state, email, food content, tokens, or IP addresses | Provider/sink not yet enabled |
 

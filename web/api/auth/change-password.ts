@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from '../_lib/telemetry.js'
 import { authenticateRequest, issueSession } from '../_lib/authenticate.js'
 import { MOBILE_AUTH_DISABLED_RESPONSE } from '../_lib/cloudControl.js'
 import { isDbConfigured } from '../_lib/db.js'
@@ -22,7 +23,7 @@ import {
 import { revokeAllSessions } from '../_lib/sessions.js'
 import { changeEmailPassword, InvalidCredentialsError } from '../_lib/users.js'
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
 
@@ -55,3 +56,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/auth/change-password', handler)

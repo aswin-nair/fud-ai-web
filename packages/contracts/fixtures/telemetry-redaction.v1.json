@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "injections": [
+    { "id": "dob", "value": "1996-04-12" },
+    { "id": "height", "field": "heightCm", "value": 175 },
+    { "id": "weight", "field": "weightKg", "value": 82.4 },
+    { "id": "food", "field": "food_name", "value": "chicken biryani" },
+    { "id": "photo-url", "field": "photo_url", "value": "https://cdn.example/meal.png" },
+    { "id": "photo-bytes", "field": "photo", "value": "data:image/png;base64,iVBORw0KGgo=" },
+    { "id": "chat", "field": "message", "value": "I feel guilty about dessert" },
+    { "id": "jwt", "field": "token", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0In0.signature" },
+    { "id": "password", "field": "password", "value": "hunter2-secret" },
+    { "id": "email", "field": "email", "value": "alex@example.com" },
+    { "id": "database-url", "field": "DATABASE_URL", "value": "postgres://user:secret-token@host/db" },
+    { "id": "provider-key", "field": "apiKey", "value": "sk-or-v1-examplekey" },
+    { "id": "bearer", "field": "authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abc.def" }
+  ]
+}

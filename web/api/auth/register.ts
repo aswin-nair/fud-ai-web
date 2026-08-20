@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from '../_lib/telemetry.js'
 import { isDbConfigured } from '../_lib/db.js'
 import {
   badRequest,
@@ -15,7 +16,7 @@ import { validateEmail, validatePasswordInput } from '../_lib/password.js'
 import { DuplicateAccountError, registerEmailUser } from '../_lib/users.js'
 import { enforceAuthRateLimit, RateLimitExceeded } from '../_lib/rateLimit.js'
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
 
@@ -51,3 +52,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/auth/register', handler)

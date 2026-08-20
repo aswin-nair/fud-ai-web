@@ -5,7 +5,7 @@ import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
 import { IconCamera, IconClipboard, IconEdit, IconPlus, IconStar } from '../components/icons'
 import { useApp } from '../store/AppContext'
-import { selectLogMethod, startLogFlow, type LogMethod } from '../lib/analytics'
+import { recordFoodSearch, selectLogMethod, startLogFlow, type LogMethod } from '../lib/analytics'
 import {
   mealKey,
   parseQuickAdd,
@@ -93,6 +93,15 @@ export function LogMenuPage() {
       return true
     })
   }, [query, favourites, recents])
+
+  useEffect(() => {
+    const needle = query.trim()
+    if (!needle || parseQuickAdd(needle) !== null) return
+    const handle = window.setTimeout(() => {
+      recordFoodSearch(matches.length)
+    }, 300)
+    return () => window.clearTimeout(handle)
+  }, [query, matches.length])
 
   function commit(entry: FoodEntry, source: LogMethod) {
     selectLogMethod(source)

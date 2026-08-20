@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from './_lib/telemetry.js'
 import { probeDatabase } from './_lib/db.js'
 import { applyIdentityHeaders, json, releaseId, requestIdFrom } from './_lib/http.js'
 
 /** Readiness. 200 only after a bounded database probe succeeds. */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   const requestId = requestIdFrom(req)
   applyIdentityHeaders(res, requestId)
   const ready = await probeDatabase()
@@ -13,3 +14,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     release: releaseId(),
   })
 }
+export default withApiTelemetry('/api/ready', handler)

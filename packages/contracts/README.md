@@ -12,6 +12,8 @@ replace snapshot sync.
   level, quest, and badge totals are not trusted.
 - Local upload stays fail-closed until an approved migration workflow
   is enabled. The first cloud beta is new accounts only.
+- Telemetry envelopes are allowlisted. A remote sink stays fail-closed
+  until privacy review records a provider, region, and retention period.
 
 `web/shared/appStateContract.ts` remains the snapshot allowlist used by
 the live `PUT /api/state` path.

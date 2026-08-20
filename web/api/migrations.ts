@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from './_lib/telemetry.js'
 import { validateMigrationAttempt, type MigrationAttempt } from '@fud-ai/contracts'
 import { authenticateRequest } from './_lib/authenticate.js'
 import {
@@ -22,7 +23,7 @@ import {
   RateLimitExceeded,
 } from './_lib/rateLimit.js'
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
   if (!localMigrationEnabled()) return json(res, 503, LOCAL_MIGRATION_DISABLED_RESPONSE)
@@ -54,3 +55,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/migrations', handler)

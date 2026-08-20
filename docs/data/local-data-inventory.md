@@ -94,7 +94,8 @@ the server boundary.
 | `fud-ai-auth-session` | `{ sub, email, name, picture?, provider? }` | Sensitive | Removed on sign-out |
 | Access JWT | short-lived bearer | Secret | Held in memory only; a leftover `fud-ai-auth-token` in `localStorage` is cleared and rejected |
 | `fud_refresh` cookie | rotating refresh token | Secret | HttpOnly, SameSite=Lax; hashed at rest on the server |
-| `fud-analytics-v1` | newest-first `{ schema_version: 1, event_id, at, app_surface, app_version, platform: "web", event }` rows, capped at 200 | Pseudonymous | Current device-local ring buffer; `event` is restricted to the typed analytics allowlist |
+| `fud-analytics-v1` | newest-first telemetry envelopes `{ schema_version, event_id, occurred_at, environment, release, platform, app_surface?, event }`, capped at 200 | Pseudonymous | Current device-local ring buffer; `event` is restricted to the contracts allowlist |
+| `fud-crashes-v1` | newest-first `client_crash` envelopes with `error_name` and `handled` only, capped at 200 | Pseudonymous | Device-local crash buffer; no message, stack, or application state |
 | `fud-analytics` | legacy unversioned event rows | Pseudonymous | No longer read or written; removed by explicit data deletion |
 | `fud-notify-log` | `{ date, kinds[] }`, where kind is `routine`, `save`, or `freeze` | Preference | Replaced as the local day changes and removed by explicit data deletion |
 | `fud-seen-badges` | badge-ID string array | Preference | Legacy side store; partially normalized into `AppState` and removed by explicit data deletion |

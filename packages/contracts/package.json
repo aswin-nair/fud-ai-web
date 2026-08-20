@@ -11,7 +11,9 @@
     "./migration": "./src/migration.ts",
     "./checksum": "./src/checksum.ts",
     "./project": "./src/projectSnapshot.ts",
-    "./progression": "./src/progression.ts"
+    "./progression": "./src/progression.ts",
+    "./telemetry": "./src/telemetry.ts",
+    "./alerts": "./src/alerts.ts"
   },
   "types": "./src/index.ts"
 }

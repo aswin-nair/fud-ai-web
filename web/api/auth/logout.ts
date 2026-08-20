@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { withApiTelemetry } from '../_lib/telemetry.js'
 import { authenticateRequest } from '../_lib/authenticate.js'
 import { clearRefreshCookie } from '../_lib/cookies.js'
 import { isDbConfigured } from '../_lib/db.js'
@@ -11,7 +12,7 @@ import {
 } from '../_lib/rateLimit.js'
 import { revokeSession } from '../_lib/sessions.js'
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
   try {
@@ -31,3 +32,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return serverError(res, err)
   }
 }
+export default withApiTelemetry('/api/auth/logout', handler)

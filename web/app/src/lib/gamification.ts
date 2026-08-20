@@ -91,7 +91,7 @@ export function openSession(state: AppState): LogAdvance {
     : null
 
   if (freezeApplied) {
-    track({ name: 'freeze_applied', protectedStreak: freezeApplied.protectedStreak })
+    track({ name: 'streak_freeze_applied', protected_streak: freezeApplied.protectedStreak })
   }
 
   const today = localDayKey(new Date())
@@ -200,7 +200,8 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     }, ...events]
     awardedKeys.add(streakKey)
     xp += 50
-    track({ name: 'streak_extended', count: streak })
+    // Streak milestones stay a local XP award. Product telemetry only records
+    // the canonical freeze and quest events.
   }
 
   const newGam: GamificationState = {
@@ -224,7 +225,7 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
   }
 
   if (freezeApplied) {
-    track({ name: 'freeze_applied', protectedStreak: freezeApplied.protectedStreak })
+    track({ name: 'streak_freeze_applied', protected_streak: freezeApplied.protectedStreak })
   }
 
   return { gamification: newGam, freezeApplied, questJustCompleted, streakMilestone }

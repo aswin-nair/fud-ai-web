@@ -19,6 +19,7 @@
     "ci": "npm run lint && npm run test && npm run build:local && npm run test:e2e"
   },
   "dependencies": {
+    "@fud-ai/contracts": "file:../../packages/contracts",
     "@fud-ai/domain": "file:../../packages/domain",
     "@react-oauth/google": "^0.13.5",
     "jwt-decode": "^4.0.0",

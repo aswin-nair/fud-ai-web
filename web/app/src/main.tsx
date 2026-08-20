@@ -8,6 +8,7 @@ import {
   DataBackendConfigError,
   dataBackend,
 } from './lib/dataBackend'
+import { installCrashReporting } from './lib/crash'
 
 function ConfigurationError({ message }: { message: string }) {
   return (
@@ -21,6 +22,7 @@ function ConfigurationError({ message }: { message: string }) {
 }
 
 function boot() {
+  installCrashReporting()
   const root = createRoot(document.getElementById('root')!)
   try {
     dataBackend()
