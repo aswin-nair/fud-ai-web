@@ -39,6 +39,7 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         VITE_GOOGLE_CLIENT_ID: '',
+        VITE_DATA_BACKEND: 'local',
       },
     },
     {

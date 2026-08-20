@@ -17,3 +17,28 @@ export function isDbConfigured(): boolean {
 export function asRows<T>(result: unknown): T[] {
   return result as T[]
 }
+
+const PROBE_TIMEOUT_MS = 2_500
+
+export async function runBoundedProbe(
+  sql: ReturnType<typeof neon>,
+): Promise<boolean> {
+  const result = await Promise.race([
+    sql`SELECT 1 AS ok`,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('db_probe_timeout')), PROBE_TIMEOUT_MS)
+    }),
+  ])
+  const rows = asRows<{ ok: number | string }>(result)
+  return Number(rows[0]?.ok) === 1
+}
+
+/** Bounded readiness probe. Never throws provider or connection-string details. */
+export async function probeDatabase(connect: () => ReturnType<typeof neon> = getDb): Promise<boolean> {
+  if (!isDbConfigured()) return false
+  try {
+    return await runBoundedProbe(connect())
+  } catch {
+    return false
+  }
+}

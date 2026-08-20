@@ -6,6 +6,9 @@
     "dev:all": "npm run dev:all --prefix web",
     "build": "npm run build:local --prefix web/app",
     "build:cloud": "npm run build:cloud --prefix web/app",
+    "build:release": "npm run build:release --prefix web/app",
+    "verify:deploy": "node web/scripts/verify-deploy-context.mjs",
+    "test:staging": "npm run test:staging --prefix web",
     "preview": "npm run preview --prefix web/app",
     "lint": "npm run lint --prefix web/app",
     "test": "npm run test:web && npm run test:api && npm run test:mobile",
@@ -21,6 +24,6 @@
     "support:check": "node scripts/support-resource-check.mjs",
     "copy-policy": "node --test scripts/copy-policy.test.mjs",
     "test:e2e": "npm run test:e2e --prefix web/app",
-    "ci": "npm run security:scan:test && npm run security:scan && npm run copy-policy && npm run release:check:structure && npm run support:check && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run typecheck:mobile && npm run test:mobile"
+    "ci": "npm run security:scan:test && npm run security:scan && npm run copy-policy && npm run release:check:structure && npm run support:check && npm run verify:deploy && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run test:staging && npm run typecheck:mobile && npm run test:mobile"
   }
 }

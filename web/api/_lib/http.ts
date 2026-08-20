@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 export class InvalidJsonError extends Error {
@@ -5,6 +6,30 @@ export class InvalidJsonError extends Error {
     super('Invalid JSON body')
     this.name = 'InvalidJsonError'
   }
+}
+
+function headerValue(headers: VercelRequest['headers'] | undefined, name: string): string {
+  if (!headers) return ''
+  const value = headers[name] ?? headers[name.toLowerCase()]
+  if (typeof value === 'string') return value.trim()
+  if (Array.isArray(value) && typeof value[0] === 'string') return value[0].trim()
+  return ''
+}
+
+export function requestIdFrom(req?: Pick<VercelRequest, 'headers'>): string {
+  const incoming = headerValue(req?.headers, 'x-request-id') || headerValue(req?.headers, 'x-vercel-id')
+  if (incoming && /^[A-Za-z0-9._:-]{8,128}$/.test(incoming)) return incoming
+  return randomUUID()
+}
+
+export function releaseId(): string {
+  const raw = (process.env.VERCEL_GIT_COMMIT_SHA || process.env.RELEASE_ID || 'unassigned').trim()
+  return /^[A-Za-z0-9._-]{1,64}$/.test(raw) ? raw : 'unassigned'
+}
+
+export function applyIdentityHeaders(res: VercelResponse, requestId: string) {
+  res.setHeader('X-Request-Id', requestId)
+  res.setHeader('X-Release-Id', releaseId())
 }
 
 export function applySecurityHeaders(res: VercelResponse) {

@@ -13,6 +13,9 @@ export default defineConfig({
      * days, so running these in UTC would make the DST cases vacuous — they
      * would pass without ever crossing a transition.
      */
-    env: { TZ: 'America/New_York' },
+    env: {
+      TZ: 'America/New_York',
+      VITE_DATA_BACKEND: 'local',
+    },
   },
 })

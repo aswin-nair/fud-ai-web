@@ -61,6 +61,7 @@ jobs:
           npm run typecheck:api
           npm run typecheck:mobile
           npm run lint
+          npm run verify:deploy
           npm run build
         env:
           VITE_GOOGLE_CLIENT_ID: ''
@@ -70,6 +71,17 @@ jobs:
         env:
           CI: true
           VITE_GOOGLE_CLIENT_ID: ''
+
+      - name: Release-candidate cloud build
+        run: npm run build:release
+        env:
+          VITE_GOOGLE_CLIENT_ID: ''
+          RELEASE_ID: ${{ github.sha }}
+
+      - name: Staging cloud lifecycle
+        run: npm run test:staging
+        env:
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
       - name: Evidence gate
         run: npm run release:check

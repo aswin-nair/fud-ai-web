@@ -145,6 +145,10 @@ export async function apiSaveState(
   return result.version
 }
 
-export async function apiHealth(): Promise<{ ok: boolean; database: boolean }> {
+export async function apiHealth(): Promise<{ live: boolean; requestId: string; release: string }> {
   return apiFetch('/api/health')
+}
+
+export async function apiReady(): Promise<{ ready: boolean; requestId: string; release: string }> {
+  return apiFetch('/api/ready')
 }

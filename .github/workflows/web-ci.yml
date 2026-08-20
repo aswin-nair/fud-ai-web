@@ -44,10 +44,16 @@ jobs:
         env:
           CI: true
 
-      - name: Typecheck and build
+      - name: Typecheck and local build
         run: npm run build:local
         env:
           VITE_GOOGLE_CLIENT_ID: ''
+
+      - name: Cloud build
+        run: npm run build:cloud
+        env:
+          VITE_GOOGLE_CLIENT_ID: ''
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
 
   web-e2e:
     name: Web e2e smoke
@@ -67,6 +73,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Local production build
+        run: npm run build:local
+        env:
+          VITE_GOOGLE_CLIENT_ID: ''
 
       - name: Install Playwright browser
         run: npx playwright install chromium --with-deps
@@ -103,6 +114,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prove domain package is in the deploy context
+        run: npm run verify:deploy
+
       - name: Test API boundaries
         run: npm run test:api
         env:
@@ -110,6 +124,11 @@ jobs:
 
       - name: Typecheck API
         run: npm run typecheck:api
+
+      - name: Staging cloud lifecycle
+        run: npm run test:staging
+        env:
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
   mobile-unit:
     name: Mobile typecheck, unit, and migrations

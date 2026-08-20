@@ -55,8 +55,11 @@ git push -u origin main
 1. Go to [vercel.com/new](https://vercel.com/new)
 2. **Import** your GitHub repository
 3. Set **Root Directory** to `web`
-4. Framework: **Other** (Vercel reads `web/vercel.json`)
-5. Add **Environment Variables** (Production + Preview):
+4. Enable **Include source files outside of the Root Directory in the Build Step**.
+   The app depends on `packages/domain` at the repository root. The install
+   command fails if that package is missing.
+5. Framework: **Other** (Vercel reads `web/vercel.json`)
+6. Add **Environment Variables** (Production + Preview):
 
 | Variable | Value |
 |----------|--------|
@@ -64,9 +67,10 @@ git push -u origin main
 | `JWT_SECRET` | Random 32+ char string ([generate](https://1password.com/password-generator/)) |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth Web Client ID |
 | `GOOGLE_CLIENT_ID` | Same as above (for API token verification) |
-| `VITE_DATA_BACKEND` | `neon` |
+| `VITE_DATA_BACKEND` | `neon` (the Vercel build command already forces Neon; do not leave this blank for ad-hoc builds) |
+| `RELEASE_ID` | Optional. Vercel also provides `VERCEL_GIT_COMMIT_SHA`. |
 
-6. Click **Deploy**
+7. Click **Deploy**
 
 Your app will be live at:
 
@@ -100,10 +104,24 @@ In the Vercel dashboard you can link Neon directly:
 
 ```bash
 curl https://your-project.vercel.app/api/health
-# {"ok":true,"database":true,...}
+# {"live":true,"requestId":"...","release":"..."}
+
+curl https://your-project.vercel.app/api/ready
+# {"ready":true,"requestId":"...","release":"..."}  or HTTP 503 when Neon is unreachable
 ```
 
+`/api/health` only means the function ran. `/api/ready` is the database check.
+Neither response includes a connection string or provider error.
+
 Open `https://your-project.vercel.app/app/login`, sign up — data is stored in Neon.
+
+To exercise the full account lifecycle against a dedicated staging deploy:
+
+```bash
+STAGING_BASE_URL=https://your-staging.vercel.app npm run test:staging
+```
+
+Without that URL the command prints `STAGING NOT CERTIFIED` and does not report a pass.
 
 ---
 
@@ -112,6 +130,8 @@ Open `https://your-project.vercel.app/app/login`, sign up — data is stored in 
 | Mode | Command | Storage |
 |------|---------|---------|
 | **Local only** | `npm run dev` (from repo root) | Browser localStorage |
+| **Cloud / Neon client** | `npm run dev:cloud --prefix web/app` | Neon via `/api` |
+| **Release-candidate cloud build** | `RELEASE_ID=<sha> npm run build:release` | Neon; fails if the release id is missing |
 | **Full stack + Neon** | `cd web && vercel dev` | Neon via `/api` |
 
 For local-only, keep in `web/app/.env.local`:

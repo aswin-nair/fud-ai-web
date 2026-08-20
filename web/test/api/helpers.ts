@@ -9,6 +9,21 @@ export interface CapturedResponse {
   json: (body: unknown) => CapturedResponse
 }
 
+export function request(overrides: {
+  method?: string
+  headers?: Record<string, string>
+  body?: unknown
+  query?: Record<string, string>
+} = {}) {
+  return {
+    method: overrides.method ?? 'GET',
+    headers: overrides.headers ?? {},
+    body: overrides.body,
+    query: overrides.query,
+    socket: { remoteAddress: '203.0.113.1' },
+  }
+}
+
 export function response(): CapturedResponse {
   const headers = new Map<string, string>()
   return {
