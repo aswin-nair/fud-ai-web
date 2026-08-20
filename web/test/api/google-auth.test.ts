@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => {
   return {
     verifyGoogleToken: vi.fn(),
     upsert: vi.fn(),
+    findBySub: vi.fn(),
     issue: vi.fn(),
     rateIp: vi.fn(),
     rateAccount: vi.fn(),
@@ -24,6 +25,8 @@ vi.mock('google-auth-library', () => ({
 }))
 vi.mock('../../api/_lib/users.js', () => ({
   upsertGoogleUser: mocks.upsert,
+  findUserByExternalSub: mocks.findBySub,
+  countUsers: async () => 0,
   AccountProviderConflictError: mocks.AccountProviderConflictError,
 }))
 vi.mock('../../api/_lib/authenticate.js', () => ({ issueSession: mocks.issue }))
@@ -41,6 +44,7 @@ describe('Google account provider collisions', () => {
     vi.stubEnv('GOOGLE_CLIENT_ID', 'google-client-id')
     mocks.rateIp.mockResolvedValue(undefined)
     mocks.rateAccount.mockResolvedValue(undefined)
+    mocks.findBySub.mockResolvedValue(null)
     mocks.verifyGoogleToken.mockResolvedValue({
       getPayload: () => ({
         sub: 'google-subject',

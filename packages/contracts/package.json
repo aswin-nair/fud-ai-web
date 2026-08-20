@@ -13,7 +13,8 @@
     "./project": "./src/projectSnapshot.ts",
     "./progression": "./src/progression.ts",
     "./telemetry": "./src/telemetry.ts",
-    "./alerts": "./src/alerts.ts"
+    "./alerts": "./src/alerts.ts",
+    "./rollout": "./src/rollout.ts"
   },
   "types": "./src/index.ts"
 }

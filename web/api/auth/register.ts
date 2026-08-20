@@ -13,6 +13,7 @@ import { issueSession } from '../_lib/authenticate.js'
 import { MOBILE_AUTH_DISABLED_RESPONSE } from '../_lib/cloudControl.js'
 import { resolveSessionTransport } from '../_lib/mobileClient.js'
 import { validateEmail, validatePasswordInput } from '../_lib/password.js'
+import { EnrollmentDeniedError, assertNewAccountEnrollment } from '../_lib/enrollment.js'
 import { DuplicateAccountError, registerEmailUser } from '../_lib/users.js'
 import { enforceAuthRateLimit, RateLimitExceeded } from '../_lib/rateLimit.js'
 
@@ -37,6 +38,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     const passErr = validatePasswordInput(password, true)
     if (passErr) return badRequest(res, passErr)
 
+    await assertNewAccountEnrollment(email)
     const user = await registerEmailUser(name, email, password)
     const session = await issueSession(user, req, res, transport)
     json(res, 201, session)
@@ -48,6 +50,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       res.setHeader('Retry-After', String(err.retryAfterSeconds))
       return json(res, 429, { error: 'Too many requests. Try again later.' })
     }
+    if (err instanceof EnrollmentDeniedError) return json(res, err.status, err.body)
     if (err instanceof InvalidJsonError) return badRequest(res, 'Invalid JSON body')
     serverError(res, err)
   }

@@ -75,6 +75,12 @@ git push -u origin main
 | `ENABLE_ENTITY_PROJECTION` | Leave unset. Snapshot writes stay authoritative. |
 | `ENABLE_LOCAL_MIGRATION` | Leave unset. First cloud beta is new accounts only. |
 | `ENABLE_MOBILE_AUTH` | Leave unset. Mobile refresh tokens stay out of JSON. |
+| `ENABLE_CLOUD_WRITES` | Leave unset or `true`. Set `false` to stop state writes and account deletion. |
+| `ENABLE_ACCOUNT_CREATION` | Leave unset or `true`. Set `false` to stop new-account enrollment. |
+| `BETA_COHORT` | Leave unset until a named owner starts dogfood. Values: `internal`, `invite`, `public-5`, `public-25`, `public-50`, `public-100`. |
+| `BETA_INVITE_HASHES` | Required for `internal` and `invite`. Comma-separated SHA-256 hashes. Never store plaintext invites. |
+| `BETA_INVITE_PEPPER` | Optional pepper for invite hashes. |
+| `BETA_COHORT_CAP` | Optional count-only cap. Defaults to 30 for internal and 150 for invite. |
 
 7. Click **Deploy**
 

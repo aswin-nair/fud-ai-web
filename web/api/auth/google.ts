@@ -14,7 +14,8 @@ import {
 import { issueSession } from '../_lib/authenticate.js'
 import { MOBILE_AUTH_DISABLED_RESPONSE } from '../_lib/cloudControl.js'
 import { resolveSessionTransport } from '../_lib/mobileClient.js'
-import { AccountProviderConflictError, upsertGoogleUser } from '../_lib/users.js'
+import { EnrollmentDeniedError, assertNewAccountEnrollment } from '../_lib/enrollment.js'
+import { AccountProviderConflictError, findUserByExternalSub, upsertGoogleUser } from '../_lib/users.js'
 import {
   enforceAuthAccountRateLimit,
   enforceAuthRateLimit,
@@ -51,6 +52,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     }
     await enforceAuthAccountRateLimit('google', payload.email)
 
+    const existing = await findUserByExternalSub(payload.sub)
+    if (!existing) await assertNewAccountEnrollment(payload.email)
+
     const user = await upsertGoogleUser({
       googleSub: payload.sub,
       email: payload.email,
@@ -64,6 +68,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       res.setHeader('Retry-After', String(err.retryAfterSeconds))
       return json(res, 429, { error: 'Too many requests. Try again later.' })
     }
+    if (err instanceof EnrollmentDeniedError) return json(res, err.status, err.body)
     if (err instanceof InvalidJsonError) return badRequest(res, 'Invalid JSON body')
     if (err instanceof AccountProviderConflictError) {
       return json(res, 409, { error: 'An account already exists with a different sign-in method.' })

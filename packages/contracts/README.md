@@ -14,6 +14,8 @@ replace snapshot sync.
   is enabled. The first cloud beta is new accounts only.
 - Telemetry envelopes are allowlisted. A remote sink stays fail-closed
   until privacy review records a provider, region, and retention period.
+- Rollout cohorts, thresholds, and stop-the-line halt rules live here.
+  The package does not start dogfood or assign a public cohort.
 
 `web/shared/appStateContract.ts` remains the snapshot allowlist used by
 the live `PUT /api/state` path.

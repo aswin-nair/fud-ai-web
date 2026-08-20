@@ -58,6 +58,12 @@ an incident. Those operations return a stable `503`; authenticated state reads
 and logout/session revocation remain available for recovery. Unset the variable
 or set it to `true` during normal operation.
 
+Set `ENABLE_ACCOUNT_CREATION=false` to stop new email and Google accounts.
+Existing Google sessions can still sign in. Internal and invite cohorts also
+require `BETA_COHORT` plus `BETA_INVITE_HASHES`. The API compares SHA-256
+invite hashes only and never echoes the address. Leave `BETA_COHORT` unset
+until a named owner starts dogfood. This repository does not start dogfood.
+
 Google sign-in requires Google's verified-email claim and never links accounts
 by email address alone. A same-address email/Google collision returns `409`.
 Account linking remains disabled until an explicit flow can prove control of

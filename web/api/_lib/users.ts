@@ -64,6 +64,14 @@ export async function findUserById(id: string): Promise<DbUser | null> {
   return rows[0] ?? null
 }
 
+export async function countUsers(): Promise<number> {
+  const sql = getDb()
+  const rows = asRows<{ n: string | number | bigint }>(await sql`SELECT COUNT(*)::bigint AS n FROM users`)
+  const count = Number(rows[0]?.n)
+  if (!Number.isSafeInteger(count) || count < 0) throw new Error('Invalid user count')
+  return count
+}
+
 export async function findUserByExternalSub(externalSub: string): Promise<DbUser | null> {
   const sql = getDb()
   const rows = asRows<DbUser>(

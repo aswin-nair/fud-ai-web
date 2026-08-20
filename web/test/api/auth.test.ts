@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => {
 vi.mock('../../api/_lib/users.js', () => ({
   loginEmailUser: mocks.login,
   registerEmailUser: mocks.register,
+  countUsers: async () => 0,
   InvalidCredentialsError: mocks.InvalidCredentialsError,
   DuplicateAccountError: mocks.DuplicateAccountError,
 }))
