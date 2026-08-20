@@ -178,7 +178,7 @@ struct VoiceInputView: View {
         } else {
             if AIAccessSettings.isUsingFudAIPremium {
                 guard AIAccessSettings.hasActivePremiumEntitlement else {
-                    permissionError = "Fud AI Premium is not active. Subscribe or switch back to Bring Your Own Key in Settings."
+                    permissionError = AIAccessSettings.managedAIUnavailableMessage
                     return
                 }
             } else if SpeechSettings.apiKey(for: provider) == nil {

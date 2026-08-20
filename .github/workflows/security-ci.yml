@@ -27,6 +27,7 @@ jobs:
           node-version: '22'
       - run: node scripts/security-scan.mjs
       - run: node --test scripts/security-scan.test.mjs
+      - run: node --test scripts/copy-policy.test.mjs
       - run: node scripts/release-readiness.mjs --structure-only
       - run: node scripts/support-resource-check.mjs
 

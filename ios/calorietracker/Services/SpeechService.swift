@@ -25,7 +25,7 @@ struct SpeechService {
             case .invalidResponse:
                 return "Unexpected response from the speech provider."
             case .subscriptionRequired:
-                return "Fud AI Premium is not active. Subscribe or switch back to Bring Your Own Key in Settings."
+                return AIAccessSettings.managedAIUnavailableMessage
             }
         }
     }

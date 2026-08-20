@@ -47,6 +47,7 @@ jobs:
       - name: Repository policy checks
         run: |
           npm run security:scan
+          npm run copy-policy
           npm run release:check:structure
           npm run support:check
 
