@@ -28,7 +28,9 @@ jobs:
       - run: node scripts/security-scan.mjs
       - run: node --test scripts/security-scan.test.mjs
       - run: node --test scripts/copy-policy.test.mjs
+      - run: node --test scripts/release-readiness.test.mjs scripts/release-bundle.test.mjs
       - run: node scripts/release-readiness.mjs --structure-only
+      - run: node scripts/release-bundle.mjs
       - run: node scripts/support-resource-check.mjs
 
   dependency-review:

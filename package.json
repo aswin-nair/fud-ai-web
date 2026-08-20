@@ -21,9 +21,11 @@
     "security:scan:test": "node --test scripts/security-scan.test.mjs",
     "release:check": "node scripts/release-readiness.mjs",
     "release:check:structure": "node scripts/release-readiness.mjs --structure-only",
+    "release:bundle": "node scripts/release-bundle.mjs",
+    "release:check:test": "node --test scripts/release-readiness.test.mjs scripts/release-bundle.test.mjs",
     "support:check": "node scripts/support-resource-check.mjs",
     "copy-policy": "node --test scripts/copy-policy.test.mjs",
     "test:e2e": "npm run test:e2e --prefix web/app",
-    "ci": "npm run security:scan:test && npm run security:scan && npm run copy-policy && npm run release:check:structure && npm run support:check && npm run verify:deploy && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run test:staging && npm run typecheck:mobile && npm run test:mobile"
+    "ci": "npm run security:scan:test && npm run security:scan && npm run copy-policy && npm run release:check:test && npm run release:check:structure && npm run release:bundle && npm run support:check && npm run verify:deploy && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run test:staging && npm run typecheck:mobile && npm run test:mobile"
   }
 }

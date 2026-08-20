@@ -16,7 +16,9 @@ by files alone.
   use separate development/staging/production values and rotate on ownership
   changes or exposure.
 - Require signed/tagged release candidates and retain build artifacts, test
-  reports, schema version, release notes, and evidence ledger.
+  reports, schema version, release notes, and evidence ledger. The repo
+  writes those into `release-artifacts/` during `npm run release:bundle`;
+  hosted retention of that upload is still an operator setting.
 
 Record screenshots or exported settings, repository URL, reviewer, and date in
 the operations release evidence. Recheck quarterly and after ownership changes.

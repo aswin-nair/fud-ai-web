@@ -15,6 +15,9 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     plugins: [react()],
+    build: {
+      sourcemap: process.env.VITE_SOURCEMAP === 'true' ? 'hidden' : false,
+    },
     // Dev: http://localhost:5173/  |  Production build + preview: /app/
     base: mode === 'production' ? '/app/' : '/',
     resolve: {

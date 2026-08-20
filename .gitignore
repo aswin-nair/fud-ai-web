@@ -31,3 +31,7 @@ ios/build-sim/
 # Local verification screenshots (kept on disk, not release evidence)
 web/app/p[0-9]*.png
 web/app/probe.png
+
+# Generated release bundles (never commit user data or sourcemap bodies)
+release-artifacts/
+mobile/dist-export/

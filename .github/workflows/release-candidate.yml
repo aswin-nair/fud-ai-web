@@ -48,6 +48,7 @@ jobs:
         run: |
           npm run security:scan
           npm run copy-policy
+          npm run release:check:test
           npm run release:check:structure
           npm run support:check
 
@@ -56,7 +57,7 @@ jobs:
         env:
           CI: true
 
-      - name: Type, lint, and production build
+      - name: Type, lint, and local production build
         run: |
           npm run typecheck:api
           npm run typecheck:mobile
@@ -66,7 +67,7 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ''
 
-      - name: Browser and production-path tests
+      - name: Local browser suite
         run: npm run test:e2e
         env:
           CI: true
@@ -78,21 +79,41 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ''
           RELEASE_ID: ${{ github.sha }}
 
-      - name: Staging cloud lifecycle
+      - name: Hosted cloud integration suite
         run: npm run test:staging
         env:
           STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
 
+      - name: Mobile export check
+        run: npm run export:check --prefix mobile
+        env:
+          EXPO_EXPORT: ${{ secrets.EXPO_EXPORT }}
+
+      - name: Collect release bundle
+        if: always()
+        run: npm run release:bundle
+        env:
+          RELEASE_CANDIDATE: ${{ inputs.candidate }}
+          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_BUNDLE_DIR: release-artifacts
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          EXPO_EXPORT: ${{ secrets.EXPO_EXPORT }}
+
+      - name: Upload release artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-${{ inputs.candidate }}
+          path: |
+            release-artifacts/
+            web/app/playwright-report/
+            web/app/dist/release-info.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Evidence gate
+        if: always()
         run: npm run release:check
         env:
           RELEASE_CANDIDATE: ${{ inputs.candidate }}
           RELEASE_COMMIT: ${{ github.sha }}
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-candidate-playwright-${{ inputs.candidate }}
-          path: web/app/playwright-report/
-          retention-days: 30

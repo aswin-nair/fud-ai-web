@@ -35,6 +35,7 @@ const env = {
   ...process.env,
   VITE_DATA_BACKEND: backend,
   VITE_RELEASE_ID: release || 'unassigned',
+  VITE_SOURCEMAP: isRelease ? 'true' : (process.env.VITE_SOURCEMAP ?? ''),
 }
 
 function run(modulePath, commandArgs) {
