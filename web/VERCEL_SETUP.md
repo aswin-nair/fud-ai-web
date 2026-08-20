@@ -110,5 +110,6 @@ npx vercel deploy --prod
 | Sign-up fails / 503 | `DATABASE_URL` or `JWT_SECRET` missing → add env vars → **Redeploy** |
 | Google sign-in blocked | Add Vercel URL to Google **Authorized JavaScript origins** |
 | Data not syncing | `VITE_DATA_BACKEND` must be `neon` (rebuild required after change) |
+| Deploy fails after a green build | Hobby allows 12 serverless files under `api/` outside `_` folders. Keep auth behind `api/auth.ts`. |
 
 After changing any env var in Vercel, go to **Deployments → ⋯ → Redeploy**.

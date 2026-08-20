@@ -24,7 +24,7 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
 }))
 
 import accountHandler from '../../api/account.js'
-import logoutAllHandler from '../../api/auth/logout-all.js'
+import logoutAllHandler from '../../api/_auth/logout-all.js'
 
 const USER_A = '00000000-0000-4000-8000-000000000001'
 const USER_B = '00000000-0000-4000-8000-000000000002'

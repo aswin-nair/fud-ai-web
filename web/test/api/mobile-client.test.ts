@@ -37,8 +37,8 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
 
-import loginHandler from '../../api/auth/login.js'
-import refreshHandler from '../../api/auth/refresh.js'
+import loginHandler from '../../api/_auth/login.js'
+import refreshHandler from '../../api/_auth/refresh.js'
 
 const USER = {
   sub: '00000000-0000-4000-8000-000000000001',

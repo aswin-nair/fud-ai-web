@@ -43,8 +43,8 @@ vi.mock('google-auth-library', () => ({
   },
 }))
 
-import registerHandler from '../../api/auth/register.js'
-import googleHandler from '../../api/auth/google.js'
+import registerHandler from '../../api/_auth/register.js'
+import googleHandler from '../../api/_auth/google.js'
 
 function inviteHash(email: string, pepper = '') {
   return createHash('sha256').update(`${pepper}\n${email}`).digest('hex')

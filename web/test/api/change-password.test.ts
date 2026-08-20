@@ -39,7 +39,7 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
 
-import changeHandler from '../../api/auth/change-password.js'
+import changeHandler from '../../api/_auth/change-password.js'
 
 const USER = {
   sub: '00000000-0000-4000-8000-000000000001',

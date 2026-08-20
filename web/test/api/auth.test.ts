@@ -31,8 +31,8 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
 
-import loginHandler from '../../api/auth/login.js'
-import registerHandler from '../../api/auth/register.js'
+import loginHandler from '../../api/_auth/login.js'
+import registerHandler from '../../api/_auth/register.js'
 
 describe('authentication boundary hardening', () => {
   beforeEach(() => {

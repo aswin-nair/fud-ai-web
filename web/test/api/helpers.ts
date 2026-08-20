@@ -14,12 +14,14 @@ export function request(overrides: {
   headers?: Record<string, string>
   body?: unknown
   query?: Record<string, string>
+  url?: string
 } = {}) {
   return {
     method: overrides.method ?? 'GET',
     headers: overrides.headers ?? {},
     body: overrides.body,
     query: overrides.query,
+    url: overrides.url,
     socket: { remoteAddress: '203.0.113.1' },
   }
 }

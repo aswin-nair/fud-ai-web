@@ -16,6 +16,11 @@ Retain the audit's two aggregate counts as release evidence. Both must be
 zero; the command exits `1` if any `apiKey` path remains and never prints
 state values, account data, or the database URL.
 
+Auth handlers live under `api/_auth/` and are reached through one
+`api/auth.ts` function. Public URLs stay `/api/auth/<action>`. Vercel Hobby
+rejects a deployment after a green build once more than 12 serverless
+files sit under `api/` outside `_` folders.
+
 ## Session and state guarantees
 
 - Access JWTs last 15 minutes, carry `use: access`, and identify a database

@@ -20,7 +20,7 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
 
-import resetHandler from '../../api/auth/reset-password.js'
+import resetHandler from '../../api/_auth/reset-password.js'
 
 describe('reset-password', () => {
   const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined)

@@ -32,7 +32,7 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
 
-import forgotHandler from '../../api/auth/forgot-password.js'
+import forgotHandler from '../../api/_auth/forgot-password.js'
 
 describe('forgot-password non-enumeration', () => {
   const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined)

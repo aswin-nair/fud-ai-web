@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ALERT_CATALOG, evaluateAlertRules } from '@fud-ai/contracts'
 import { request, response } from './helpers.js'
 import healthHandler from '../../api/health.js'
-import loginHandler from '../../api/auth/login.js'
+import loginHandler from '../../api/_auth/login.js'
 
 describe('API request telemetry', () => {
   it('logs an allowlisted health request without secrets', async () => {

@@ -36,7 +36,7 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
 
-import googleHandler from '../../api/auth/google.js'
+import googleHandler from '../../api/_auth/google.js'
 
 describe('Google account provider collisions', () => {
   beforeEach(() => {

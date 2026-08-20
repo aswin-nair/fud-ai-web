@@ -4,7 +4,7 @@
   "installCommand": "node scripts/install-with-domain.mjs",
   "outputDirectory": "app/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/auth/:action", "destination": "/api/auth?action=:action" },
     { "source": "/app/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
