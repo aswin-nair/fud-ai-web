@@ -1,7 +1,7 @@
 # Local data migration map v1
 
-- Status: Design baseline; not implemented
-- Last reviewed: 2026-08-17
+- Status: Contract v1 landed; snapshot still authoritative; local upload fail-closed
+- Last reviewed: 2026-08-20
 - Source inventory: `docs/data/local-data-inventory.md`
 
 ## Goal

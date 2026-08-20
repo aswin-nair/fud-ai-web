@@ -72,6 +72,8 @@ git push -u origin main
 | `APP_ORIGIN` | Fixed HTTPS origin used in password-reset links. Never taken from the request Host header. |
 | `MAIL_FROM` | Verified Resend from-address. Leave unset to keep recovery silent. |
 | `RESEND_API_KEY` | Resend API key. Leave unset to keep recovery silent. |
+| `ENABLE_ENTITY_PROJECTION` | Leave unset. Snapshot writes stay authoritative. |
+| `ENABLE_LOCAL_MIGRATION` | Leave unset. First cloud beta is new accounts only. |
 
 7. Click **Deploy**
 

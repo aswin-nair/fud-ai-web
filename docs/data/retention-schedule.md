@@ -17,6 +17,9 @@ public disclosure, an access owner, and an enforced deletion job.
 | Device-local BYOK key | Until replacement, explicit data reset, account deletion, or browser-site-data removal | Never uploaded, exported, logged, or included in analytics | Implemented; release audit must show zero cloud matches |
 | Auth session records | Active for at most 30 days | Revoked/expired records retained no more than 30 additional days for security operations, then purged | Cleanup command implemented; scheduler evidence pending |
 | State mutation/idempotency ledger | 90 days | Purged after 90 days; account deletion cascades immediately | Cleanup command implemented; scheduler evidence pending |
+| Entity rows, tombstones, and device cursors | Until replacement, tombstone, or account deletion | Cascade on account deletion; live product still uses snapshots | Schema implemented; projection disabled |
+| Entity mutation/idempotency ledger | 90 days | Purged after 90 days; account deletion cascades immediately | Cleanup command implemented; scheduler evidence pending |
+| Migration ledger (`migration_attempts`) | Counts and checksums only | Terminal stages purged after 90 days; no food text or chat | Cleanup command implemented; upload disabled |
 | Password reset token hash | Valid for 30 minutes | Plain token is never stored; consumed/expired hashes retained no more than 7 days, then purged | Primitive and cleanup implemented; email delivery endpoint disabled |
 | Rate-limit bucket hashes | Up to 24 hours after last activity | HMAC-derived keys only; purged after 24 hours idle | Cleanup command implemented; scheduler evidence pending |
 | Food, weight, exercise, favorites, and Coach messages | Part of device/cloud application state until user deletion | Replaced by later snapshots or deleted with the account/data reset | Implemented; backups may persist until backup expiry |

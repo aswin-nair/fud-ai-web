@@ -1,0 +1,17 @@
+{
+  "name": "@fud-ai/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./calendar": "./src/calendarContext.ts",
+    "./entities": "./src/entities.ts",
+    "./mutations": "./src/mutations.ts",
+    "./migration": "./src/migration.ts",
+    "./checksum": "./src/checksum.ts",
+    "./project": "./src/projectSnapshot.ts",
+    "./progression": "./src/progression.ts"
+  },
+  "types": "./src/index.ts"
+}

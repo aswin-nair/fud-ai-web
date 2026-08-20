@@ -127,14 +127,16 @@ The Expo schema currently has no weight-history, exercise, coach-chat, ingredien
 ## Current server destination
 
 `web/db/schema.sql` contains `users`, versioned `user_states`, `auth_sessions`,
-`state_mutations`, `password_reset_tokens`, and privacy-keyed
-`rate_limit_buckets`. State writes use a per-user advisory transaction lock,
-optimistic base version, canonical request hash, and per-user UUID mutation
-ledger. Account deletion cascades across user-owned rows. `user_states.state`
-remains a full JSONB snapshot; this is not field-level merge or per-record
-tombstone synchronization. Password-reset mail stays fail-closed until
-`APP_ORIGIN`, `MAIL_FROM`, and `RESEND_API_KEY` are set. Retention periods
-and cleanup status are recorded in `retention-schedule.md`.
+`state_mutations`, `password_reset_tokens`, privacy-keyed `rate_limit_buckets`,
+and additive `account_entities`, `entity_tombstones`, `device_cursors`,
+`entity_mutations`, and `migration_attempts`. State writes still use a
+per-user advisory transaction lock, optimistic base version, canonical
+request hash, and per-user UUID mutation ledger. Account deletion cascades
+across user-owned rows. `user_states.state` remains the live JSONB snapshot.
+Entity tables are empty unless projection is explicitly enabled. Password-reset
+mail stays fail-closed until `APP_ORIGIN`, `MAIL_FROM`, and `RESEND_API_KEY`
+are set. Local-to-cloud upload stays fail-closed. Retention periods and
+cleanup status are recorded in `retention-schedule.md`.
 
 ## Review triggers
 

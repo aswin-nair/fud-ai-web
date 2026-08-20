@@ -4,32 +4,44 @@ import { fileURLToPath } from 'node:url'
 
 const defaultWebRoot = dirname(dirname(fileURLToPath(import.meta.url)))
 
-export function resolveDomainPackage(webRoot = defaultWebRoot) {
+function resolveWorkspacePackage(webRoot, folder, name) {
   const candidates = [
-    resolve(webRoot, '../packages/domain'),
-    resolve(webRoot, '../../packages/domain'),
+    resolve(webRoot, `../packages/${folder}`),
+    resolve(webRoot, `../../packages/${folder}`),
   ]
-  for (const domainRoot of candidates) {
-    const pkgPath = resolve(domainRoot, 'package.json')
+  for (const packageRoot of candidates) {
+    const pkgPath = resolve(packageRoot, 'package.json')
     if (!existsSync(pkgPath)) continue
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
-    if (pkg.name !== '@fud-ai/domain') {
-      throw new Error(`${pkgPath} does not identify as @fud-ai/domain`)
+    if (pkg.name !== name) {
+      throw new Error(`${pkgPath} does not identify as ${name}`)
     }
-    return { domainRoot, version: pkg.version }
+    return { packageRoot, version: pkg.version, name }
   }
   throw new Error(
-    'packages/domain is not available in this deployment context. '
+    `packages/${folder} is not available in this deployment context. `
     + 'Keep the Vercel Root Directory at web and enable '
     + '"Include source files outside of the Root Directory in the Build Step", '
     + 'or move the Vercel project root to the repository root.',
   )
 }
 
+export function resolveDomainPackage(webRoot = defaultWebRoot) {
+  const resolved = resolveWorkspacePackage(webRoot, 'domain', '@fud-ai/domain')
+  return { domainRoot: resolved.packageRoot, version: resolved.version }
+}
+
+export function resolveContractsPackage(webRoot = defaultWebRoot) {
+  const resolved = resolveWorkspacePackage(webRoot, 'contracts', '@fud-ai/contracts')
+  return { contractsRoot: resolved.packageRoot, version: resolved.version }
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   try {
-    const resolved = resolveDomainPackage()
-    console.log(`Deploy context resolved @fud-ai/domain@${resolved.version} from ${resolved.domainRoot}`)
+    const domain = resolveDomainPackage()
+    const contracts = resolveContractsPackage()
+    console.log(`Deploy context resolved @fud-ai/domain@${domain.version} from ${domain.domainRoot}`)
+    console.log(`Deploy context resolved @fud-ai/contracts@${contracts.version} from ${contracts.contractsRoot}`)
   } catch (error) {
     console.error(error instanceof Error ? error.message : error)
     process.exit(1)

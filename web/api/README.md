@@ -6,6 +6,7 @@ deployments can apply only the additive migration with:
 ```powershell
 npm.cmd run db:migrate:security
 npm.cmd run db:migrate:refresh
+npm.cmd run db:migrate:entities
 npm.cmd run db:audit-byok
 ```
 
@@ -29,12 +30,20 @@ state values, account data, or the database URL.
 - `POST /api/auth/logout-all` revokes every session and clears the cookie.
 - Password change and account deletion revoke every session.
 - `DELETE /api/account` requires `{ "confirmation": "DELETE" }` and deletes the
-  user. Foreign-key cascades remove state, sessions, mutation history, and reset
-  tokens in the same PostgreSQL transaction.
-- `PUT /api/state` requires `{ state, baseVersion, mutationId }`. `mutationId`
-  is a canonical UUID retained across ambiguous retries. Replaying the same
-  request returns its original version; reusing the ID for another payload or
-  base version returns `409`.
+  user. Foreign-key cascades remove state, sessions, mutation history, reset
+  tokens, entity rows, tombstones, device cursors, and migration ledger rows
+  in the same PostgreSQL transaction.
+- `PUT /api/state` remains the live write path. It requires
+  `{ state, baseVersion, mutationId }`. `mutationId` is a canonical UUID
+  retained across ambiguous retries. Replaying the same request returns its
+  original version; reusing the ID for another payload or base version
+  returns `409`.
+- Versioned entity contracts live in `@fud-ai/contracts`. Additive tables
+  store calendar-stable records, tombstones, device cursors, and a
+  count-only migration ledger. `ENABLE_ENTITY_PROJECTION` and
+  `ENABLE_LOCAL_MIGRATION` stay off. `POST /api/migrations` returns `503`
+  until an approved, consented workflow is enabled. The first cloud beta
+  is new accounts only.
 
 Rate-limit bucket keys are HMACs, so raw IPs and email addresses are not stored.
 Vercel's spoof-resistant `x-forwarded-for` is trusted only on Vercel; other

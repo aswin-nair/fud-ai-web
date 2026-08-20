@@ -14,7 +14,9 @@ const target = process.argv[2] === 'security'
   ? '../db/migrations/20260820_account_security.sql'
   : process.argv[2] === 'refresh'
     ? '../db/migrations/20260820_refresh_sessions.sql'
-    : '../db/schema.sql'
+    : process.argv[2] === 'entities'
+      ? '../db/migrations/20260820_entity_contracts.sql'
+      : '../db/schema.sql'
 const schema = readFileSync(join(root, target), 'utf8')
 const pool = new Pool({ connectionString: url })
 

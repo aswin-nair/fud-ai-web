@@ -7,6 +7,7 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:security": "node scripts/migrate.mjs security",
     "db:migrate:refresh": "node scripts/migrate.mjs refresh",
+    "db:migrate:entities": "node scripts/migrate.mjs entities",
     "db:audit-byok": "node scripts/audit-byok.mjs",
     "db:retention-cleanup": "node scripts/retention-cleanup.mjs",
     "test:api": "vitest run --config test/api/vitest.config.ts",
@@ -15,6 +16,8 @@
     "typecheck:api": "tsc -p api/tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@fud-ai/contracts": "file:../packages/contracts",
+    "@fud-ai/domain": "file:../packages/domain",
     "@neondatabase/serverless": "^1.0.2",
     "@vercel/node": "^5.3.21",
     "google-auth-library": "^10.5.0",

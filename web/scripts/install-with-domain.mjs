@@ -2,11 +2,13 @@ import { spawnSync } from 'node:child_process'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { resolveDomainPackage } from './verify-deploy-context.mjs'
+import { resolveContractsPackage, resolveDomainPackage } from './verify-deploy-context.mjs'
 
 const webRoot = dirname(dirname(fileURLToPath(import.meta.url)))
-const resolved = resolveDomainPackage(webRoot)
-console.log(`Including @fud-ai/domain@${resolved.version} from ${resolved.domainRoot}`)
+const domain = resolveDomainPackage(webRoot)
+const contracts = resolveContractsPackage(webRoot)
+console.log(`Including @fud-ai/domain@${domain.version} from ${domain.domainRoot}`)
+console.log(`Including @fud-ai/contracts@${contracts.version} from ${contracts.contractsRoot}`)
 
 function runNpm(args) {
   const npmCli = process.platform === 'win32' ? 'npm.cmd' : 'npm'

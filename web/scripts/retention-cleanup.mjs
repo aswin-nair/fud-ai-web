@@ -26,19 +26,36 @@ if (!url) {
         DELETE FROM rate_limit_buckets
         WHERE updated_at < NOW() - INTERVAL '24 hours'
         RETURNING 1
+      ), removed_entity_mutations AS (
+        DELETE FROM entity_mutations
+        WHERE created_at < NOW() - INTERVAL '90 days'
+        RETURNING 1
+      ), removed_migrations AS (
+        DELETE FROM migration_attempts
+        WHERE stage IN ('confirmed', 'rolled_back', 'failed')
+          AND last_attempt_at < NOW() - INTERVAL '90 days'
+        RETURNING 1
       )
       SELECT
         (SELECT COUNT(*)::bigint FROM removed_sessions) AS sessions,
         (SELECT COUNT(*)::bigint FROM removed_mutations) AS mutations,
         (SELECT COUNT(*)::bigint FROM removed_resets) AS reset_tokens,
-        (SELECT COUNT(*)::bigint FROM removed_rate_buckets) AS rate_buckets
+        (SELECT COUNT(*)::bigint FROM removed_rate_buckets) AS rate_buckets,
+        (SELECT COUNT(*)::bigint FROM removed_entity_mutations) AS entity_mutations,
+        (SELECT COUNT(*)::bigint FROM removed_migrations) AS migrations
     `
     const counts = rows[0]
-    const values = ['sessions', 'mutations', 'reset_tokens', 'rate_buckets']
-      .map(field => Number(counts?.[field]))
+    const values = [
+      'sessions',
+      'mutations',
+      'reset_tokens',
+      'rate_buckets',
+      'entity_mutations',
+      'migrations',
+    ].map(field => Number(counts?.[field]))
     if (!values.every(Number.isSafeInteger)) throw new Error('Invalid cleanup count')
     console.log(
-      `Retention cleanup counts: sessions=${values[0]} mutations=${values[1]} reset_tokens=${values[2]} rate_buckets=${values[3]}`,
+      `Retention cleanup counts: sessions=${values[0]} mutations=${values[1]} reset_tokens=${values[2]} rate_buckets=${values[3]} entity_mutations=${values[4]} migrations=${values[5]}`,
     )
   } catch {
     // Provider errors may contain connection material. Keep operator output
