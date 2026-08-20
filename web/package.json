@@ -10,6 +10,7 @@
     "db:migrate:entities": "node scripts/migrate.mjs entities",
     "db:audit-byok": "node scripts/audit-byok.mjs",
     "db:retention-cleanup": "node scripts/retention-cleanup.mjs",
+    "db:retention-rehearsal": "node scripts/retention-rehearsal.mjs",
     "test:api": "vitest run --config test/api/vitest.config.ts",
     "test:staging": "node scripts/staging-lifecycle.mjs",
     "verify:deploy": "node scripts/verify-deploy-context.mjs",

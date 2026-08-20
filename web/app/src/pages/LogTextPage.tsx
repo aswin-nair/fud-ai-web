@@ -5,7 +5,7 @@ import { analyzeTextFood } from '../lib/foodAI'
 import { providerLabel } from '../lib/aiConfig'
 import { BackLink } from '../components/BackLink'
 import { track } from '../lib/analytics'
-import { clearLogDraft, loadLogDrafts, saveTextLogDraft } from '../lib/logDrafts'
+import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveTextLogDraft } from '../lib/logDrafts'
 import { useAuth } from '../store/AuthContext'
 
 const EXAMPLES = [
@@ -24,6 +24,16 @@ export function LogTextPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const requestRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void hydrateLogDrafts(userId).then(drafts => {
+      if (!cancelled && drafts.text?.text) setText(current => current || drafts.text!.text)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
 
   useEffect(() => {
     saveTextLogDraft(userId, text)

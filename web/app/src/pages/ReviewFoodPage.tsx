@@ -5,7 +5,7 @@ import { BackLink } from '../components/BackLink'
 import { IconMinus, IconPlus } from '../components/icons'
 import type { FoodAnalysis, FoodSource, MealType } from '../types'
 import { MEAL_LABELS } from '../types'
-import { clearLogDraft, loadLogDrafts, saveReviewLogDraft, type ReviewNumericField } from '../lib/logDrafts'
+import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveReviewLogDraft, type ReviewNumericField } from '../lib/logDrafts'
 import { reviewFoodIssue } from '../lib/foodEntryValidation'
 import { useAuth } from '../store/AuthContext'
 import { sourceToMethod, track } from '../lib/analytics'
@@ -46,6 +46,26 @@ export function ReviewFoodPage() {
   const baseRef = useRef<FoodAnalysis | null>(pendingAnalysis ?? saved?.baseAnalysis ?? null)
   const reviewTracked = useRef(false)
   const correctionTracked = useRef(false)
+
+  useEffect(() => {
+    if (pendingAnalysis) return
+    let cancelled = false
+    void hydrateLogDrafts(userId).then(drafts => {
+      const review = drafts.review
+      if (cancelled || !review) return
+      setAnalysis(current => {
+        if (current) return current
+        setMealType(review.mealType)
+        setServings(review.servings)
+        setEmptyNumericFields(new Set(review.emptyNumericFields))
+        if (!baseRef.current) baseRef.current = review.baseAnalysis
+        return review.analysis
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [pendingAnalysis, userId])
 
   useEffect(() => {
     if (!analysis) navigate('/log', { replace: true })

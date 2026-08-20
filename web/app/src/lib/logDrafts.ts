@@ -3,6 +3,13 @@ import type { FoodAnalysis, FoodSource, MealType } from '../types'
 const VERSION = 1 as const
 const KEY_PREFIX = 'fud-log-drafts-v1-'
 const RECOVERY_PREFIX = 'fud-log-drafts-recovery-v1-'
+const DATABASE_NAME = 'fud-ai-web-drafts'
+const DATABASE_VERSION = 1
+const DRAFT_STORE = 'drafts'
+
+export const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000
+export const RECOVERY_TTL_MS = 7 * 24 * 60 * 60 * 1000
+export const DRAFT_DATABASE_NAME = DATABASE_NAME
 
 const MEAL_TYPES = new Set<MealType>(['breakfast', 'lunch', 'dinner', 'snack', 'other'])
 const FOOD_SOURCES = new Set<FoodSource>(['textInput', 'manual', 'snapFood', 'quickAdd', 'recent'])
@@ -37,6 +44,21 @@ export interface LogDraftEnvelope {
   manual?: ManualLogDraft
   review?: ReviewLogDraft
 }
+
+interface RecoveryBlob {
+  raw: string
+  quarantinedAt: string
+}
+
+interface StoredDrafts {
+  userId: string
+  envelope: LogDraftEnvelope
+  recovery?: RecoveryBlob
+}
+
+const memory = new Map<string, LogDraftEnvelope>()
+let databasePromise: Promise<IDBDatabase | null> | null = null
+let writeQueue: Promise<void> = Promise.resolve()
 
 function storageKey(userId: string): string {
   return `${KEY_PREFIX}${encodeURIComponent(userId)}`
@@ -147,21 +169,148 @@ function emptyEnvelope(): LogDraftEnvelope {
   return { version: VERSION }
 }
 
-export function loadLogDrafts(userId: string): LogDraftEnvelope {
-  if (!userId) return emptyEnvelope()
-  const key = storageKey(userId)
+function isEmptyEnvelope(envelope: LogDraftEnvelope): boolean {
+  return !envelope.text && !envelope.manual && !envelope.review
+}
+
+export function isTimestampExpired(value: string, now: number, ttlMs: number): boolean {
+  const timestamp = Date.parse(value)
+  return !Number.isFinite(timestamp) || now - timestamp >= ttlMs
+}
+
+export function expireEnvelope(envelope: LogDraftEnvelope, now = Date.now()): LogDraftEnvelope {
+  const next: LogDraftEnvelope = { version: VERSION }
+  if (envelope.text && !isTimestampExpired(envelope.text.updatedAt, now, DRAFT_TTL_MS)) {
+    next.text = envelope.text
+  }
+  if (envelope.manual && !isTimestampExpired(envelope.manual.updatedAt, now, DRAFT_TTL_MS)) {
+    next.manual = envelope.manual
+  }
+  if (envelope.review && !isTimestampExpired(envelope.review.updatedAt, now, DRAFT_TTL_MS)) {
+    next.review = envelope.review
+  }
+  return next
+}
+
+function parseRecovery(stored: string, now: Date): RecoveryBlob {
   try {
-    const raw = localStorage.getItem(key)
+    const parsed: unknown = JSON.parse(stored)
+    if (
+      isRecord(parsed)
+      && typeof parsed.raw === 'string'
+      && isTimestamp(parsed.quarantinedAt)
+      && hasOnly(parsed, ['raw', 'quarantinedAt'])
+    ) {
+      return { raw: parsed.raw, quarantinedAt: parsed.quarantinedAt }
+    }
+  } catch {
+    // Legacy unwrapped blobs get a TTL starting at first sight.
+  }
+  return { raw: stored, quarantinedAt: now.toISOString() }
+}
+
+function writeRecovery(userId: string, recovery: RecoveryBlob): void {
+  localStorage.setItem(recoveryKey(userId), JSON.stringify(recovery))
+}
+
+function removeFallback(userId: string): void {
+  localStorage.removeItem(storageKey(userId))
+}
+
+function removeRecovery(userId: string): void {
+  localStorage.removeItem(recoveryKey(userId))
+}
+
+function expireRecoveryStore(userId: string, now: Date): void {
+  try {
+    const stored = localStorage.getItem(recoveryKey(userId))
+    if (!stored) return
+    const recovery = parseRecovery(stored, now)
+    if (isTimestampExpired(recovery.quarantinedAt, now.getTime(), RECOVERY_TTL_MS)) {
+      removeRecovery(userId)
+      return
+    }
+    writeRecovery(userId, recovery)
+  } catch {
+    // Storage may be unavailable; the in-memory form remains usable.
+  }
+}
+
+function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB request failed.'))
+  })
+}
+
+function openDraftDatabase(): Promise<IDBDatabase | null> {
+  if (databasePromise) return databasePromise
+  if (typeof indexedDB === 'undefined') {
+    databasePromise = Promise.resolve(null)
+    return databasePromise
+  }
+
+  const promise = new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION)
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains(DRAFT_STORE)) {
+        db.createObjectStore(DRAFT_STORE, { keyPath: 'userId' })
+      }
+    }
+    request.onsuccess = () => {
+      const db = request.result
+      db.onversionchange = () => db.close()
+      resolve(db)
+    }
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB could not be opened.'))
+    request.onblocked = () => reject(new Error('IndexedDB upgrade was blocked.'))
+  }).catch((): IDBDatabase | null => null)
+  databasePromise = promise
+  return promise
+}
+
+function enqueueWrite(task: () => Promise<void>): void {
+  writeQueue = writeQueue.then(task, task)
+}
+
+async function idbGet(db: IDBDatabase, userId: string): Promise<StoredDrafts | null> {
+  const request = db.transaction(DRAFT_STORE, 'readonly').objectStore(DRAFT_STORE).get(userId)
+  return (await requestToPromise(request) as StoredDrafts | undefined) ?? null
+}
+
+async function idbPut(db: IDBDatabase, record: StoredDrafts): Promise<void> {
+  const request = db.transaction(DRAFT_STORE, 'readwrite').objectStore(DRAFT_STORE).put(record)
+  await requestToPromise(request)
+}
+
+async function idbDelete(db: IDBDatabase, userId: string): Promise<void> {
+  const request = db.transaction(DRAFT_STORE, 'readwrite').objectStore(DRAFT_STORE).delete(userId)
+  await requestToPromise(request)
+}
+
+function readFallbackEnvelope(userId: string, now: Date): LogDraftEnvelope {
+  expireRecoveryStore(userId, now)
+  try {
+    const raw = localStorage.getItem(storageKey(userId))
     if (!raw) return emptyEnvelope()
     const parsed: unknown = JSON.parse(raw)
-    if (isEnvelope(parsed)) return parsed
-    localStorage.setItem(recoveryKey(userId), raw)
-    localStorage.removeItem(key)
+    if (isEnvelope(parsed)) {
+      const envelope = expireEnvelope(parsed, now.getTime())
+      if (isEmptyEnvelope(envelope)) {
+        removeFallback(userId)
+        return emptyEnvelope()
+      }
+      if (JSON.stringify(envelope) !== raw) {
+        localStorage.setItem(storageKey(userId), JSON.stringify(envelope))
+      }
+      return envelope
+    }
+    quarantineRaw(userId, raw, now)
   } catch {
     try {
-      const raw = localStorage.getItem(key)
-      if (raw) localStorage.setItem(recoveryKey(userId), raw)
-      localStorage.removeItem(key)
+      const raw = localStorage.getItem(storageKey(userId))
+      if (raw) quarantineRaw(userId, raw, now)
     } catch {
       // Storage may be unavailable; the in-memory form remains usable.
     }
@@ -169,15 +318,117 @@ export function loadLogDrafts(userId: string): LogDraftEnvelope {
   return emptyEnvelope()
 }
 
-function write(userId: string, next: LogDraftEnvelope): boolean {
-  if (!userId) return false
+function quarantineRaw(userId: string, raw: string, now: Date): void {
+  const recovery = { raw, quarantinedAt: now.toISOString() }
   try {
-    if (!next.text && !next.manual && !next.review) localStorage.removeItem(storageKey(userId))
-    else localStorage.setItem(storageKey(userId), JSON.stringify(next))
-    return true
+    writeRecovery(userId, recovery)
+    removeFallback(userId)
   } catch {
-    return false
+    // Best effort for browsers with unavailable storage.
   }
+  enqueueWrite(async () => {
+    const db = await openDraftDatabase()
+    if (!db) return
+    const current = await idbGet(db, userId)
+    await idbPut(db, {
+      userId,
+      envelope: emptyEnvelope(),
+      recovery,
+      ...(current && !isEmptyEnvelope(current.envelope) ? { envelope: current.envelope } : {}),
+    })
+  })
+}
+
+function persist(userId: string, next: LogDraftEnvelope): boolean {
+  const envelope = expireEnvelope(next)
+  memory.set(userId, envelope)
+  const empty = isEmptyEnvelope(envelope)
+  const indexedDbMissing = typeof indexedDB === 'undefined'
+
+  if (indexedDbMissing) {
+    try {
+      if (empty) removeFallback(userId)
+      else localStorage.setItem(storageKey(userId), JSON.stringify(envelope))
+    } catch {
+      return false
+    }
+    return true
+  }
+
+  enqueueWrite(async () => {
+    const latest = memory.get(userId) ?? envelope
+    const db = await openDraftDatabase()
+    if (db) {
+      if (isEmptyEnvelope(latest)) await idbDelete(db, userId)
+      else await idbPut(db, { userId, envelope: latest })
+      try { removeFallback(userId) } catch { /* keep the fallback if it cannot be removed */ }
+      return
+    }
+    try {
+      if (isEmptyEnvelope(latest)) removeFallback(userId)
+      else localStorage.setItem(storageKey(userId), JSON.stringify(latest))
+    } catch {
+      // Memory still holds the draft for this session.
+    }
+  })
+  return true
+}
+
+export function loadLogDrafts(userId: string, now = new Date()): LogDraftEnvelope {
+  if (!userId) return emptyEnvelope()
+  expireRecoveryStore(userId, now)
+  const cached = memory.get(userId)
+  if (cached) {
+    const envelope = expireEnvelope(cached, now.getTime())
+    if (JSON.stringify(envelope) !== JSON.stringify(cached)) persist(userId, envelope)
+    else memory.set(userId, envelope)
+    return envelope
+  }
+  const envelope = readFallbackEnvelope(userId, now)
+  memory.set(userId, envelope)
+  return envelope
+}
+
+export async function hydrateLogDrafts(userId: string, now = new Date()): Promise<LogDraftEnvelope> {
+  if (!userId) return emptyEnvelope()
+  expireRecoveryStore(userId, now)
+  const db = await openDraftDatabase()
+  if (!db) {
+    const fallback = loadLogDrafts(userId, now)
+    return fallback
+  }
+
+  let record: StoredDrafts | null = null
+  try {
+    record = await idbGet(db, userId)
+  } catch {
+    record = null
+  }
+
+  let envelope = emptyEnvelope()
+  if (record && isEnvelope(record.envelope)) {
+    envelope = expireEnvelope(record.envelope, now.getTime())
+  } else if (record?.envelope) {
+    quarantineRaw(userId, JSON.stringify(record.envelope), now)
+    envelope = emptyEnvelope()
+  } else {
+    envelope = readFallbackEnvelope(userId, now)
+  }
+
+  let recovery = record?.recovery
+  if (recovery && isTimestampExpired(recovery.quarantinedAt, now.getTime(), RECOVERY_TTL_MS)) {
+    recovery = undefined
+  }
+
+  memory.set(userId, envelope)
+  try {
+    if (isEmptyEnvelope(envelope) && !recovery) await idbDelete(db, userId)
+    else await idbPut(db, { userId, envelope, recovery })
+    removeFallback(userId)
+  } catch {
+    // Keep the in-memory draft when the durable write cannot complete.
+  }
+  return envelope
 }
 
 export function saveTextLogDraft(userId: string, text: string): boolean {
@@ -185,33 +436,52 @@ export function saveTextLogDraft(userId: string, text: string): boolean {
   const next = { ...current }
   if (text.length === 0) delete next.text
   else next.text = { text: text.slice(0, 5_000), updatedAt: new Date().toISOString() }
-  return write(userId, next)
+  return persist(userId, next)
 }
 
 export function saveManualLogDraft(userId: string, draft: Omit<ManualLogDraft, 'updatedAt'>): boolean {
   const current = loadLogDrafts(userId)
-  return write(userId, { ...current, manual: { ...draft, updatedAt: new Date().toISOString() } })
+  return persist(userId, { ...current, manual: { ...draft, updatedAt: new Date().toISOString() } })
 }
 
 export function saveReviewLogDraft(userId: string, draft: Omit<ReviewLogDraft, 'updatedAt'>): boolean {
   const current = loadLogDrafts(userId)
-  return write(userId, { ...current, review: { ...draft, updatedAt: new Date().toISOString() } })
+  return persist(userId, { ...current, review: { ...draft, updatedAt: new Date().toISOString() } })
 }
 
 export function clearLogDraft(userId: string, section?: 'text' | 'manual' | 'review'): void {
   if (!userId) return
   if (!section) {
+    memory.delete(userId)
     try {
-      localStorage.removeItem(storageKey(userId))
-      localStorage.removeItem(recoveryKey(userId))
+      removeFallback(userId)
+      removeRecovery(userId)
     } catch {
       // Best effort for browsers with unavailable storage.
     }
+    enqueueWrite(async () => {
+      const db = await openDraftDatabase()
+      if (db) await idbDelete(db, userId)
+    })
     return
   }
   const current = loadLogDrafts(userId)
   delete current[section]
-  write(userId, current)
+  persist(userId, current)
+}
+
+export async function flushLogDraftWrites(): Promise<void> {
+  await writeQueue
+}
+
+export async function resetLogDraftRuntime(): Promise<void> {
+  memory.clear()
+  writeQueue = Promise.resolve()
+  if (databasePromise) {
+    const db = await databasePromise
+    try { db?.close() } catch { /* tests replace the database between cases */ }
+  }
+  databasePromise = null
 }
 
 export function logDraftStorageKeys(userId: string): string[] {

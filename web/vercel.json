@@ -12,6 +12,9 @@
   "redirects": [
     { "source": "/", "destination": "/app/login", "permanent": false }
   ],
+  "crons": [
+    { "path": "/api/cron/retention", "schedule": "0 4 * * *" }
+  ],
   "headers": [
     {
       "source": "/app",

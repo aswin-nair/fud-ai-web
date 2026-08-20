@@ -4,7 +4,7 @@ import { useApp } from '../store/AppContext'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
 import { BackLink } from '../components/BackLink'
-import { clearLogDraft, loadLogDrafts, saveManualLogDraft } from '../lib/logDrafts'
+import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveManualLogDraft } from '../lib/logDrafts'
 import { validateManualFood } from '../lib/foodEntryValidation'
 import { useAuth } from '../store/AuthContext'
 
@@ -30,6 +30,24 @@ export function ManualEntryPage() {
   const [mealType, setMealType] = useState<MealType>(saved?.mealType ?? inferMealType)
   const [servings, setServings] = useState(saved?.servings ?? 1)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void hydrateLogDrafts(userId).then(drafts => {
+      const manual = drafts.manual
+      if (cancelled || !manual) return
+      setName(current => current || manual.name)
+      setCalories(current => current || manual.calories)
+      setProtein(current => current || manual.protein)
+      setCarbs(current => current || manual.carbs)
+      setFat(current => current || manual.fat)
+      setMealType(current => current === inferMealType() ? manual.mealType : current)
+      setServings(current => current === 1 ? manual.servings : current)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
 
   useEffect(() => {
     saveManualLogDraft(userId, { name, calories, protein, carbs, fat, mealType, servings })

@@ -35,3 +35,15 @@ The marker must never appear in the database or exported state.
 
 Any count/checksum mismatch, BYOK match, cross-account change, duplicate mutation,
 or unconfirmed deletion fails the release gate.
+
+## Repo-side rehearsal
+
+`npm run db:retention-rehearsal --prefix web` can run the count-only cleanup
+and leftover-row queries when `DATABASE_URL` is set. It never claims Neon
+backup, restore, backup expiry, or restore-after-deletion. Those steps stay
+`uncertified` until an operator records a provider backup ID, an isolated
+restore, and a post-restore reconciliation against synthetic accounts only.
+
+See `docs/operations/backup-retention.md` for the proposed 30-day backup
+window and the restore rule: re-run deletion reconciliation after every
+restore.

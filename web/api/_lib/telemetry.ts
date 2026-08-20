@@ -39,6 +39,7 @@ const API_ROUTES = new Set([
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
   '/api/auth/change-password',
+  '/api/cron/retention',
 ])
 
 function environment(): 'dev' | 'staging' | 'production' | 'test' {

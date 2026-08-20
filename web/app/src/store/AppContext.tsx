@@ -54,7 +54,7 @@ import { advanceAfterLog, openSession, transitionTrackingPause } from '../lib/ga
 import { clearAnalytics, finishLogFlow } from '../lib/analytics'
 import { clearOnboardingDraft } from '../lib/onboarding'
 import { clearNotificationHistory } from '../lib/notifications'
-import { clearLogDraft } from '../lib/logDrafts'
+import { clearLogDraft, hydrateLogDrafts } from '../lib/logDrafts'
 
 import { SplashScreen } from '../components/SplashScreen'
 
@@ -448,6 +448,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       let hydrationFailed = false
 
       const hydration = (async () => {
+        void hydrateLogDrafts(userId)
         let cached: Awaited<ReturnType<typeof loadDurableState>> = null
         try {
           cached = await loadDurableState(userId)
