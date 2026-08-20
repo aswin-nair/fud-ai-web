@@ -118,8 +118,10 @@ The database name is `calorie-tracker.db`. Drizzle migration `0000_lazy_nova.sql
 | `points_ledger` | `id`, `delta`, `reason`, `local_date`, `created_at` | Sensitive | Append-only authoritative event ledger for points; total is derived |
 | `streak_freezes` | `id`, `granted_local_date`, `consumed_local_date` | Sensitive | Freeze ledger |
 | `quests` | `id`, `local_date`, `type`, `target`, `progress`, `completed_at` | Sensitive, Derived | Daily quest state; verify against deterministic generation |
+| `onboarding_drafts` | `id`, `schema_version`, `step`, `payload`, `updated_at`, `quarantined` | Sensitive | Resumable onboarding; incompatible or under-age payloads are quarantined |
+| `product_events` | `name`, `recorded_at` | Pseudonymous | Once-only local markers such as `first_log`; no food text or body metrics |
 
-The Expo schema currently has no weight-history, exercise, coach-chat, ingredient-line, device, sync-queue, tombstone, migration-ledger, or secure-token table. Secrets must not be added to SQLite; future tokens belong in platform-protected secure storage.
+The Expo schema currently has no weight-history, exercise, coach-chat, ingredient-line, device, sync-queue, tombstone, migration-ledger, or secure-token table. Secrets must not be added to SQLite; future tokens belong in platform-protected secure storage. App lock stays in SecureStore and is excluded from export.
 
 ## Current server destination
 

@@ -13,6 +13,7 @@ import { LOG_CONFIRM, sequence, type Beat } from '@/feel/motion';
 import { play } from '@/feel/sound';
 import { localHourIn } from '@/logic/dates';
 import { defaultMealSlot, MEAL_SLOT_LABEL, MEAL_SLOTS } from '@/logic/mealSlot';
+import { completeFirstLogIfNeeded } from '@/privacy/firstLog';
 import { cheer } from '@/stores/feedbackStore';
 import { useLogStore } from '@/stores/logStore';
 import { recordLog, type LogOutcome } from '@/stores/progression';
@@ -78,6 +79,7 @@ export default function Portion() {
       });
 
       const outcome = await recordLog(timezone);
+      await completeFirstLogIfNeeded();
       reset();
 
       const since = (offset: number) => Math.max(offset - (Date.now() - pressedAt), 0);

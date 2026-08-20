@@ -6,6 +6,8 @@ import { PressableButton } from '@/components/primitives/PressableButton';
 import { Screen, ScreenHeader } from '@/components/primitives/Screen';
 import { Text } from '@/components/primitives/Text';
 import { type ActivityLevel } from '@/db/schema';
+import { pickDraftFields } from '@/privacy/onboardingDraft';
+import { persistOnboardingDraft } from '@/privacy/onboardingDraftStore';
 import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useTheme } from '@/theme/useTheme';
 
@@ -46,7 +48,10 @@ export default function ActivityStep() {
         </Text>
 
         <OptionList
-          onChange={(value) => set({ activityLevel: value })}
+          onChange={(value) => {
+            set({ activityLevel: value });
+            void persistOnboardingDraft(pickDraftFields({ ...useOnboardingStore.getState(), activityLevel: value }));
+          }}
           options={OPTIONS}
           value={activityLevel}
         />
@@ -55,7 +60,10 @@ export default function ActivityStep() {
           disabled={activityLevel === null}
           fullWidth
           label="Continue"
-          onPress={() => router.push('/(onboarding)/goal')}
+          onPress={() => {
+            void persistOnboardingDraft(pickDraftFields(useOnboardingStore.getState()));
+            router.push('/(onboarding)/goal');
+          }}
         />
       </ScrollView>
     </Screen>

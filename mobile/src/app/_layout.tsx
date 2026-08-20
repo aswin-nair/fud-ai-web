@@ -17,7 +17,10 @@ import { seedBuiltinFoods } from '@/db/seed';
 import { setHapticsEnabled } from '@/feel/haptics';
 import { initMotion } from '@/feel/motion';
 import { initSound, releaseSound, setSoundEnabled } from '@/feel/sound';
+import { excludeNutritionDatabaseFromBackup } from '@/privacy/databaseBackupNative';
+import { loadRestoredOnboardingDraft } from '@/privacy/onboardingDraftStore';
 import { AppLockGate } from '@/security/AppLockGate';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 
@@ -45,7 +48,12 @@ export default function RootLayout() {
     // Seeding only populates an empty table, so this is a no-op after install.
     void seedBuiltinFoods()
       .catch(() => undefined)
-      .then(() => loadProfile())
+      .then(async () => {
+        const draft = await loadRestoredOnboardingDraft();
+        if (draft) useOnboardingStore.getState().set(draft);
+        await loadProfile();
+        await excludeNutritionDatabaseFromBackup();
+      })
       .catch(() => undefined)
       .finally(() => setDataReady(true));
   }, [migrated, loadProfile]);

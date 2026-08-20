@@ -10,6 +10,8 @@ import { Text } from '@/components/primitives/Text';
 import { TextField } from '@/components/primitives/TextField';
 import { type Goal } from '@/db/schema';
 import { computeBmi, MAX_WEEKLY_RATE_PCT, MIN_BMI, minimumHealthyWeightKg } from '@/logic/nutrition';
+import { pickDraftFields } from '@/privacy/onboardingDraft';
+import { persistOnboardingDraft } from '@/privacy/onboardingDraftStore';
 import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useTheme } from '@/theme/useTheme';
 
@@ -46,10 +48,13 @@ export default function GoalStep() {
   const canContinue = draft.goal !== null && !goalWeightTooLow;
 
   function next() {
-    draft.set({
+    const nextDraft = pickDraftFields({
+      ...draft,
       goalWeightKg: hasGoalWeight ? entered : null,
       weeklyRatePct: draft.goal === 'maintain' ? 0 : draft.weeklyRatePct,
     });
+    draft.set(nextDraft);
+    void persistOnboardingDraft(nextDraft);
     router.push('/(onboarding)/review');
   }
 
@@ -66,7 +71,10 @@ export default function GoalStep() {
         keyboardShouldPersistTaps="handled"
       >
         <OptionList
-          onChange={(value) => draft.set({ goal: value })}
+          onChange={(value) => {
+            draft.set({ goal: value });
+            void persistOnboardingDraft(pickDraftFields({ ...draft, goal: value }));
+          }}
           options={GOALS}
           value={draft.goal}
         />

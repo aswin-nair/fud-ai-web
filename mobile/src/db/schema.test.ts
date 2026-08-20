@@ -48,6 +48,8 @@ describe('migrations', () => {
       'points_ledger',
       'streak_freezes',
       'quests',
+      'onboarding_drafts',
+      'product_events',
     ]) {
       expect(tables).toContain(table);
     }

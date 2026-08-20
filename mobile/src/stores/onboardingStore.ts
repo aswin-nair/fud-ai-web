@@ -31,7 +31,7 @@ type OnboardingState = OnboardingDraft & {
   reset: () => void;
 };
 
-/** Held in memory only; nothing is written until review.tsx is confirmed. */
+/** Memory copy of the SQLite onboarding draft. Persist via onboardingDraftStore. */
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   ...EMPTY,
   set: (values) => set(values),

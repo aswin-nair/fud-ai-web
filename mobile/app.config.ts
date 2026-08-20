@@ -20,6 +20,11 @@ const config: ExpoConfig = {
   ios: {
     buildNumber: '1',
     bundleIdentifier: 'com.fudai.mobile',
+    infoPlist: {
+      // There is no approved iCloud restore path for the nutrition database.
+      // Runtime code also marks Documents/SQLite excluded from backup.
+      UIFileSharingEnabled: false,
+    },
     config: {
       // SecureStore uses the operating-system keychain/keystore. Fud AI does
       // not ship a custom, non-exempt encryption implementation.

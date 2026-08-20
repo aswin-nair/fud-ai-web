@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,6 +22,7 @@ import { type Food } from '@/db/schema';
 import { defaultMealSlot } from '@/logic/mealSlot';
 import { localHourIn } from '@/logic/dates';
 import { logEntry } from '@/db/queries/entries';
+import { completeFirstLogIfNeeded } from '@/privacy/firstLog';
 import { useLogStore } from '@/stores/logStore';
 import { recordLog } from '@/stores/progression';
 import { useProfileStore } from '@/stores/profileStore';
@@ -29,6 +30,7 @@ import { useTheme } from '@/theme/useTheme';
 
 export default function LogSearch() {
   const theme = useTheme();
+  const firstMeal = useLocalSearchParams<{ firstMeal?: string }>().firstMeal === '1';
   const pick = useLogStore((s) => s.pick);
   const timezone = useProfileStore((s) => s.timezone);
 
@@ -96,7 +98,7 @@ export default function LogSearch() {
           accessibilityLabel="Close"
           accessibilityRole="button"
           hitSlop={theme.space.md}
-          onPress={() => router.back()}
+          onPress={() => (firstMeal ? router.replace('/(tabs)') : router.back())}
         >
           <Icon color="textSecondary" name="close" size={theme.type.size.title} />
         </Pressable>
@@ -104,6 +106,16 @@ export default function LogSearch() {
 
       {/* Recents and favourites are what make repeat logging fast — most people
           eat the same twenty things — so they sit above the results. */}
+      {firstMeal ? (
+        <Text
+          color="textSecondary"
+          style={{ paddingHorizontal: theme.space.lg, paddingBottom: theme.space.sm }}
+          variant="body"
+        >
+          Log any meal to finish setup. The day counts as soon as it is saved.
+        </Text>
+      ) : null}
+
       {query.trim().length === 0 && recents.length > 0 ? (
         <View style={{ gap: theme.space.sm, paddingBottom: theme.space.md }}>
           <Text
@@ -275,6 +287,7 @@ function QuickAdd({
       });
 
       await recordLog(timezone);
+      await completeFirstLogIfNeeded();
       setKcal('');
       onDismiss();
       router.dismissAll();

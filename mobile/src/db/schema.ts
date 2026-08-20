@@ -100,6 +100,25 @@ export const quests = sqliteTable('quests', {
   completedAt: text('completed_at'),
 });
 
+/** Schema-versioned onboarding progress. Cleared after the first accepted log. */
+export const onboardingDrafts = sqliteTable('onboarding_drafts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  schemaVersion: integer('schema_version').notNull(),
+  step: text('step').notNull(),
+  payload: text('payload').notNull(),
+  updatedAt: text('updated_at').notNull(),
+  quarantined: integer('quarantined', { mode: 'boolean' }).notNull().default(false),
+});
+
+/**
+ * Device-local product events. Payloads stay out of this table; the name
+ * alone is enough for once-only markers such as first_log.
+ */
+export const productEvents = sqliteTable('product_events', {
+  name: text('name').primaryKey(),
+  recordedAt: text('recorded_at').notNull(),
+});
+
 export type Profile = typeof profile.$inferSelect;
 export type NewProfile = typeof profile.$inferInsert;
 export type Food = typeof foods.$inferSelect;
@@ -109,6 +128,8 @@ export type NewMealEntry = typeof mealEntries.$inferInsert;
 export type PointsEntry = typeof pointsLedger.$inferSelect;
 export type StreakFreeze = typeof streakFreezes.$inferSelect;
 export type Quest = typeof quests.$inferSelect;
+export type OnboardingDraftRow = typeof onboardingDrafts.$inferSelect;
+export type ProductEvent = typeof productEvents.$inferSelect;
 
 export type Sex = Profile['sex'];
 export type ActivityLevel = Profile['activityLevel'];

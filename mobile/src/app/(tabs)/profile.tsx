@@ -9,6 +9,7 @@ import { Text } from '@/components/primitives/Text';
 import { getLoggedDates } from '@/db/queries/entries';
 import { countAvailableFreezes } from '@/db/queries/freezes';
 import { levelFor } from '@/logic/points';
+import { shareReadableExport } from '@/privacy/localData';
 import { refreshDay, useDayStore } from '@/stores/dayStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useTheme } from '@/theme/useTheme';
@@ -34,6 +35,20 @@ export default function ProfileTab() {
         .catch(() => undefined);
     }, [timezone]),
   );
+
+  async function exportData() {
+    const result = await shareReadableExport();
+    if (!result.ok) {
+      Alert.alert('Export could not finish', result.error);
+      return;
+    }
+    if (!result.shared) {
+      Alert.alert(
+        'Export saved',
+        'Sharing is not available on this device. The JSON file is in the app cache.',
+      );
+    }
+  }
 
   if (!profile) return null;
 
@@ -123,28 +138,16 @@ export default function ProfileTab() {
 
         <Section title="Your data">
           <SettingRow
+            detail="A readable JSON copy of your profile, meals, and settings. Keys and app lock are left out."
             kind="navigate"
             label="Export data"
-            onPress={() =>
-              Alert.alert(
-                'Export coming soon',
-                'Your log lives on this device only. A file export is not built yet.',
-              )
-            }
+            onPress={() => void exportData()}
           />
           <SettingRow
+            detail="Removes every local store on this device. Type DELETE to confirm."
             kind="navigate"
-            label="Delete account"
-            onPress={() =>
-              Alert.alert(
-                'Delete everything?',
-                'This removes your profile and every entry from this device. It cannot be undone.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Delete', style: 'destructive' },
-                ],
-              )
-            }
+            label="Delete all data"
+            onPress={() => router.push('/settings/delete-data' as Href)}
             tone="danger"
           />
         </Section>

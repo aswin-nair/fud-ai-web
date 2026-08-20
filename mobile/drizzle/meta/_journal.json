@@ -8,6 +8,13 @@
       "when": 1786860626679,
       "tag": "0000_lazy_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787040000000,
+      "tag": "0001_local_privacy",
+      "breakpoints": true
     }
   ]
 }

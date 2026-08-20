@@ -10,6 +10,8 @@ import { TextField } from '@/components/primitives/TextField';
 import { type Sex } from '@/db/schema';
 import { buildLocalDate } from '@/logic/dates';
 import { ageOn } from '@/logic/nutrition';
+import { pickDraftFields } from '@/privacy/onboardingDraft';
+import { persistOnboardingDraft } from '@/privacy/onboardingDraftStore';
 import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useTheme } from '@/theme/useTheme';
 
@@ -24,9 +26,9 @@ export default function ProfileStep() {
   const theme = useTheme();
   const draft = useOnboardingStore();
 
-  const [day, setDay] = useState('');
-  const [month, setMonth] = useState('');
-  const [year, setYear] = useState('');
+  const [day, setDay] = useState(draft.dateOfBirth?.slice(8, 10) ?? '');
+  const [month, setMonth] = useState(draft.dateOfBirth?.slice(5, 7) ?? '');
+  const [year, setYear] = useState(draft.dateOfBirth?.slice(0, 4) ?? '');
   const [dobError, setDobError] = useState<string | null>(null);
   const [ageConfirmed, setAgeConfirmed] = useState(draft.dateOfBirth !== null);
 
@@ -64,6 +66,7 @@ export default function ProfileStep() {
 
     setDobError(null);
     draft.set({ dateOfBirth: dob });
+    void persistOnboardingDraft(pickDraftFields({ ...draft, dateOfBirth: dob }));
     setAgeConfirmed(true);
   }
 
@@ -77,12 +80,15 @@ export default function ProfileStep() {
     name.trim().length > 0;
 
   function next() {
-    draft.set({
+    const nextDraft = {
+      ...draft,
       name: name.trim(),
       sex,
       heightCm: Number(height),
       weightKg: Number(weight),
-    });
+    };
+    draft.set(nextDraft);
+    void persistOnboardingDraft(pickDraftFields(nextDraft));
     router.push('/(onboarding)/activity');
   }
 

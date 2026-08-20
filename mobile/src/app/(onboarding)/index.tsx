@@ -5,10 +5,15 @@ import { Mascot } from '@/components/domain/Mascot';
 import { PressableButton } from '@/components/primitives/PressableButton';
 import { Screen } from '@/components/primitives/Screen';
 import { Text } from '@/components/primitives/Text';
+import { inferOnboardingStep } from '@/privacy/onboardingDraft';
+import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useTheme } from '@/theme/useTheme';
 
 export default function Welcome() {
   const theme = useTheme();
+  const draft = useOnboardingStore();
+  const step = inferOnboardingStep(draft);
+  const resume = Boolean(draft.dateOfBirth || draft.name || draft.activityLevel || draft.goal);
 
   return (
     <Screen>
@@ -33,8 +38,18 @@ export default function Welcome() {
 
         <PressableButton
           fullWidth
-          label="Get started"
-          onPress={() => router.push('/(onboarding)/profile')}
+          label={resume ? 'Continue setup' : 'Get started'}
+          onPress={() =>
+            router.push(
+              step === 'activity'
+                ? '/(onboarding)/activity'
+                : step === 'goal'
+                  ? '/(onboarding)/goal'
+                  : step === 'review'
+                    ? '/(onboarding)/review'
+                    : '/(onboarding)/profile',
+            )
+          }
         />
 
         <Text align="center" color="textMuted" variant="caption">

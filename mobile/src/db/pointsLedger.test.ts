@@ -35,8 +35,15 @@ describe('points_ledger', () => {
       if (file.endsWith('pointsLedger.test.ts')) continue;
 
       const source = readFileSync(file, 'utf8');
+      const relative = file.replace(/\\/g, '/');
+      // A confirmed local wipe may delete the ledger. Ordinary product code
+      // still cannot update or delete individual point rows.
+      const wipeOnly = relative.endsWith('db/queries/localPrivacy.ts');
+      const patterns = wipeOnly
+        ? [/\.update\(\s*pointsLedger/, /update\s+points_ledger/i]
+        : banned;
 
-      for (const pattern of banned) {
+      for (const pattern of patterns) {
         if (pattern.test(source)) offenders.push(`${file}: ${String(pattern)}`);
       }
     }

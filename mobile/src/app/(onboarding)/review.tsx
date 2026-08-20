@@ -10,6 +10,9 @@ import { Text } from '@/components/primitives/Text';
 import { deviceTimeZone } from '@/db/queries/profile';
 import { ageOn } from '@/logic/nutrition';
 import { computeTargets } from '@/logic/nutrition';
+import { pickDraftFields } from '@/privacy/onboardingDraft';
+import { persistOnboardingDraft } from '@/privacy/onboardingDraftStore';
+import { useLogStore } from '@/stores/logStore';
 import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useTheme } from '@/theme/useTheme';
@@ -18,6 +21,7 @@ export default function Review() {
   const theme = useTheme();
   const draft = useOnboardingStore();
   const createProfile = useProfileStore((s) => s.create);
+  const beginLog = useLogStore((s) => s.begin);
   const [saving, setSaving] = useState(false);
 
   const result = computeTargets({
@@ -81,8 +85,12 @@ export default function Review() {
         fatGTarget: targets.fatGTarget,
       });
 
-      draft.reset();
-      router.replace('/(tabs)');
+      await persistOnboardingDraft(pickDraftFields(draft), {
+        profilePresent: true,
+        firstLogRecorded: false,
+      });
+      beginLog();
+      router.replace('/log?firstMeal=1');
     } finally {
       setSaving(false);
     }
@@ -145,7 +153,7 @@ export default function Review() {
 
         <PressableButton
           fullWidth
-          label="Start logging"
+          label="Log your first meal"
           loading={saving}
           onPress={() => void finish()}
         />

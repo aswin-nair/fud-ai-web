@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { hasFirstLogEvent } from '@/db/queries/localPrivacy';
 import {
   createProfile,
   deviceTimeZone,
@@ -10,6 +11,7 @@ import { type NewProfile, type Profile } from '@/db/schema';
 
 type ProfileState = {
   profile: Profile | null;
+  firstLogRecorded: boolean;
   loading: boolean;
   load: () => Promise<void>;
   create: (values: NewProfile) => Promise<Profile>;
@@ -20,15 +22,17 @@ type ProfileState = {
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
+  firstLogRecorded: false,
   loading: true,
 
   load: async () => {
-    set({ profile: await getProfile(), loading: false });
+    const [profile, firstLogRecorded] = await Promise.all([getProfile(), hasFirstLogEvent()]);
+    set({ profile, firstLogRecorded, loading: false });
   },
 
   create: async (values) => {
     const profile = await createProfile(values);
-    set({ profile, loading: false });
+    set({ profile, firstLogRecorded: false, loading: false });
     return profile;
   },
 
