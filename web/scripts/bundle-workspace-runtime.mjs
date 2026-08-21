@@ -51,11 +51,15 @@ export async function bundleContractsForNode({
   )
 }
 
+export function contractsRuntimeFile(webRoot) {
+  return join(webRoot, 'api/_runtime/contracts.mjs')
+}
+
 export async function installContractsNodeRuntime(
   webRoot = dirname(dirname(fileURLToPath(import.meta.url))),
 ) {
   const { contractsRoot, version } = resolveContractsPackage(webRoot)
-  const destDir = join(webRoot, 'node_modules/@fud-ai/contracts')
+  const outfile = contractsRuntimeFile(webRoot)
   const staging = join(webRoot, 'node_modules/.fud-ai-contracts-runtime')
   rmSync(staging, { recursive: true, force: true })
   await bundleContractsForNode({
@@ -63,9 +67,12 @@ export async function installContractsNodeRuntime(
     destDir: staging,
     esbuildRoot: resolveEsbuildRoot(webRoot),
   })
-  rmSync(destDir, { recursive: true, force: true })
-  mkdirSync(dirname(destDir), { recursive: true })
-  cpSync(staging, destDir, { recursive: true })
+  mkdirSync(dirname(outfile), { recursive: true })
+  cpSync(join(staging, 'index.mjs'), outfile)
   rmSync(staging, { recursive: true, force: true })
   console.log(`Bundled @fud-ai/contracts@${version} for the Node API runtime`)
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  await installContractsNodeRuntime()
 }

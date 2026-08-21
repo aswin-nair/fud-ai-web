@@ -7,7 +7,7 @@ import {
   isRemoteTelemetryEnabled,
   resultClassForStatus,
   type ApiResultClass,
-} from '@fud-ai/contracts'
+} from './contracts.js'
 import { applyIdentityHeaders, releaseId, requestIdFrom, serverError } from './http.js'
 
 const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])

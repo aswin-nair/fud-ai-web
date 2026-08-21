@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { evaluateEnrollment } from '@fud-ai/contracts'
+import { evaluateEnrollment } from './contracts.js'
 import {
   ACCOUNT_CREATION_DISABLED_RESPONSE,
   ENROLLMENT_CLOSED_RESPONSE,

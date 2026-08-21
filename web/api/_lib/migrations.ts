@@ -3,7 +3,7 @@ import {
   validateMigrationAttempt,
   type MigrationAttempt,
   type MigrationStage,
-} from '@fud-ai/contracts'
+} from './contracts.js'
 import { asRows, getDb } from './db.js'
 import { isCanonicalUuid } from './identifiers.js'
 

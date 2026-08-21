@@ -111,6 +111,6 @@ npx vercel deploy --prod
 | Google sign-in blocked | Add Vercel URL to Google **Authorized JavaScript origins** |
 | Data not syncing | `VITE_DATA_BACKEND` must be `neon` (rebuild required after change) |
 | Deploy fails after a green build | Hobby allows 12 serverless files under `api/` outside `_` folders. Keep auth behind `api/auth.ts`. |
-| API routes return empty 500s | The install step must bundle `@fud-ai/contracts` to JavaScript. Redeploy after that install command runs. |
+| API routes return empty 500s | Functions must import `api/_runtime/contracts.mjs`, not TypeScript `@fud-ai/contracts`. |
 
 After changing any env var in Vercel, go to **Deployments → ⋯ → Redeploy**.

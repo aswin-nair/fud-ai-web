@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { withApiTelemetry } from './_lib/telemetry.js'
-import { validateMigrationAttempt, type MigrationAttempt } from '@fud-ai/contracts'
+import { validateMigrationAttempt, type MigrationAttempt } from './_lib/contracts.js'
 import { authenticateRequest } from './_lib/authenticate.js'
 import {
   LOCAL_MIGRATION_DISABLED_RESPONSE,

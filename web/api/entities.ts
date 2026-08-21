@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { withApiTelemetry } from './_lib/telemetry.js'
-import { validateMutationBatch, type EntityMutation } from '@fud-ai/contracts'
+import { validateMutationBatch, type EntityMutation } from './_lib/contracts.js'
 import { authenticateRequest } from './_lib/authenticate.js'
 import {
   ENTITY_PROJECTION_DISABLED_RESPONSE,

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-import { bundleContractsForNode, resolveEsbuildRoot } from '../../scripts/bundle-workspace-runtime.mjs'
+import { bundleContractsForNode, contractsRuntimeFile, resolveEsbuildRoot } from '../../scripts/bundle-workspace-runtime.mjs'
 import { resolveContractsPackage, resolveDomainPackage } from '../../scripts/verify-deploy-context.mjs'
 
 const webRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
@@ -40,6 +40,15 @@ describe('deploy context for shared packages', () => {
     expect(source).not.toContain('postgres://')
     expect(source).not.toContain('Bearer ')
     const runtime = await import(pathToFileURL(join(destDir, 'index.mjs')).href) as {
+      CONTRACTS_PACKAGE_ID: string
+      buildTelemetryEnvelope: unknown
+    }
+    expect(runtime.CONTRACTS_PACKAGE_ID).toBe('@fud-ai/contracts')
+    expect(typeof runtime.buildTelemetryEnvelope).toBe('function')
+  })
+
+  it('keeps a committed Node runtime next to the API functions', async () => {
+    const runtime = await import(pathToFileURL(contractsRuntimeFile(webRoot)).href) as {
       CONTRACTS_PACKAGE_ID: string
       buildTelemetryEnvelope: unknown
     }

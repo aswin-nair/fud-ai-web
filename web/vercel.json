@@ -3,6 +3,14 @@
   "devCommand": "cd app && npm run dev:cloud",
   "installCommand": "node scripts/install-with-domain.mjs",
   "outputDirectory": "app/dist",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "api/_runtime/**"
+    },
+    "api/**/*.js": {
+      "includeFiles": "api/_runtime/**"
+    }
+  },
   "rewrites": [
     { "source": "/api/auth/:action", "destination": "/api/auth?action=:action" },
     { "source": "/app/assets/(.*)", "destination": "/assets/$1" },

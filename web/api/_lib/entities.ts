@@ -4,7 +4,7 @@ import {
   validateEntityMutation,
   type EntityMutation,
   type ServerAcknowledgement,
-} from '@fud-ai/contracts'
+} from './contracts.js'
 import { asRows, getDb } from './db.js'
 import { isCanonicalUuid } from './identifiers.js'
 
