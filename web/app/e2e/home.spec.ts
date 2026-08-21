@@ -10,6 +10,8 @@ test.describe('Home & food logging', () => {
     await expect(page.locator('.meal-path')).toBeVisible()
     await expect(page.locator('.home-meals-logged')).toContainText('of 4')
     await expect(page.getByText('kcal left today')).toBeVisible()
+    await expect(page.locator('.home-quest-row')).toHaveCount(0)
+    await expect(page.locator('.home-counter-row')).toHaveCount(0)
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()

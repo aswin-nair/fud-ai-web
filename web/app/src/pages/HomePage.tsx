@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { MacroProgressGroup } from '../components/MacroGrid'
 import { FoodList } from '../components/FoodList'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
@@ -21,10 +21,8 @@ import { type MascotState } from '../components/Mascot'
 import { LogCelebration } from '../components/LogCelebration'
 import { PressableButton } from '../components/PressableButton'
 import { MealPath } from '../components/MealPath'
-import { Counter } from '../components/Counter'
 import { Surface } from '../components/Surface'
 import { mealPathStates } from '../lib/mealPath'
-import { levelFromXp } from '../lib/xp'
 import type { XpEvent } from '../types'
 import { startLogFlow, track } from '../lib/analytics'
 
@@ -82,8 +80,6 @@ export function HomePage() {
   const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
   const streakAtRisk = !paused && streak > 0 && !hasLoggedToday
   const quest = state.gamification.quest
-  const xp = state.gamification.xp
-  const level = levelFromXp(xp)
   const mealsDone = mealPathStates(dayEntries).filter(node => node.status === 'done').length
 
   const mascotState: MascotState = mascotBeat ?? (
@@ -234,14 +230,6 @@ export function HomePage() {
         />
       )}
 
-      {!paused && (
-        <div className="home-counter-row">
-          <Counter icon="🔥" label={streak === 1 ? 'day' : 'days'} value={streak} />
-          <Counter icon="⭐" label={`level ${level}`} value={xp} />
-          <Counter icon="❄️" label="freezes" value={state.gamification.streakFreezes} />
-        </div>
-      )}
-
       <main className="app-main home-main">
         {!revealed ? (
           <HomeSkeleton />
@@ -290,15 +278,8 @@ export function HomePage() {
               </div>
             )}
 
-            {!paused && quest && (
-              <Link to="/journey" className="home-quest-row home-section-enter" style={{ '--enter-delay': '90ms' } as React.CSSProperties}>
-                <span>{questTitle(quest)}</span>
-                <span>{Math.min(quest.progress, quest.target)}/{quest.target}</span>
-              </Link>
-            )}
-
             {!paused && (
-              <div className="home-section-enter" style={{ '--enter-delay': '120ms' } as React.CSSProperties}>
+              <div className="home-section-enter" style={{ '--enter-delay': '90ms' } as React.CSSProperties}>
                 <FoodList entries={dayEntries} selectedDate={selectedDate} />
               </div>
             )}

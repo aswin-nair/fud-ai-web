@@ -50,6 +50,7 @@ export function JourneyPage() {
   return (
     <div className="app-shell journey-shell">
       <main className="app-main journey-main">
+        <h1 className="screen-title" style={{ marginBottom: 0 }}>Journey</h1>
 
         {/* ── Hero ── */}
         <div className="journey-hero">

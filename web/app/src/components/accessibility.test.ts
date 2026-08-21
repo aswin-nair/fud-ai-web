@@ -115,6 +115,7 @@ describe('primary component accessibility contracts', () => {
 
     expect(html).toContain('<nav class="bottom-nav-wrap" aria-label="Main"')
     expect(html).toContain('Today')
+    expect(html).toContain('Journey')
     expect(html).toContain('Progress')
     expect(html).toContain('Saved')
     expect(html).toContain('Settings')

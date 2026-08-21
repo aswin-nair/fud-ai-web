@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom'
-import { IconHome, IconProgress, IconSettings, IconStar } from './icons'
+import { IconHome, IconJourney, IconProgress, IconSettings, IconStar } from './icons'
 
 const TABS = [
   { to: '/', end: true, label: 'Today', Icon: IconHome },
+  { to: '/journey', label: 'Journey', Icon: IconJourney },
   { to: '/progress', label: 'Progress', Icon: IconProgress },
   { to: '/discover', label: 'Saved', Icon: IconStar },
   { to: '/settings', label: 'Settings', Icon: IconSettings },

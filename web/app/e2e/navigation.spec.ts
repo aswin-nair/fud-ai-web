@@ -7,6 +7,10 @@ test.describe('Navigation', () => {
   })
 
   test('bottom nav visits all tabs', async ({ page }) => {
+    await nav(page).getByRole('link', { name: 'Journey' }).click()
+    await expect(page).toHaveURL('/journey')
+    await expect(page.getByRole('heading', { name: 'Journey' })).toBeVisible()
+
     await nav(page).getByRole('link', { name: 'Progress' }).click()
     await expect(page).toHaveURL('/progress')
     await expect(page.getByRole('heading', { name: 'Weight' })).toBeVisible()
@@ -28,11 +32,12 @@ test.describe('Navigation', () => {
     await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
   })
 
-  test('journey card and settings coach reach their full pages', async ({ page }) => {
-    await page.locator('a[href="/journey"]').first().click()
+  test('journey tab and settings coach reach their full pages', async ({ page }) => {
+    await nav(page).getByRole('link', { name: 'Journey' }).click()
     await expect(page).toHaveURL('/journey')
+    await expect(page.getByRole('heading', { name: 'Journey' })).toBeVisible()
 
-    await page.goBack()
+    await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
 
     await nav(page).getByRole('link', { name: 'Settings' }).click()
