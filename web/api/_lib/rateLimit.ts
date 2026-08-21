@@ -51,8 +51,11 @@ export function clientIp(req: VercelRequest): string {
 }
 
 function limiterSecret(): string {
-  const secret = process.env.RATE_LIMIT_SECRET ?? process.env.JWT_SECRET
-  if (!secret || secret.length < 32) {
+  const configured = process.env.RATE_LIMIT_SECRET?.trim()
+  const secret = configured && configured.length >= 32
+    ? configured
+    : process.env.JWT_SECRET?.trim() ?? ''
+  if (secret.length < 32) {
     throw new Error('RATE_LIMIT_SECRET or JWT_SECRET must be set (32+ characters)')
   }
   return secret

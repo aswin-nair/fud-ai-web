@@ -22,14 +22,20 @@ describe('auth schema ensure', () => {
     vi.unstubAllEnvs()
   })
 
-  it('only applies idempotent session and limiter objects', () => {
+  it('only applies idempotent session, limiter, and state objects', () => {
     expect(source).toContain('CREATE TABLE IF NOT EXISTS rate_limit_buckets')
     expect(source).toContain('CREATE TABLE IF NOT EXISTS auth_sessions')
+    expect(source).toContain('CREATE TABLE IF NOT EXISTS user_states')
+    expect(source).toContain('CREATE TABLE IF NOT EXISTS state_mutations')
+    expect(source).toContain('CREATE TABLE IF NOT EXISTS password_reset_tokens')
     expect(source).toContain('ADD COLUMN IF NOT EXISTS family_id')
     expect(source).toContain('ADD COLUMN IF NOT EXISTS refresh_token_hash')
+    expect(source).toContain('ADD COLUMN IF NOT EXISTS version')
+    expect(source).toContain('CREATE OR REPLACE FUNCTION save_user_state_idempotent')
     expect(source).not.toContain('SELECT email')
-    expect(source).not.toContain('SELECT state')
+    expect(source).not.toContain('SELECT state FROM')
     expect(source).not.toContain('aiSettings')
+    expect(source).not.toContain('#-')
   })
 
   it('runs the create statements once', async () => {

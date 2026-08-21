@@ -41,6 +41,16 @@ describe('distributed API rate limiting', () => {
     expect(hash).not.toContain('person@example.com')
   })
 
+  it('ignores an empty or short RATE_LIMIT_SECRET and uses JWT_SECRET', () => {
+    const withJwt = privateBucketHash(['auth', 'ip', '203.0.113.7'])
+    vi.stubEnv('RATE_LIMIT_SECRET', '')
+    expect(privateBucketHash(['auth', 'ip', '203.0.113.7'])).toBe(withJwt)
+    vi.stubEnv('RATE_LIMIT_SECRET', 'too-short')
+    expect(privateBucketHash(['auth', 'ip', '203.0.113.7'])).toBe(withJwt)
+    vi.stubEnv('RATE_LIMIT_SECRET', 'rate-limit-override-secret-at-least-32-chars')
+    expect(privateBucketHash(['auth', 'ip', '203.0.113.7'])).not.toBe(withJwt)
+  })
+
   it('uses independent IP and account buckets for authentication', async () => {
     await enforceAuthRateLimit({
       headers: {},

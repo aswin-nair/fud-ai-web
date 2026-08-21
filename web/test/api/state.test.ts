@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => {
   }
   return {
     authenticate: vi.fn(),
+    prepareAuth: vi.fn(async () => true),
     load: vi.fn(),
     save: vi.fn(),
     ipRateLimit: vi.fn(),
@@ -20,6 +21,9 @@ const mocks = vi.hoisted(() => {
 })
 
 vi.mock('../../api/_lib/authenticate.js', () => ({ authenticateRequest: mocks.authenticate }))
+vi.mock('../../api/_lib/ensureAuthSchema.js', () => ({
+  prepareAuth: mocks.prepareAuth,
+}))
 vi.mock('../../api/_lib/state.js', () => ({
   loadUserState: mocks.load,
   saveUserState: mocks.save,
@@ -43,6 +47,7 @@ describe('state API boundary', () => {
   beforeEach(() => {
     vi.stubEnv('DATABASE_URL', 'postgres://configured.example/test')
     mocks.authenticate.mockResolvedValue({ sub: USER_A, sessionId: MUTATION_ID })
+    mocks.prepareAuth.mockResolvedValue(true)
     mocks.ipRateLimit.mockResolvedValue(undefined)
     mocks.userRateLimit.mockResolvedValue(undefined)
     mocks.load.mockResolvedValue({ state: stateFixture(), version: 4 })
@@ -52,6 +57,18 @@ describe('state API boundary', () => {
   afterEach(() => {
     vi.clearAllMocks()
     vi.unstubAllEnvs()
+  })
+
+  it('does not read state when the account schema is incomplete', async () => {
+    mocks.prepareAuth.mockResolvedValue(false)
+    const res = response()
+    await stateHandler({
+      method: 'GET',
+      headers: { authorization: 'Bearer opaque' },
+    } as never, res as never)
+
+    expect(mocks.load).not.toHaveBeenCalled()
+    expect(mocks.authenticate).not.toHaveBeenCalled()
   })
 
   it('always scopes state reads to the authenticated subject', async () => {
