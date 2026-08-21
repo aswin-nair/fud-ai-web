@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { ALERT_CATALOG, evaluateAlertRules } from '@fud-ai/contracts'
 import { request, response } from './helpers.js'
 import healthHandler from '../../api/health.js'
+
+vi.mock('../../api/_lib/ensureAuthSchema.js', () => ({
+  prepareAuth: async () => true,
+}))
+
 import loginHandler from '../../api/_auth/login.js'
 
 describe('API request telemetry', () => {

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { withApiTelemetry } from '../_lib/telemetry.js'
-import { isDbConfigured } from '../_lib/db.js'
+import { prepareAuth } from '../_lib/ensureAuthSchema.js'
 import {
   badRequest,
   InvalidJsonError,
@@ -19,7 +19,7 @@ import { enforceAuthRateLimit, RateLimitExceeded } from '../_lib/rateLimit.js'
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
-  if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
+  if (!await prepareAuth(res)) return
 
   try {
     const body = await readJson<{ name?: string; email?: string; password?: string; client?: string }>(req)

@@ -33,6 +33,9 @@ vi.mock('../../api/_lib/sessions.js', () => ({
 vi.mock('../../api/_lib/jwt.js', () => ({
   InvalidSessionError: mocks.InvalidSessionError,
 }))
+vi.mock('../../api/_lib/ensureAuthSchema.js', () => ({
+  prepareAuth: async () => true,
+}))
 vi.mock('../../api/_lib/rateLimit.js', () => ({
   enforceAccountIpRateLimit: mocks.rate,
   enforceAccountUserRateLimit: mocks.rate,

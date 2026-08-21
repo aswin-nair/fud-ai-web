@@ -23,9 +23,14 @@ export class InvalidSessionError extends Error {
   }
 }
 
+export function isAuthSecretConfigured(env = process.env): boolean {
+  const secret = env.JWT_SECRET?.trim() ?? ''
+  return secret.length >= 32
+}
+
 function secretKey() {
-  const secret = process.env.JWT_SECRET
-  if (!secret || secret.length < 32) {
+  const secret = process.env.JWT_SECRET?.trim() ?? ''
+  if (secret.length < 32) {
     throw new Error('JWT_SECRET must be set (32+ characters)')
   }
   return new TextEncoder().encode(secret)

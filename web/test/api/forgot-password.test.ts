@@ -31,6 +31,9 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
   enforceAuthRateLimit: mocks.rate,
   RateLimitExceeded: mocks.RateLimitExceeded,
 }))
+vi.mock('../../api/_lib/ensureAuthSchema.js', () => ({
+  prepareAuth: async () => true,
+}))
 
 import forgotHandler from '../../api/_auth/forgot-password.js'
 

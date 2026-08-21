@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { withApiTelemetry } from '../_lib/telemetry.js'
 import { clearRefreshCookie, setRefreshCookie } from '../_lib/cookies.js'
-import { isDbConfigured } from '../_lib/db.js'
+import { prepareAuth } from '../_lib/ensureAuthSchema.js'
 import { InvalidJsonError, json, methodNotAllowed, readJson, serverError, unauthorized } from '../_lib/http.js'
 import { signSession } from '../_lib/jwt.js'
 import { readPresentedRefreshToken, resolveSessionTransport } from '../_lib/mobileClient.js'
@@ -10,7 +10,7 @@ import { RefreshNotFoundError, RefreshReplayError, rotateRefreshToken } from '..
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
-  if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
+  if (!await prepareAuth(res)) return
 
   try {
     await enforceAuthRateLimit(req, 'refresh')

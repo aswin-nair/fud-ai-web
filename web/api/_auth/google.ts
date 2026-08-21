@@ -1,7 +1,7 @@
 import { OAuth2Client } from 'google-auth-library'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { withApiTelemetry } from '../_lib/telemetry.js'
-import { isDbConfigured } from '../_lib/db.js'
+import { prepareAuth } from '../_lib/ensureAuthSchema.js'
 import {
   badRequest,
   InvalidJsonError,
@@ -24,7 +24,7 @@ import {
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
-  if (!isDbConfigured()) return json(res, 503, { error: 'Database not configured' })
+  if (!await prepareAuth(res)) return
 
   const clientId = process.env.VITE_GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID
   if (!clientId) return json(res, 503, { error: 'Google OAuth not configured' })

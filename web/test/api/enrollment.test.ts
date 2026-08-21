@@ -30,6 +30,9 @@ vi.mock('../../api/_lib/users.js', () => ({
   AccountProviderConflictError: class AccountProviderConflictError extends Error {},
 }))
 vi.mock('../../api/_lib/authenticate.js', () => ({ issueSession: mocks.issue }))
+vi.mock('../../api/_lib/ensureAuthSchema.js', () => ({
+  prepareAuth: async () => true,
+}))
 vi.mock('../../api/_lib/rateLimit.js', () => ({
   enforceAuthRateLimit: mocks.rate,
   enforceAuthAccountRateLimit: mocks.rate,
