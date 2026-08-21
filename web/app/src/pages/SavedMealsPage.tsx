@@ -180,7 +180,7 @@ export function SavedMealsPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         {isSubRoute && <BackLink to="/log" />}
         <h1 className="page-title discover-title" style={isSubRoute ? { marginTop: 12 } : undefined}>Saved</h1>
         <p className="page-sub">Your saved meals, ready to re-log in a tap.</p>
@@ -218,7 +218,7 @@ export function SavedMealsPage() {
         ) : filteredFavorites.length === 0 ? (
           <div className="saved-empty">No saved meals match "{query || FILTER_LABELS[filter]}".</div>
         ) : (
-          <div className="discover-grid">
+          <div className="discover-grid motion-list">
             {filteredFavorites.map(meal => (
               <DiscoverCard
                 key={meal.id}

@@ -8,6 +8,7 @@ import {
 } from '../lib/journey'
 import { IconCheck } from '../components/icons'
 import { questTitle } from '../lib/quests'
+import { useCountUp } from '../hooks/useCountUp'
 
 function timeAgo(ts: string): string {
   const diff = Date.now() - new Date(ts).getTime()
@@ -46,10 +47,12 @@ export function JourneyPage() {
 
   const unlockedCount = allBadges.filter(b => b.unlocked).length
   const recentEvents = gamification.xpEvents.slice(0, 8)
+  const shownXp = useCountUp(gamification.xp)
+  const shownStreak = useCountUp(streak)
 
   return (
     <div className="app-shell journey-shell">
-      <main className="app-main journey-main">
+      <main className="app-main journey-main motion-stagger">
         <h1 className="screen-title" style={{ marginBottom: 0 }}>Journey</h1>
 
         {/* ── Hero ── */}
@@ -74,7 +77,7 @@ export function JourneyPage() {
         <div className="journey-xp-card">
           <div className="journey-xp-header">
             <span className="journey-xp-label">XP Progress</span>
-            <span className="journey-xp-total">{gamification.xp.toLocaleString()} total XP</span>
+            <span className="journey-xp-total">{shownXp.toLocaleString()} total XP</span>
           </div>
           <div className="journey-xp-track">
             <div className="journey-xp-fill" style={{ width: `${xpPct}%` }} />
@@ -130,7 +133,7 @@ export function JourneyPage() {
           <div className="journey-streak-row">
             <span className="journey-streak-fire">🔥</span>
             <div>
-              <span className="journey-streak-count">{streak}</span>
+              <span className="journey-streak-count">{shownStreak}</span>
               <span className="journey-streak-label"> day streak</span>
             </div>
             <div className="journey-freeze-badges">

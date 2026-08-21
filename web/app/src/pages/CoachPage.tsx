@@ -166,7 +166,7 @@ export function CoachPage() {
         )}
       </header>
 
-      <main className="app-main coach-main">
+      <main className="app-main coach-main motion-stagger">
         {error && <div className="error-banner" role="alert">{error}</div>}
 
         {!hasKey && (

@@ -86,7 +86,7 @@ export function LogTextPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Describe your meal</h1>
         <p className="page-sub">Type what you ate — AI estimates the macros.</p>

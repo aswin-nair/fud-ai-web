@@ -179,7 +179,7 @@ export function ReviewFoodPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main review-page">
+      <main className="app-main review-page motion-stagger">
         <BackLink onClick={() => navigate('/log')} />
 
         {error && <div className="error-banner" role="alert">{error}</div>}

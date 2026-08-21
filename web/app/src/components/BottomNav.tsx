@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useHaptic } from '../hooks/useHaptic'
 import { IconHome, IconJourney, IconProgress, IconSettings, IconStar } from './icons'
 
 const TABS = [
@@ -10,6 +11,8 @@ const TABS = [
 ] as const
 
 export function BottomNav() {
+  const vibrate = useHaptic()
+
   return (
     <nav className="bottom-nav-wrap" aria-label="Main">
       <div className="bottom-nav">
@@ -18,6 +21,7 @@ export function BottomNav() {
             key={tab.to}
             to={tab.to}
             end={'end' in tab ? tab.end : undefined}
+            onPointerDown={() => vibrate(10)}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
           >
             {({ isActive }) => (

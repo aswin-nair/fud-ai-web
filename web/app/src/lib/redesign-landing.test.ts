@@ -35,6 +35,15 @@ describe('redesign landing audit', () => {
     expect(over).not.toMatch(/danger/)
   })
 
+  it('ships app-wide press, stagger, and path travel', () => {
+    expect(css).toContain('.motion-stagger > *')
+    expect(css).toContain('.motion-list > *')
+    expect(css).toContain('.meal-path-progress')
+    expect(css).toContain('node-pop')
+    expect(css).toContain('node-breathe')
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/)
+  })
+
   it('documents Expo as web-first, no shared token extract', () => {
     const design = readFileSync(join(SRC, '../DESIGN.md'), 'utf8')
     expect(design).toMatch(/Expo/)

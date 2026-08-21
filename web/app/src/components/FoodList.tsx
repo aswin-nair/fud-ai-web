@@ -347,7 +347,7 @@ export function FoodList({ entries, selectedDate }: FoodListProps) {
 
             <div className={`food-section-items${isCollapsed ? ' collapsed' : ''}`}>
               <div>
-                <div className="food-section-card">
+                <div className="food-section-card motion-list">
                   {items.map((entry, i) => (
                     <SwipeCard
                       key={entry.id}

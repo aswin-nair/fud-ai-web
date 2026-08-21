@@ -36,6 +36,7 @@ export function MealPath({
       <svg className="meal-path-svg" viewBox="0 0 384 232" aria-hidden>
         <path d={PATH} fill="none" stroke="var(--paper-deep)" strokeWidth="10" strokeLinecap="round" />
         <path
+          className="meal-path-progress"
           d={PATH}
           fill="none"
           stroke="var(--coral)"
@@ -46,17 +47,20 @@ export function MealPath({
           strokeDashoffset={1 - progress}
         />
       </svg>
+      {standOn && (
+        <span
+          className="meal-path-mascot"
+          style={{ left: NODE_AT[standOn].left, top: NODE_AT[standOn].top }}
+        >
+          <Mascot state={mascotState} size={44} />
+        </span>
+      )}
       {nodes.map(node => (
         <div
           key={node.slot}
           className="meal-path-slot"
           style={NODE_AT[node.slot]}
         >
-          {standOn === node.slot && (
-            <span className="meal-path-mascot">
-              <Mascot state={mascotState} size={44} />
-            </span>
-          )}
           <PathNode
             slot={node.slot}
             status={node.status}

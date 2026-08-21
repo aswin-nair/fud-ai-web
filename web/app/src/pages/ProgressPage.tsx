@@ -114,7 +114,7 @@ export function ProgressPage() {
   if (state.profile.trackingPaused) {
     return (
       <div className="app-shell progress-shell">
-        <main className="app-main progress-main">
+        <main className="app-main progress-main motion-stagger">
           <div className="progress-page-header">
             <h1 className="screen-title" style={{ marginBottom: 0 }}>Progress</h1>
           </div>
@@ -133,7 +133,7 @@ export function ProgressPage() {
 
   return (
     <div className="app-shell progress-shell">
-      <main className="app-main progress-main">
+      <main className="app-main progress-main motion-stagger">
 
         <div className="progress-page-header">
           <h1 className="screen-title" style={{ marginBottom: 0 }}>Progress</h1>

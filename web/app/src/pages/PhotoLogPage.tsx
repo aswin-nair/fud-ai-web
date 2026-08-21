@@ -84,7 +84,7 @@ export function PhotoLogPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Photo log</h1>
         <p className="page-sub">AI reads the food and estimates your macros.</p>

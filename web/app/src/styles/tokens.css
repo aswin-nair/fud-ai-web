@@ -86,6 +86,8 @@
   --motion-fill: 600ms;
   --motion-sheet: 260ms;
   --motion-celebrate: 900ms;
+  --motion-enter: 420ms;
+  --motion-stagger: 45ms;
 
   /* Depth of the raised button's exposed shadow face. §6.1 */
   --press-depth: 4px;

@@ -141,8 +141,9 @@
 
 .meal-path-mascot {
   position: absolute;
-  top: -42px;
+  transform: translate(-50%, calc(-50% - 42px));
   pointer-events: none;
+  z-index: 2;
 }
 
 .path-node {

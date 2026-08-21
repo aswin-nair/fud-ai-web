@@ -153,3 +153,169 @@
 
 .week-day-btn { transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .week-day-btn:active { transform: scale(0.94); }
+
+/* ── App-wide stagger ───────────────────────────────────────── */
+.motion-stagger > * {
+  animation: section-enter var(--motion-enter) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.motion-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(2) { animation-delay: calc(var(--motion-stagger) * 1); }
+.motion-stagger > *:nth-child(3) { animation-delay: calc(var(--motion-stagger) * 2); }
+.motion-stagger > *:nth-child(4) { animation-delay: calc(var(--motion-stagger) * 3); }
+.motion-stagger > *:nth-child(5) { animation-delay: calc(var(--motion-stagger) * 4); }
+.motion-stagger > *:nth-child(6) { animation-delay: calc(var(--motion-stagger) * 5); }
+.motion-stagger > *:nth-child(7) { animation-delay: calc(var(--motion-stagger) * 6); }
+.motion-stagger > *:nth-child(8) { animation-delay: calc(var(--motion-stagger) * 7); }
+.motion-stagger > *:nth-child(n+9) { animation-delay: calc(var(--motion-stagger) * 8); }
+
+.motion-list > * {
+  animation: section-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.motion-list > *:nth-child(1) { animation-delay: 0ms; }
+.motion-list > *:nth-child(2) { animation-delay: 30ms; }
+.motion-list > *:nth-child(3) { animation-delay: 60ms; }
+.motion-list > *:nth-child(4) { animation-delay: 90ms; }
+.motion-list > *:nth-child(5) { animation-delay: 120ms; }
+.motion-list > *:nth-child(6) { animation-delay: 150ms; }
+.motion-list > *:nth-child(n+7) { animation-delay: 180ms; }
+
+/* ── Chunky press on raised surfaces ────────────────────────── */
+.log-way-row,
+.history-link-card,
+.settings-data-btn,
+.settings-link-row,
+.settings-signout-btn,
+.discover-card,
+.discover-chip,
+.range-chip,
+.log-pick-row,
+.log-quick-add,
+.journey-badge,
+.journey-path-node,
+.starter-chip,
+.ssc-btn,
+.star-btn,
+.progress-log-btn,
+.food-section-header {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.log-way-row,
+.history-link-card,
+.settings-data-btn,
+.settings-link-row,
+.log-quick-add {
+  transition:
+    transform var(--motion-press) cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-bottom-width var(--motion-press);
+}
+
+.log-way-row:active,
+.history-link-card:active,
+.settings-data-btn:active,
+.settings-link-row:active,
+.log-quick-add:active {
+  transform: translateY(2px);
+  border-bottom-width: var(--edge-width);
+}
+
+.discover-card,
+.discover-chip,
+.range-chip,
+.log-pick-row,
+.journey-badge,
+.starter-chip,
+.ssc-btn,
+.star-btn,
+.progress-log-btn,
+.food-section-header {
+  transition: transform var(--motion-press) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.discover-card:active,
+.log-pick-row:active { transform: scale(0.98); }
+.discover-chip:active,
+.range-chip:active,
+.starter-chip:active,
+.progress-log-btn:active,
+.ssc-btn:active,
+.food-section-header:active { transform: scale(0.96); }
+.star-btn:active { transform: scale(1.18); }
+.journey-badge:active,
+.journey-path-node:active { transform: scale(0.94); }
+
+/* ── Path travel + node life ────────────────────────────────── */
+.meal-path-progress {
+  transition: stroke-dashoffset var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.meal-path-mascot {
+  transition:
+    left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.path-node.is-current .path-node-face {
+  animation: node-breathe 2.4s ease-in-out infinite;
+}
+
+.path-node.is-popping .path-node-face {
+  animation: node-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes node-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 122, 80, 0); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 122, 80, 0.16); }
+}
+
+@keyframes node-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+/* ── Chat, onboarding, auth ─────────────────────────────────── */
+.chat-bubble {
+  animation: section-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.onboarding-step-content {
+  animation: section-enter var(--motion-enter) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.login-card,
+.auth-card {
+  animation: hero-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.field input:focus,
+.field textarea:focus,
+.log-search-input:focus,
+.chat-input:focus {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+/* ── Reduced-motion: kill all animations ────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .home-section-enter,
+  .home-hero-enter,
+  .ring-pop,
+  .streak-fire,
+  .streak-card.at-risk,
+  .food-empty-plate,
+  .food-empty-tip,
+  .motion-stagger > *,
+  .motion-list > *,
+  .chat-bubble,
+  .onboarding-step-content,
+  .login-card,
+  .auth-card,
+  .path-node.is-current .path-node-face,
+  .path-node.is-popping .path-node-face,
+  .meal-path-mascot,
+  .meal-path-progress,
+  .app-shell {
+    animation: none !important;
+    transition: none !important;
+  }
+}

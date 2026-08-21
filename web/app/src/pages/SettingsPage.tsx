@@ -193,7 +193,7 @@ export function SettingsPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         <h1 className="page-title">Settings</h1>
 
         {saved && (

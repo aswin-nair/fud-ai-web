@@ -91,7 +91,7 @@ export function ManualEntryPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Manual entry</h1>
         <p className="page-sub">Log known calories and macros.</p>

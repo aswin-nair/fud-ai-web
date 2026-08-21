@@ -80,7 +80,7 @@ export function EditFoodPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main review-page">
+      <main className="app-main review-page motion-stagger">
         <div className="edit-topbar">
           <BackLink onClick={() => navigate('/')} />
           <button

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { prefersReducedMotion } from '../lib/tokens'
 
 export function useCountUp(target: number, duration = 650): number {
   const [display, setDisplay] = useState(target)
@@ -9,6 +10,10 @@ export function useCountUp(target: number, duration = 650): number {
     const from = prevRef.current
     prevRef.current = target
     if (from === target) return
+    if (prefersReducedMotion()) {
+      setDisplay(target)
+      return
+    }
 
     cancelAnimationFrame(rafRef.current)
     const start = performance.now()

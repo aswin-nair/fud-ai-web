@@ -16,6 +16,10 @@ export const motion = {
   sheet: 260,
   /** Confetti, badge pop. */
   celebrate: 900,
+  /** Section and list entrance. */
+  enter: 420,
+  /** Delay between staggered siblings. */
+  stagger: 45,
 } as const
 
 /** Height of the raised button's exposed shadow face, and its travel. §6.1 */

@@ -71,7 +71,7 @@ export function SupportPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         <BackLink to="/settings" />
         <h1 className="screen-title" style={{ marginTop: 12 }}>Support</h1>
 

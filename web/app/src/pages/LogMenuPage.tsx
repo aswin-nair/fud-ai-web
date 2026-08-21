@@ -122,7 +122,7 @@ export function LogMenuPage() {
 
   return (
     <div className="app-shell">
-      <main className="app-main">
+      <main className="app-main motion-stagger">
         <BackLink to="/" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Log a meal</h1>
 
@@ -158,7 +158,7 @@ export function LogMenuPage() {
             {recents.length > 0 && (
               <>
                 <p className="eyebrow">Recent</p>
-                <div className="log-pick-list">
+                <div className="log-pick-list motion-list">
                   {recents.map(entry => (
                     <PickRow
                       key={entry.id}
@@ -175,7 +175,7 @@ export function LogMenuPage() {
             {favourites.length > 0 && (
               <>
                 <p className="eyebrow">Favourites</p>
-                <div className="log-pick-list">
+                <div className="log-pick-list motion-list">
                   {favourites.map(meal => (
                     <PickRow
                       key={meal.id}
@@ -208,7 +208,7 @@ export function LogMenuPage() {
           <>
             <p className="eyebrow">Matches</p>
             {matches.length > 0 ? (
-              <div className="log-pick-list">
+              <div className="log-pick-list motion-list">
                 {matches.map(item => (
                   <PickRow
                     key={item.id}

@@ -23,6 +23,7 @@ import { PressableButton } from '../components/PressableButton'
 import { MealPath } from '../components/MealPath'
 import { Surface } from '../components/Surface'
 import { mealPathStates } from '../lib/mealPath'
+import { useCountUp } from '../hooks/useCountUp'
 import type { XpEvent } from '../types'
 import { startLogFlow, track } from '../lib/analytics'
 
@@ -81,6 +82,9 @@ export function HomePage() {
   const streakAtRisk = !paused && streak > 0 && !hasLoggedToday
   const quest = state.gamification.quest
   const mealsDone = mealPathStates(dayEntries).filter(node => node.status === 'done').length
+  const kcalLeft = Math.max(0, Math.round(target - totals.calories))
+  const shownKcal = useCountUp(kcalLeft)
+  const shownMeals = useCountUp(mealsDone)
 
   const mascotState: MascotState = mascotBeat ?? (
     !hasLoggedToday ? 'sleepy'
@@ -169,6 +173,7 @@ export function HomePage() {
   const pendingLevelUp = state.gamification.pendingLevelUp
 
   function handleBellClick() {
+    vibrate(10)
     if (streakAtRisk) {
       toast('Log today to keep your streak alive!')
       navigate('/journey')
@@ -201,7 +206,10 @@ export function HomePage() {
         <button
           type="button"
           className="home-icon-btn"
-          onClick={() => setShowDatePicker(true)}
+          onClick={() => {
+            vibrate(10)
+            setShowDatePicker(true)
+          }}
           aria-label="Choose date"
         >
           <IconCalendar size={19} />
@@ -247,12 +255,12 @@ export function HomePage() {
                   <div className="home-path-hero-top">
                     <div>
                       <strong className={`home-kcal-left${totals.calories > target ? ' is-over' : ''}`}>
-                        {Math.max(0, Math.round(target - totals.calories)).toLocaleString()}
+                        {shownKcal.toLocaleString()}
                       </strong>
                       <span className="home-day-sub">kcal left today</span>
                     </div>
                     <div className="home-meals-logged">
-                      <strong>{mealsDone} of 4</strong>
+                      <strong>{shownMeals} of 4</strong>
                       <span>meals logged</span>
                     </div>
                   </div>
