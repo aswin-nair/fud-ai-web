@@ -8,7 +8,7 @@ import logoutAll from './_auth/logout-all.js'
 import refresh from './_auth/refresh.js'
 import register from './_auth/register.js'
 import resetPassword from './_auth/reset-password.js'
-import { json } from './_lib/http.js'
+import { json, serverError } from './_lib/http.js'
 
 const AUTH_ACTIONS = {
   'change-password': changePassword,
@@ -24,12 +24,26 @@ const AUTH_ACTIONS = {
 
 type AuthAction = keyof typeof AUTH_ACTIONS
 
+function headerPath(req: VercelRequest, name: string): string {
+  const value = req.headers[name]
+  return typeof value === 'string' ? value : ''
+}
+
 function readAction(req: VercelRequest): string {
   const raw = req.query.action
-  if (typeof raw === 'string') return raw
-  const path = (req.url ?? '').split('?')[0] ?? ''
-  const match = path.match(/^\/api\/auth\/([^/]+)$/)
-  return match?.[1] ?? ''
+  if (typeof raw === 'string' && raw) return raw
+  if (Array.isArray(raw) && typeof raw[0] === 'string' && raw[0]) return raw[0]
+  const candidates = [
+    req.url ?? '',
+    headerPath(req, 'x-invoke-path'),
+    headerPath(req, 'x-matched-path'),
+  ]
+  for (const candidate of candidates) {
+    const path = candidate.split('?')[0] ?? ''
+    const match = path.match(/^\/api\/auth\/([^/]+)$/)
+    if (match?.[1]) return match[1]
+  }
+  return ''
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -38,5 +52,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     json(res, 404, { error: 'Not found' })
     return
   }
-  await AUTH_ACTIONS[action as AuthAction](req, res)
+  try {
+    await AUTH_ACTIONS[action as AuthAction](req, res)
+  } catch (error) {
+    serverError(res, error)
+  }
 }

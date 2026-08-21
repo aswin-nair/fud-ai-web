@@ -1,9 +1,10 @@
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
+import { bundleContractsForNode, resolveEsbuildRoot } from '../../scripts/bundle-workspace-runtime.mjs'
 import { resolveContractsPackage, resolveDomainPackage } from '../../scripts/verify-deploy-context.mjs'
 
 const webRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))))
@@ -25,5 +26,24 @@ describe('deploy context for shared packages', () => {
     const isolated = mkdtempSync(join(tmpdir(), 'fud-web-root-'))
     expect(() => resolveDomainPackage(isolated)).toThrow(/packages\/domain is not available/)
     expect(() => resolveContractsPackage(isolated)).toThrow(/packages\/contracts is not available/)
+  })
+
+  it('bundles contracts into Node-importable JavaScript for Vercel functions', async () => {
+    const destDir = mkdtempSync(join(tmpdir(), 'fud-contracts-runtime-'))
+    const resolved = resolveContractsPackage(webRoot)
+    await bundleContractsForNode({
+      contractsRoot: resolved.contractsRoot,
+      destDir,
+      esbuildRoot: resolveEsbuildRoot(webRoot),
+    })
+    const source = readFileSync(join(destDir, 'index.mjs'), 'utf8')
+    expect(source).not.toContain('postgres://')
+    expect(source).not.toContain('Bearer ')
+    const runtime = await import(pathToFileURL(join(destDir, 'index.mjs')).href) as {
+      CONTRACTS_PACKAGE_ID: string
+      buildTelemetryEnvelope: unknown
+    }
+    expect(runtime.CONTRACTS_PACKAGE_ID).toBe('@fud-ai/contracts')
+    expect(typeof runtime.buildTelemetryEnvelope).toBe('function')
   })
 })

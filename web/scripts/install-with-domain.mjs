@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { installContractsNodeRuntime } from './bundle-workspace-runtime.mjs'
 import { resolveContractsPackage, resolveDomainPackage } from './verify-deploy-context.mjs'
 
 const webRoot = dirname(dirname(fileURLToPath(import.meta.url)))
@@ -23,3 +24,4 @@ function runNpm(args) {
 
 runNpm(['ci'])
 runNpm(['ci', '--prefix', 'app'])
+await installContractsNodeRuntime(webRoot)
