@@ -9,6 +9,10 @@ import {
 import { IconCheck } from '../components/icons'
 import { questTitle } from '../lib/quests'
 import { useCountUp } from '../hooks/useCountUp'
+import { MealPath } from '../components/MealPath'
+import { Surface } from '../components/Surface'
+import { entriesForDay } from '../lib/storage'
+import { startOfDay } from '../lib/dates'
 
 function timeAgo(ts: string): string {
   const diff = Date.now() - new Date(ts).getTime()
@@ -50,10 +54,23 @@ export function JourneyPage() {
   const shownXp = useCountUp(gamification.xp)
   const shownStreak = useCountUp(streak)
 
+  const todayEntries = entriesForDay(state.foodEntries, startOfDay())
+  const doneToday = new Set(todayEntries.map(e => e.mealType)).size
+
   return (
     <div className="app-shell journey-shell">
       <main className="app-main journey-main motion-stagger">
         <h1 className="screen-title" style={{ marginBottom: 0 }}>Journey</h1>
+
+        {/* The day's path lives here, not on the dashboard. Home is about
+            today's numbers; this screen is about the arc through them. */}
+        <Surface className="journey-path-card">
+          <div className="journey-path-head">
+            <span className="eyebrow">Today's meals</span>
+            <span className="journey-path-count">{doneToday} of 4</span>
+          </div>
+          <MealPath entries={todayEntries} />
+        </Surface>
 
         {/* ── Hero ── */}
         <div className="journey-hero">

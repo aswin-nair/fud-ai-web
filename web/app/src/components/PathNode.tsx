@@ -40,7 +40,7 @@ export function PathNode({
   return (
     <button
       type="button"
-      className={`path-node is-${status}${mascot ? ' has-mascot' : ''}${popping ? ' is-popping' : ''}`}
+      className={`path-node clay-node is-${status}${mascot ? ' has-mascot' : ''}${popping ? ' is-popping' : ''}`}
       aria-current={status === 'current' ? 'step' : undefined}
       aria-label={`${MEAL_LABELS[slot]}, ${status}`}
       onPointerDown={() => vibrate(10)}

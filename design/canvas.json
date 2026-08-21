@@ -1,46 +1,124 @@
 {
   "pages": [
-    { "id": "direction", "name": "New direction" },
-    { "id": "heroes", "name": "Hero options" },
-    { "id": "today", "name": "Where we are now" }
+    {
+      "id": "onboarding",
+      "name": "Onboarding"
+    },
+    {
+      "id": "clay",
+      "name": "In-app"
+    },
+    {
+      "id": "today",
+      "name": "Where we are now"
+    }
   ],
   "artboards": [
-    { "file": "Main.dc.html", "title": "Home · redesigned", "page": "direction", "x": 0, "y": 0, "w": 420, "h": 900 },
-    { "file": "Components.dc.html", "title": "Component vocabulary", "page": "direction", "x": 560, "y": 0, "w": 720, "h": 900 },
-
-    { "file": "HeroPath.dc.html", "title": "A · The day as a path", "page": "heroes", "x": 0, "y": 0, "w": 420, "h": 470 },
-    { "file": "HeroCharacter.dc.html", "title": "B · Character leads", "page": "heroes", "x": 470, "y": 0, "w": 420, "h": 470 },
-    { "file": "HeroNumeral.dc.html", "title": "C · The number is the hero", "page": "heroes", "x": 0, "y": 540, "w": 420, "h": 470 },
-    { "file": "HeroStack.dc.html", "title": "D · The day stacks up", "page": "heroes", "x": 470, "y": 540, "w": 420, "h": 470 },
-
-    { "file": "HomeBefore.dc.html", "title": "Home · today", "page": "today", "x": 0, "y": 0, "w": 420, "h": 900 },
-    { "file": "ProgressBefore.dc.html", "title": "Progress · today", "page": "today", "x": 470, "y": 0, "w": 420, "h": 900 },
-    { "file": "LogBefore.dc.html", "title": "Log · today", "page": "today", "x": 940, "y": 0, "w": 420, "h": 900 }
+    {
+      "file": "OnboardQuestion.dc.html",
+      "title": "Question · one per screen",
+      "page": "onboarding",
+      "x": 0,
+      "y": 0,
+      "w": 420,
+      "h": 900
+    },
+    {
+      "file": "OnboardTarget.dc.html",
+      "title": "Your target · with the clamp",
+      "page": "onboarding",
+      "x": 480,
+      "y": 0,
+      "w": 420,
+      "h": 900
+    },
+    {
+      "file": "Main.dc.html",
+      "title": "Home · clay",
+      "page": "clay",
+      "x": 0,
+      "y": 0,
+      "w": 420,
+      "h": 900
+    },
+    {
+      "file": "HeroClayCharacter.dc.html",
+      "title": "Hero · character alternative",
+      "page": "clay",
+      "x": 480,
+      "y": 0,
+      "w": 420,
+      "h": 500
+    },
+    {
+      "file": "Components.dc.html",
+      "title": "Clay vocabulary",
+      "page": "clay",
+      "x": 480,
+      "y": 560,
+      "w": 760,
+      "h": 940
+    },
+    {
+      "file": "HomeBefore.dc.html",
+      "title": "Home · today",
+      "page": "today",
+      "x": 0,
+      "y": 0,
+      "w": 420,
+      "h": 900
+    },
+    {
+      "file": "ProgressBefore.dc.html",
+      "title": "Progress · today",
+      "page": "today",
+      "x": 470,
+      "y": 0,
+      "w": 420,
+      "h": 900
+    },
+    {
+      "file": "LogBefore.dc.html",
+      "title": "Log · today",
+      "page": "today",
+      "x": 940,
+      "y": 0,
+      "w": 420,
+      "h": 900
+    }
   ],
   "annotations": [
     {
-      "id": "dir-note",
-      "x": 1340,
-      "y": 40,
-      "w": 320,
-      "page": "direction",
-      "text": "THE RULE\n\nEvery surface carries a thicker bottom edge than its sides. Cards, buttons, chips, path nodes — all of them. That one rule is what makes the set feel physical rather than printed, and it is why pressing anything can push it down onto its own edge.\n\nType moves to Fredoka, which already ships in the Expo app. Fraunces is retired here: a warm editorial serif cannot carry chunky, and keeping it would mean two personalities fighting.\n\nEvery colour is already in your tokens. Nothing new was invented."
+      "id": "onb-structure",
+      "x": 960,
+      "y": 0,
+      "w": 330,
+      "page": "onboarding",
+      "text": "CLAY MATERIALS, BORROWED PACING\n\nThe structure comes from your reference: one question per screen, a progress affordance with a way back, a large question headline, and a plain-weight line underneath explaining WHY the question is asked.\n\nThe materials stay clay. Option cards are inflated; the chosen one warms and lifts. The progress bar is a sunk channel with a coral rope pressed into it. Inputs sink, surfaces rise.\n\nNothing of the reference's identity is used — not its character, not its green, not its wordmark or display face. Those belong to them."
     },
     {
-      "id": "dir-hero",
-      "x": 1340,
+      "id": "onb-cta",
+      "x": 960,
       "y": 400,
-      "w": 320,
-      "page": "direction",
-      "text": "THE HERO\n\nHome now opens on the day as a path: breakfast, lunch, dinner, snack, in the order you eat them. Logged ones are filled and checked, the one you are on is bigger and outlined, later ones sit muted.\n\nThe mascot stands at the meal you are on, which finally gives the character a job instead of a corner.\n\nFour directions are on the Hero options page — this is one of them, not a settled decision."
+      "w": 330,
+      "page": "onboarding",
+      "text": "TWO PRIMARIES, ON PURPOSE\n\nOnboarding advances on INK clay. Coral clay is reserved for logging a meal.\n\nThat is not a compromise — it means the coral button always says the same thing wherever you meet it, and setup never competes with the one action the product exists for.\n\nIt also matches what your app already does: the current onboarding CTA is black. I twice flagged that as drift. It was not drift."
     },
     {
-      "id": "heroes-note",
-      "x": 940,
-      "y": 40,
+      "id": "onb-clamp",
+      "x": 960,
+      "y": 760,
+      "w": 330,
+      "page": "onboarding",
+      "text": "THE CLAMP, EARNED\n\nThe reference explains why it asks for each piece of data. Your §2.1 rule says a floor that moves the number must always explain itself.\n\nThe target screen is where those meet: the raise is stated plainly, with the number it would have been, and the reason. No apology, no alarm colour, and a way to adjust the pace right underneath."
+    },
+    {
+      "id": "clay-recipe",
+      "x": 1300,
+      "y": 0,
       "w": 320,
-      "page": "heroes",
-      "text": "PICK ONE\n\nEach carries an honest case and an honest cost, written under it.\n\nA is built out on the New direction page. That is not a verdict — it is the one that gave the mascot the most to do.\n\nC is the boldest and the fastest to read, but it makes the calorie total the loudest thing in the app, which cuts against streak-not-deficit.\n\nD is the most original and the least immediately legible.\n\nMix freely: B's ring could wrap A's path."
+      "page": "clay",
+      "text": "THE HERO IS THE RING\n\nThe journey moved off the dashboard onto its own Journey tab, where it already had a route. The dashboard shows today, not the whole arc.\n\nThe ring is the interactive object: the centre is a pressable puck that opens the log, and each macro tile below is tappable to filter the day. The mascot sits on the rim and reacts to logging, never to the number.\n\nDepth encodes hierarchy, never status. Nothing gets deeper because a number got bigger."
     },
     {
       "id": "today-note",
@@ -48,8 +126,11 @@
       "y": 40,
       "w": 300,
       "page": "today",
-      "text": "WHERE WE ARE NOW\n\nRebuilt from the live app at 420x900 with its real tokens and measurements, so the comparison is honest rather than flattering.\n\nOn Home you can see the two floating controls sitting on the macro card — that overlap is a measured bug, not a matter of taste."
+      "text": "WHERE WE ARE NOW\n\nRebuilt from the live app at 420x900 with its real tokens, so the comparison is honest rather than flattering.\n\nThe two floating controls sitting on the macro card are a measured overlap, not an opinion."
     }
   ],
-  "launch": { "view": "canvas", "page": "direction" }
+  "launch": {
+    "view": "canvas",
+    "page": "clay"
+  }
 }

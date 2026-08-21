@@ -1,3 +1,8 @@
+import { useState } from 'react'
+
+import { useHaptic } from '../hooks/useHaptic'
+import { useMascotLife } from '../hooks/useMascotLife'
+
 /**
  * §7.6. One component, six states, driven only by logging behaviour.
  *
@@ -22,18 +27,34 @@ export type MascotState =
 export interface MascotProps {
   state?: MascotState
   size?: number
+  /**
+   * Makes the mascot pokeable. Given a handler it becomes a real button that
+   * squashes and springs back, so the character answers a finger rather than
+   * only reacting to events elsewhere in the app.
+   *
+   * A poke is an interaction, not a judgement: it never inspects a number, and
+   * the lines it triggers say nothing about what was eaten. §2.5 holds.
+   */
+  onPoke?: () => void
 }
 
-export function Mascot({ state = 'idle', size = 96 }: MascotProps) {
-  return (
-    <div
-      className={`mascot mascot-${state}`}
-      style={{ width: size, height: size }}
-      role="img"
-      aria-label={LABELS[state]}
-    >
+export function Mascot({ state = 'idle', size = 96, onPoke }: MascotProps) {
+  const vibrate = useHaptic()
+  const [poked, setPoked] = useState(false)
+  const life = useMascotLife<HTMLDivElement & HTMLButtonElement>()
+
+  function poke() {
+    vibrate(12)
+    // Restart the squash even on a rapid second poke.
+    setPoked(false)
+    requestAnimationFrame(() => setPoked(true))
+    onPoke?.()
+  }
+
+  const art = (
       <svg viewBox="0 0 100 100" width={size} height={size} className="mascot-svg">
         <g className="mascot-bob">
+          <g className="mascot-lean">
           <Arms state={state} />
 
           {/* Feet: small against the body, and set wide. */}
@@ -49,7 +70,9 @@ export function Mascot({ state = 'idle', size = 96 }: MascotProps) {
           {/* Face plate, offset low so the head reads as a head. */}
           <ellipse cx={50} cy={53} rx={22} ry={19} className="mascot-face" />
 
-          <Eyes state={state} />
+          <g className={state === 'sleepy' ? undefined : 'mascot-gaze'}>
+            <Eyes state={state} />
+          </g>
           <circle cx={34} cy={60} r={4.5} className="mascot-blush" />
           <circle cx={66} cy={60} r={4.5} className="mascot-blush" />
           <Mouth state={state} />
@@ -57,9 +80,37 @@ export function Mascot({ state = 'idle', size = 96 }: MascotProps) {
           {state === 'sleepy' && <Zzz />}
           {state === 'celebrating' && <Sparkles />}
           {state === 'proud' && <Star />}
+          </g>
         </g>
       </svg>
-    </div>
+  )
+
+  if (!onPoke) {
+    return (
+      <div
+        ref={life}
+        className={`mascot mascot-${state}`}
+        style={{ width: size, height: size }}
+        role="img"
+        aria-label={LABELS[state]}
+      >
+        {art}
+      </div>
+    )
+  }
+
+  return (
+    <button
+      ref={life}
+      type="button"
+      className={`mascot mascot-${state} is-pokeable${poked ? ' is-poked' : ''}`}
+      style={{ width: size, height: size }}
+      onClick={poke}
+      onAnimationEnd={() => setPoked(false)}
+      aria-label={`${LABELS[state]}. Tap to say hello.`}
+    >
+      {art}
+    </button>
   )
 }
 

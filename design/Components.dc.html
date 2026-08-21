@@ -13,116 +13,156 @@
     a { color: #E8623A; } a:hover { color: #C9502C; }
     * { box-sizing: border-box; }
     .fk { font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif; }
+
+    .clay {
+      background: linear-gradient(160deg, #FFFFFF 0%, #F8F2EA 100%);
+      box-shadow:
+        inset 0 6px 10px rgba(255,255,255,0.95),
+        inset 0 -9px 14px rgba(26,20,14,0.07),
+        0 16px 28px rgba(26,20,14,0.10),
+        0 2px 4px rgba(26,20,14,0.05);
+    }
+    /* Elevation is hierarchy, never status. */
+    .clay-e1 { box-shadow: inset 0 4px 8px rgba(255,255,255,0.9), inset 0 -6px 10px rgba(26,20,14,0.06), 0 6px 12px rgba(26,20,14,0.07); }
+    .clay-e3 { box-shadow: inset 0 8px 12px rgba(255,255,255,0.95), inset 0 -12px 18px rgba(26,20,14,0.09), 0 26px 42px rgba(26,20,14,0.14), 0 3px 6px rgba(26,20,14,0.06); }
+    .clay-sunk {
+      background: linear-gradient(160deg, #EFE7DC 0%, #F7F1E9 100%);
+      box-shadow: inset 0 4px 8px rgba(26,20,14,0.12), inset 0 -3px 6px rgba(255,255,255,0.80);
+    }
+    .clay-coral {
+      background: linear-gradient(160deg, #FF9068 0%, #F0663C 100%);
+      box-shadow:
+        inset 0 6px 10px rgba(255,255,255,0.40),
+        inset 0 -10px 16px rgba(140,45,15,0.30),
+        0 16px 26px rgba(255,122,80,0.34),
+        0 2px 4px rgba(140,45,15,0.16);
+    }
+    /* PRESSED: the cast collapses and the insets invert. That inversion is
+       the whole illusion — without it clay reads as a screenshot. */
+    .clay-coral-pressed {
+      background: linear-gradient(160deg, #EE6740 0%, #FF8A5F 100%);
+      box-shadow:
+        inset 0 8px 14px rgba(140,45,15,0.34),
+        inset 0 -4px 8px rgba(255,255,255,0.22),
+        0 2px 4px rgba(140,45,15,0.14);
+      transform: translateY(4px);
+    }
+    .clay-danger {
+      background: linear-gradient(160deg, #EE6367 0%, #D33B40 100%);
+      box-shadow: inset 0 6px 10px rgba(255,255,255,0.34), inset 0 -10px 16px rgba(120,20,24,0.32), 0 16px 26px rgba(229,72,77,0.30);
+    }
   </style>
 </helmet>
 
-<div style="width: 720px; height: 900px; background: #F6F1EA; padding: 24px; color: #1A1A1A;">
-  <div class="fk" style="font-size: 22px; font-weight: 600;">Component vocabulary</div>
-  <div style="font-size: 12px; color: #7A7266; margin-top: 4px; margin-bottom: 20px;">Every surface carries a thicker bottom edge than its sides. That single rule is what makes the whole set feel physical.</div>
+<div style="width: 760px; height: 940px; background: #F6F1EA; padding: 26px; color: #1A1A1A;">
+  <div class="fk" style="font-size: 24px; font-weight: 600;">Clay vocabulary</div>
+  <div style="font-size: 12px; color: #7A7266; margin-top: 5px; margin-bottom: 22px; max-width: 560px; line-height: 1.5;">Two inset shadows give volume, two cast shadows give lift, and the light always comes from the top left. Depth encodes hierarchy — never status.</div>
 
-  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px;">
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px;">
+
+    <!-- Press -->
+    <div class="clay" style="border-radius: 28px; padding: 22px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.11em; color: #A69C8C; margin-bottom: 18px;">PRESS · THE SQUISH</div>
+      <div style="display: flex; flex-direction: column; gap: 26px;">
+        <div>
+          <div class="clay-coral fk" style="height: 60px; border-radius: 24px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 17px; letter-spacing: 0.5px;">LOG A MEAL</div>
+          <div style="font-size: 10px; color: #A69C8C; margin-top: 10px; text-align: center;">resting · lifted 16px off the page</div>
+        </div>
+        <div>
+          <div class="clay-coral-pressed fk" style="height: 60px; border-radius: 24px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 17px; letter-spacing: 0.5px;">LOG A MEAL</div>
+          <div style="font-size: 10px; color: #A69C8C; margin-top: 14px; text-align: center;">pressed · cast collapses, insets invert</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Elevation -->
+    <div class="clay" style="border-radius: 28px; padding: 22px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.11em; color: #A69C8C; margin-bottom: 18px;">ELEVATION</div>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <sc-for list="{{elevations}}" as="e" hint-placeholder-count="4">
+          <div class="{{e.cls}}" style="border-radius: 20px; padding: 14px 16px; background: {{e.bg}};">
+            <div class="fk" style="font-size: 13px; font-weight: 600; color: {{e.fg}};">{{e.name}}</div>
+            <div style="font-size: 10px; color: {{e.sub}}; margin-top: 2px;">{{e.role}}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Inputs -->
+    <div class="clay" style="border-radius: 28px; padding: 22px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.11em; color: #A69C8C; margin-bottom: 18px;">INPUTS SINK IN</div>
+      <div class="clay-sunk" style="height: 54px; border-radius: 20px; display: flex; align-items: center; gap: 10px; padding: 0 18px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A69C8C" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="font-size: 14px; color: #A69C8C;">Search, or type a number</span>
+      </div>
+      <div class="clay-sunk" style="height: 13px; border-radius: 999px; margin-top: 18px; overflow: hidden;">
+        <div style="width: 62%; height: 100%; border-radius: 999px; background: linear-gradient(160deg, #FF9668, #EF6237);"></div>
+      </div>
+      <div style="font-size: 10px; color: #7A7266; margin-top: 14px; line-height: 1.5;">Anything that receives input is pressed into the surface rather than raised out of it. Tracks and fields share one form.</div>
+    </div>
 
     <!-- Buttons -->
-    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
-      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">BUTTONS</div>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <sc-for list="{{buttons}}" as="b" hint-placeholder-count="4">
-          <div style="position: relative; padding-bottom: {{b.depth}};">
-            <div style="position: absolute; inset: {{b.depth}} 0 0; border-radius: 18px; background: {{b.edge}};"></div>
-            <div class="fk" style="position: relative; height: 50px; border-radius: 18px; background: {{b.bg}}; color: {{b.fg}}; border: {{b.border}}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; letter-spacing: 0.5px;">{{b.label}}</div>
-          </div>
-        </sc-for>
+    <div class="clay" style="border-radius: 28px; padding: 22px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.11em; color: #A69C8C; margin-bottom: 18px;">BUTTONS</div>
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <div class="clay-coral fk" style="height: 52px; border-radius: 22px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px;">Primary</div>
+        <div class="clay fk" style="height: 52px; border-radius: 22px; color: #1A1A1A; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px;">Secondary</div>
+        <div class="clay-danger fk" style="height: 52px; border-radius: 22px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px;">Delete entry</div>
+        <div class="fk" style="height: 52px; border-radius: 22px; color: #7A7266; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px;">Not now</div>
       </div>
-      <div style="font-size: 10px; color: #A69C8C; margin-top: 12px; line-height: 1.5;">Pressed, the face slides down onto its edge and the button loses its height. Destructive is reserved for delete — never for a nutrition state.</div>
+      <div style="font-size: 10px; color: #7A7266; margin-top: 16px; line-height: 1.5;">Red is reserved for delete. It never signals a nutrition state.</div>
     </div>
 
-    <!-- Chips and counters -->
-    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
-      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">COUNTERS</div>
-      <div style="display: flex; gap: 8px;">
-        <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
-          <div style="flex: 1; background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 4px; border-radius: 16px; padding: 9px 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <span style="font-size: 15px;">{{c.icon}}</span>
-            <span class="fk" style="font-size: 15px; font-weight: 600;">{{c.value}}</span>
-          </div>
-        </sc-for>
-      </div>
-
-      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin: 20px 0 12px;">PATH NODES</div>
-      <div style="display: flex; gap: 14px; align-items: center;">
+    <!-- Path nodes -->
+    <div class="clay" style="border-radius: 28px; padding: 22px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.11em; color: #A69C8C; margin-bottom: 18px;">PATH NODES</div>
+      <div style="display: flex; gap: 20px; align-items: center; justify-content: center;">
         <sc-for list="{{nodes}}" as="n" hint-placeholder-count="3">
           <div style="text-align: center;">
-            <div style="width: {{n.size}}; height: {{n.size}}; border-radius: 999px; background: {{n.bg}}; border: 3px solid {{n.border}}; border-bottom-width: 5px; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 20px;">{{n.icon}}</span>
+            <div class="{{n.cls}}" style="width: {{n.size}}; height: {{n.size}}; border-radius: 999px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 22px;">{{n.icon}}</span>
             </div>
-            <div style="font-size: 9px; color: #A69C8C; margin-top: 5px;">{{n.state}}</div>
+            <div style="font-size: 10px; color: #A69C8C; margin-top: 9px;">{{n.state}}</div>
           </div>
         </sc-for>
       </div>
+      <div style="font-size: 10px; color: #7A7266; margin-top: 18px; line-height: 1.5;">Done is filled and lifted, now is raised and largest, later is sunk and quiet.</div>
     </div>
 
-    <!-- Type scale -->
-    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
-      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">TYPE</div>
-      <div class="fk" style="font-size: 40px; font-weight: 600; line-height: 1;">1,747</div>
-      <div style="font-size: 10px; color: #A69C8C; margin-top: 3px;">Fredoka 600 · numbers and headings</div>
-      <div class="fk" style="font-size: 19px; font-weight: 600; margin-top: 14px;">Log a meal</div>
-      <div style="font-size: 10px; color: #A69C8C; margin-top: 3px;">Fredoka 600 · actions</div>
-      <div style="font-size: 14px; margin-top: 14px;">Two more meals keeps day 6.</div>
-      <div style="font-size: 10px; color: #A69C8C; margin-top: 3px;">Plus Jakarta Sans 400/600 · body</div>
-      <div style="font-size: 10px; color: #7A7266; margin-top: 14px; line-height: 1.5; border-top: 1px solid rgba(26,20,14,0.08); padding-top: 12px;">Fraunces is retired in this direction — an editorial serif cannot carry chunky. Fredoka already ships in the Expo app, so this unifies the two rather than adding a third voice.</div>
-    </div>
-
-    <!-- Colour -->
-    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
-      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">COLOUR</div>
-      <div style="display: flex; flex-direction: column; gap: 9px;">
-        <sc-for list="{{swatches}}" as="s" hint-placeholder-count="6">
-          <div style="display: flex; align-items: center; gap: 11px;">
-            <span style="width: 34px; height: 34px; border-radius: 11px; background: {{s.hex}}; border: 2px solid rgba(26,20,14,0.10);"></span>
-            <div style="flex: 1;">
-              <div style="font-size: 11px; font-weight: 700;">{{s.name}}</div>
-              <div style="font-size: 9px; color: #A69C8C;">{{s.role}}</div>
-            </div>
-            <span style="font-size: 10px; color: #A69C8C; font-family: monospace;">{{s.hex}}</span>
-          </div>
-        </sc-for>
+    <!-- The two risks -->
+    <div class="clay" style="border-radius: 28px; padding: 22px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.11em; color: #A69C8C; margin-bottom: 18px;">WHERE THIS BREAKS</div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <div class="fk" style="font-size: 13px; font-weight: 600;">Paint cost</div>
+          <div style="font-size: 11px; color: #7A7266; line-height: 1.5; margin-top: 3px;">Four shadows per surface, times every card, inside a scrolling list, on a cheap Android. Budgeted before there are two hundred of them.</div>
+        </div>
+        <div>
+          <div class="fk" style="font-size: 13px; font-weight: 600;">Contrast</div>
+          <div style="font-size: 11px; color: #7A7266; line-height: 1.5; margin-top: 3px;">Inset shadows darken exactly where text sits, and it accumulates with elevation. Small muted text on a deep surface is the worst case.</div>
+        </div>
       </div>
-      <div style="font-size: 10px; color: #7A7266; margin-top: 14px; line-height: 1.5;">Every value already exists in the app's tokens. Nothing here is a new hue.</div>
     </div>
 
   </div>
 </div>
 </x-dc>
 
-<script data-dc-script data-props='{"$preview":{"width":720,"height":900}}'>
+<script data-dc-script data-props='{"$preview":{"width":760,"height":940}}'>
 class Component extends DCLogic {
   renderVals() {
-    const buttons = [
-      { label: 'LOG A MEAL', bg: '#FF7A50', edge: '#C9502C', fg: '#FFFFFF', border: 'none', depth: '6px' },
-      { label: 'Add details', bg: '#FFFFFF', edge: 'rgba(26,20,14,0.16)', fg: '#1A1A1A', border: '2px solid rgba(26,20,14,0.10)', depth: '5px' },
-      { label: 'Delete entry', bg: '#E5484D', edge: '#A82C30', fg: '#FFFFFF', border: 'none', depth: '6px' },
-      { label: 'Not now', bg: 'transparent', edge: 'transparent', fg: '#7A7266', border: 'none', depth: '0px' },
-    ];
-    const chips = [
-      { icon: '🔥', value: '6' },
-      { icon: '⭐', value: '45' },
-      { icon: '❄️', value: '1' },
+    const elevations = [
+      { cls: 'clay-sunk', name: 'Sunk', role: 'inputs, tracks, the inactive', bg: '', fg: '#7A7266', sub: '#A69C8C' },
+      { cls: 'clay-e1', name: 'e1 — resting', role: 'list rows, quiet cards', bg: 'linear-gradient(160deg,#FFFFFF,#F8F2EA)', fg: '#1A1A1A', sub: '#A69C8C' },
+      { cls: 'clay', name: 'e2 — raised', role: 'the default card', bg: '', fg: '#1A1A1A', sub: '#A69C8C' },
+      { cls: 'clay-e3', name: 'e3 — primary', role: 'the hero, and only the hero', bg: 'linear-gradient(160deg,#FFFFFF,#F8F2EA)', fg: '#1A1A1A', sub: '#A69C8C' },
     ];
     const nodes = [
-      { state: 'Done', icon: '✅', bg: '#FF7A50', border: '#C9502C', size: '54px' },
-      { state: 'Now', icon: '🍲', bg: '#FFFFFF', border: '#FF7A50', size: '62px' },
-      { state: 'Later', icon: '🍎', bg: '#EFE6D8', border: '#E3D7C6', size: '50px' },
+      { state: 'Done', icon: '✓', cls: 'clay-coral', size: '58px' },
+      { state: 'Now', icon: '🍲', cls: 'clay', size: '70px' },
+      { state: 'Later', icon: '🍎', cls: 'clay-sunk', size: '52px' },
     ];
-    const swatches = [
-      { name: 'Coral', role: 'action, streak, progress', hex: '#FF7A50' },
-      { name: 'Coral deep', role: 'the pressed edge', hex: '#C9502C' },
-      { name: 'Cream', role: 'ground', hex: '#F6F1EA' },
-      { name: 'Protein', role: 'macro only', hex: '#6B9FFF' },
-      { name: 'Carbs', role: 'macro only', hex: '#FFB347' },
-      { name: 'Fat', role: 'macro only', hex: '#FF6B9D' },
-    ];
-    return { buttons, chips, nodes, swatches };
+    return { elevations, nodes };
   }
 }
 </script>

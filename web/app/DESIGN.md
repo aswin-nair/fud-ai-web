@@ -1,18 +1,18 @@
 # Fud AI Web — Design System
 
-Design reference for the Fud AI web tracker (`web/app`). The UI is **mobile-first** and follows the published redesign: cream paper, chunky physical surfaces (thicker bottom edge), Fredoka display type, and Hero A — the day as a breakfast → lunch → dinner → snack path.
+Design reference for the Fud AI web tracker (`web/app`). The UI is **mobile-first** claymorphism: cream paper, inflated squeezable surfaces, Fredoka display type, and Hero A — the day as a breakfast → lunch → dinner → snack path. Clay is depth and light, not new hues.
 
-Styles are split under [`src/styles/`](src/styles/) and imported from [`src/index.css`](src/index.css).
+Styles are split under [`src/styles/`](src/styles/) and imported from [`src/index.css`](src/index.css). The clay recipe lives in [`src/styles/clay.css`](src/styles/clay.css).
 
 ## Expo
 
-The Expo `mobile/` app stays a private alpha. It does **not** extract shared tokens from this vocabulary until a later converge-or-retire decision. Web ships this language first; carrying two designs is out of scope.
+The Expo `mobile/` app stays a private alpha. It does **not** extract shared tokens from this vocabulary until a later converge-or-retire decision. Web ships clay first; carrying a flat Expo and a clay web app is the expensive option, so Expo waits.
 
 ## Landing checks
 
-- Contrast: coral on cream, ink on paper, and `--ink-soft` over-budget copy stay on the existing wellness tokens. `--danger` is delete-only.
+- Contrast: coral on cream, ink on clay elevations, and `--ink-soft` over-budget copy stay on the existing wellness tokens. `--danger` is delete-only. Depth never marks over-budget.
 - Touch targets: path nodes, pressable faces, and nav items are at least 44px.
-- Hardware feel: press travels onto the bottom edge; log-to-Home stays the existing short path (manual entry or a path-node tap into that slot).
+- Hardware feel: press squishes the clay (inner shadows invert); log-to-Home stays the existing short path (manual entry or a path-node tap into that slot).
 
 ---
 

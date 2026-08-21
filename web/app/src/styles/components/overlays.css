@@ -160,33 +160,8 @@
   transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── Mascot speech bubble ────────────────────────────────────*/
-.mascot-say {
-  position: relative;
-  max-width: 190px;
-  padding: 10px 14px;
-  background: var(--paper-card);
-  border: 2px solid var(--rule);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-label);
-  color: var(--ink);
-  line-height: 1.35;
-}
-
-/* The tail, drawn as a rotated square so it inherits the same border. */
-.mascot-say::after {
-  content: '';
-  position: absolute;
-  left: -7px;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  margin-top: -6px;
-  background: var(--paper-card);
-  border-left: 2px solid var(--rule);
-  border-bottom: 2px solid var(--rule);
-  transform: rotate(45deg);
-}
+/* The mascot's speech bubble now lives in clay.css — it sits centred under
+   the ring rather than beside the character, so it carries no side tail. */
 
 .home-say-row {
   display: flex;

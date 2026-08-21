@@ -20,6 +20,18 @@ export const motion = {
   enter: 420,
   /** Delay between staggered siblings. */
   stagger: 45,
+  /** Clay compress. */
+  squishIn: 90,
+  /** Clay release. */
+  squishOut: 260,
+} as const
+
+export const clay = {
+  base: '#FFF8F2',
+  lift: '#FFFFFF',
+  ink: '#1A1A1A',
+  inkSoft: '#7A7266',
+  innerDarkAlpha: 0.045,
 } as const
 
 /** Height of the raised button's exposed shadow face, and its travel. §6.1 */

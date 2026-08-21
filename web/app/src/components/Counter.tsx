@@ -13,7 +13,7 @@ export function Counter({
 }) {
   const shown = useCountUp(value)
   return (
-    <div className={`counter counter-${tone}`}>
+    <div className={`counter clay-chip counter-${tone}`}>
       {icon && <span className="counter-icon" aria-hidden>{icon}</span>}
       <strong className="counter-value">{shown.toLocaleString()}</strong>
       <span className="counter-label sr-only">{label}</span>

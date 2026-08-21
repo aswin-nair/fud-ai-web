@@ -15,6 +15,7 @@ import { MacroProgressGroup } from './MacroGrid'
 import { PressableButton } from './PressableButton'
 import { Counter } from './Counter'
 import { PathNode } from './PathNode'
+import { ClayInput } from './ClayInput'
 import { Surface } from './Surface'
 import { SettingsRow } from './SettingsRow'
 import { WeekStrip } from './WeekStrip'
@@ -122,6 +123,15 @@ describe('primary component accessibility contracts', () => {
     expect(html).not.toContain('aria-label="Log food"')
   })
 
+  it('names clay fields and keeps path nodes labeled', () => {
+    const field = renderToStaticMarkup(createElement(ClayInput, {
+      'aria-label': 'Meal name',
+      placeholder: 'Oats',
+    }))
+    expect(field).toContain('clay-input')
+    expect(field).toContain('aria-label="Meal name"')
+  })
+
   it('names path nodes with slot and status', () => {
     const html = renderToStaticMarkup(createElement(PathNode, {
       slot: 'breakfast',
@@ -142,7 +152,10 @@ describe('primary component accessibility contracts', () => {
     }))
     expect(ghost).toMatch(/^<button type="button"/)
     expect(danger).toContain('pressable-destructive')
-    expect(renderToStaticMarkup(createElement(Surface, null, 'Card'))).toContain('class="surface is-padded"')
+    const surface = renderToStaticMarkup(createElement(Surface, null, 'Card'))
+    expect(surface).toContain('surface')
+    expect(surface).toContain('is-padded')
+    expect(surface).toContain('clay-e2')
     expect(renderToStaticMarkup(createElement(Counter, { label: 'days', value: 3 }))).toContain('3')
   })
 

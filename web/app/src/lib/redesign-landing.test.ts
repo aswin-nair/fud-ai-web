@@ -17,10 +17,15 @@ const css = collectCss(join(SRC, 'styles'))
 
 describe('redesign landing audit', () => {
   it('keeps 44px touch targets on path nodes, counters, and nav faces', () => {
-    const pathNode = css.match(/\.path-node \{([^}]+)\}/)?.[1]
-    const counter = css.match(/\.counter \{([^}]+)\}/)?.[1]
-    const navInner = css.match(/\.nav-item-inner \{([^}]+)\}/)?.[1]
-    const pressable = css.match(/\.pressable-face \{([^}]+)\}/)?.[1]
+    const block = (selector: string) => (
+      [...css.matchAll(new RegExp(`${selector} \\{([^}]+)\\}`, 'g'))]
+        .map(match => match[1])
+        .find(body => body.includes('min-height') || body.includes('min-width'))
+    )
+    const pathNode = block('\\.path-node')
+    const counter = block('\\.counter')
+    const navInner = block('\\.nav-item-inner')
+    const pressable = block('\\.pressable-face')
 
     expect(pathNode).toMatch(/min-width:\s*44px/)
     expect(pathNode).toMatch(/min-height:\s*44px/)
@@ -42,6 +47,13 @@ describe('redesign landing audit', () => {
     expect(css).toContain('node-pop')
     expect(css).toContain('node-breathe')
     expect(css).toMatch(/prefers-reduced-motion:\s*reduce/)
+  })
+
+  it('ships the clay recipe and squish motion', () => {
+    expect(css).toContain('--clay-base:')
+    expect(css).toContain('--squish-in:')
+    expect(css).toContain('var(--clay-squish)')
+    expect(css).toContain('.clay-inset')
   })
 
   it('documents Expo as web-first, no shared token extract', () => {

@@ -340,3 +340,22 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
+
+/* The meal path, moved off the dashboard. */
+.journey-path-card {
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.journey-path-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.journey-path-count {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--on-track-deep);
+}

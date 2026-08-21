@@ -1,4 +1,8 @@
+import { useState } from 'react'
+
 import { RING_STROKE_RATIO } from '../lib/tokens'
+import { useCountUp } from '../hooks/useCountUp'
+import { useHaptic } from '../hooks/useHaptic'
 import { calorieProgress } from '@fud-ai/domain/nutrition'
 
 /**
@@ -18,9 +22,26 @@ export interface CalorieRingProps {
   size?: number
   /** Shown under the number when set, e.g. a date other than today. */
   caption?: string
+  /**
+   * Makes the centre a real button that starts the log flow. Omitted, the ring
+   * stays a plain readout — the same component serves History, where there is
+   * nothing to log into.
+   */
+  onLog?: () => void
+  /** Label for the centre action. */
+  actionLabel?: string
 }
 
-export function CalorieRing({ consumed, target, size = 200, caption }: CalorieRingProps) {
+export function CalorieRing({
+  consumed,
+  target,
+  size = 200,
+  caption,
+  onLog,
+  actionLabel = 'Tap to log',
+}: CalorieRingProps) {
+  const vibrate = useHaptic()
+  const [pressed, setPressed] = useState(false)
   const strokeWidth = size * RING_STROKE_RATIO
   const radius = size / 2 - strokeWidth / 2
   const circumference = 2 * Math.PI * radius
@@ -31,6 +52,18 @@ export function CalorieRing({ consumed, target, size = 200, caption }: CalorieRi
   const valueText = isOver
     ? `${Math.round(progressState.consumed)} of ${Math.round(progressState.target)} kilocalories, ${overBy} over`
     : `${Math.round(progressState.consumed)} of ${Math.round(progressState.target)} kilocalories, ${remaining} left`
+
+  const shownValue = useCountUp(Math.round(isOver ? overBy : remaining))
+
+  const centreContent = (
+    <>
+      <strong className={`calorie-ring-value${isOver ? ' is-over' : ''}`}>
+        {shownValue.toLocaleString()}
+      </strong>
+      <span className="calorie-ring-unit">{isOver ? 'kcal over' : 'kcal left'}</span>
+      {caption && <span className="calorie-ring-caption">{caption}</span>}
+    </>
+  )
 
   return (
     <div
@@ -83,13 +116,23 @@ export function CalorieRing({ consumed, target, size = 200, caption }: CalorieRi
         </g>
       </svg>
 
-      <div className="calorie-ring-centre">
-        <strong className={`calorie-ring-value${isOver ? ' is-over' : ''}`}>
-          {(isOver ? overBy : remaining).toLocaleString()}
-        </strong>
-        <span className="calorie-ring-unit">{isOver ? 'kcal over' : 'kcal left'}</span>
-        {caption && <span className="calorie-ring-caption">{caption}</span>}
-      </div>
+      {onLog ? (
+        <button
+          type="button"
+          className={`calorie-ring-centre is-actionable clay-squish${pressed ? ' is-pressed' : ''}`}
+          onClick={onLog}
+          onPointerDown={() => { setPressed(true); vibrate(10) }}
+          onPointerUp={() => setPressed(false)}
+          onPointerLeave={() => setPressed(false)}
+          onPointerCancel={() => setPressed(false)}
+          aria-label={`${actionLabel}. ${valueText}`}
+        >
+          {centreContent}
+          <span className="calorie-ring-action">{actionLabel}</span>
+        </button>
+      ) : (
+        <div className="calorie-ring-centre">{centreContent}</div>
+      )}
     </div>
   )
 }

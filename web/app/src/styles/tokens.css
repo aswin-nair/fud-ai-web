@@ -67,10 +67,17 @@
   --space-xxl: 32px;
 
   /* Radii. --radius-sm is the floor; square corners are off-brand. */
-  --radius-md: 16px;
-  --radius-lg: 20px;
-  --radius-xl: 26px;
+  --radius-md: 26px;
+  --radius-lg: 34px;
+  --radius-xl: 44px;
   --radius-pill: 999px;
+
+  /* Clay radii. Inflation is read in the corner. */
+  --clay-radius-sm: 18px;
+  --clay-radius-md: 26px;
+  --clay-radius-lg: 34px;
+  --clay-radius-xl: 44px;
+  --clay-radius: var(--clay-radius-md);
 
   /* Type scale. */
   --text-hero: 2.75rem;
@@ -88,6 +95,57 @@
   --motion-celebrate: 900ms;
   --motion-enter: 420ms;
   --motion-stagger: 45ms;
+  --squish-in: 90ms;
+  --squish-out: 260ms;
+  --squish-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+
+  /* Clay depth. Warm ink tints only — no new hue, no status-as-depth. */
+  --clay-base: #FFF8F2;
+  --clay-lift: #FFFFFF;
+  --clay-inner-light: rgba(255, 255, 255, 0.78);
+  --clay-inner-dark: rgba(26, 20, 14, 0.045);
+  --clay-cast: rgba(38, 28, 16, 0.12);
+  --clay-contact: rgba(38, 28, 16, 0.05);
+  --clay-inset-light: rgba(255, 255, 255, 0.4);
+  --clay-inset-dark: rgba(26, 20, 14, 0.1);
+  --clay-coral-base: var(--coral);
+  --clay-coral-lift: #FF9B78;
+  --clay-coral-inner-light: rgba(255, 255, 255, 0.34);
+  --clay-coral-inner-dark: rgba(201, 80, 44, 0.28);
+  --clay-coral-cast: rgba(201, 80, 44, 0.22);
+  --clay-e1:
+    inset 0 3px 6px var(--clay-inner-light),
+    inset 0 -4px 8px var(--clay-inner-dark),
+    0 8px 14px var(--clay-cast),
+    0 1px 2px var(--clay-contact);
+  --clay-e2:
+    inset 0 6px 10px var(--clay-inner-light),
+    inset 0 -8px 14px var(--clay-inner-dark),
+    0 16px 28px var(--clay-cast),
+    0 2px 4px var(--clay-contact);
+  --clay-e3:
+    inset 0 7px 12px var(--clay-inner-light),
+    inset 0 -10px 16px var(--clay-inner-dark),
+    0 20px 36px var(--clay-cast),
+    0 3px 6px var(--clay-contact);
+  --clay-squish:
+    inset 0 8px 14px var(--clay-inner-dark),
+    inset 0 -3px 6px var(--clay-inner-light),
+    0 4px 8px var(--clay-cast),
+    0 1px 2px var(--clay-contact);
+  --clay-inset:
+    inset 0 6px 12px var(--clay-inset-dark),
+    inset 0 -2px 4px var(--clay-inset-light);
+  --clay-coral-raised:
+    inset 0 6px 10px var(--clay-coral-inner-light),
+    inset 0 -8px 14px var(--clay-coral-inner-dark),
+    0 16px 28px var(--clay-coral-cast),
+    0 2px 4px var(--clay-contact);
+  --clay-coral-squish:
+    inset 0 8px 14px var(--clay-coral-inner-dark),
+    inset 0 -3px 6px var(--clay-coral-inner-light),
+    0 4px 8px var(--clay-coral-cast),
+    0 1px 2px var(--clay-contact);
 
   /* Depth of the raised button's exposed shadow face. §6.1 */
   --press-depth: 4px;

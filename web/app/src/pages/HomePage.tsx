@@ -17,10 +17,12 @@ import { useHaptic } from '../hooks/useHaptic'
 import { playLogConfirm, prefersReducedMotion, setFeelEnabled } from '../lib/feel'
 import { questTitle } from '../lib/quests'
 import { evaluateNotifications } from '../lib/notifications'
-import { type MascotState } from '../components/Mascot'
+import { Mascot, type MascotState } from '../components/Mascot'
+import { MascotSay } from '../components/MascotSay'
+import { pokeLine } from '../lib/mascotVoice'
 import { LogCelebration } from '../components/LogCelebration'
 import { PressableButton } from '../components/PressableButton'
-import { MealPath } from '../components/MealPath'
+import { CalorieRing } from '../components/CalorieRing'
 import { Surface } from '../components/Surface'
 import { mealPathStates } from '../lib/mealPath'
 import { useCountUp } from '../hooks/useCountUp'
@@ -58,6 +60,7 @@ export function HomePage() {
   const [revealed, setRevealed] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [mascotBeat, setMascotBeat] = useState<MascotState | null>(null)
+  const [pokes, setPokes] = useState(0)
   const [celebration, setCelebration] = useState<CelebrationState | null>(null)
   const loggedNavKey = useRef('')
   const prevSeenBadgeCount = useRef(state.gamification.seenBadgeIds.length)
@@ -82,8 +85,6 @@ export function HomePage() {
   const streakAtRisk = !paused && streak > 0 && !hasLoggedToday
   const quest = state.gamification.quest
   const mealsDone = mealPathStates(dayEntries).filter(node => node.status === 'done').length
-  const kcalLeft = Math.max(0, Math.round(target - totals.calories))
-  const shownKcal = useCountUp(kcalLeft)
   const shownMeals = useCountUp(mealsDone)
 
   const mascotState: MascotState = mascotBeat ?? (
@@ -245,33 +246,46 @@ export function HomePage() {
           <>
             <div className="home-hero-enter" style={{ '--enter-delay': '0ms' } as React.CSSProperties}>
               {paused ? (
-                <Surface className="home-path-hero" style={{ textAlign: 'center' }}>
+                <Surface className="home-ring-hero" style={{ textAlign: 'center' }}>
                   <p className="onboarding-title" style={{ fontSize: '1.2rem' }}>Tracking is paused</p>
                   <p className="page-sub">Calorie and macro numbers are hidden. Your streak is held where it is.</p>
-                  <MealPath entries={dayEntries} paused mascotState="neutral" />
+                  <Mascot state="neutral" size={96} />
                 </Surface>
               ) : (
-                <Surface className={`home-path-hero${ringPop ? ' ring-pop' : ''}`}>
-                  <div className="home-path-hero-top">
-                    <div>
-                      <strong className={`home-kcal-left${totals.calories > target ? ' is-over' : ''}`}>
-                        {shownKcal.toLocaleString()}
-                      </strong>
-                      <span className="home-day-sub">kcal left today</span>
-                    </div>
-                    <div className="home-meals-logged">
-                      <strong>{shownMeals} of 4</strong>
-                      <span>meals logged</span>
+                /* The ring is the hero and the ring is the action: its centre
+                   opens the log flow. The meal path lives on Journey, where the
+                   whole arc belongs — the dashboard is about today. */
+                <Surface className={`home-ring-hero${ringPop ? ' ring-pop' : ''}`}>
+                  <div className="home-ring-wrap">
+                    <CalorieRing
+                      consumed={totals.calories}
+                      target={target}
+                      size={236}
+                      onLog={() => {
+                        startLogFlow('search', state.foodEntries.length === 0)
+                        navigate('/log')
+                      }}
+                    />
+                    <div className="home-ring-mascot">
+                      <Mascot
+                        state={mascotState}
+                        size={64}
+                        onPoke={() => setPokes(n => n + 1)}
+                      />
                     </div>
                   </div>
-                  <MealPath
-                    entries={dayEntries}
-                    mascotState={mascotState}
-                    onSelectSlot={slot => {
-                      startLogFlow('search', state.foodEntries.length === 0)
-                      navigate('/log/manual', { state: { mealType: slot } })
-                    }}
+                  {/* The mascot talks to the moment. Poking it moves the line
+                      on, so the character answers rather than repeating. */}
+                  <MascotSay
+                    state={mascotState}
+                    seed={mealsDone}
+                    line={pokes > 0 ? pokeLine(mascotState, pokes) : undefined}
                   />
+                  <p className="home-ring-sub">
+                    {Math.round(totals.calories).toLocaleString()} of {Math.round(target).toLocaleString()} today
+                    {' · '}
+                    {shownMeals} {shownMeals === 1 ? 'meal' : 'meals'} logged
+                  </p>
                 </Surface>
               )}
             </div>

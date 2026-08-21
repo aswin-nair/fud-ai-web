@@ -1,10 +1,8 @@
-/* ── PressableButton (§6.1) ──────────────────────────────────
-   Two stacked layers: a static shadow, and a face that slides down onto it.
-   The container reserves --press-depth at the bottom so nothing reflows. */
+/* Clay PressableButton. One inflated face. Press inverts the inner light. */
 .pressable {
   position: relative;
   display: inline-block;
-  padding: 0 0 var(--press-depth);
+  padding: 0;
   border: none;
   background: none;
   cursor: pointer;
@@ -16,8 +14,10 @@
 
 .pressable-shadow {
   position: absolute;
-  inset: var(--press-depth) 0 0;
-  border-radius: var(--radius-lg);
+  inset: 0;
+  border-radius: var(--clay-radius-lg);
+  pointer-events: none;
+  opacity: 0;
 }
 
 .pressable-face {
@@ -28,30 +28,68 @@
   gap: var(--space-sm);
   min-height: 54px;
   padding: 0 var(--space-xl);
-  border-radius: var(--radius-lg);
+  border-radius: var(--clay-radius-lg);
   font-size: var(--text-body);
   font-weight: 700;
   letter-spacing: 0.4px;
+  border: none;
   transform: translateY(0);
-  transition: transform var(--motion-press) ease-out;
+  transition:
+    transform var(--squish-out) var(--squish-ease),
+    box-shadow var(--squish-out) var(--squish-ease);
 }
 
-.pressable.is-pressed .pressable-face { transform: translateY(var(--press-depth)); }
+.pressable-primary .pressable-face {
+  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
+  color: var(--on-accent);
+  box-shadow: var(--clay-coral-raised);
+}
 
-.pressable-primary .pressable-shadow { background: var(--on-track-deep); }
-.pressable-primary .pressable-face { background: var(--on-track); color: var(--on-accent); }
-
-.pressable-secondary .pressable-shadow { background: var(--rule-strong); }
 .pressable-secondary .pressable-face {
-  background: var(--paper-card);
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
   color: var(--ink);
-  border: 1px solid var(--rule);
+  box-shadow: var(--clay-e2);
 }
 
-.pressable-destructive .pressable-shadow { background: var(--danger-deep); }
-.pressable-destructive .pressable-face { background: var(--danger); color: var(--on-accent); }
+.pressable-destructive .pressable-face {
+  background: var(--danger);
+  color: var(--on-accent);
+  box-shadow:
+    inset 0 6px 10px rgba(255, 255, 255, 0.22),
+    inset 0 -8px 14px var(--danger-deep),
+    0 16px 28px rgba(193, 52, 56, 0.22),
+    0 2px 4px var(--clay-contact);
+}
+
+.pressable-ghost .pressable-face {
+  background: transparent;
+  color: var(--ink-soft);
+  box-shadow: none;
+}
+
+.pressable.is-pressed .pressable-face {
+  transform: scale(0.97) translateY(2px);
+  transition-duration: var(--squish-in);
+}
+
+.pressable-primary.is-pressed .pressable-face { box-shadow: var(--clay-coral-squish); }
+.pressable-secondary.is-pressed .pressable-face { box-shadow: var(--clay-squish); }
+.pressable-destructive.is-pressed .pressable-face {
+  box-shadow:
+    inset 0 8px 14px var(--danger-deep),
+    inset 0 -3px 6px rgba(255, 255, 255, 0.16),
+    0 4px 8px rgba(193, 52, 56, 0.18);
+}
+.pressable-ghost.is-pressed .pressable-face {
+  transform: scale(0.98);
+  box-shadow: none;
+}
 
 .pressable:disabled { opacity: 0.5; cursor: default; }
+.pressable:disabled .pressable-face {
+  box-shadow: none;
+  transform: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .pressable-face { transition: none; }
