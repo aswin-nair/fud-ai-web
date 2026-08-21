@@ -23,6 +23,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { JourneyPage } from './pages/JourneyPage'
 import { AboutPage } from './pages/AboutPage'
 import { SupportPage } from './pages/SupportPage'
+import { ComponentSheetPage } from './pages/ComponentSheetPage'
 
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
@@ -68,6 +69,7 @@ function AuthenticatedRoutes() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/support" element={<SupportPage />} />
       <Route path="/journey" element={<JourneyPage />} />
+      {import.meta.env.DEV && <Route path="/dev/components" element={<ComponentSheetPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

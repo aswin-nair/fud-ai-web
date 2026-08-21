@@ -8,6 +8,7 @@ import { useAuth } from '../store/AuthContext'
 import type { ActivityLevel, Gender, MealType, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS, MEAL_LABELS } from '../types'
 import { IconChevronLeft, IconChevronRight } from '../components/icons'
+import { PressableButton } from '../components/PressableButton'
 import {
   computeTargets,
   effectiveProtein,
@@ -291,10 +292,10 @@ export function OnboardingPage() {
           </div>
           <h1 className="welcome-title" key={`t-${draft.welcomeIndex}`}>{slide.title}</h1>
           <p className="welcome-sub" key={`s-${draft.welcomeIndex}`}>{slide.sub}</p>
-          <button type="button" className="welcome-cta" onClick={nextWelcome}>
+          <PressableButton fullWidth onClick={nextWelcome}>
             {isLast ? 'Get started' : 'Continue'}
             <IconChevronRight size={16} strokeWidth={2.4} />
-          </button>
+          </PressableButton>
         </div>
       </div>
     )
@@ -591,23 +592,21 @@ export function OnboardingPage() {
 
         <div className="onboarding-actions">
           {step > 0 && (
-            <button type="button" className="btn btn-ghost" onClick={back}>
+            <PressableButton variant="ghost" onClick={back}>
               <IconChevronLeft size={15} strokeWidth={2.4} /> Back
-            </button>
+            </PressableButton>
           )}
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ flex: 1 }}
+          <PressableButton
             onClick={step === FIRST_MEAL_STEP ? finishWithFirstMeal : next}
             disabled={(step === 2 && !validBody(profile)) || (step === FIRST_MEAL_STEP && !firstMealReady)}
+            className="is-full"
           >
             {step === FIRST_MEAL_STEP
               ? 'Log first meal'
               : step === 5
                 ? <>Continue to first meal <IconChevronRight size={16} strokeWidth={2.4} /></>
                 : <>Continue <IconChevronRight size={16} strokeWidth={2.4} /></>}
-          </button>
+          </PressableButton>
         </div>
       </main>
     </div>

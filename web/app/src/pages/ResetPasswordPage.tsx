@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import logo from '@assets/calorie logo transparent.png'
 import { apiResetPassword } from '../lib/apiClient'
+import { PressableButton } from '../components/PressableButton'
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams()
@@ -64,9 +65,9 @@ export function ResetPasswordPage() {
               minLength={8}
             />
           </div>
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading || !token}>
+          <PressableButton type="submit" fullWidth disabled={loading || !token}>
             {loading ? 'Please wait…' : 'Update password'}
-          </button>
+          </PressableButton>
         </form>
         <p className="login-foot">
           <Link to="/login">Back to sign in</Link>

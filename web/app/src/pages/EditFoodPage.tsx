@@ -6,6 +6,7 @@ import { BackLink } from '../components/BackLink'
 import { IconChevronLeft, IconStar } from '../components/icons'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
+import { PressableButton } from '../components/PressableButton'
 
 const MEAL_ICONS: Record<MealType, string> = {
   breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎', other: '🍽️',
@@ -36,9 +37,9 @@ export function EditFoodPage() {
       <div className="app-shell">
         <main className="app-main">
           <p style={{ color: 'var(--ink-soft)' }}>Entry not found.</p>
-          <button type="button" className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => navigate('/')}>
+          <PressableButton variant="ghost" onClick={() => navigate('/')}>
             <IconChevronLeft size={16} strokeWidth={2.4} /> Home
-          </button>
+          </PressableButton>
         </main>
       </div>
     )
@@ -160,15 +161,8 @@ export function EditFoodPage() {
           ))}
         </div>
 
-        <button type="button" className="btn btn-log btn-block" onClick={save}>Save changes</button>
-        <button
-          type="button"
-          className="btn btn-ghost btn-block"
-          style={{ marginTop: 10, color: 'var(--coral-deep)' }}
-          onClick={remove}
-        >
-          Delete entry
-        </button>
+        <PressableButton fullWidth label="Save changes" onClick={save} />
+        <PressableButton fullWidth variant="destructive" label="Delete entry" onClick={remove} />
       </main>
     </div>
   )

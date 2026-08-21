@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    a { color: #E8623A; } a:hover { color: #C9502C; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="width: 420px; height: 900px; background: #F6F1EA; position: relative; overflow: hidden; color: #1A1A1A;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 16px 8px;">
+    <div style="width: 40px; height: 40px; border-radius: 999px; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-family: 'Fraunces', Georgia, serif; font-size: 21px; font-weight: 600;">Dashboard</div>
+      <div style="font-size: 11px; color: #A69C8C;">Good afternoon, Aswin</div>
+    </div>
+    <div style="width: 40px; height: 40px; border-radius: 999px; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"></path><path d="M13.7 21a2 2 0 0 1-3.4 0"></path></svg>
+    </div>
+  </div>
+
+  <!-- Block 1: streak pill + XP, full-bleed, no card -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 16px 8px;">
+    <div style="display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: rgba(255,122,80,0.12); font-size: 12px; font-weight: 700;">
+      <span>🔥</span> 1 day
+    </div>
+    <div style="text-align: right; min-width: 108px;">
+      <div style="font-size: 12px; font-weight: 700;">45 XP</div>
+      <div style="font-size: 10px; color: #A69C8C;">Level 1</div>
+      <div style="height: 6px; border-radius: 999px; background: #EFE6D8; margin-top: 4px; overflow: hidden;">
+        <div style="width: 42%; height: 100%; background: #FF7A50;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Block 2: mascot bubble, floating, own rhythm -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 2px 16px 10px;">
+    <svg width="46" height="46" viewBox="0 0 100 100" style="flex: none;">
+      <path d="M50 9 L57 21 Q50 18 43 21 Z" fill="#E8623A"></path>
+      <rect x="21" y="20" width="58" height="62" rx="26" fill="#FF7A50"></rect>
+      <ellipse cx="50" cy="53" rx="22" ry="19" fill="#FFFFFF"></ellipse>
+      <circle cx="40" cy="46" r="4.4" fill="#1A1A1A"></circle>
+      <circle cx="60" cy="46" r="4.4" fill="#1A1A1A"></circle>
+      <path d="M44 62 a6 6 0 0 0 12 0" stroke="#1A1A1A" stroke-width="3.6" fill="none" stroke-linecap="round"></path>
+    </svg>
+    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.08); border-radius: 20px; padding: 10px 14px; font-size: 13px;">Today is on the board.</div>
+  </div>
+
+  <!-- Block 3: quest, flat bar, different treatment again -->
+  <div style="margin: 0 16px 10px; background: #FFFFFF; border-radius: 12px; padding: 13px 16px; display: flex; justify-content: space-between; font-size: 13px;">
+    <span>Log something 2 days running</span>
+    <span style="color: #7A7266;">1/2</span>
+  </div>
+
+  <!-- Block 4: week strip, bare, no container -->
+  <div style="display: flex; align-items: center; gap: 2px; padding: 0 12px 6px;">
+    <span style="color: #D8CFC2; font-size: 14px; padding: 0 4px;">‹</span>
+    <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+        <span style="font-size: 10px; color: {{d.lc}};">{{d.label}}</span>
+        <div style="width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 13px; background: {{d.bg}}; color: {{d.fg}};">{{d.date}}</div>
+        <span style="font-size: 8px;">{{d.flame}}</span>
+      </div>
+    </sc-for>
+    <span style="color: #D8CFC2; font-size: 14px; padding: 0 4px;">›</span>
+  </div>
+
+  <!-- Block 5: ring, large reserved square, thin arc -->
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 8px 0 4px;">
+    <div style="position: relative; width: 200px; height: 200px;">
+      <svg width="200" height="200" style="display: block;">
+        <g transform="rotate(-90 100 100)">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#EFE6D8" stroke-width="20"></circle>
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#FF7A50" stroke-width="20" stroke-linecap="round" stroke-dasharray="565" stroke-dashoffset="537"></circle>
+        </g>
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span style="font-family: 'Fraunces', Georgia, serif; font-size: 44px; line-height: 1; font-weight: 600;">1,425</span>
+        <span style="font-size: 11px; color: #A69C8C; margin-top: 3px;">kcal left</span>
+      </div>
+    </div>
+    <div style="font-size: 11px; color: #A69C8C; margin-top: 8px;">75 of 1,500 today</div>
+  </div>
+
+  <!-- Block 6: activity row, yet another card -->
+  <div style="margin: 12px 16px 10px; background: #FFFFFF; border-radius: 16px; padding: 14px 16px; display: flex; justify-content: space-between; font-size: 13px;">
+    <span style="font-weight: 600;">Activity</span>
+    <span style="color: #A69C8C;">Add optional details →</span>
+  </div>
+
+  <!-- Block 7: macros — obscured by the two floating controls -->
+  <div style="margin: 0 16px; background: #FFFFFF; border-radius: 16px; padding: 16px;">
+    <sc-for list="{{macros}}" as="m" hint-placeholder-count="3">
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+          <span style="font-weight: 600;">{{m.name}}</span>
+          <span><span style="font-weight: 700;">{{m.have}}</span> <span style="color: #A69C8C;">/ {{m.goal}}</span></span>
+        </div>
+        <div style="height: 7px; border-radius: 999px; background: #EFE6D8; overflow: hidden;">
+          <div style="width: {{m.pct}}; height: 100%; background: {{m.color}};"></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- The two defects: FAB and dock both sit on the macro card -->
+  <div style="position: absolute; right: 20px; top: 674px; width: 54px; height: 54px; border-radius: 999px; background: #FF7A50; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(255,122,80,0.28);">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+  </div>
+
+  <div style="position: absolute; left: 16px; right: 16px; top: 758px; height: 58px;">
+    <div style="height: 54px; border-radius: 999px; background: #FF7A50; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 15px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      Log a meal
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 12px; right: 12px; bottom: 12px; height: 64px; border-radius: 36px; background: rgba(26,23,20,0.94); display: flex; align-items: center; padding: 6px 4px;">
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: {{n.color}};">
+        <span style="font-size: 15px;">{{n.icon}}</span>
+        <span style="font-size: 9px;">{{n.label}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":420,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const days = [
+      { label: 'S', date: '16', bg: 'transparent', fg: '#A69C8C', lc: '#A69C8C', flame: '' },
+      { label: 'M', date: '17', bg: 'transparent', fg: '#A69C8C', lc: '#A69C8C', flame: '' },
+      { label: 'T', date: '18', bg: 'transparent', fg: '#A69C8C', lc: '#A69C8C', flame: '' },
+      { label: 'W', date: '19', bg: 'transparent', fg: '#A69C8C', lc: '#A69C8C', flame: '' },
+      { label: 'T', date: '20', bg: 'transparent', fg: '#A69C8C', lc: '#A69C8C', flame: '' },
+      { label: 'F', date: '21', bg: '#FF7A50', fg: '#FFFFFF', lc: '#FF7A50', flame: '🔥' },
+      { label: 'S', date: '22', bg: 'transparent', fg: '#D8CFC2', lc: '#D8CFC2', flame: '' },
+    ];
+    const macros = [
+      { name: 'Protein', have: '75g', goal: '112g', pct: '67%', color: '#6B9FFF' },
+      { name: 'Carbs', have: '75g', goal: '168g', pct: '45%', color: '#FFB347' },
+      { name: 'Fat', have: '75g', goal: '62g', pct: '100%', color: '#FF6B9D' },
+    ];
+    const nav = [
+      { icon: '⌂', label: 'Home', color: '#FFFFFF' },
+      { icon: '◷', label: 'Progress', color: 'rgba(255,255,255,0.5)' },
+      { icon: '＋', label: 'Log', color: 'rgba(255,255,255,0.5)' },
+      { icon: '☆', label: 'Discover', color: 'rgba(255,255,255,0.5)' },
+      { icon: '⚙', label: 'Settings', color: 'rgba(255,255,255,0.5)' },
+    ];
+    return { days, macros, nav };
+  }
+}
+</script>
+</body>
+</html>

@@ -19,7 +19,7 @@ const OTHER_WAYS = [
   {
     to: '/log/text',
     Icon: IconEdit,
-    accent: 'coral',
+    accent: 'neutral',
     title: 'Describe your meal',
     desc: 'Type anything — AI estimates your macros',
     method: 'text_ai',
@@ -27,7 +27,7 @@ const OTHER_WAYS = [
   {
     to: '/log/photo',
     Icon: IconCamera,
-    accent: 'blue',
+    accent: 'neutral',
     title: 'Snap a photo',
     desc: 'AI reads the nutrition',
     method: 'photo_ai',
@@ -35,7 +35,7 @@ const OTHER_WAYS = [
   {
     to: '/log/saved',
     Icon: IconStar,
-    accent: 'gold',
+    accent: 'neutral',
     title: 'Saved meals',
     desc: 'Everything you have kept',
     method: 'saved',
@@ -43,7 +43,7 @@ const OTHER_WAYS = [
   {
     to: '/log/manual',
     Icon: IconClipboard,
-    accent: 'teal',
+    accent: 'neutral',
     title: 'Manual entry',
     desc: 'Enter known macros',
     method: 'manual',
@@ -157,7 +157,7 @@ export function LogMenuPage() {
           <>
             {recents.length > 0 && (
               <>
-                <p className="log-section-label">Recent</p>
+                <p className="eyebrow">Recent</p>
                 <div className="log-pick-list">
                   {recents.map(entry => (
                     <PickRow
@@ -174,7 +174,7 @@ export function LogMenuPage() {
 
             {favourites.length > 0 && (
               <>
-                <p className="log-section-label">Favourites</p>
+                <p className="eyebrow">Favourites</p>
                 <div className="log-pick-list">
                   {favourites.map(meal => (
                     <PickRow
@@ -206,7 +206,7 @@ export function LogMenuPage() {
           null
         ) : (
           <>
-            <p className="log-section-label">Matches</p>
+            <p className="eyebrow">Matches</p>
             {matches.length > 0 ? (
               <div className="log-pick-list">
                 {matches.map(item => (
@@ -230,20 +230,22 @@ export function LogMenuPage() {
           </>
         )}
 
-        <p className="log-section-label" style={{ marginTop: 24 }}>Other ways to log</p>
-        <div className="log-manual-grid">
+        <p className="eyebrow" style={{ marginTop: 24 }}>Other ways to log</p>
+        <div>
           {OTHER_WAYS.map(opt => (
             <Link
               key={opt.to}
               to={opt.to}
-              className="log-menu-card"
+              className="log-way-row"
               onClick={() => selectLogMethod(opt.method)}
             >
-              <span className={`log-menu-icon icon-tile icon-tile-sm icon-tile-${opt.accent}`}>
+              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}>
                 <opt.Icon size={18} />
               </span>
-              <strong>{opt.title}</strong>
-              <span>{opt.desc}</span>
+              <span>
+                <strong>{opt.title}</strong>
+                <span className="page-sub" style={{ margin: 0 }}>{opt.desc}</span>
+              </span>
             </Link>
           ))}
         </div>

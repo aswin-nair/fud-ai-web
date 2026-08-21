@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { LEVEL_NAMES, LEVEL_COMPANIONS } from '../lib/xp'
 import { Confetti } from './Confetti'
 import { IconChevronRight } from './icons'
+import { PressableButton } from './PressableButton'
 
 interface LevelUpOverlayProps {
   level: number
@@ -27,12 +28,12 @@ export function LevelUpOverlay({ level, onDone }: LevelUpOverlayProps) {
       <div className="levelup-overlay" role="dialog" aria-modal aria-label={`Level ${level} reached`}>
         <div className="levelup-card">
           <div className="levelup-companion">{companion}</div>
-          <div className="levelup-badge">LEVEL UP!</div>
+          <div className="levelup-badge">Level up</div>
           <div className="levelup-level">{level}</div>
           <div className="levelup-name">{name}</div>
-          <button type="button" className="levelup-btn" onClick={onDone}>
-            Keep going! <IconChevronRight size={16} strokeWidth={2.4} />
-          </button>
+          <PressableButton fullWidth onClick={onDone}>
+            Keep going <IconChevronRight size={16} strokeWidth={2.4} />
+          </PressableButton>
         </div>
       </div>
     </>

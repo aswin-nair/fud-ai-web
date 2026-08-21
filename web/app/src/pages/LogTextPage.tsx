@@ -7,6 +7,7 @@ import { BackLink } from '../components/BackLink'
 import { track } from '../lib/analytics'
 import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveTextLogDraft } from '../lib/logDrafts'
 import { useAuth } from '../store/AuthContext'
+import { PressableButton } from '../components/PressableButton'
 
 const EXAMPLES = [
   '2 scrambled eggs, toast with butter',
@@ -75,9 +76,7 @@ export function LogTextPage() {
           </div>
           <p className="analyzing-title">Estimating nutrition…</p>
           <p className="analyzing-sub">AI is reading your description</p>
-          <button type="button" className="btn btn-secondary" onClick={() => requestRef.current?.abort()}>
-            Cancel analysis
-          </button>
+          <PressableButton variant="secondary" label="Cancel analysis" onClick={() => requestRef.current?.abort()} />
         </main>
       </div>
     )
@@ -124,14 +123,13 @@ export function LogTextPage() {
           )}
         </div>
 
-        <button
-          type="button"
-          className="btn btn-log btn-block"
+        <PressableButton
+          fullWidth
           disabled={!text.trim() || !hasKey}
           onClick={handleAnalyze}
         >
-          ✨ Analyze with AI
-        </button>
+          Analyze with AI
+        </PressableButton>
       </main>
     </div>
   )

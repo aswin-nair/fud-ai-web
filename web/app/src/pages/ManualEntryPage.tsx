@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { PressableButton } from '../components/PressableButton'
 import { useApp } from '../store/AppContext'
 import type { MealType } from '../types'
 import { MEAL_LABELS } from '../types'
@@ -20,6 +21,7 @@ export function ManualEntryPage() {
   const { addEntry } = useApp()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const requestedSlot = (useLocation().state as { mealType?: MealType } | null)?.mealType
   const userId = user?.sub ?? ''
   const saved = loadLogDrafts(userId).manual
   const [name, setName] = useState(saved?.name ?? '')
@@ -27,7 +29,7 @@ export function ManualEntryPage() {
   const [protein, setProtein] = useState(saved?.protein ?? '')
   const [carbs, setCarbs] = useState(saved?.carbs ?? '')
   const [fat, setFat] = useState(saved?.fat ?? '')
-  const [mealType, setMealType] = useState<MealType>(saved?.mealType ?? inferMealType)
+  const [mealType, setMealType] = useState<MealType>(requestedSlot ?? saved?.mealType ?? inferMealType)
   const [servings, setServings] = useState(saved?.servings ?? 1)
   const [error, setError] = useState<string | null>(null)
 
@@ -174,14 +176,12 @@ export function ManualEntryPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="btn btn-primary btn-block"
+        <PressableButton
+          fullWidth
+          label="Log meal"
           onClick={save}
           disabled={!name.trim() || !calories}
-        >
-          Log meal
-        </button>
+        />
       </main>
     </div>
   )

@@ -6,6 +6,7 @@ import { sameDay } from '../lib/dates'
 import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
 import { IconChevronDown, IconChevronRight, IconEdit, IconPlus, IconTrash } from './icons'
+import { PressableButton } from './PressableButton'
 
 const TIPS = [
   'Snap a photo to log in seconds 📷',
@@ -30,13 +31,9 @@ function EmptyState({ isToday }: { isToday: boolean }) {
       <div className="food-empty-state">
         <div className="food-empty-plate" aria-hidden>🍽️</div>
         <p className="food-empty-tip" key={tipIdx}>{TIPS[tipIdx]}</p>
-        <button
-          type="button"
-          className="btn btn-primary food-empty-cta press-spring"
-          onClick={() => navigate('/log')}
-        >
+        <PressableButton className="food-empty-cta" onClick={() => navigate('/log')}>
           <IconPlus size={16} strokeWidth={2.6} /> Add meal
-        </button>
+        </PressableButton>
       </div>
     </section>
   )
@@ -54,7 +51,7 @@ const MEAL_ICONS: Record<MealType, string> = {
 
 const SNAP_PX = 80
 
-function SwipeCard({ entry, bordered, dailyGoal }: { entry: FoodEntry; bordered: boolean; dailyGoal: number }) {
+function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean }) {
   const { deleteEntry, updateEntry, addEntry } = useApp()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -94,14 +91,16 @@ function SwipeCard({ entry, bordered, dailyGoal }: { entry: FoodEntry; bordered:
       if (Math.abs(dy) > Math.abs(dx) + 4) return
       e.preventDefault()
       if (Math.abs(dx) > 8) t.swiped = true
-      const next = Math.max(-SNAP_PX, Math.min(0, t.offset + dx))
+      const next = Math.max(-SNAP_PX, Math.min(SNAP_PX, t.offset + dx))
       el!.style.transform = `translateX(${next}px)`
     }
 
     function onEnd(e: TouchEvent) {
       const dx = e.changedTouches[0].clientX - t.startX
       const effective = t.offset + dx
-      snapTo(effective < -SNAP_PX / 2 ? -SNAP_PX : 0)
+      if (effective < -SNAP_PX / 2) snapTo(-SNAP_PX)
+      else if (effective > SNAP_PX / 2) snapTo(SNAP_PX)
+      else snapTo(0)
     }
 
     el.addEventListener('touchstart', onStart, { passive: true })
@@ -147,14 +146,21 @@ function SwipeCard({ entry, bordered, dailyGoal }: { entry: FoodEntry; bordered:
     toast('Updated!')
   }
 
-  const pctOfGoal = dailyGoal > 0 ? Math.round((entry.calories / dailyGoal) * 100) : null
-
   return (
     <div className="food-card-outer">
       <div className="swipe-row-wrap">
         <button
           type="button"
-          className="swipe-delete-btn"
+          className="swipe-edit-btn"
+          onClick={() => navigate(`/edit/${entry.id}`)}
+          aria-label="Edit"
+        >
+          <IconEdit size={18} />
+          <span>Edit</span>
+        </button>
+        <button
+          type="button"
+          className="swipe-delete-btn danger"
           onClick={handleDelete}
           aria-label="Delete"
         >
@@ -174,7 +180,6 @@ function SwipeCard({ entry, bordered, dailyGoal }: { entry: FoodEntry; bordered:
           <div className="food-card-info">
             <div className="food-card-top">
               <span className="food-card-name">{entry.name}</span>
-              {pctOfGoal !== null && <span className="food-card-pct">{pctOfGoal}%</span>}
             </div>
             <div className="food-card-meta">
               <span className="food-card-cals">{entry.calories} kcal</span>
@@ -287,10 +292,9 @@ function SwipeCard({ entry, bordered, dailyGoal }: { entry: FoodEntry; bordered:
 interface FoodListProps {
   entries: FoodEntry[]
   selectedDate: Date
-  dailyGoal: number
 }
 
-export function FoodList({ entries, selectedDate, dailyGoal }: FoodListProps) {
+export function FoodList({ entries, selectedDate }: FoodListProps) {
   const isToday = sameDay(selectedDate, new Date())
   const [collapsed, setCollapsed] = useState<Set<MealType>>(new Set())
 
@@ -349,7 +353,6 @@ export function FoodList({ entries, selectedDate, dailyGoal }: FoodListProps) {
                       key={entry.id}
                       entry={entry}
                       bordered={i < items.length - 1}
-                      dailyGoal={dailyGoal}
                     />
                   ))}
                 </div>

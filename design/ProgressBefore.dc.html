@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    a { color: #E8623A; } a:hover { color: #C9502C; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="width: 420px; height: 900px; background: #F6F1EA; position: relative; overflow: hidden; color: #1A1A1A;">
+  <div style="padding: 18px 16px 10px; font-family: 'Fraunces', Georgia, serif; font-size: 24px; font-weight: 600;">Progress</div>
+
+  <div style="display: flex; gap: 7px; padding: 0 16px 12px;">
+    <sc-for list="{{ranges}}" as="r" hint-placeholder-count="6">
+      <div style="padding: 7px 13px; border-radius: 999px; font-size: 12px; border: 1px solid {{r.border}}; background: {{r.bg}}; color: {{r.fg}};">{{r.label}}</div>
+    </sc-for>
+  </div>
+
+  <div style="margin: 0 16px 12px; background: #FFFFFF; border-radius: 16px; padding: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 15px; font-weight: 700;">Consistency</span>
+      <span style="font-size: 12px; color: #FF7A50;">1-day streak</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 7px; margin-top: 8px;">
+      <span style="font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 600;">1</span>
+      <span style="font-size: 13px; color: #7A7266;">day logged</span>
+    </div>
+    <div style="font-size: 11px; color: #A69C8C; margin-top: 2px;">of 21 days so far this month</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px;">
+      <sc-for list="{{dots}}" as="d" hint-placeholder-count="31">
+        <span style="width: 11px; height: 11px; border-radius: 3px; background: {{d.bg}}; border: 1px solid rgba(26,20,14,0.08); opacity: {{d.op}};"></span>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Nested fills: beige tiles inside a white card on a cream page -->
+  <div style="margin: 0 16px 12px; background: #FFFFFF; border-radius: 16px; padding: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 15px; font-weight: 700;">Weight</span>
+      <span style="font-size: 11px; color: #FF7A50; border: 1px solid rgba(255,122,80,0.35); border-radius: 999px; padding: 5px 11px;">+ Log weight</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 12px;">
+      <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+        <div style="background: #EFE6D8; border-radius: 12px; padding: 13px;">
+          <div style="font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #A69C8C;">{{s.label}}</div>
+          <div style="font-size: 17px; font-weight: 700; margin-top: 5px; color: {{s.color}};">{{s.value}}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="text-align: center; font-size: 12px; color: #A69C8C; margin-top: 16px;">No weight logged in this range</div>
+  </div>
+
+  <!-- A wall of locked grey -->
+  <div style="margin: 0 16px; background: #FFFFFF; border-radius: 16px; padding: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 15px; font-weight: 700;">Achievements</span>
+      <span style="font-size: 11px; color: #7A7266; background: #EFE6D8; border-radius: 999px; padding: 4px 10px;">1/14</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px;">
+      <sc-for list="{{badges}}" as="b" hint-placeholder-count="12">
+        <div style="background: {{b.bg}}; border: 1px solid {{b.border}}; border-radius: 12px; padding: 12px 6px; text-align: center; opacity: {{b.op}};">
+          <div style="font-size: 17px;">{{b.icon}}</div>
+          <div style="font-size: 10px; font-weight: 700; margin-top: 5px;">{{b.name}}</div>
+          <div style="font-size: 8px; color: #A69C8C; margin-top: 2px;">{{b.hint}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 12px; right: 12px; bottom: 12px; height: 64px; border-radius: 36px; background: rgba(26,23,20,0.94); display: flex; align-items: center; padding: 6px 4px;">
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: {{n.color}};">
+        <span style="font-size: 15px;">{{n.icon}}</span>
+        <span style="font-size: 9px;">{{n.label}}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":420,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ranges = ['1W','1M','3M','6M','1Y','All'].map((label, i) => i === 0
+      ? { label, bg: 'rgba(255,122,80,0.12)', fg: '#E8623A', border: 'rgba(255,122,80,0.35)' }
+      : { label, bg: 'transparent', fg: '#A69C8C', border: 'rgba(26,20,14,0.12)' });
+    const dots = Array.from({ length: 31 }, (_, i) => i === 20
+      ? { bg: '#FF7A50', op: '1' }
+      : { bg: '#EFE6D8', op: i > 20 ? '0.4' : '1' });
+    const stats = [
+      { label: 'Current', value: '70.0 kg', color: '#FF7A50' },
+      { label: 'Goal', value: '—', color: '#1A1A1A' },
+      { label: 'Net change', value: '+0.0 kg', color: '#1A1A1A' },
+      { label: 'Average', value: '70.0 kg', color: '#1A1A1A' },
+    ];
+    const names = [
+      ['First Bite', 'Log your first meal'], ['Getting Started', '10 meals logged'], ['Half Century', '50 meals logged'],
+      ['Century', '100 meals logged'], ['On Fire', '3-day streak'], ['Week Warrior', '7-day streak'],
+      ['Fortnight', '14-day streak'], ['Unstoppable', '30-day streak'], ['Legend', '100-day streak'],
+      ['Week Done', 'Logged on 7 days'], ['Monthly', 'Logged on 30 days'], ['Explorer', '5 unique foods'],
+    ];
+    const badges = names.map(([name, hint], i) => i === 0
+      ? { name, hint, icon: '🍽', bg: '#FFFFFF', border: 'rgba(255,122,80,0.45)', op: '1' }
+      : { name, hint, icon: '🔒', bg: '#EFE6D8', border: 'transparent', op: '0.55' });
+    const nav = [
+      { icon: '⌂', label: 'Home', color: 'rgba(255,255,255,0.5)' },
+      { icon: '◷', label: 'Progress', color: '#FFFFFF' },
+      { icon: '＋', label: 'Log', color: 'rgba(255,255,255,0.5)' },
+      { icon: '☆', label: 'Discover', color: 'rgba(255,255,255,0.5)' },
+      { icon: '⚙', label: 'Settings', color: 'rgba(255,255,255,0.5)' },
+    ];
+    return { ranges, dots, stats, badges, nav };
+  }
+}
+</script>
+</body>
+</html>

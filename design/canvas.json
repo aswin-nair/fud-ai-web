@@ -1,0 +1,55 @@
+{
+  "pages": [
+    { "id": "direction", "name": "New direction" },
+    { "id": "heroes", "name": "Hero options" },
+    { "id": "today", "name": "Where we are now" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Home · redesigned", "page": "direction", "x": 0, "y": 0, "w": 420, "h": 900 },
+    { "file": "Components.dc.html", "title": "Component vocabulary", "page": "direction", "x": 560, "y": 0, "w": 720, "h": 900 },
+
+    { "file": "HeroPath.dc.html", "title": "A · The day as a path", "page": "heroes", "x": 0, "y": 0, "w": 420, "h": 470 },
+    { "file": "HeroCharacter.dc.html", "title": "B · Character leads", "page": "heroes", "x": 470, "y": 0, "w": 420, "h": 470 },
+    { "file": "HeroNumeral.dc.html", "title": "C · The number is the hero", "page": "heroes", "x": 0, "y": 540, "w": 420, "h": 470 },
+    { "file": "HeroStack.dc.html", "title": "D · The day stacks up", "page": "heroes", "x": 470, "y": 540, "w": 420, "h": 470 },
+
+    { "file": "HomeBefore.dc.html", "title": "Home · today", "page": "today", "x": 0, "y": 0, "w": 420, "h": 900 },
+    { "file": "ProgressBefore.dc.html", "title": "Progress · today", "page": "today", "x": 470, "y": 0, "w": 420, "h": 900 },
+    { "file": "LogBefore.dc.html", "title": "Log · today", "page": "today", "x": 940, "y": 0, "w": 420, "h": 900 }
+  ],
+  "annotations": [
+    {
+      "id": "dir-note",
+      "x": 1340,
+      "y": 40,
+      "w": 320,
+      "page": "direction",
+      "text": "THE RULE\n\nEvery surface carries a thicker bottom edge than its sides. Cards, buttons, chips, path nodes — all of them. That one rule is what makes the set feel physical rather than printed, and it is why pressing anything can push it down onto its own edge.\n\nType moves to Fredoka, which already ships in the Expo app. Fraunces is retired here: a warm editorial serif cannot carry chunky, and keeping it would mean two personalities fighting.\n\nEvery colour is already in your tokens. Nothing new was invented."
+    },
+    {
+      "id": "dir-hero",
+      "x": 1340,
+      "y": 400,
+      "w": 320,
+      "page": "direction",
+      "text": "THE HERO\n\nHome now opens on the day as a path: breakfast, lunch, dinner, snack, in the order you eat them. Logged ones are filled and checked, the one you are on is bigger and outlined, later ones sit muted.\n\nThe mascot stands at the meal you are on, which finally gives the character a job instead of a corner.\n\nFour directions are on the Hero options page — this is one of them, not a settled decision."
+    },
+    {
+      "id": "heroes-note",
+      "x": 940,
+      "y": 40,
+      "w": 320,
+      "page": "heroes",
+      "text": "PICK ONE\n\nEach carries an honest case and an honest cost, written under it.\n\nA is built out on the New direction page. That is not a verdict — it is the one that gave the mascot the most to do.\n\nC is the boldest and the fastest to read, but it makes the calorie total the loudest thing in the app, which cuts against streak-not-deficit.\n\nD is the most original and the least immediately legible.\n\nMix freely: B's ring could wrap A's path."
+    },
+    {
+      "id": "today-note",
+      "x": 1410,
+      "y": 40,
+      "w": 300,
+      "page": "today",
+      "text": "WHERE WE ARE NOW\n\nRebuilt from the live app at 420x900 with its real tokens and measurements, so the comparison is honest rather than flattering.\n\nOn Home you can see the two floating controls sitting on the macro card — that overlap is a measured bug, not a matter of taste."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "direction" }
+}

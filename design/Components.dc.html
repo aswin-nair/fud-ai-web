@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    a { color: #E8623A; } a:hover { color: #C9502C; }
+    * { box-sizing: border-box; }
+    .fk { font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</helmet>
+
+<div style="width: 720px; height: 900px; background: #F6F1EA; padding: 24px; color: #1A1A1A;">
+  <div class="fk" style="font-size: 22px; font-weight: 600;">Component vocabulary</div>
+  <div style="font-size: 12px; color: #7A7266; margin-top: 4px; margin-bottom: 20px;">Every surface carries a thicker bottom edge than its sides. That single rule is what makes the whole set feel physical.</div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px;">
+
+    <!-- Buttons -->
+    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">BUTTONS</div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{buttons}}" as="b" hint-placeholder-count="4">
+          <div style="position: relative; padding-bottom: {{b.depth}};">
+            <div style="position: absolute; inset: {{b.depth}} 0 0; border-radius: 18px; background: {{b.edge}};"></div>
+            <div class="fk" style="position: relative; height: 50px; border-radius: 18px; background: {{b.bg}}; color: {{b.fg}}; border: {{b.border}}; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; letter-spacing: 0.5px;">{{b.label}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 10px; color: #A69C8C; margin-top: 12px; line-height: 1.5;">Pressed, the face slides down onto its edge and the button loses its height. Destructive is reserved for delete — never for a nutrition state.</div>
+    </div>
+
+    <!-- Chips and counters -->
+    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">COUNTERS</div>
+      <div style="display: flex; gap: 8px;">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+          <div style="flex: 1; background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 4px; border-radius: 16px; padding: 9px 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span style="font-size: 15px;">{{c.icon}}</span>
+            <span class="fk" style="font-size: 15px; font-weight: 600;">{{c.value}}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin: 20px 0 12px;">PATH NODES</div>
+      <div style="display: flex; gap: 14px; align-items: center;">
+        <sc-for list="{{nodes}}" as="n" hint-placeholder-count="3">
+          <div style="text-align: center;">
+            <div style="width: {{n.size}}; height: {{n.size}}; border-radius: 999px; background: {{n.bg}}; border: 3px solid {{n.border}}; border-bottom-width: 5px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 20px;">{{n.icon}}</span>
+            </div>
+            <div style="font-size: 9px; color: #A69C8C; margin-top: 5px;">{{n.state}}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Type scale -->
+    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">TYPE</div>
+      <div class="fk" style="font-size: 40px; font-weight: 600; line-height: 1;">1,747</div>
+      <div style="font-size: 10px; color: #A69C8C; margin-top: 3px;">Fredoka 600 · numbers and headings</div>
+      <div class="fk" style="font-size: 19px; font-weight: 600; margin-top: 14px;">Log a meal</div>
+      <div style="font-size: 10px; color: #A69C8C; margin-top: 3px;">Fredoka 600 · actions</div>
+      <div style="font-size: 14px; margin-top: 14px;">Two more meals keeps day 6.</div>
+      <div style="font-size: 10px; color: #A69C8C; margin-top: 3px;">Plus Jakarta Sans 400/600 · body</div>
+      <div style="font-size: 10px; color: #7A7266; margin-top: 14px; line-height: 1.5; border-top: 1px solid rgba(26,20,14,0.08); padding-top: 12px;">Fraunces is retired in this direction — an editorial serif cannot carry chunky. Fredoka already ships in the Expo app, so this unifies the two rather than adding a third voice.</div>
+    </div>
+
+    <!-- Colour -->
+    <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 22px; padding: 18px;">
+      <div class="fk" style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #A69C8C; margin-bottom: 14px;">COLOUR</div>
+      <div style="display: flex; flex-direction: column; gap: 9px;">
+        <sc-for list="{{swatches}}" as="s" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 11px;">
+            <span style="width: 34px; height: 34px; border-radius: 11px; background: {{s.hex}}; border: 2px solid rgba(26,20,14,0.10);"></span>
+            <div style="flex: 1;">
+              <div style="font-size: 11px; font-weight: 700;">{{s.name}}</div>
+              <div style="font-size: 9px; color: #A69C8C;">{{s.role}}</div>
+            </div>
+            <span style="font-size: 10px; color: #A69C8C; font-family: monospace;">{{s.hex}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 10px; color: #7A7266; margin-top: 14px; line-height: 1.5;">Every value already exists in the app's tokens. Nothing here is a new hue.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":720,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const buttons = [
+      { label: 'LOG A MEAL', bg: '#FF7A50', edge: '#C9502C', fg: '#FFFFFF', border: 'none', depth: '6px' },
+      { label: 'Add details', bg: '#FFFFFF', edge: 'rgba(26,20,14,0.16)', fg: '#1A1A1A', border: '2px solid rgba(26,20,14,0.10)', depth: '5px' },
+      { label: 'Delete entry', bg: '#E5484D', edge: '#A82C30', fg: '#FFFFFF', border: 'none', depth: '6px' },
+      { label: 'Not now', bg: 'transparent', edge: 'transparent', fg: '#7A7266', border: 'none', depth: '0px' },
+    ];
+    const chips = [
+      { icon: '🔥', value: '6' },
+      { icon: '⭐', value: '45' },
+      { icon: '❄️', value: '1' },
+    ];
+    const nodes = [
+      { state: 'Done', icon: '✅', bg: '#FF7A50', border: '#C9502C', size: '54px' },
+      { state: 'Now', icon: '🍲', bg: '#FFFFFF', border: '#FF7A50', size: '62px' },
+      { state: 'Later', icon: '🍎', bg: '#EFE6D8', border: '#E3D7C6', size: '50px' },
+    ];
+    const swatches = [
+      { name: 'Coral', role: 'action, streak, progress', hex: '#FF7A50' },
+      { name: 'Coral deep', role: 'the pressed edge', hex: '#C9502C' },
+      { name: 'Cream', role: 'ground', hex: '#F6F1EA' },
+      { name: 'Protein', role: 'macro only', hex: '#6B9FFF' },
+      { name: 'Carbs', role: 'macro only', hex: '#FFB347' },
+      { name: 'Fat', role: 'macro only', hex: '#FF6B9D' },
+    ];
+    return { buttons, chips, nodes, swatches };
+  }
+}
+</script>
+</body>
+</html>

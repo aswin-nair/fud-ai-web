@@ -1,0 +1,462 @@
+/* ── Log celebration (§11.1) ─────────────────────────────────
+   The whole screen becomes the reward. Nothing here reacts to the calorie
+   total — only to the act of logging. §2.4 / §2.5 */
+.celebrate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: var(--paper);
+  opacity: 0;
+  transition: opacity var(--motion-sheet) ease-out;
+  overflow-y: auto;
+}
+
+.celebrate-overlay.is-shown { opacity: 1; }
+
+.celebrate-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  transform: translateY(12px);
+  transition: transform var(--motion-sheet) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.celebrate-overlay.is-shown .celebrate-inner { transform: translateY(0); }
+
+.celebrate-title {
+  font-family: var(--serif);
+  font-size: var(--text-display);
+  color: var(--ink);
+  margin-top: var(--space-sm);
+}
+
+.celebrate-sub { font-size: var(--text-body); color: var(--ink-soft); }
+
+.celebrate-stats {
+  display: flex;
+  gap: var(--space-md);
+  width: 100%;
+  margin-top: var(--space-sm);
+}
+
+.celebrate-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-lg) var(--space-md);
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.celebrate-stat-value {
+  font-family: var(--serif);
+  font-size: var(--text-title);
+  color: var(--coral);
+}
+
+.celebrate-flame { margin-right: 4px; }
+
+.celebrate-stat-label {
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.celebrate-awards {
+  width: 100%;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.celebrate-awards li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-label);
+  color: var(--ink-soft);
+}
+
+.celebrate-awards strong { color: var(--coral); }
+
+.celebrate-quest {
+  width: 100%;
+  padding: var(--space-lg);
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.celebrate-quest.is-done { border-color: var(--coral); }
+
+.celebrate-quest-top {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--text-label);
+  color: var(--ink);
+  margin-bottom: var(--space-sm);
+}
+
+.celebrate-quest-track {
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+.celebrate-quest-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--coral);
+  transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-overlay,
+  .celebrate-inner,
+  .celebrate-quest-fill { transition: none; }
+}
+
+/* ── XP bar toward the next level ────────────────────────────*/
+.home-xp {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 108px;
+}
+
+.home-xp-track {
+  width: 100%;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-deep);
+  overflow: hidden;
+}
+
+.home-xp-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--coral);
+  transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Mascot speech bubble ────────────────────────────────────*/
+.mascot-say {
+  position: relative;
+  max-width: 190px;
+  padding: 10px 14px;
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-label);
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+/* The tail, drawn as a rotated square so it inherits the same border. */
+.mascot-say::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  background: var(--paper-card);
+  border-left: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+  transform: rotate(45deg);
+}
+
+.home-say-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-lg) var(--space-sm);
+}
+
+/* ── Streak week strip ───────────────────────────────────────*/
+.streak-week {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 var(--space-lg) var(--space-md);
+  padding: var(--space-md);
+  background: var(--paper-card);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.streak-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.streak-day-label {
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+
+.streak-day-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--paper-deep);
+  border: 2px solid transparent;
+  font-size: 0.72rem;
+}
+
+.streak-day.is-logged .streak-day-dot {
+  background: var(--coral);
+  color: var(--on-accent);
+}
+
+.streak-day.is-frozen .streak-day-dot {
+  background: var(--protein-soft);
+}
+
+.streak-day.is-today .streak-day-dot { border-color: var(--coral); }
+
+.streak-day.is-today .streak-day-label { color: var(--coral); font-weight: 700; }
+
+/* ── CalorieRing (§7.1) ──────────────────────────────────────
+   The transition is on the arc itself, so it always moves from where it is
+   rather than restarting from empty. */
+.calorie-ring { position: relative; margin: 0 auto; }
+
+.calorie-ring-svg { display: block; }
+
+.calorie-ring-arc {
+  transition: stroke-dashoffset var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calorie-ring-centre {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.calorie-ring-value {
+  font-family: var(--serif);
+  font-size: var(--text-hero);
+  line-height: 1;
+  color: var(--ink);
+}
+
+/* Over target stays calm — §2.4 reserves emphasis for destructive actions. */
+.calorie-ring-value.is-over { color: var(--ink-soft); }
+
+.calorie-ring-unit {
+  font-size: var(--text-label);
+  color: var(--ink-mute);
+}
+
+.calorie-ring-caption {
+  font-size: var(--text-caption);
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calorie-ring-arc { transition: none; }
+}
+
+/* ── Home, rebuilt to §9.2 ordering ──────────────────────────*/
+.home-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg) var(--space-sm);
+}
+
+.home-streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--coral-soft);
+  font-weight: 700;
+  font-size: var(--text-label);
+  color: var(--ink);
+}
+
+.home-streak-flame { font-size: 1rem; }
+
+/* Only when the day is genuinely at risk — §7.3. */
+.home-streak-badge.is-at-risk .home-streak-flame {
+  animation: streak-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes streak-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+
+.home-points { text-align: right; line-height: 1.25; }
+.home-points strong { display: block; font-size: var(--text-label); color: var(--ink); }
+.home-points span { font-size: var(--text-caption); color: var(--ink-mute); }
+
+.home-ring-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg) var(--space-lg);
+}
+
+.home-ring-sub { font-size: var(--text-label); color: var(--ink-mute); }
+
+.home-ring-mascot {
+  position: absolute;
+  right: -28px;
+  bottom: 4px;
+}
+
+/* The primary action is pinned, so it is reachable without scrolling. */
+.home-log-dock {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) - 8px);
+  padding: 0 var(--space-lg);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.home-log-dock > * { pointer-events: auto; }
+
+/* Home pins its own primary action, so the coach FAB moves up to clear it
+   rather than sitting on top of the button. */
+.home-shell .fab {
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 78px);
+}
+
+.home-scroll-pad { height: 116px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-streak-badge.is-at-risk .home-streak-flame { animation: none; }
+}
+
+/* ── Toast notifications ────────────────────────────────────── */
+
+.toast-stack {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  animation: toast-in 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
+  pointer-events: all;
+  cursor: default;
+}
+
+.toast-success {
+  background: var(--toast-ok-bg);
+  border: 1px solid rgba(52, 199, 89, 0.35);
+  color: var(--toast-ok-fg);
+}
+
+.toast-info {
+  background: var(--toast-info-bg);
+  border: 1px solid rgba(107, 159, 255, 0.35);
+  color: var(--toast-info-fg);
+}
+
+.toast-error {
+  background: var(--toast-err-bg);
+  border: 1px solid rgba(255, 122, 80, 0.35);
+  color: var(--toast-err-fg);
+}
+
+.toast-msg {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.toast-action-btn {
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.toast-action-btn:hover { background: rgba(255, 255, 255, 0.25); }
+
+.toast-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.toast-x:hover { color: rgba(255, 255, 255, 0.7); }

@@ -1,0 +1,326 @@
+/* ── Progress screen ── */
+
+.progress-main {
+  padding-top: 8px;
+}
+
+.progress-page-header {
+  margin-bottom: 14px;
+}
+
+.range-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  scrollbar-width: none;
+}
+
+.range-chips::-webkit-scrollbar { display: none; }
+
+.range-chip {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--ink-mute);
+  background: transparent;
+  border: 1px solid var(--rule);
+  transition: all 0.15s;
+}
+
+.range-chip.active {
+  background: var(--coral-soft);
+  color: var(--coral-start);
+  border-color: rgba(255, 122, 80, 0.35);
+}
+
+.progress-card {
+  background: var(--paper-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.progress-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.progress-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.progress-log-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--coral-start);
+  background: var(--coral-soft);
+  border: 1px solid rgba(255, 122, 80, 0.25);
+  border-radius: 999px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.progress-log-btn:hover { opacity: 0.8; }
+
+.progress-avg-pill {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.progress-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.progress-stat-card {
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.progress-stat-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+}
+
+.progress-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.progress-stat-sub {
+  font-size: 0.68rem;
+  color: var(--ink-mute);
+}
+
+.history-date {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  flex: 1;
+}
+
+.history-weight {
+  font-size: 0.9rem;
+  font-family: var(--mono);
+  color: var(--ink);
+}
+
+.btn-delete {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--coral-deep);
+  background: transparent;
+  transition: background 0.12s;
+}
+
+.btn-delete:hover {
+  background: rgba(230, 57, 70, 0.1);
+}
+
+.history-link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  text-align: left;
+  color: inherit;
+}
+
+.history-link-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--coral-soft);
+  color: var(--coral-start);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.history-link-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-link-text strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.history-link-text span {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.about-chevron {
+  color: var(--ink-mute);
+  font-size: 1.2rem;
+}
+
+.progress-chart-wrap {
+  margin-top: 4px;
+}
+
+.progress-line-chart,
+.progress-bar-chart {
+  width: 100%;
+  height: auto;
+}
+
+.chart-footnote {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--paper-card);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  border: 1px solid var(--rule);
+}
+
+.modal-sheet h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.about-lead {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.about-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.about-link-row:last-child {
+  border-bottom: none;
+}
+
+.about-link-row:hover {
+  text-decoration: none;
+  color: var(--coral-start);
+}
+
+.about-version {
+  text-align: center;
+  color: var(--ink-mute);
+  font-size: 0.8rem;
+  margin-top: 24px;
+}
+
+/* ── Consistency card (§9.3) ─────────────────────────────────
+   The headline metric. Deliberately the largest number on the page. */
+.consistency-streak {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--coral);
+}
+
+.consistency-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.consistency-number {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.consistency-unit { font-size: 0.9rem; color: var(--ink-soft); }
+
+.consistency-sub {
+  font-size: 0.78rem;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+
+.consistency-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.consistency-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+}
+
+.consistency-dot.is-logged {
+  background: var(--coral);
+  border-color: var(--coral);
+}
+
+/* Days that have not happened yet are absent, not missed. */
+.consistency-dot.is-future { opacity: 0.4; }

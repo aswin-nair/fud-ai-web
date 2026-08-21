@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    a { color: #E8623A; } a:hover { color: #C9502C; }
+    * { box-sizing: border-box; }
+    .fk { font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</helmet>
+
+<div style="width: 420px; height: 470px; background: #F6F1EA; padding: 16px; color: #1A1A1A;">
+  <div class="fk" style="font-size: 12px; font-weight: 600; color: #A69C8C; letter-spacing: 0.1em; margin-bottom: 10px;">D · THE DAY STACKS UP</div>
+
+  <div style="background: #FFFFFF; border: 2px solid rgba(26,20,14,0.10); border-bottom-width: 5px; border-radius: 26px; padding: 18px;">
+    <div style="display: flex; gap: 18px; align-items: flex-end;">
+
+      <!-- Each logged meal is a block; the day fills from the bottom -->
+      <div style="width: 132px; flex: none;">
+        <div style="display: flex; flex-direction: column-reverse; gap: 5px; height: 236px; justify-content: flex-start; background: #F6F1EA; border-radius: 18px; padding: 8px;">
+          <sc-for list="{{blocks}}" as="b" hint-placeholder-count="4">
+            <div style="height: {{b.h}}; border-radius: 12px; background: {{b.bg}}; border-bottom: 3px solid {{b.edge}}; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <span style="font-size: 13px;">{{b.icon}}</span>
+              <span class="fk" style="font-size: 12px; font-weight: 600; color: {{b.fg}};">{{b.kcal}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex: 1;">
+        <div class="fk" style="font-size: 44px; line-height: 1; font-weight: 600;">705</div>
+        <div style="font-size: 12px; color: #7A7266; font-weight: 600; margin-top: 2px;">of 2,452 kcal</div>
+
+        <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{macros}}" as="m" hint-placeholder-count="3">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: #A69C8C;">
+                <span>{{m.name}}</span><span style="color: {{m.color}};">{{m.have}}</span>
+              </div>
+              <div style="height: 7px; border-radius: 999px; background: #EFE6D8; margin-top: 5px; overflow: hidden;">
+                <div style="width: {{m.pct}}; height: 100%; border-radius: 999px; background: {{m.color}};"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top: 16px; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,122,80,0.10); border-radius: 999px; padding: 7px 13px;">
+          <span style="font-size: 13px;">🔥</span>
+          <span class="fk" style="font-size: 12px; font-weight: 600;">Day 6</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size: 11px; color: #7A7266; line-height: 1.5; margin-top: 12px;">
+    <strong>Why:</strong> every meal you log is a physical block that stacks — the day builds visibly, and each entry leaves a mark you can point at.<br>
+    <strong>Tradeoff:</strong> the most novel and so the least immediately legible; block heights encode calories, which takes a moment to learn.
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":420,"height":470}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const blocks = [
+      { icon: '🌅', kcal: '180', h: '44px', bg: '#FFB347', edge: '#D8912E', fg: '#3A2A12' },
+      { icon: '☀️', kcal: '420', h: '78px', bg: '#FF7A50', edge: '#C9502C', fg: '#FFFFFF' },
+      { icon: '🍎', kcal: '105', h: '30px', bg: '#FF6B9D', edge: '#CE4C79', fg: '#FFFFFF' },
+      { icon: '🌙', kcal: 'Dinner', h: '56px', bg: '#EFE6D8', edge: '#E3D7C6', fg: '#A69C8C' },
+    ];
+    const macros = [
+      { name: 'PROTEIN', have: '75g', pct: '67%', color: '#6B9FFF' },
+      { name: 'CARBS', have: '75g', pct: '45%', color: '#FFB347' },
+      { name: 'FAT', have: '24g', pct: '39%', color: '#FF6B9D' },
+    ];
+    return { blocks, macros };
+  }
+}
+</script>
+</body>
+</html>

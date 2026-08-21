@@ -11,9 +11,9 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/progress')
     await expect(page.getByRole('heading', { name: 'Weight' })).toBeVisible()
 
-    await nav(page).getByRole('link', { name: 'Discover' }).click()
+    await nav(page).getByRole('link', { name: 'Saved' }).click()
     await expect(page).toHaveURL('/discover')
-    await expect(page.getByRole('heading', { name: 'Discover' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Settings' }).click()
     await expect(page).toHaveURL('/settings')
@@ -23,30 +23,28 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/about')
     await expect(page.getByRole('heading', { name: 'About' })).toBeVisible()
 
-    await nav(page).getByRole('link', { name: 'Home' }).click()
+    await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
   })
 
-  test('journey card and coach FAB reach their full pages', async ({ page }) => {
-    // Journey moved out of the persistent nav onto a tappable Home summary card.
+  test('journey card and settings coach reach their full pages', async ({ page }) => {
     await page.locator('a[href="/journey"]').first().click()
     await expect(page).toHaveURL('/journey')
 
     await page.goBack()
     await expect(page).toHaveURL('/')
 
-    // Coach moved onto a floating chat FAB.
+    await nav(page).getByRole('link', { name: 'Settings' }).click()
     await page.getByLabel('Chat with your coach').click()
     await expect(page).toHaveURL('/coach')
     await expect(page.getByText('AI Coach')).toBeVisible()
   })
 
-  test('log dropdown opens from the nav and reaches every option', async ({ page }) => {
-    await page.getByRole('button', { name: 'Log food' }).click()
-    await expect(page.getByRole('menuitem', { name: 'Manual Entry' })).toBeVisible()
-
-    await page.getByRole('menuitem', { name: 'Manual Entry' }).click()
+  test('docked log reaches manual entry', async ({ page }) => {
+    await page.getByRole('button', { name: 'Log a meal' }).click()
+    await expect(page).toHaveURL('/log')
+    await page.getByRole('link', { name: /Manual entry/i }).click()
     await expect(page).toHaveURL(/\/log\/manual/)
   })
 

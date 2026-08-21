@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { isCloudBackend } from '../lib/dataBackend'
 import { useAuth } from '../store/AuthContext'
 import { track } from '../lib/analytics'
+import { PressableButton } from '../components/PressableButton'
 
 type AuthMode = 'signin' | 'signup'
 
@@ -139,9 +140,9 @@ export function LoginPage() {
               />
             </div>
           )}
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          <PressableButton type="submit" fullWidth disabled={loading}>
             {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
-          </button>
+          </PressableButton>
           {mode === 'signin' && isCloudBackend() && (
             <p className="login-hint">
               <Link to="/forgot-password">Forgot password?</Link>

@@ -57,6 +57,7 @@ import { clearNotificationHistory } from '../lib/notifications'
 import { clearLogDraft, hydrateLogDrafts } from '../lib/logDrafts'
 
 import { SplashScreen } from '../components/SplashScreen'
+import { PressableButton } from '../components/PressableButton'
 
 const MIN_SPLASH_MS = 1100
 
@@ -1070,16 +1071,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 ? `${storageRecovery} Connect to the account server and retry before logging anything new.`
                 : 'Your saved data was not changed. Check your connection and try again before logging anything new.'}
             </p>
-            <button
-              type="button"
-              className="btn btn-primary btn-block"
-              onClick={() => setHydrateAttempt(attempt => attempt + 1)}
-            >
-              Retry
-            </button>
-            <button type="button" className="btn btn-ghost btn-block" onClick={signOut}>
-              Sign out
-            </button>
+            <PressableButton fullWidth label="Retry" onClick={() => setHydrateAttempt(attempt => attempt + 1)} />
+            <PressableButton fullWidth variant="ghost" label="Sign out" onClick={signOut} />
           </div>
         </main>
       </div>
@@ -1096,32 +1089,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
             <p className="onboarding-sub">
               The deletion request is safely saved on this device. Download the preserved device copy, then choose whether to delete the latest server data or cancel deletion and use it.
             </p>
-            <button
-              type="button"
-              className="btn btn-primary btn-block"
-              onClick={downloadConflictCopy}
-            >
-              Download device copy
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-block"
+            <PressableButton fullWidth label="Download device copy" onClick={downloadConflictCopy} />
+            <PressableButton
+              fullWidth
+              variant="secondary"
               disabled={!networkOnline || !conflictExported || conflictResolving}
               onClick={() => void resolveCloudConflict('device', true)}
             >
               {conflictResolving ? 'Checking account…' : 'Delete latest server data'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-block"
+            </PressableButton>
+            <PressableButton
+              fullWidth
+              variant="ghost"
               disabled={!networkOnline || !conflictExported || conflictResolving}
               onClick={() => void resolveCloudConflict('server')}
             >
               Cancel deletion and use server copy
-            </button>
-            <button type="button" className="btn btn-ghost btn-block" onClick={signOut}>
-              Sign out
-            </button>
+            </PressableButton>
+            <PressableButton fullWidth variant="ghost" label="Sign out" onClick={signOut} />
           </div>
         </main>
       </div>

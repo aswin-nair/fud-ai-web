@@ -1,6 +1,6 @@
 /**
  * The JS-visible half of the design tokens. Colours, spacing and radii live in
- * :root in index.css; these are the values JavaScript has to know about —
+ * :root in styles/tokens.css; these are the values JavaScript has to know about —
  * animation durations, and the geometry the calorie ring computes from.
  *
  * Kept in step with index.css by hand. There is deliberately no runtime

@@ -59,7 +59,7 @@ test.describe('Authentication', () => {
     await signInWithEmail(page, email, password)
 
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
     await expect(page.getByText('Onboarding yogurt bowl')).toBeVisible()
   })
 })

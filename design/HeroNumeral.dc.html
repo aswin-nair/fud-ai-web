@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    a { color: #E8623A; } a:hover { color: #C9502C; }
+    * { box-sizing: border-box; }
+    .fk { font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</helmet>
+
+<div style="width: 420px; height: 470px; background: #F6F1EA; padding: 16px; color: #1A1A1A;">
+  <div class="fk" style="font-size: 12px; font-weight: 600; color: #A69C8C; letter-spacing: 0.1em; margin-bottom: 10px;">C · THE NUMBER IS THE HERO</div>
+
+  <div style="background: {{accent}}; border: 2px solid #C9502C; border-bottom-width: 6px; border-radius: 26px; padding: 22px 20px 20px; color: #FFFFFF; position: relative; overflow: hidden;">
+    <div style="position: absolute; right: -46px; top: -46px; width: 190px; height: 190px; border-radius: 999px; background: rgba(255,255,255,0.10);"></div>
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: space-between;">
+      <span class="fk" style="font-size: 13px; font-weight: 600; letter-spacing: 0.06em; opacity: 0.9;">LEFT TODAY</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.20); border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 700;">🔥 6</span>
+    </div>
+
+    <div class="fk" style="position: relative; font-size: 84px; line-height: 0.95; font-weight: 600; margin-top: 10px; letter-spacing: -0.02em;">1,747</div>
+    <div style="position: relative; font-size: 13px; font-weight: 600; opacity: 0.9; margin-top: 2px;">of 2,452 kcal</div>
+
+    <div style="position: relative; height: 14px; border-radius: 999px; background: rgba(0,0,0,0.16); margin-top: 18px; overflow: hidden;">
+      <div style="width: 29%; height: 100%; border-radius: 999px; background: #FFFFFF;"></div>
+    </div>
+
+    <div style="position: relative; display: flex; gap: 8px; margin-top: 14px;">
+      <sc-for list="{{macros}}" as="m" hint-placeholder-count="3">
+        <div style="flex: 1; background: rgba(255,255,255,0.16); border-radius: 14px; padding: 9px 10px;">
+          <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.06em; opacity: 0.85;">{{m.name}}</div>
+          <div class="fk" style="font-size: 15px; font-weight: 600; margin-top: 2px;">{{m.have}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="font-size: 11px; color: #7A7266; line-height: 1.5; margin-top: 12px;">
+    <strong>Why:</strong> the boldest of the four, and the fastest to read at arm's length — one flood of coral, one enormous numeral, everything else subordinate.<br>
+    <strong>Tradeoff:</strong> a large saturated block every time you open the app, and it puts the calorie total front and centre — the opposite of the streak-not-deficit emphasis.
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#FF7A50","section":"Theme"},"$preview":{"width":420,"height":470}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#FF7A50',
+      macros: [
+        { name: 'PROTEIN', have: '75g' },
+        { name: 'CARBS', have: '75g' },
+        { name: 'FAT', have: '24g' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

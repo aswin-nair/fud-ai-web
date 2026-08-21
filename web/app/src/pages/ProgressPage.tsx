@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
@@ -7,6 +6,8 @@ import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
 import { IconChevronRight, IconMenuLines } from '../components/icons'
+import { PressableButton } from '../components/PressableButton'
+import { Surface } from '../components/Surface'
 
 const RANGES = [
   { id: '1W', days: 7 },
@@ -38,7 +39,7 @@ function StatCard({ label, value, sub, accent }: StatCardProps) {
 
   return (
     <div className="progress-stat-card">
-      <span className="progress-stat-label">{label}</span>
+      <span className="eyebrow">{label}</span>
       <span className="progress-stat-value" style={valueColor ? { color: valueColor } : undefined}>
         {value}
       </span>
@@ -117,15 +118,13 @@ export function ProgressPage() {
           <div className="progress-page-header">
             <h1 className="screen-title" style={{ marginBottom: 0 }}>Progress</h1>
           </div>
-          <div className="progress-card" style={{ textAlign: 'center' }}>
+          <Surface className="progress-card" style={{ textAlign: 'center' }}>
             <h2 className="progress-card-title">Tracking is paused</h2>
             <p className="page-sub" style={{ marginTop: 8 }}>
               Your progress numbers are hidden and your streak is being held.
             </p>
-            <Link to="/settings" className="btn btn-primary" style={{ marginTop: 18 }}>
-              Manage pause
-            </Link>
-          </div>
+            <PressableButton to="/settings" label="Manage pause" className="settings-coach-link" />
+          </Surface>
         </main>
         <BottomNav />
       </div>
@@ -279,13 +278,17 @@ export function ProgressPage() {
             </div>
           )}
           <div className="badge-grid">
-            {badges.map(b => (
-              <div key={b.id} className={`badge-card${b.unlocked ? ' unlocked' : ' locked'}`}>
-                <span className="badge-emoji">{b.emoji}</span>
-                <span className="badge-name">{b.name}</span>
-                <span className="badge-desc">{b.desc}</span>
-              </div>
-            ))}
+            {(() => {
+              const unlocked = badges.filter(b => b.unlocked)
+              const next = badges.find(b => !b.unlocked)
+              return (next ? [...unlocked, next] : unlocked).map(b => (
+                <div key={b.id} className={`badge-card${b.unlocked ? ' unlocked' : ' locked'}`}>
+                  <span className="badge-emoji">{b.emoji}</span>
+                  <span className="badge-name">{b.name}</span>
+                  <span className="badge-desc">{b.desc}</span>
+                </div>
+              ))
+            })()}
           </div>
         </div>
 
@@ -306,8 +309,8 @@ export function ProgressPage() {
                 autoFocus
               />
             </div>
-            <button type="button" className="btn btn-primary btn-block" onClick={logWeight}>Save</button>
-            <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} onClick={() => setShowLog(false)}>Cancel</button>
+            <PressableButton fullWidth label="Save" onClick={logWeight} />
+            <PressableButton fullWidth variant="ghost" label="Cancel" onClick={() => setShowLog(false)} />
           </div>
         </div>
       )}

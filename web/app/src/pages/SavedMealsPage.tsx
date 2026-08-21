@@ -182,7 +182,7 @@ export function SavedMealsPage() {
     <div className="app-shell">
       <main className="app-main">
         {isSubRoute && <BackLink to="/log" />}
-        <h1 className="page-title discover-title" style={isSubRoute ? { marginTop: 12 } : undefined}>Discover</h1>
+        <h1 className="page-title discover-title" style={isSubRoute ? { marginTop: 12 } : undefined}>Saved</h1>
         <p className="page-sub">Your saved meals, ready to re-log in a tap.</p>
 
         <div className="discover-search">

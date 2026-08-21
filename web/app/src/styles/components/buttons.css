@@ -1,0 +1,58 @@
+/* ── PressableButton (§6.1) ──────────────────────────────────
+   Two stacked layers: a static shadow, and a face that slides down onto it.
+   The container reserves --press-depth at the bottom so nothing reflows. */
+.pressable {
+  position: relative;
+  display: inline-block;
+  padding: 0 0 var(--press-depth);
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+
+.pressable.is-full { display: block; width: 100%; }
+
+.pressable-shadow {
+  position: absolute;
+  inset: var(--press-depth) 0 0;
+  border-radius: var(--radius-lg);
+}
+
+.pressable-face {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 54px;
+  padding: 0 var(--space-xl);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  transform: translateY(0);
+  transition: transform var(--motion-press) ease-out;
+}
+
+.pressable.is-pressed .pressable-face { transform: translateY(var(--press-depth)); }
+
+.pressable-primary .pressable-shadow { background: var(--on-track-deep); }
+.pressable-primary .pressable-face { background: var(--on-track); color: var(--on-accent); }
+
+.pressable-secondary .pressable-shadow { background: var(--rule-strong); }
+.pressable-secondary .pressable-face {
+  background: var(--paper-card);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+}
+
+.pressable-destructive .pressable-shadow { background: var(--danger-deep); }
+.pressable-destructive .pressable-face { background: var(--danger); color: var(--on-accent); }
+
+.pressable:disabled { opacity: 0.5; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable-face { transition: none; }
+}

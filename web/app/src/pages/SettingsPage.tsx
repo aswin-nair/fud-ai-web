@@ -26,7 +26,8 @@ import { clearUserState, exportData, importData } from '../lib/storage'
 import { clearAnalytics, track } from '../lib/analytics'
 import { clearNotificationHistory, requestNotifyPermission } from '../lib/notifications'
 import { userInitials } from '../lib/auth'
-import { IconArrowUpRight, IconCheck, IconChevronRight } from '../components/icons'
+import { IconArrowUpRight, IconCheck, IconChevronRight, IconCoach } from '../components/icons'
+import { PressableButton } from '../components/PressableButton'
 import { apiChangePassword, apiDeleteAccount, apiLogoutAll, loadAuthToken, saveAuthToken } from '../lib/apiClient'
 import { isCloudBackend } from '../lib/dataBackend'
 import { deleteLocalAccount } from '../lib/localAuth'
@@ -540,17 +541,20 @@ export function SettingsPage() {
             <span>Support</span>
             <IconChevronRight size={16} className="settings-link-chevron" />
           </Link>
+          <div className="settings-divider" />
+          <Link to="/coach" className="settings-data-btn settings-link-row" aria-label="Chat with your coach">
+            <span>Coach</span>
+            <IconCoach size={16} className="settings-link-chevron" />
+          </Link>
         </SettingsCard>
 
-        <button
-          type="button"
-          className="btn btn-primary btn-block"
-          style={{ marginBottom: 24 }}
+        <PressableButton
+          fullWidth
+          label="Save settings"
+          className="settings-coach-link"
           onClick={saveProfile}
           disabled={Boolean(currentProfileIssue)}
-        >
-          Save settings
-        </button>
+        />
 
         {/* Data */}
         <SectionLabel>Data</SectionLabel>

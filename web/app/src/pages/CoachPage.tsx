@@ -7,6 +7,7 @@ import { coachSafetyResponse } from '../lib/coachSafety'
 import { providerLabel } from '../lib/aiConfig'
 import { IconSend } from '../components/icons'
 import { track } from '../lib/analytics'
+import { PressableButton } from '../components/PressableButton'
 
 /** Render AI message with paragraphs, bullet lists, and **bold**. */
 function CoachMessage({ text }: { text: string }) {
@@ -242,9 +243,7 @@ export function CoachPage() {
 
       <div className="chat-input-bar">
         {loading && (
-          <button type="button" className="btn btn-secondary" onClick={() => requestRef.current?.abort()}>
-            Cancel response
-          </button>
+          <PressableButton variant="secondary" label="Cancel response" onClick={() => requestRef.current?.abort()} />
         )}
         <form
           className="chat-input-form"

@@ -6,15 +6,15 @@ test.describe('Home & food logging', () => {
     await signUpAndOnboard(page)
   })
 
-  test('shows calorie ring and macro progress group', async ({ page }) => {
-    await expect(page.locator('.calorie-ring')).toBeVisible()
-    await expect(page.locator('.home-ring-sub')).toContainText('of')
+  test('shows the meal path and macro progress group', async ({ page }) => {
+    await expect(page.locator('.meal-path')).toBeVisible()
+    await expect(page.locator('.home-meals-logged')).toContainText('of 4')
+    await expect(page.getByText('kcal left today')).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()
     await expect(page.getByRole('heading', { name: /Breakfast|Lunch|Dinner|Snack/ })).toBeVisible()
 
-    // The pinned action must stay inside the 480px app shell on wide screens.
     const dockBox = await page.locator('.home-log-dock').boundingBox()
     expect(dockBox?.width).toBeLessThanOrEqual(480)
   })
@@ -27,12 +27,13 @@ test.describe('Home & food logging', () => {
     await pauseRow.locator('input[type="checkbox"]').check()
     await page.getByRole('button', { name: 'Save settings' }).click()
 
-    await mainNav.getByRole('link', { name: 'Home' }).click()
+    await mainNav.getByRole('link', { name: 'Today' }).click()
     await expect(page.getByText('Tracking is paused')).toBeVisible()
-    await expect(page.locator('.home-top-row')).toHaveCount(0)
+    await expect(page.locator('.home-counter-row')).toHaveCount(0)
     await expect(page.locator('.home-quest-row')).toHaveCount(0)
     await expect(page.locator('.calorie-ring')).toHaveCount(0)
-    await expect(page.locator('.activity-detail-row')).toHaveCount(0)
+    await expect(page.locator('.meal-path')).toBeVisible()
+    await expect(page.getByText('kcal left today')).toHaveCount(0)
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toHaveCount(0)
     await expect(page.getByText('Onboarding yogurt bowl')).toHaveCount(0)
 
@@ -56,7 +57,7 @@ test.describe('Home & food logging', () => {
     await expect(page.locator('.food-card-cals', { hasText: '150 kcal' })).toBeVisible()
   })
 
-  test('week strip keeps today calories after switching dates', async ({ page }) => {
+  test('date picker keeps today calories after switching dates', async ({ page }) => {
     await logManualMeal(page, {
       name: 'Oatmeal',
       calories: '320',
@@ -65,45 +66,44 @@ test.describe('Home & food logging', () => {
       fat: '6',
     })
 
-    await expect(page.locator('.home-ring-sub')).toContainText('560 of')
+    await expect(page.getByText('Oatmeal')).toBeVisible()
 
-    // The strip runs Sunday to Saturday, so yesterday is off-screen whenever
-    // today is a Sunday. Step the whole week rather than assuming a given day
-    // cell is rendered.
-    await page.getByRole('button', { name: 'Previous week' }).click()
-    await expect(page.locator('.home-ring-sub')).toContainText('0 of')
+    const yesterdayLabel = await page.evaluate(() => {
+      const date = new Date()
+      date.setDate(date.getDate() - 1)
+      return date.toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    })
+    const needsPrevMonth = await page.evaluate(() => {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const today = new Date()
+      return yesterday.getMonth() !== today.getMonth()
+    })
+    await page.getByRole('button', { name: 'Choose date' }).click()
+    if (needsPrevMonth) {
+      await page.getByRole('button', { name: 'Previous month' }).click()
+    }
+    await page.getByRole('button', { name: yesterdayLabel }).click()
+    await expect(page.getByText('Oatmeal')).toHaveCount(0)
+    await expect(page.locator('.home-meals-logged')).toContainText('0 of 4')
 
-    await page.getByRole('button', { name: 'Next week' }).click()
-    await expect(page.locator('.home-ring-sub')).toContainText('560 of')
+    await page.getByRole('button', { name: 'Choose date' }).click()
+    await page.getByRole('button', { name: 'Jump to today' }).click()
     await expect(page.getByText('Oatmeal')).toBeVisible()
   })
 
-  test('week strip day cells switch the selected day', async ({ page }) => {
-    // The previous week is entirely in the past, so every cell is enabled no
-    // matter which weekday the suite runs on.
-    await page.getByRole('button', { name: 'Previous week' }).click()
-
-    const days = page.locator('.week-day')
-    await expect(days).toHaveCount(7)
-
-    await days.first().click()
-    await expect(days.first().locator('.week-day-circle.selected')).toBeVisible()
-
-    await days.last().click()
-    await expect(days.last().locator('.week-day-circle.selected')).toBeVisible()
-  })
-
-  test('week strip is visible', async ({ page }) => {
-    await expect(page.locator('.week-strip')).toBeVisible()
-    await expect(page.locator('.week-day').first()).toBeVisible()
-  })
-
-  test('add menu opens log options', async ({ page }) => {
-    await page.getByRole('button', { name: 'Log food' }).click()
-    await expect(page.getByRole('menuitem', { name: 'Text Entry' })).toBeVisible()
-    await expect(page.getByRole('menuitem', { name: 'Photo' })).toBeVisible()
-    await expect(page.getByRole('menuitem', { name: 'Saved Meals' })).toBeVisible()
-    await expect(page.getByRole('menuitem', { name: 'Manual Entry' })).toBeVisible()
+  test('docked log reaches every option', async ({ page }) => {
+    await page.getByRole('button', { name: 'Log a meal' }).click()
+    await expect(page).toHaveURL('/log')
+    await expect(page.getByRole('link', { name: /Describe your meal/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Snap a photo/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Saved meals/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Manual entry/i })).toBeVisible()
   })
 
   test('shows the exact post-log celebration after manual entry', async ({ page }) => {

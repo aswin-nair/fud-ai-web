@@ -1,8 +1,18 @@
 # Fud AI Web — Design System
 
-Design reference for the Fud AI web tracker (`web/app`). The UI is **mobile-first** and follows a **light, warm "wellness editorial" theme**: cream paper backgrounds, white cards, a flat coral accent, and a serif/sans type pairing that leans editorial rather than clinical — calorie arc gauge, compact week strip, macro cards, grouped food log, and a floating glass bottom nav with an elevated center Log action.
+Design reference for the Fud AI web tracker (`web/app`). The UI is **mobile-first** and follows the published redesign: cream paper, chunky physical surfaces (thicker bottom edge), Fredoka display type, and Hero A — the day as a breakfast → lunch → dinner → snack path.
 
-All styles live in a single token file: [`src/index.css`](src/index.css).
+Styles are split under [`src/styles/`](src/styles/) and imported from [`src/index.css`](src/index.css).
+
+## Expo
+
+The Expo `mobile/` app stays a private alpha. It does **not** extract shared tokens from this vocabulary until a later converge-or-retire decision. Web ships this language first; carrying two designs is out of scope.
+
+## Landing checks
+
+- Contrast: coral on cream, ink on paper, and `--ink-soft` over-budget copy stay on the existing wellness tokens. `--danger` is delete-only.
+- Touch targets: path nodes, pressable faces, and nav items are at least 44px.
+- Hardware feel: press travels onto the bottom edge; log-to-Home stays the existing short path (manual entry or a path-node tap into that slot).
 
 ---
 

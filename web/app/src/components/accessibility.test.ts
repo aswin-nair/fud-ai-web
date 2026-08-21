@@ -13,6 +13,9 @@ import { LineChart } from './Charts'
 import { DatePickerModal } from './DatePickerModal'
 import { MacroProgressGroup } from './MacroGrid'
 import { PressableButton } from './PressableButton'
+import { Counter } from './Counter'
+import { PathNode } from './PathNode'
+import { Surface } from './Surface'
 import { SettingsRow } from './SettingsRow'
 import { WeekStrip } from './WeekStrip'
 
@@ -111,9 +114,35 @@ describe('primary component accessibility contracts', () => {
     ))
 
     expect(html).toContain('<nav class="bottom-nav-wrap" aria-label="Main"')
-    expect(html).toContain('aria-label="Log food"')
-    expect(html).toContain('aria-expanded="false"')
-    expect(html).toContain('aria-haspopup="menu"')
+    expect(html).toContain('Today')
+    expect(html).toContain('Progress')
+    expect(html).toContain('Saved')
+    expect(html).toContain('Settings')
+    expect(html).not.toContain('aria-label="Log food"')
+  })
+
+  it('names path nodes with slot and status', () => {
+    const html = renderToStaticMarkup(createElement(PathNode, {
+      slot: 'breakfast',
+      status: 'current',
+    }))
+    expect(html).toContain('aria-label="Breakfast, current"')
+    expect(html).toContain('aria-current="step"')
+  })
+
+  it('keeps ghost and destructive pressable buttons as real buttons', () => {
+    const ghost = renderToStaticMarkup(createElement(PressableButton, {
+      label: 'Back',
+      variant: 'ghost',
+    }))
+    const danger = renderToStaticMarkup(createElement(PressableButton, {
+      label: 'Delete entry',
+      variant: 'destructive',
+    }))
+    expect(ghost).toMatch(/^<button type="button"/)
+    expect(danger).toContain('pressable-destructive')
+    expect(renderToStaticMarkup(createElement(Surface, null, 'Card'))).toContain('class="surface is-padded"')
+    expect(renderToStaticMarkup(createElement(Counter, { label: 'days', value: 3 }))).toContain('3')
   })
 
   it('uses a native disabled button contract for primary actions', () => {

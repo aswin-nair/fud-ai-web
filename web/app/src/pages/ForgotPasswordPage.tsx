@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '@assets/calorie logo transparent.png'
 import { apiForgotPassword } from '../lib/apiClient'
+import { PressableButton } from '../components/PressableButton'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -48,9 +49,9 @@ export function ForgotPasswordPage() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            <PressableButton type="submit" fullWidth disabled={loading}>
               {loading ? 'Please wait…' : 'Send reset link'}
-            </button>
+            </PressableButton>
           </form>
         )}
         <p className="login-foot">

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useHaptic } from '../hooks/useHaptic'
 
@@ -6,13 +7,9 @@ import { useHaptic } from '../hooks/useHaptic'
  * The signature component, §6.1. The button looks physically raised and
  * depresses when pressed.
  *
- * Built as two stacked layers rather than an animated border: the shadow sits
- * static underneath, and the face slides down onto it. Animating a border
- * width instead would reflow the button on every press.
- *
  * At most one `primary` per screen. `destructive` is only ever for delete.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'destructive'
+export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost'
 
 export interface PressableButtonProps {
   label?: string
@@ -23,6 +20,7 @@ export interface PressableButtonProps {
   disabled?: boolean
   className?: string
   type?: 'button' | 'submit'
+  to?: string
   'aria-label'?: string
 }
 
@@ -35,6 +33,7 @@ export function PressableButton({
   disabled = false,
   className = '',
   type = 'button',
+  to,
   ...rest
 }: PressableButtonProps) {
   const vibrate = useHaptic()
@@ -43,12 +42,39 @@ export function PressableButton({
   function press() {
     if (disabled) return
     setPressed(true)
-    // The tick lands on press, not release — that is what makes it feel
-    // like the button did something rather than the app reacting later.
     vibrate(10)
   }
 
   const release = () => setPressed(false)
+  const classNames = [
+    'pressable',
+    `pressable-${variant}`,
+    pressed ? 'is-pressed' : '',
+    fullWidth ? 'is-full' : '',
+    className,
+  ].filter(Boolean).join(' ')
+  const face = <><span className="pressable-shadow" aria-hidden /><span className="pressable-face">{children ?? label}</span></>
+
+  if (to) {
+    return (
+      <Link
+        to={disabled ? '#' : to}
+        aria-disabled={disabled || undefined}
+        onClick={event => {
+          if (disabled) event.preventDefault()
+          onClick?.()
+        }}
+        onPointerDown={press}
+        onPointerUp={release}
+        onPointerLeave={release}
+        onPointerCancel={release}
+        className={classNames}
+        {...rest}
+      >
+        {face}
+      </Link>
+    )
+  }
 
   return (
     <button
@@ -59,17 +85,10 @@ export function PressableButton({
       onPointerUp={release}
       onPointerLeave={release}
       onPointerCancel={release}
-      className={[
-        'pressable',
-        `pressable-${variant}`,
-        pressed ? 'is-pressed' : '',
-        fullWidth ? 'is-full' : '',
-        className,
-      ].filter(Boolean).join(' ')}
+      className={classNames}
       {...rest}
     >
-      <span className="pressable-shadow" aria-hidden />
-      <span className="pressable-face">{children ?? label}</span>
+      {face}
     </button>
   )
 }

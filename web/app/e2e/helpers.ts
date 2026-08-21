@@ -105,8 +105,9 @@ export async function logManualMeal(
   meal: { name: string; calories: string; protein?: string; carbs?: string; fat?: string },
   options?: { dismissCelebration?: boolean },
 ): Promise<void> {
-  await page.getByRole('button', { name: 'Log food' }).click()
-  await page.getByRole('menuitem', { name: 'Manual Entry' }).click()
+  await page.getByRole('button', { name: 'Log a meal' }).click()
+  await page.waitForURL('/log')
+  await page.getByRole('link', { name: /Manual entry/i }).click()
   await page.waitForURL(/\/log\/manual/)
 
   await page.getByLabel('Food name').fill(meal.name)

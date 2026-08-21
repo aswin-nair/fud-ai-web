@@ -9,6 +9,7 @@ import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveReviewLogDraft, typ
 import { reviewFoodIssue } from '../lib/foodEntryValidation'
 import { useAuth } from '../store/AuthContext'
 import { sourceToMethod, track } from '../lib/analytics'
+import { PressableButton } from '../components/PressableButton'
 
 const MEAL_ICONS: Record<MealType, string> = {
   breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎', other: '🍽️',
@@ -311,9 +312,7 @@ export function ReviewFoodPage() {
           ))}
         </div>
 
-        <button type="button" className="btn btn-log btn-block" onClick={save}>
-          Log meal
-        </button>
+        <PressableButton fullWidth label="Log meal" onClick={save} />
       </main>
     </div>
   )

@@ -1,0 +1,118 @@
+:root {
+  /* Light wellness-editorial theme: warm cream ground, white cards, flat coral accent. */
+  --paper: #F6F1EA;
+  --paper-deep: #EFE6D8;
+  --paper-warm: #FFFFFF;
+  --paper-card: #FFFFFF;
+  --ink: #1A1A1A;
+  --ink-soft: #7A7266;
+  --ink-mute: #A69C8C;
+  --ink-muted: #A69C8C;
+  --rule: rgba(26, 20, 14, 0.08);
+  --rule-strong: rgba(26, 20, 14, 0.16);
+  --coral: #FF7A50;
+  /* --coral-start / --coral-end are intentionally equal: existing gradient references
+     render as flat coral, matching the mockup, without touching every call site. */
+  --coral-start: #FF7A50;
+  --coral-end: #FF7A50;
+  --coral-deep: #E8623A;
+  --coral-soft: rgba(255, 122, 80, 0.12);
+  --gradient-calorie: linear-gradient(135deg, var(--coral-start), var(--coral-end));
+  --green-goal: #34C759;
+  --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --serif: var(--display);
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --nav-h: 92px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --shadow-card: 0 4px 20px rgba(38, 28, 16, 0.08);
+  --shadow-sm: 0 2px 10px rgba(38, 28, 16, 0.06);
+  --shadow-pill: 0 8px 24px rgba(255, 122, 80, 0.28);
+  --skeleton-base: #E1D5C0;
+  --skeleton-shine: rgba(255, 255, 255, 0.85);
+  /* Aliases used by gamification / activity components */
+  --surface: var(--paper-card);
+  --surface-2: var(--paper-warm);
+  --border: var(--rule);
+  --bg: var(--paper-deep);
+
+  /* ── Design tokens (BUILD_SPEC §5) ────────────────────────────
+     Named by role, not by colour, so a rebrand touches this block only.
+     Every value maps onto the existing coral/cream identity — this layer
+     introduces no new hue. */
+
+  /* Nutrition semantics. One job each, never reused. */
+  --on-track: var(--coral);
+  --on-track-deep: var(--coral-deep);
+  /* A lighter tint of the same coral for the over-target arc. Per §2.4 this
+     is NOT a warning colour — going over is a neutral state. */
+  --on-track-soft: #FFC0A8;
+  --streak: var(--coral);
+  --protein: #6B9FFF;
+  --carbs: #FFB347;
+  --fat: #FF6B9D;
+
+  /* Destructive only. Never a nutrition state. §2.4 */
+  --danger: #E5484D;
+  --danger-deep: #C13438;
+
+  /* Spacing rhythm. */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+
+  /* Radii. --radius-sm is the floor; square corners are off-brand. */
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+
+  /* Type scale. */
+  --text-hero: 2.75rem;
+  --text-display: 2rem;
+  --text-title: 1.25rem;
+  --text-subtitle: 1.06rem;
+  --text-body: 0.94rem;
+  --text-label: 0.82rem;
+  --text-caption: 0.7rem;
+
+  /* Motion. */
+  --motion-press: 100ms;
+  --motion-fill: 600ms;
+  --motion-sheet: 260ms;
+  --motion-celebrate: 900ms;
+
+  /* Depth of the raised button's exposed shadow face. §6.1 */
+  --press-depth: 4px;
+
+  --on-accent: #FFFFFF;
+  --ink-press: #000000;
+  --edge-width: 2px;
+  --edge-depth: 5px;
+  --edge-coral: #C9502C;
+  --edge-neutral: #E3D7C6;
+  --edge-danger: var(--danger-deep);
+  --amber-ink: #B8650C;
+  --amber-deep: #FF9500;
+  --protein-ink: #3457C7;
+  --protein-soft: #DCEBFF;
+  --success-ink: #1E9E4A;
+  --star: #ffc107;
+  --welcome-ink: #1a1410;
+  --toast-ok-bg: #1C3A22;
+  --toast-ok-fg: #4ADE80;
+  --toast-info-bg: #1A2A3A;
+  --toast-info-fg: #93C5FD;
+  --toast-err-bg: #3A1A1A;
+  --toast-err-fg: #FCA5A5;
+  --lilac: #A78BFA;
+  --mint: #4CD964;
+  --icon-teal: #3DD6AD;
+  --danger-ink: #C22B3A;
+  --surface-legacy: #EFE7DC;
+}

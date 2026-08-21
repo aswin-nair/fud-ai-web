@@ -6,6 +6,7 @@ import { providerLabel } from '../lib/aiConfig'
 import { BackLink } from '../components/BackLink'
 import { IconClose } from '../components/icons'
 import { track } from '../lib/analytics'
+import { PressableButton } from '../components/PressableButton'
 
 export function PhotoLogPage() {
   const { state, setPendingAnalysis, setPendingSource } = useApp()
@@ -74,9 +75,7 @@ export function PhotoLogPage() {
             <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
             <p className="analyzing-title">Reading your photo…</p>
             <p className="analyzing-sub">AI is identifying the food</p>
-            <button type="button" className="btn btn-secondary" onClick={() => requestRef.current?.abort()}>
-              Cancel analysis
-            </button>
+            <PressableButton variant="secondary" label="Cancel analysis" onClick={() => requestRef.current?.abort()} />
           </div>
         </main>
       </div>
@@ -132,14 +131,14 @@ export function PhotoLogPage() {
         )}
 
         {preview && error && selectedFileRef.current && (
-          <button
-            type="button"
-            className="btn btn-secondary btn-block"
+          <PressableButton
+            fullWidth
+            variant="secondary"
             disabled={!hasKey}
             onClick={() => selectedFileRef.current && handleFile(selectedFileRef.current)}
           >
             Analyze this photo again
-          </button>
+          </PressableButton>
         )}
 
         <div className="photo-btn-row">
