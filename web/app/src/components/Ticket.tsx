@@ -178,9 +178,9 @@ export function Ticket({
 
       {!paused && (
         <div className="ticket-macros" ref={macroAnchor}>
-          <MacroSeg label="Protein" current={protein} goal={proteinGoal} tone="cobalt" />
-          <MacroSeg label="Carbs" current={carbs} goal={carbsGoal} tone="herb" />
-          <MacroSeg label="Fat" current={fat} goal={fatGoal} tone="chalk" />
+          <MacroSeg label="Protein" current={protein} goal={proteinGoal} tone="protein" />
+          <MacroSeg label="Carbs" current={carbs} goal={carbsGoal} tone="carbs" />
+          <MacroSeg label="Fat" current={fat} goal={fatGoal} tone="fat" />
         </div>
       )}
 
@@ -246,7 +246,7 @@ function MacroSeg({
   label: string
   current: number
   goal: number
-  tone: 'cobalt' | 'herb' | 'chalk'
+  tone: 'protein' | 'carbs' | 'fat'
 }) {
   const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0
   return (

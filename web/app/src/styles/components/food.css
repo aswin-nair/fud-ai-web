@@ -16,7 +16,9 @@
   top: 0;
   bottom: 0;
   width: 80px;
-  background: var(--protein);
+  /* Neutral, not a macro colour. A nutrition hue must never mean "edit" —
+     the same reasoning that keeps --danger for destructive actions only. */
+  background: var(--ink-soft);
   color: var(--on-accent);
   display: flex;
   flex-direction: column;

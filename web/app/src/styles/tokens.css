@@ -1,41 +1,46 @@
 :root {
-  /* Enamel kitchen system language. Six named hues, then role aliases. */
-  --ink: #14213D;
-  --cobalt: #1F5FD1;
-  --enamel: #F7F5F0;
-  --apricot: #FF8A47;
-  --herb: #3A9E6E;
-  --chalk: #DCD8D0;
+  /* Warm dumpling-kitchen language. Six named hues, then role aliases. */
+  --ink: #241A2E;
+  --coral-hue: #FF6B4A;
+  --enamel: #FFF6EC;
+  --apricot: #FFB43D;
+  --herb: #57D9A3;
+  --chalk: #F6E3D0;
+  --dough: #FFE9C9;
+
+  /* Compatibility alias: --cobalt is the old enamel primary and is still read
+     in 16 places. It now resolves to coral so those call sites move with the
+     palette instead of being repainted one by one. */
+  --cobalt: var(--coral-hue);
 
   --paper: var(--enamel);
-  --paper-deep: #EFEBE3;
+  --paper-deep: #FFEFE0;
   --paper-warm: #FFFFFF;
   --paper-card: #FFFFFF;
-  --ink-soft: #4A5570;
-  --ink-mute: #7A8194;
+  --ink-soft: #6D5C66;
+  --ink-mute: #A2919A;
   --ink-muted: var(--ink-mute);
-  --rule: rgba(20, 33, 61, 0.08);
-  --rule-strong: rgba(20, 33, 61, 0.16);
+  --rule: rgba(36, 26, 46, 0.09);
+  --rule-strong: rgba(36, 26, 46, 0.17);
 
-  /* Compatibility aliases: leftover clay/coral call sites render enamel. */
-  --coral: var(--apricot);
-  --coral-start: var(--apricot);
-  --coral-end: var(--apricot);
-  --coral-deep: #E56F32;
-  --coral-soft: rgba(255, 138, 71, 0.14);
-  --gradient-calorie: linear-gradient(135deg, var(--cobalt), #3D7BE8);
+  --coral: var(--coral-hue);
+  --coral-start: #FF9070;
+  --coral-end: var(--coral-hue);
+  --coral-deep: #DE4526;
+  --coral-soft: rgba(255, 107, 74, 0.14);
+  --gradient-calorie: linear-gradient(160deg, #FF9070, #DE4526);
   --green-goal: var(--herb);
-  --sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
   --serif: var(--display);
-  --mono: 'Inter', ui-monospace, monospace;
+  --mono: 'Plus Jakarta Sans', ui-monospace, monospace;
   --radius: 16px;
   --radius-sm: 12px;
   --nav-h: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --shadow-card: 0 8px 24px rgba(20, 33, 61, 0.06);
-  --shadow-sm: 0 2px 8px rgba(20, 33, 61, 0.05);
-  --shadow-pill: 0 10px 22px rgba(31, 95, 209, 0.28);
+  --shadow-card: 0 14px 28px rgba(36, 26, 46, 0.11);
+  --shadow-sm: 0 3px 10px rgba(36, 26, 46, 0.07);
+  --shadow-pill: 0 10px 22px rgba(255, 107, 74, 0.30);
   --skeleton-base: var(--chalk);
   --skeleton-shine: rgba(255, 255, 255, 0.85);
   --surface: var(--paper-card);
@@ -43,13 +48,14 @@
   --border: var(--rule);
   --bg: var(--paper-deep);
 
-  --on-track: var(--cobalt);
-  --on-track-deep: #1749A8;
-  --on-track-soft: #A8C4F2;
-  --streak: var(--apricot);
-  --protein: var(--cobalt);
-  --carbs: var(--herb);
-  --fat: var(--chalk);
+  --on-track: var(--coral-hue);
+  --on-track-deep: #DE4526;
+  /* A lighter tint of the same coral for over-target. Not a warning — §2.4. */
+  --on-track-soft: #FFC0A8;
+  --streak: var(--coral-hue);
+  --protein: #4A86FF;
+  --carbs: #FFB43D;
+  --fat: #57D9A3;
 
   --danger: #E5484D;
   --danger-deep: #C13438;
@@ -90,33 +96,40 @@
   --squish-out: 260ms;
   --squish-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
 
-  --clay-base: var(--enamel);
+  --clay-base: #FFEFE0;
   --clay-lift: #FFFFFF;
-  --clay-inner-light: rgba(255, 255, 255, 0.7);
-  --clay-inner-dark: rgba(20, 33, 61, 0.04);
-  --clay-cast: rgba(20, 33, 61, 0.08);
-  --clay-contact: rgba(20, 33, 61, 0.04);
-  --clay-inset-light: rgba(255, 255, 255, 0.5);
-  --clay-inset-dark: rgba(20, 33, 61, 0.08);
-  --clay-coral-base: var(--cobalt);
-  --clay-coral-lift: #4A82E8;
-  --clay-coral-inner-light: rgba(255, 255, 255, 0.28);
-  --clay-coral-inner-dark: rgba(23, 73, 168, 0.28);
-  --clay-coral-cast: rgba(31, 95, 209, 0.22);
+  --clay-inner-light: rgba(255, 255, 255, 0.95);
+  --clay-inner-dark: rgba(36, 26, 46, 0.09);
+  --clay-cast: rgba(36, 26, 46, 0.13);
+  --clay-contact: rgba(36, 26, 46, 0.06);
+  --clay-inset-light: rgba(255, 255, 255, 0.85);
+  --clay-inset-dark: rgba(36, 26, 46, 0.16);
+  --clay-coral-base: #F0663C;
+  --clay-coral-lift: #FF9070;
+  --clay-coral-inner-light: rgba(255, 255, 255, 0.42);
+  --clay-coral-inner-dark: rgba(150, 45, 20, 0.34);
+  --clay-coral-cast: rgba(255, 107, 74, 0.38);
+  /* Deliberately the cheap one: list rows use it, so it stays a single cast
+     shadow. See clay-contrast.test.ts — this is a paint budget, not a style. */
   --clay-e1:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
     0 8px 14px var(--clay-cast);
   --clay-e2:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 10px 20px var(--clay-cast);
+    inset 0 6px 10px var(--clay-inner-light),
+    inset 0 -10px 16px var(--clay-inner-dark),
+    0 18px 30px var(--clay-cast),
+    0 2px 4px var(--clay-contact);
   --clay-e3:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 14px 28px var(--clay-cast);
+    inset 0 8px 12px var(--clay-inner-light),
+    inset 0 -13px 19px var(--clay-inner-dark),
+    0 26px 42px var(--clay-cast),
+    0 3px 6px var(--clay-contact);
   --clay-squish:
     inset 0 4px 8px var(--clay-inset-dark),
     0 2px 4px var(--clay-contact);
   --clay-inset:
-    inset 0 3px 8px var(--clay-inset-dark);
+    inset 0 5px 10px var(--clay-inset-dark),
+    inset 0 -3px 6px var(--clay-inset-light);
   --clay-coral-raised:
     inset 0 2px 0 rgba(255, 255, 255, 0.24),
     0 12px 20px var(--clay-coral-cast);

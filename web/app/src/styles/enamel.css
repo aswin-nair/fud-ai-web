@@ -133,9 +133,9 @@
 }
 
 .ticket-macro-fill { display: block; height: 100%; border-radius: inherit; }
-.ticket-macro-cobalt .ticket-macro-fill { background: var(--cobalt); }
-.ticket-macro-herb .ticket-macro-fill { background: var(--herb); }
-.ticket-macro-chalk .ticket-macro-fill { background: #B8B3A8; }
+.ticket-macro-protein .ticket-macro-fill { background: var(--protein); }
+.ticket-macro-carbs .ticket-macro-fill { background: var(--carbs); }
+.ticket-macro-fat .ticket-macro-fill { background: var(--fat); }
 
 .ticket-macro-copy {
   position: absolute;
