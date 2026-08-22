@@ -118,6 +118,24 @@ export function clearUserState(userId: string): void {
   clearLogDraft(userId)
 }
 
+/**
+ * A persisted quest record is only usable if it carries all four fields the
+ * rest of the code reads. Asserting the shape instead would let a truncated or
+ * older record through and fail later, somewhere less obvious — the normaliser
+ * exists precisely so bad data is dropped here.
+ */
+function enamelQuests(value: unknown): GamificationState['enamelQuests'] {
+  if (!record(value)) return undefined
+
+  const shaped =
+    typeof value.date === 'string'
+    && typeof value.weekStart === 'string'
+    && Array.isArray(value.daily)
+    && record(value.weekly)
+
+  return shaped ? (value as unknown as GamificationState['enamelQuests']) : undefined
+}
+
 function record(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
@@ -254,7 +272,7 @@ function normalizeGamification(value: unknown): GamificationState {
     mascotActivity: g.mascotActivity === 'calm' || g.mascotActivity === 'off' || g.mascotActivity === 'lively'
       ? g.mascotActivity
       : 'lively',
-    enamelQuests: record(g.enamelQuests) ? g.enamelQuests as GamificationState['enamelQuests'] : undefined,
+    enamelQuests: enamelQuests(g.enamelQuests),
     brokenOn: typeof g.brokenOn === 'string' || g.brokenOn === null ? g.brokenOn : null,
     brokenFrom: typeof g.brokenFrom === 'number' ? g.brokenFrom : 0,
     startedAt: typeof g.startedAt === 'string' && g.startedAt

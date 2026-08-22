@@ -239,7 +239,7 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     xpEvents: events.slice(0, 50),
     awardedKeys: [...awardedKeys],
     quest,
-  }, entry, state.foodEntries, { sessionOpenedAt })
+  }, entry, state.foodEntries)
 
   newGam.enamelQuests = syncEnamelQuests(
     newGam,

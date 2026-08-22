@@ -177,7 +177,6 @@ export function applyEnamelLogAwards(
   gamification: GamificationState,
   entry: FoodEntry,
   existing: FoodEntry[],
-  options: { sessionOpenedAt?: number } = {},
 ): GamificationState {
   const date = localDayKey(entry.timestamp)
   const timestamp = new Date().toISOString()

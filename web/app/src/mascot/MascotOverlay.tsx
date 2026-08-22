@@ -143,7 +143,8 @@ export function MascotOverlay() {
 
   useEffect(() => {
     if (timerRef.current) window.clearTimeout(timerRef.current)
-    if (reduced || paused || quiet || activity === 'off') return
+    // `reduced` already covers activity === 'off' — see where it is defined.
+    if (reduced || paused || quiet) return
     const tick = () => {
       const delay = scheduleDelay(accountAgeDays, activity)
       if (!Number.isFinite(delay)) return
