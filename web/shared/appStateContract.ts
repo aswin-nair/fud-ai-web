@@ -68,6 +68,11 @@ const EXERCISE_ENTRY_FIELDS = new Set([
 const CHAT_MESSAGE_FIELDS = new Set(['id', 'role', 'content', 'timestamp'])
 const XP_EVENT_FIELDS = new Set(['id', 'key', 'xp', 'label', 'timestamp'])
 const QUEST_FIELDS = new Set(['date', 'type', 'target', 'progress', 'completedAt', 'beforeHour'])
+const GEM_EVENT_FIELDS = new Set(['id', 'amount', 'reason', 'timestamp', 'refId'])
+const ENAMEL_QUEST_FIELDS = new Set([
+  'key', 'period', 'label', 'target', 'progress', 'xpReward', 'gemReward', 'completedAt', 'claimedAt',
+])
+const ENAMEL_QUEST_STATE_FIELDS = new Set(['date', 'weekStart', 'daily', 'weekly'])
 const GAMIFICATION_FIELDS = new Set([
   'xp',
   'level',
@@ -81,6 +86,18 @@ const GAMIFICATION_FIELDS = new Set([
   'pendingLevelUp',
   'seenBadgeIds',
   'quest',
+  'gems',
+  'gemEvents',
+  'waterByDate',
+  'notesByDate',
+  'ownedCosmeticIds',
+  'equippedCosmeticId',
+  'repairsUsedMonth',
+  'mascotActivity',
+  'enamelQuests',
+  'brokenOn',
+  'brokenFrom',
+  'startedAt',
 ])
 const AI_SETTINGS_FIELDS = new Set(['provider', 'apiKey', 'model', 'customInstructions'])
 
@@ -319,7 +336,65 @@ function validGamification(value: unknown, allowLegacyGamification: boolean): st
   }
   if (!stringArray(value.seenBadgeIds)) return 'gamification.seenBadgeIds is invalid'
   if (!validQuest(value.quest, allowLegacyGamification)) return 'gamification.quest is invalid'
+  if (value.gems !== undefined && !integerIn(value.gems, 0, 1_000_000_000)) return 'gamification.gems is invalid'
+  if (value.gemEvents !== undefined && (!Array.isArray(value.gemEvents) || value.gemEvents.length > 200 || !value.gemEvents.every(validGemEvent))) {
+    return 'gamification.gemEvents is invalid'
+  }
+  if (value.waterByDate !== undefined && !validCountByDate(value.waterByDate, 8)) return 'gamification.waterByDate is invalid'
+  if (value.notesByDate !== undefined && !validCountByDate(value.notesByDate, 3)) return 'gamification.notesByDate is invalid'
+  if (value.ownedCosmeticIds !== undefined && !stringArray(value.ownedCosmeticIds, 200)) return 'gamification.ownedCosmeticIds is invalid'
+  if (value.equippedCosmeticId !== undefined && value.equippedCosmeticId !== null && !text(value.equippedCosmeticId, 80, false)) {
+    return 'gamification.equippedCosmeticId is invalid'
+  }
+  if (value.repairsUsedMonth !== undefined && !text(value.repairsUsedMonth, 20)) return 'gamification.repairsUsedMonth is invalid'
+  if (value.mascotActivity !== undefined && !oneOf(value.mascotActivity, ['lively', 'calm', 'off'])) {
+    return 'gamification.mascotActivity is invalid'
+  }
+  if (value.enamelQuests !== undefined && !validEnamelQuestState(value.enamelQuests)) return 'gamification.enamelQuests is invalid'
+  if (value.brokenOn !== undefined && value.brokenOn !== null && !calendarDay(value.brokenOn)) return 'gamification.brokenOn is invalid'
+  if (value.brokenFrom !== undefined && !integerIn(value.brokenFrom, 0, 100_000)) return 'gamification.brokenFrom is invalid'
+  if (value.startedAt !== undefined && !timestamp(value.startedAt)) return 'gamification.startedAt is invalid'
   return null
+}
+
+function validGemEvent(value: unknown): boolean {
+  return row(value)
+    && hasOnlyFields(value, GEM_EVENT_FIELDS)
+    && text(value.id, 200, false)
+    && integerIn(value.amount, -1_000_000, 1_000_000)
+    && text(value.reason, 200, false)
+    && timestamp(value.timestamp)
+    && (value.refId === undefined || text(value.refId, 200, false))
+}
+
+function validCountByDate(value: unknown, max: number): boolean {
+  if (!row(value)) return false
+  return Object.entries(value).every(([key, count]) => calendarDay(key) && integerIn(count, 0, max))
+}
+
+function validEnamelQuest(value: unknown): boolean {
+  return row(value)
+    && hasOnlyFields(value, ENAMEL_QUEST_FIELDS)
+    && text(value.key, 40, false)
+    && oneOf(value.period, ['daily', 'weekly'])
+    && text(value.label, 200, false)
+    && integerIn(value.target, 1, 100)
+    && integerIn(value.progress, 0, 100)
+    && integerIn(value.xpReward, 0, 10_000)
+    && integerIn(value.gemReward, 0, 10_000)
+    && (value.completedAt === null || timestamp(value.completedAt))
+    && (value.claimedAt === null || timestamp(value.claimedAt))
+}
+
+function validEnamelQuestState(value: unknown): boolean {
+  return row(value)
+    && hasOnlyFields(value, ENAMEL_QUEST_STATE_FIELDS)
+    && calendarDay(value.date)
+    && calendarDay(value.weekStart)
+    && Array.isArray(value.daily)
+    && value.daily.length <= 8
+    && value.daily.every(validEnamelQuest)
+    && validEnamelQuest(value.weekly)
 }
 
 function validAISettings(value: unknown, allowApiKey: boolean): string | null {

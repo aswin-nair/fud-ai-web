@@ -76,9 +76,9 @@ export async function completeOnboarding(
   await page.waitForURL('/')
 
   if (options?.dismissCelebration !== false) {
-    const dismiss = page.getByRole('button', { name: 'Keep going' })
-    await dismiss.waitFor()
-    await dismiss.click()
+    const celebration = page.getByRole('dialog', { name: 'Meal logged' })
+    await celebration.waitFor()
+    await celebration.waitFor({ state: 'hidden', timeout: 4000 })
   }
 }
 
@@ -105,8 +105,8 @@ export async function logManualMeal(
   meal: { name: string; calories: string; protein?: string; carbs?: string; fat?: string },
   options?: { dismissCelebration?: boolean },
 ): Promise<void> {
-  await page.getByRole('button', { name: 'Log a meal' }).click()
-  await page.waitForURL('/log')
+  await page.getByTestId('fab').click()
+  await page.waitForURL('/log/photo')
   await page.getByRole('link', { name: /Manual entry/i }).click()
   await page.waitForURL(/\/log\/manual/)
 
@@ -121,6 +121,6 @@ export async function logManualMeal(
   const celebration = page.getByRole('dialog', { name: 'Meal logged' })
   await celebration.waitFor()
   if (options?.dismissCelebration !== false) {
-    await celebration.getByRole('button', { name: 'Keep going' }).click()
+    await celebration.waitFor({ state: 'hidden', timeout: 4000 })
   }
 }

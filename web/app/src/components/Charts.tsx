@@ -276,9 +276,9 @@ export function ProgressBarChart({
           <g>
             <line
               x1={padL} y1={goalY} x2={w - padR} y2={goalY}
-              stroke="var(--coral-start)" strokeDasharray="5 4" strokeWidth="1.5" opacity="0.55"
+              stroke="var(--chalk)" strokeDasharray="5 4" strokeWidth="1.5"
             />
-            <text x={w - padR} y={goalY - 4} textAnchor="end" fill="var(--coral-start)" fontSize="9" opacity="0.7">goal</text>
+            <text x={w - padR} y={goalY - 4} textAnchor="end" fill="var(--ink-soft)" fontSize="9">goal</text>
           </g>
         )}
 

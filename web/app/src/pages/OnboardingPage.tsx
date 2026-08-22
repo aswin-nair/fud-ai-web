@@ -30,7 +30,7 @@ import {
 } from '../lib/onboarding'
 import { selectLogMethod, startLogFlow, track } from '../lib/analytics'
 
-const STEPS = ['Age', 'About you', 'Body', 'Activity', 'Goal', 'Review', 'First meal']
+const STEPS = ['Age', 'About you', 'Goal', 'Body', 'Activity', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
 
 const WELCOME_SLIDES = [
@@ -68,13 +68,6 @@ function positiveNumber(value: string): number | null {
 function nonnegativeNumber(value: string): number {
   const number = Number(value)
   return Number.isFinite(number) && number >= 0 ? number : 0
-}
-
-function validBody(profile: UserProfile): boolean {
-  return Number.isFinite(profile.heightCm)
-    && profile.heightCm > 0
-    && Number.isFinite(profile.weightKg)
-    && profile.weightKg > 0
 }
 
 function birthdayMessage(status: ReturnType<typeof birthdayEligibility>): string {
@@ -168,12 +161,7 @@ export function OnboardingPage() {
       track({ name: 'age_gate_passed' })
     }
 
-    if (step === 2 && !validBody(profile)) {
-      setValidationError('Enter a valid height and weight to continue.')
-      return
-    }
-
-    if (step === 4) {
+    if (step === 2) {
       const issue = profileInputIssue(profile) ?? goalWeightIssue(profile)
       if (issue) {
         setValidationError(issue)
@@ -370,10 +358,10 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your body</h1>
-            <p className="onboarding-sub">Used to calculate your basal metabolic rate.</p>
+            <p className="onboarding-sub">Optional. Used to calculate your basal metabolic rate. You can skip this and keep the starting estimate.</p>
             <div className="field">
               <label htmlFor="onboarding-height">Height (cm)</label>
               <input
@@ -416,7 +404,7 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Activity level</h1>
             <p className="onboarding-sub">How active are you on a typical day?</p>
@@ -437,7 +425,7 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 4 && (
+        {step === 2 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your goal</h1>
             <p className="onboarding-sub">This adjusts your calorie target.</p>
@@ -596,9 +584,14 @@ export function OnboardingPage() {
               <IconChevronLeft size={15} strokeWidth={2.4} /> Back
             </PressableButton>
           )}
+          {step === 3 && (
+            <PressableButton variant="ghost" onClick={next}>
+              Skip
+            </PressableButton>
+          )}
           <PressableButton
             onClick={step === FIRST_MEAL_STEP ? finishWithFirstMeal : next}
-            disabled={(step === 2 && !validBody(profile)) || (step === FIRST_MEAL_STEP && !firstMealReady)}
+            disabled={step === FIRST_MEAL_STEP && !firstMealReady}
             className="is-full"
           >
             {step === FIRST_MEAL_STEP

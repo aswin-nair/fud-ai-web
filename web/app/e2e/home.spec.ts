@@ -6,24 +6,20 @@ test.describe('Home & food logging', () => {
     await signUpAndOnboard(page)
   })
 
-  test('shows the meal path and macro progress group', async ({ page }) => {
-    await expect(page.locator('.meal-path')).toBeVisible()
-    await expect(page.locator('.home-meals-logged')).toContainText('of 4')
-    await expect(page.getByText('kcal left today')).toBeVisible()
-    await expect(page.locator('.home-quest-row')).toHaveCount(0)
-    await expect(page.locator('.home-counter-row')).toHaveCount(0)
+  test('shows today ticket and macro segments', async ({ page }) => {
+    await expect(page.locator('.ticket')).toBeVisible()
+    await expect(page.getByText('Onboarding yogurt bowl')).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: /Breakfast|Lunch|Dinner|Snack/ })).toBeVisible()
-
-    const dockBox = await page.locator('.home-log-dock').boundingBox()
-    expect(dockBox?.width).toBeLessThanOrEqual(480)
+    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
+    await expect(page.locator('.home-quest-row')).toHaveCount(0)
+    await expect(page.locator('.meal-path')).toHaveCount(0)
   })
 
-  test('pause hides nutrition and engagement numbers on Home and Progress', async ({ page }) => {
+  test('pause hides nutrition and engagement numbers on Home and Insights', async ({ page }) => {
     const mainNav = page.getByLabel('Main')
-    await mainNav.getByRole('link', { name: 'Settings' }).click()
+    await mainNav.getByRole('link', { name: 'You' }).click()
 
     const pauseRow = page.locator('.settings-row').filter({ hasText: 'Pause tracking' })
     await pauseRow.locator('input[type="checkbox"]').check()
@@ -31,15 +27,12 @@ test.describe('Home & food logging', () => {
 
     await mainNav.getByRole('link', { name: 'Today' }).click()
     await expect(page.getByText('Tracking is paused')).toBeVisible()
-    await expect(page.locator('.home-counter-row')).toHaveCount(0)
     await expect(page.locator('.home-quest-row')).toHaveCount(0)
     await expect(page.locator('.calorie-ring')).toHaveCount(0)
-    await expect(page.locator('.meal-path')).toBeVisible()
-    await expect(page.getByText('kcal left today')).toHaveCount(0)
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toHaveCount(0)
     await expect(page.getByText('Onboarding yogurt bowl')).toHaveCount(0)
 
-    await mainNav.getByRole('link', { name: 'Progress' }).click()
+    await mainNav.getByRole('link', { name: 'Insights' }).click()
     await expect(page.getByRole('heading', { name: 'Tracking is paused' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Weight', exact: true })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Calories', exact: true })).toHaveCount(0)
@@ -56,7 +49,7 @@ test.describe('Home & food logging', () => {
     })
 
     await expect(page.getByText('Greek Yogurt')).toBeVisible()
-    await expect(page.locator('.food-card-cals', { hasText: '150 kcal' })).toBeVisible()
+    await expect(page.locator('.ticket-row-kcal', { hasText: '150' })).toBeVisible()
   })
 
   test('date picker keeps today calories after switching dates', async ({ page }) => {
@@ -92,15 +85,17 @@ test.describe('Home & food logging', () => {
     }
     await page.getByRole('button', { name: yesterdayLabel }).click()
     await expect(page.getByText('Oatmeal')).toHaveCount(0)
-    await expect(page.locator('.home-meals-logged')).toContainText('0 of 4')
+    await expect(page.getByText(/Nothing logged yet|still ahead/)).toBeVisible()
 
     await page.getByRole('button', { name: 'Choose date' }).click()
     await page.getByRole('button', { name: 'Jump to today' }).click()
     await expect(page.getByText('Oatmeal')).toBeVisible()
   })
 
-  test('docked log reaches every option', async ({ page }) => {
-    await page.getByRole('button', { name: 'Log a meal' }).click()
+  test('log FAB reaches every option from the log menu', async ({ page }) => {
+    await page.getByTestId('fab').click()
+    await expect(page).toHaveURL('/log/photo')
+    await page.getByRole('link', { name: /More ways to log/i }).click()
     await expect(page).toHaveURL('/log')
     await expect(page.getByRole('link', { name: /Describe your meal/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Snap a photo/i })).toBeVisible()
@@ -120,5 +115,6 @@ test.describe('Home & food logging', () => {
     const celebration = page.getByRole('dialog', { name: 'Meal logged' })
     await expect(celebration).toContainText('Toast Test Meal')
     await expect(celebration).toContainText('XP added')
+    await expect(celebration.getByRole('button')).toHaveCount(0)
   })
 })

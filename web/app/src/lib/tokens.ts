@@ -15,7 +15,7 @@ export const motion = {
   /** Bottom sheet. */
   sheet: 260,
   /** Confetti, badge pop. */
-  celebrate: 900,
+  celebrate: 1400,
   /** Section and list entrance. */
   enter: 420,
   /** Delay between staggered siblings. */
@@ -27,11 +27,11 @@ export const motion = {
 } as const
 
 export const clay = {
-  base: '#FFF8F2',
+  base: '#F7F5F0',
   lift: '#FFFFFF',
-  ink: '#1A1A1A',
-  inkSoft: '#7A7266',
-  innerDarkAlpha: 0.045,
+  ink: '#14213D',
+  inkSoft: '#4A5570',
+  innerDarkAlpha: 0.04,
 } as const
 
 /** Height of the raised button's exposed shadow face, and its travel. §6.1 */

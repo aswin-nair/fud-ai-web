@@ -1,19 +1,19 @@
 import { test, expect } from '@playwright/test'
 import { signUpAndOnboard } from './helpers'
 
-test.describe('Progress', () => {
+test.describe('Insights', () => {
   test.beforeEach(async ({ page }) => {
     await signUpAndOnboard(page)
-    await page.getByLabel('Main').getByRole('link', { name: 'Progress' }).click()
+    await page.getByLabel('Main').getByRole('link', { name: 'Insights' }).click()
   })
 
-  test('shows time range chips and weight card', async ({ page }) => {
-    await expect(page.getByRole('button', { name: '1W' })).toBeVisible()
-    await expect(page.getByRole('button', { name: '1M' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Weight' })).toBeVisible()
-    await expect(page.getByText('Current', { exact: true }).first()).toBeVisible()
-    await expect(page.locator('.progress-stat-grid').first().getByText('Goal', { exact: true })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Calories' })).toBeVisible()
+  test('shows week and month chips with descriptive logging copy', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Week' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Month' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Consistency' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Most logged' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Ticket archive' })).toBeVisible()
   })
 
   test('logs weight via modal', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('Progress', () => {
   })
 
   test('switches time range', async ({ page }) => {
-    await page.getByRole('button', { name: '1M' }).click()
-    await expect(page.getByRole('button', { name: '1M' })).toHaveClass(/active/)
+    await page.getByRole('button', { name: 'Month' }).click()
+    await expect(page.getByRole('button', { name: 'Month' })).toHaveClass(/active/)
   })
 })

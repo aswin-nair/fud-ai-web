@@ -7,19 +7,15 @@ test.describe('Navigation', () => {
   })
 
   test('bottom nav visits all tabs', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Journey' }).click()
+    await nav(page).getByRole('link', { name: 'Quests' }).click()
     await expect(page).toHaveURL('/journey')
-    await expect(page.getByRole('heading', { name: 'Journey' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Quests' })).toBeVisible()
 
-    await nav(page).getByRole('link', { name: 'Progress' }).click()
+    await nav(page).getByRole('link', { name: 'Insights' }).click()
     await expect(page).toHaveURL('/progress')
-    await expect(page.getByRole('heading', { name: 'Weight' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
 
-    await nav(page).getByRole('link', { name: 'Saved' }).click()
-    await expect(page).toHaveURL('/discover')
-    await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
-
-    await nav(page).getByRole('link', { name: 'Settings' }).click()
+    await nav(page).getByRole('link', { name: 'You' }).click()
     await expect(page).toHaveURL('/settings')
     await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
 
@@ -32,29 +28,29 @@ test.describe('Navigation', () => {
     await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
   })
 
-  test('journey tab and settings coach reach their full pages', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Journey' }).click()
+  test('quests tab and you coach reach their full pages', async ({ page }) => {
+    await nav(page).getByRole('link', { name: 'Quests' }).click()
     await expect(page).toHaveURL('/journey')
-    await expect(page.getByRole('heading', { name: 'Journey' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Quests' })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
 
-    await nav(page).getByRole('link', { name: 'Settings' }).click()
+    await nav(page).getByRole('link', { name: 'You' }).click()
     await page.getByLabel('Chat with your coach').click()
     await expect(page).toHaveURL('/coach')
     await expect(page.getByText('AI Coach')).toBeVisible()
   })
 
-  test('docked log reaches manual entry', async ({ page }) => {
-    await page.getByRole('button', { name: 'Log a meal' }).click()
-    await expect(page).toHaveURL('/log')
+  test('log FAB reaches photo then manual entry', async ({ page }) => {
+    await page.getByTestId('fab').click()
+    await expect(page).toHaveURL('/log/photo')
     await page.getByRole('link', { name: /Manual entry/i }).click()
     await expect(page).toHaveURL(/\/log\/manual/)
   })
 
   test('sign out returns to login', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Settings' }).click()
+    await nav(page).getByRole('link', { name: 'You' }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/\/login/)
     await expect(page.getByRole('heading', { name: 'Fud AI' })).toBeVisible()

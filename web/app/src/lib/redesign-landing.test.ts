@@ -49,8 +49,10 @@ describe('redesign landing audit', () => {
     expect(css).toMatch(/prefers-reduced-motion:\s*reduce/)
   })
 
-  it('ships the clay recipe and squish motion', () => {
-    expect(css).toContain('--clay-base:')
+  it('ships the enamel recipe and press motion', () => {
+    expect(css).toContain('--enamel:')
+    expect(css).toContain('--ink:')
+    expect(css).toContain('--cobalt:')
     expect(css).toContain('--squish-in:')
     expect(css).toContain('var(--clay-squish)')
     expect(css).toContain('.clay-inset')

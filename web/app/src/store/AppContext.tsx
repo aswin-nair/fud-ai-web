@@ -4,7 +4,7 @@ import type {
 
   AppState, FoodEntry, UserProfile, AISettings, FoodAnalysis,
 
-  WeightEntry, ChatMessage, SavedMeal, ExerciseEntry,
+  WeightEntry, ChatMessage, SavedMeal, ExerciseEntry, GamificationState,
 
 } from '../types'
 
@@ -124,6 +124,8 @@ interface AppContextValue {
   clearAllData: () => Promise<boolean>
 
   ackLevelUp: () => void
+
+  patchGamification: (updater: (g: GamificationState) => GamificationState) => void
 
   addExercise: (entry: ExerciseEntry) => void
 
@@ -979,6 +981,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ackLevelUp: () => setState(s => ({
       ...s,
       gamification: { ...s.gamification, pendingLevelUp: null },
+    })),
+
+    patchGamification: (updater) => setState(s => ({
+      ...s,
+      gamification: updater(s.gamification),
     })),
 
     // The habit loop rewards meal logging. Optional activity data never

@@ -63,7 +63,7 @@
 .pressable:focus-visible .pressable-face,
 .path-node:focus-visible .path-node-face,
 .nav-item:focus-visible .nav-item-inner {
-  outline: 3px solid var(--coral);
+  outline: 3px solid var(--cobalt);
   outline-offset: 3px;
 }
 
@@ -145,7 +145,7 @@
 .log-search-input:focus,
 .chat-input:focus,
 .clay-input:focus {
-  outline: 3px solid var(--coral);
+  outline: 3px solid var(--cobalt);
   outline-offset: 2px;
 }
 

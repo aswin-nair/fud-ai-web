@@ -33,6 +33,8 @@ test.describe('Onboarding activation', () => {
     await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Your goal' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Your body' })).toBeVisible()
     await page.getByLabel('Height (cm)').fill('182')
 
@@ -42,8 +44,6 @@ test.describe('Onboarding activation', () => {
 
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Activity level' })).toBeVisible()
-    await page.getByRole('button', { name: 'Continue', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Your goal' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Your daily targets' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue to first meal' }).click()
@@ -62,7 +62,7 @@ test.describe('Onboarding activation', () => {
     await page.waitForURL('/')
     const celebration = page.getByRole('dialog', { name: 'Meal logged' })
     await expect(celebration).toContainText('Banana oat bowl')
-    await celebration.getByRole('button', { name: 'Keep going' }).click()
+    await celebration.waitFor({ state: 'hidden', timeout: 4000 })
     await expect(page.getByText('Banana oat bowl')).toBeVisible()
 
     const draftKeys = await page.evaluate(() => (
@@ -76,10 +76,8 @@ test.describe('Onboarding activation', () => {
     await page.getByRole('button', { name: 'Skip' }).click()
     await page.getByLabel('Date of birth').fill(birthdayYearsAgo(25))
 
-    // Age, about, body, and activity.
-    for (let step = 0; step < 4; step += 1) {
-      await page.getByRole('button', { name: 'Continue', exact: true }).click()
-    }
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
 
     await page.getByRole('button', { name: 'Lose Weight' }).click()
     await page.getByLabel('Goal weight (kg)').fill('50')
@@ -88,6 +86,10 @@ test.describe('Onboarding activation', () => {
     await expect(page.getByRole('heading', { name: 'Your goal' })).toBeVisible()
 
     await page.getByLabel('Goal weight (kg)').fill('60')
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Your body' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Activity level' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Your daily targets' })).toBeVisible()
   })

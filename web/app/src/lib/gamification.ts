@@ -1,9 +1,21 @@
 import type { AppState, FoodEntry, GamificationState } from '../types'
 import { localDayKey } from './dates'
+import {
+  applyEnamelLogAwards,
+  grantFreeFreezeAtStreak,
+  markBrokenIfNeeded,
+  syncEnamelQuests,
+} from './enamelEconomy'
 import { applyFreeze, getAllBadges, getStreakWithFreezes } from './journey'
 import { syncQuest } from './quests'
 import { computeXpAwards, makeXpEvents, levelFromXp } from './xp'
 import { track } from './analytics'
+
+let sessionOpenedAt = Date.now()
+
+export function markSessionOpened(at = Date.now()): void {
+  sessionOpenedAt = at
+}
 
 export type LogAdvance = {
   gamification: GamificationState
@@ -109,9 +121,21 @@ export function openSession(state: AppState): LogAdvance {
     streak,
     false,
   )
+  const enamelBase = { ...state.gamification, ...freezeUpdate, quest }
+  const enamelQuests = syncEnamelQuests(
+    enamelBase,
+    today,
+    {
+      entries: entriesOutsidePausedDays(state.foodEntries, state.gamification),
+      water: enamelBase.waterByDate?.[today] ?? 0,
+      notes: enamelBase.notesByDate?.[today] ?? 0,
+      sessionOpenedAt,
+    },
+    false,
+  )
 
   return {
-    gamification: { ...state.gamification, ...freezeUpdate, quest },
+    gamification: grantFreeFreezeAtStreak({ ...enamelBase, enamelQuests }, streak),
     freezeApplied,
     questJustCompleted: false,
     streakMilestone: false,
@@ -204,7 +228,7 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     // the canonical freeze and quest events.
   }
 
-  const newGam: GamificationState = {
+  let newGam: GamificationState = applyEnamelLogAwards({
     ...state.gamification,
     ...freezeUpdate,
     xp,
@@ -215,7 +239,25 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     xpEvents: events.slice(0, 50),
     awardedKeys: [...awardedKeys],
     quest,
-  }
+  }, entry, state.foodEntries, { sessionOpenedAt })
+
+  newGam.enamelQuests = syncEnamelQuests(
+    newGam,
+    today,
+    {
+      entries: entriesOutsidePausedDays(allEntries, newGam),
+      water: newGam.waterByDate?.[today] ?? 0,
+      notes: newGam.notesByDate?.[today] ?? 0,
+      sessionOpenedAt,
+    },
+    true,
+  )
+  newGam = grantFreeFreezeAtStreak(newGam, streak)
+  newGam = markBrokenIfNeeded(newGam, getStreakWithFreezes(
+    state.foodEntries,
+    state.gamification.freezeUsedDates,
+    state.gamification.pauseProtectedDates,
+  ), streak, today)
 
   const allBadges = getAllBadges(allEntries, streak)
   const seenSet = new Set(newGam.seenBadgeIds)

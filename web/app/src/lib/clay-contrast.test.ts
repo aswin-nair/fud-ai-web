@@ -52,8 +52,8 @@ function mix(foreground: string, background: string, alpha: number): string {
   return `#${[r, g, b].map(n => n.toString(16).padStart(2, '0')).join('')}`
 }
 
-describe('clay contrast and paint budgets', () => {
-  it('keeps body text readable on every cream elevation, including inset darkening', () => {
+describe('enamel contrast and paint budgets', () => {
+  it('keeps ink readable on enamel, including inset darkening', () => {
     const darkened = mix('#1A1410', clay.base, clay.innerDarkAlpha)
     expect(contrast(clay.ink, clay.base)).toBeGreaterThanOrEqual(7)
     expect(contrast(clay.ink, clay.lift)).toBeGreaterThanOrEqual(7)
@@ -78,5 +78,12 @@ describe('clay contrast and paint budgets', () => {
     const over = css.match(/\.home-kcal-left\.is-over\s*\{([^}]*)\}/g)?.join(' ') ?? ''
     expect(over).toContain('var(--ink-soft)')
     expect(over).not.toMatch(/clay-e3|danger/)
+  })
+
+  it('never paints ticket totals with danger', () => {
+    const ticket = css.match(/\.ticket[\s\S]{0,4000}/)?.[0] ?? ''
+    expect(ticket).not.toMatch(/--danger/)
+    expect(css).toContain('--ink: #14213D')
+    expect(css).toContain('--enamel: #F7F5F0')
   })
 })

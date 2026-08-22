@@ -242,6 +242,24 @@ function normalizeGamification(value: unknown): GamificationState {
     quest: record(g.quest) && g.quest.type === 'hit_protein'
       ? undefined
       : g.quest,
+    gems: typeof g.gems === 'number' ? g.gems : 0,
+    gemEvents: Array.isArray(g.gemEvents) ? g.gemEvents : [],
+    waterByDate: record(g.waterByDate) ? g.waterByDate as Record<string, number> : {},
+    notesByDate: record(g.notesByDate) ? g.notesByDate as Record<string, number> : {},
+    ownedCosmeticIds: Array.isArray(g.ownedCosmeticIds) ? g.ownedCosmeticIds : [],
+    equippedCosmeticId: typeof g.equippedCosmeticId === 'string' || g.equippedCosmeticId === null
+      ? g.equippedCosmeticId
+      : null,
+    repairsUsedMonth: typeof g.repairsUsedMonth === 'string' ? g.repairsUsedMonth : '',
+    mascotActivity: g.mascotActivity === 'calm' || g.mascotActivity === 'off' || g.mascotActivity === 'lively'
+      ? g.mascotActivity
+      : 'lively',
+    enamelQuests: record(g.enamelQuests) ? g.enamelQuests as GamificationState['enamelQuests'] : undefined,
+    brokenOn: typeof g.brokenOn === 'string' || g.brokenOn === null ? g.brokenOn : null,
+    brokenFrom: typeof g.brokenFrom === 'number' ? g.brokenFrom : 0,
+    startedAt: typeof g.startedAt === 'string' && g.startedAt
+      ? g.startedAt
+      : `${localDayKey(new Date())}T12:00:00.000`,
   } as unknown as GamificationState
 }
 
@@ -258,6 +276,17 @@ export function defaultGamification(): GamificationState {
     awardedKeys: [],
     pendingLevelUp: null,
     seenBadgeIds: [],
+    gems: 0,
+    gemEvents: [],
+    waterByDate: {},
+    notesByDate: {},
+    ownedCosmeticIds: [],
+    equippedCosmeticId: null,
+    repairsUsedMonth: '',
+    mascotActivity: 'lively',
+    brokenOn: null,
+    brokenFrom: 0,
+    startedAt: `${localDayKey(new Date())}T12:00:00.000`,
   }
 }
 

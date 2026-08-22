@@ -10,12 +10,8 @@ import { PressableButton } from '../components/PressableButton'
 import { Surface } from '../components/Surface'
 
 const RANGES = [
-  { id: '1W', days: 7 },
-  { id: '1M', days: 30 },
-  { id: '3M', days: 90 },
-  { id: '6M', days: 180 },
-  { id: '1Y', days: 365 },
-  { id: 'All', days: 3650 },
+  { id: '1W', label: 'Week', days: 7 },
+  { id: '1M', label: 'Month', days: 30 },
 ] as const
 
 type RangeId = (typeof RANGES)[number]['id']
@@ -35,7 +31,7 @@ interface StatCardProps {
 }
 
 function StatCard({ label, value, sub, accent }: StatCardProps) {
-  const valueColor = accent ? 'var(--coral-start)' : undefined
+  const valueColor = accent ? 'var(--cobalt)' : undefined
 
   return (
     <div className="progress-stat-card">
@@ -94,6 +90,19 @@ export function ProgressPage() {
     return result
   }, [state.foodEntries, days, range])
 
+  const mostLogged = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const entry of state.foodEntries) {
+      counts.set(entry.name, (counts.get(entry.name) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
+  }, [state.foodEntries])
+
+  const archiveDays = useMemo(() => {
+    const days = [...new Set(state.foodEntries.map(e => localDayKey(e.timestamp)))].sort().reverse()
+    return days.slice(0, 8)
+  }, [state.foodEntries])
+
   const calorieDays = calorieBars.filter(b => b.value > 0)
   const avgCalories = calorieDays.length
     ? Math.round(calorieDays.reduce((s, b) => s + b.value, 0) / calorieDays.length)
@@ -116,7 +125,7 @@ export function ProgressPage() {
       <div className="app-shell progress-shell">
         <main className="app-main progress-main motion-stagger">
           <div className="progress-page-header">
-            <h1 className="screen-title" style={{ marginBottom: 0 }}>Progress</h1>
+            <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
           </div>
           <Surface className="progress-card" style={{ textAlign: 'center' }}>
             <h2 className="progress-card-title">Tracking is paused</h2>
@@ -136,7 +145,7 @@ export function ProgressPage() {
       <main className="app-main progress-main motion-stagger">
 
         <div className="progress-page-header">
-          <h1 className="screen-title" style={{ marginBottom: 0 }}>Progress</h1>
+          <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
         </div>
 
         <div className="range-chips">
@@ -147,7 +156,7 @@ export function ProgressPage() {
               className={`range-chip${range === r.id ? ' active' : ''}`}
               onClick={() => setRange(r.id)}
             >
-              {r.id}
+              {r.label}
             </button>
           ))}
         </div>
@@ -170,12 +179,13 @@ export function ProgressPage() {
             of {consistency.elapsed} {consistency.elapsed === 1 ? 'day' : 'days'} so far this month
           </p>
 
-          <div className="consistency-grid" aria-hidden>
+          <p className="page-sub">Days you logged, not how the numbers landed.</p>
+          <div className="insights-heat" aria-hidden>
             {consistency.days.map((logged, i) => (
               <span
                 key={i}
                 className={
-                  'consistency-dot'
+                  'insights-heat-cell'
                   + (logged ? ' is-logged' : '')
                   + (i >= consistency.elapsed ? ' is-future' : '')
                 }
@@ -258,6 +268,30 @@ export function ProgressPage() {
           </div>
 
           <ProgressBarChart bars={calorieBars} goal={goal} />
+        </div>
+
+        <div className="progress-card">
+          <h2 className="progress-card-title">Most logged</h2>
+          <p className="page-sub">Foods you reach for often.</p>
+          {mostLogged.length === 0 ? (
+            <p className="page-sub">Nothing logged yet.</p>
+          ) : (
+            <ul className="torn-archive">
+              {mostLogged.map(([name, count]) => (
+                <li key={name}>{name} · {count}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="progress-card">
+          <h2 className="progress-card-title">Ticket archive</h2>
+          <p className="page-sub">Past days you showed up.</p>
+          <div className="torn-archive">
+            {archiveDays.map(day => (
+              <div key={day} className="torn-stub">{day}</div>
+            ))}
+          </div>
         </div>
 
         {/* Badges */}

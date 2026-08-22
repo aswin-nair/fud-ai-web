@@ -23,8 +23,9 @@ import { SettingsPage } from './pages/SettingsPage'
 import { JourneyPage } from './pages/JourneyPage'
 import { AboutPage } from './pages/AboutPage'
 import { SupportPage } from './pages/SupportPage'
-import { MascotRoamer } from './components/MascotRoamer'
 import { ComponentSheetPage } from './pages/ComponentSheetPage'
+import { AnchorProvider } from './mascot/anchors'
+import { MascotOverlay } from './mascot/MascotOverlay'
 
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
@@ -54,8 +55,8 @@ function AuthenticatedRoutes() {
   }
 
   return (
-    <>
-    <MascotRoamer />
+    <AnchorProvider>
+    <MascotOverlay />
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/progress" element={<ProgressPage />} />
@@ -75,7 +76,7 @@ function AuthenticatedRoutes() {
       {import.meta.env.DEV && <Route path="/dev/components" element={<ComponentSheetPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </>
+    </AnchorProvider>
   )
 }
 

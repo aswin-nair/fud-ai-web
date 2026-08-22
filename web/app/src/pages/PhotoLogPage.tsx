@@ -72,9 +72,16 @@ export function PhotoLogPage() {
             <img src={preview} alt="Food preview" className="photo-preview analyzing-photo" />
           )}
           <div className="analyzing-overlay" role="status" aria-live="polite">
-            <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
-            <p className="analyzing-title">Reading your photo…</p>
-            <p className="analyzing-sub">AI is identifying the food</p>
+            {preview && <img src={preview} alt="" className="photo-preview analyzing-photo" />}
+            <div className="mascot-host pose-sniff_plate" aria-hidden style={{ position: 'relative', width: 88, height: 88 }}>
+              <svg viewBox="0 0 88 88" width="88" height="88">
+                <path d="M16 48c0-18 12-32 28-32s28 14 28 32c0 14-8 24-28 24S16 62 16 48z" fill="#F3E4C8" stroke="#14213D" strokeWidth="2.2" />
+                <circle cx="34" cy="46" r="3.2" fill="#14213D" />
+                <circle cx="54" cy="46" r="3.2" fill="#14213D" />
+              </svg>
+            </div>
+            <p className="analyzing-title">Sniffing out the plate…</p>
+            <p className="analyzing-sub">Reading the photo</p>
             <PressableButton variant="secondary" label="Cancel analysis" onClick={() => requestRef.current?.abort()} />
           </div>
         </main>
@@ -85,7 +92,7 @@ export function PhotoLogPage() {
   return (
     <div className="app-shell">
       <main className="app-main motion-stagger">
-        <BackLink to="/log" />
+        <BackLink to="/" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Photo log</h1>
         <p className="page-sub">AI reads the food and estimates your macros.</p>
 
@@ -140,6 +147,12 @@ export function PhotoLogPage() {
             Analyze this photo again
           </PressableButton>
         )}
+
+        <p className="page-sub">
+          <Link to="/log">More ways to log</Link>
+          {' · '}
+          <Link to="/log/manual">Manual entry</Link>
+        </p>
 
         <div className="photo-btn-row">
           <button

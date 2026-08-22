@@ -97,6 +97,48 @@ export interface XpEvent {
   timestamp: string
 }
 
+export interface GemEvent {
+  id: string
+  amount: number
+  reason: string
+  timestamp: string
+  refId?: string
+}
+
+export type MascotActivity = 'lively' | 'calm' | 'off'
+
+export type EnamelQuestKey =
+  | 'breakfast'
+  | 'photo_log'
+  | 'three_mains'
+  | 'water'
+  | 'note'
+  | 'new_food'
+  | 'homemade'
+  | 'log_within_30m'
+  | 'week_log_days'
+  | 'week_log_meals'
+  | 'week_photos'
+
+export interface EnamelQuestProgress {
+  key: EnamelQuestKey
+  period: 'daily' | 'weekly'
+  label: string
+  target: number
+  progress: number
+  xpReward: number
+  gemReward: number
+  completedAt: string | null
+  claimedAt: string | null
+}
+
+export interface EnamelQuestState {
+  date: string
+  weekStart: string
+  daily: EnamelQuestProgress[]
+  weekly: EnamelQuestProgress
+}
+
 export interface GamificationState {
   xp: number
   level: number
@@ -117,6 +159,18 @@ export interface GamificationState {
     completedAt: string | null
     beforeHour?: number
   }
+  gems: number
+  gemEvents: GemEvent[]
+  waterByDate: Record<string, number>
+  notesByDate: Record<string, number>
+  ownedCosmeticIds: string[]
+  equippedCosmeticId: string | null
+  repairsUsedMonth: string
+  mascotActivity: MascotActivity
+  enamelQuests?: EnamelQuestState
+  brokenOn: string | null
+  brokenFrom: number
+  startedAt: string
 }
 
 export interface ExerciseEntry {

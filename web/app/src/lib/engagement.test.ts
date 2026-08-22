@@ -3,20 +3,12 @@ import { describe, expect, it } from 'vitest'
 import type { FoodEntry, GamificationState } from '../types'
 import { isNewQuestCompletion } from './gamification'
 import { QUEST_TYPES, questForDate, questTitle } from './quests'
+import { defaultGamification } from './storage'
 import { computeXpAwards } from './xp'
 
 const emptyGamification: GamificationState = {
-  xp: 0,
-  level: 1,
-  streakFreezes: 1,
-  freezeUsedDates: [],
+  ...defaultGamification(),
   freezeEarnedMonth: '2026-08',
-  pauseStartedDate: null,
-  pauseProtectedDates: [],
-  xpEvents: [],
-  awardedKeys: [],
-  pendingLevelUp: null,
-  seenBadgeIds: [],
 }
 
 const entry: FoodEntry = {

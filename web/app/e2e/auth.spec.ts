@@ -52,7 +52,7 @@ test.describe('Authentication', () => {
     await signUp(page, { email, password })
     await completeOnboarding(page)
 
-    await page.getByLabel('Main').getByRole('link', { name: 'Settings' }).click()
+    await page.getByLabel('Main').getByRole('link', { name: 'You' }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/\/login/)
 

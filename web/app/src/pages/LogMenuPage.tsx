@@ -157,7 +157,7 @@ export function LogMenuPage() {
           <>
             {recents.length > 0 && (
               <>
-                <p className="eyebrow">Recent</p>
+                <p className="eyebrow">Log again</p>
                 <div className="log-pick-list motion-list">
                   {recents.map(entry => (
                     <PickRow

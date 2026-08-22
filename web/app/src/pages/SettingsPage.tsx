@@ -33,6 +33,9 @@ import { isCloudBackend } from '../lib/dataBackend'
 import { deleteLocalAccount } from '../lib/localAuth'
 import { clearDurableUser } from '../lib/durableState'
 import { clearOnboardingDraft } from '../lib/onboarding'
+import { COSMETICS, buyCosmetic, buyFreeze, canRepairStreak, repairStreak } from '../lib/enamelEconomy'
+import { localDayKey } from '../lib/dates'
+import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="settings-section-label">{children}</p>
@@ -43,7 +46,7 @@ function SettingsCard({ children }: { children: React.ReactNode }) {
 }
 
 export function SettingsPage() {
-  const { state, updateProfile, updateAISettings, replaceState, clearAllData } = useApp()
+  const { state, updateProfile, updateAISettings, replaceState, clearAllData, patchGamification } = useApp()
   const { user, signOut } = useAuth()
   const [profile, setProfile] = useState<UserProfile>(state.profile)
   const [provider, setProvider] = useState<AIProvider>(state.aiSettings.provider)
@@ -194,7 +197,115 @@ export function SettingsPage() {
   return (
     <div className="app-shell">
       <main className="app-main motion-stagger">
-        <h1 className="page-title">Settings</h1>
+        <h1 className="page-title">You</h1>
+
+        <SectionLabel>Streak</SectionLabel>
+        <SettingsCard>
+          <p className="page-sub" style={{ marginBottom: 8 }}>
+            {getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates, state.gamification.pauseProtectedDates)}-day streak · {state.gamification.streakFreezes} freezes
+          </p>
+          <div className="insights-heat" aria-hidden>
+            {getMonthConsistency(state.foodEntries).days.map((logged, i) => (
+              <span key={i} className={`insights-heat-cell${logged ? ' is-logged' : ''}`} />
+            ))}
+          </div>
+          <button
+            type="button"
+            className="settings-data-btn"
+            onClick={() => patchGamification(g => buyFreeze(g) ?? g)}
+          >
+            Buy a freeze · 100 gems
+          </button>
+          {canRepairStreak(
+            state.gamification,
+            state.foodEntries.length ? localDayKey(state.foodEntries[state.foodEntries.length - 1]!.timestamp) : null,
+            localDayKey(new Date()),
+          ) && (
+            <button
+              type="button"
+              className="settings-data-btn"
+              onClick={() => patchGamification(g => repairStreak(
+                g,
+                state.foodEntries.length ? localDayKey(state.foodEntries[state.foodEntries.length - 1]!.timestamp) : null,
+                localDayKey(new Date()),
+              ) ?? g)}
+            >
+              Repair streak · 200 gems
+            </button>
+          )}
+        </SettingsCard>
+
+        <SectionLabel>Achievements</SectionLabel>
+        <SettingsCard>
+          <div className="wardrobe-grid">
+            {getAllBadges(
+              state.foodEntries,
+              getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates, state.gamification.pauseProtectedDates),
+            ).filter(b => b.unlocked).map(badge => (
+              <div key={badge.id} className="wardrobe-item is-owned">
+                {badge.emoji} {badge.name}
+              </div>
+            ))}
+          </div>
+        </SettingsCard>
+
+        <SectionLabel>Mascot</SectionLabel>
+        <SettingsCard>
+          <p className="page-sub">A small kitchen companion. Never sad, never scoring your food.</p>
+          <SettingsRow label="Lively" hint="More frequent antics">
+            <input
+              type="radio"
+              name="mascot-activity"
+              checked={state.gamification.mascotActivity === 'lively'}
+              onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'lively' }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Calm" hint="Quieter, slower visits">
+            <input
+              type="radio"
+              name="mascot-activity"
+              checked={state.gamification.mascotActivity === 'calm'}
+              onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'calm' }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Off" hint="Hide the companion">
+            <input
+              type="radio"
+              name="mascot-activity"
+              checked={state.gamification.mascotActivity === 'off'}
+              onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'off' }))}
+            />
+          </SettingsRow>
+        </SettingsCard>
+
+        <SectionLabel>Wardrobe</SectionLabel>
+        <SettingsCard>
+          <p className="page-sub">Earn gems by logging. Nothing here is sold for money.</p>
+          <div className="wardrobe-grid">
+            {COSMETICS.map(item => {
+              const owned = state.gamification.ownedCosmeticIds.includes(item.id)
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`wardrobe-item${owned ? ' is-owned' : ''}`}
+                  onClick={() => patchGamification(g => (
+                    owned
+                      ? { ...g, equippedCosmeticId: item.id }
+                      : buyCosmetic(
+                        g,
+                        item.id,
+                        getStreakWithFreezes(state.foodEntries, g.freezeUsedDates, g.pauseProtectedDates),
+                      ) ?? g
+                  ))}
+                >
+                  <strong>{item.name}</strong>
+                  <span>{owned ? 'Owned' : `${item.price} gems`}</span>
+                </button>
+              )
+            })}
+          </div>
+        </SettingsCard>
 
         {saved && (
           <div className="settings-saved-banner" role="status" aria-live="polite">

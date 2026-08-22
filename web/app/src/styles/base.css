@@ -8,6 +8,11 @@ html, body, #root {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 button, input, select, textarea {
@@ -21,7 +26,7 @@ button {
   background: none;
 }
 
-a { color: var(--coral); text-decoration: none; }
+a { color: var(--cobalt); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .app-shell {
