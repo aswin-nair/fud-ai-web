@@ -13,6 +13,7 @@ import {
   type Mood,
 } from './behaviors'
 import { behaviorByKey, pickAmbient, restPosition, scheduleDelay, targetFromRect } from './controller'
+import { pokeAct } from '../lib/mascotVoice'
 
 const SIZE = 88
 const MOVE_MS = 600
@@ -22,27 +23,60 @@ export function mascotReact(key: BehaviorKey): void {
   handle?.react(key)
 }
 
+/**
+ * Momo.
+ *
+ * A dumpling rather than a blob: the pleated crown gives a silhouette you can
+ * recognise at 20px, and dough is the one material where squash-and-stretch is
+ * literally true, so the poke animations read as the character rather than as
+ * an effect applied to it.
+ */
 function Dumpling({ mood, pose }: { mood: Mood; pose: string }) {
   const blush = mood === 'excited' || mood === 'proud' || mood === 'cozy'
+  const blinking = pose === 'idle_blink'
+  const eyeR = blinking ? 1.1 : 5
+
   return (
-    <svg viewBox="0 0 88 88" width="100%" height="100%" aria-hidden>
-      <ellipse cx="44" cy="78" rx="22" ry="6" fill="rgba(20,33,61,0.08)" />
+    <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden>
+      <defs>
+        <linearGradient id="momo-dough" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0%" stopColor="#FFF6E4" />
+          <stop offset="100%" stopColor="#E9C89A" />
+        </linearGradient>
+      </defs>
+
+      <ellipse cx="50" cy="93" rx="26" ry="4.5" fill="#3A2A22" opacity="0.13" />
+
+      {/* Stub arms, behind the body so every join stays soft. */}
+      <path d="M22 76 Q14 84 22 88" stroke="#E4BE8C" strokeWidth="7" fill="none" strokeLinecap="round" />
+      <path d="M78 76 Q86 84 78 88" stroke="#E4BE8C" strokeWidth="7" fill="none" strokeLinecap="round" />
+
+      <ellipse cx="50" cy="60" rx="35" ry="30" fill="url(#momo-dough)" />
+      {/* The light sits top-left, matching every other surface in the app. */}
+      <ellipse cx="42" cy="45" rx="17" ry="8" fill="#FFFFFF" opacity="0.55" />
+
+      {/* Real pleats — the one detail that makes it a dumpling and not a bun. */}
       <path
-        d="M16 48c0-18 12-32 28-32s28 14 28 32c0 14-8 24-28 24S16 62 16 48z"
-        fill="#F3E4C8"
-        stroke="#14213D"
-        strokeWidth="2.2"
-      />
-      <path d="M22 40c6-10 16-16 22-16s16 6 22 16" fill="none" stroke="#E8D2A8" strokeWidth="3" />
-      <circle cx="34" cy="46" r={pose === 'idle_blink' ? 1.2 : 3.2} fill="#14213D" />
-      <circle cx="54" cy="46" r={pose === 'idle_blink' ? 1.2 : 3.2} fill="#14213D" />
-      {blush && <circle cx="26" cy="54" r="4" fill="#FF8A47" opacity="0.35" />}
-      {blush && <circle cx="62" cy="54" r="4" fill="#FF8A47" opacity="0.35" />}
-      <path
-        d={mood === 'sleepy' ? 'M38 58h12' : 'M36 58c4 4 12 4 16 0'}
+        d="M16 48q8.5-14 17 0 8.5-14 17 0 8.5-14 17 0 8.5-14 17 0"
         fill="none"
-        stroke="#14213D"
-        strokeWidth="2"
+        stroke="#E4BE8C"
+        strokeWidth="4.6"
+        strokeLinecap="round"
+      />
+
+      <circle cx="39" cy="59" r={eyeR} fill="#3A2A22" />
+      <circle cx="61" cy="59" r={eyeR} fill="#3A2A22" />
+      {!blinking && <circle cx="40.8" cy="57.2" r="1.7" fill="#FFFFFF" />}
+      {!blinking && <circle cx="62.8" cy="57.2" r="1.7" fill="#FFFFFF" />}
+
+      {blush && <ellipse cx="30" cy="68" rx="5" ry="3.4" fill="#FF9070" opacity="0.42" />}
+      {blush && <ellipse cx="70" cy="68" rx="5" ry="3.4" fill="#FF9070" opacity="0.42" />}
+
+      <path
+        d={mood === 'sleepy' ? 'M44 70h12' : 'M44 70a6.5 6.5 0 0 0 12 0'}
+        fill="none"
+        stroke="#3A2A22"
+        strokeWidth="3.3"
         strokeLinecap="round"
       />
     </svg>
@@ -61,6 +95,9 @@ export function MascotOverlay() {
   const [pose, setPose] = useState<BehaviorKey>('idle_breathe')
   const [mood, setMood] = useState<Mood>('neutral')
   const [paused, setPaused] = useState(false)
+  const [says, setSays] = useState<string | null>(null)
+  const pokes = useRef(0)
+  const sayTimer = useRef<number | null>(null)
 
   const screen = screenFromPath(location.pathname)
   const activity = (state.gamification.mascotActivity ?? 'lively') as ActivityLevel
@@ -178,6 +215,24 @@ export function MascotOverlay() {
     else react('enter')
   }, [screen]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * A poke plays the next beat of the repertoire and says the line written for
+   * it. The count is deliberately not reset by time — walking away and coming
+   * back mid-sulk is funnier than a character that forgets.
+   */
+  const poke = useCallback(() => {
+    pokes.current += 1
+    const act = pokeAct(pokes.current)
+    react(act.pose)
+    setSays(act.line)
+    if (sayTimer.current) window.clearTimeout(sayTimer.current)
+    sayTimer.current = window.setTimeout(() => setSays(null), 3200)
+  }, [react])
+
+  useEffect(() => () => {
+    if (sayTimer.current) window.clearTimeout(sayTimer.current)
+  }, [])
+
   if (activity === 'off') return null
 
   return (
@@ -187,11 +242,12 @@ export function MascotOverlay() {
         className={`mascot-host pose-${pose} mood-${mood}${reduced ? ' is-static' : ''}`}
         onPointerDown={(event) => {
           event.stopPropagation()
-          react('wave_at_user')
+          poke()
         }}
       >
         <Dumpling mood={mood} pose={pose} />
       </div>
+      {says && <p className="mascot-quip">{says}</p>}
     </div>
   )
 }

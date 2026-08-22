@@ -329,6 +329,91 @@
 .mascot-host.pose-point_at_target:not(.is-static) { animation: mascot-point 1.6s ease; }
 .mascot-host.pose-enter:not(.is-static) { animation: mascot-enter 0.7s ease; }
 
+/* ── Poke repertoire ─────────────────────────────────────────
+   Eight reactions rather than one. A character that answers a finger the same
+   way every time stops being funny on the third poke. */
+.mascot-host.pose-poke_wobble:not(.is-static) { animation: momo-wobble .6s ease-in-out; }
+.mascot-host.pose-poke_hop:not(.is-static)    { animation: momo-hop .55s cubic-bezier(.3,1.4,.5,1); }
+.mascot-host.pose-poke_squish:not(.is-static) { animation: momo-squish .55s cubic-bezier(.34,1.56,.64,1); }
+.mascot-host.pose-poke_spin:not(.is-static)   { animation: momo-spin .7s cubic-bezier(.4,0,.3,1); }
+.mascot-host.pose-poke_puff:not(.is-static)   { animation: momo-puff .6s cubic-bezier(.34,1.6,.5,1); }
+.mascot-host.pose-poke_dizzy:not(.is-static)  { animation: momo-dizzy .9s ease-in-out; }
+.mascot-host.pose-poke_tip:not(.is-static)    { animation: momo-tip .8s cubic-bezier(.3,1.3,.5,1); }
+.mascot-host.pose-poke_hide:not(.is-static)   { animation: momo-hide .85s cubic-bezier(.34,1.5,.5,1); }
+
+@keyframes momo-wobble {
+  0%,100% { rotate: 0deg; }
+  25%     { rotate: -13deg; }
+  60%     { rotate: 10deg; }
+  85%     { rotate: -4deg; }
+}
+@keyframes momo-hop {
+  0%   { translate: 0 0; scale: 1 1; }
+  22%  { translate: 0 2px; scale: 1.12 .88; }
+  55%  { translate: 0 -26px; scale: .92 1.12; }
+  100% { translate: 0 0; scale: 1 1; }
+}
+@keyframes momo-squish {
+  0%   { scale: 1 1; translate: 0 0; }
+  25%  { scale: 1.28 .7; translate: 0 9px; }
+  60%  { scale: .9 1.14; translate: 0 -6px; }
+  100% { scale: 1 1; translate: 0 0; }
+}
+@keyframes momo-spin {
+  0%   { rotate: 0deg; scale: 1; }
+  45%  { rotate: 200deg; scale: .9; }
+  100% { rotate: 360deg; scale: 1; }
+}
+@keyframes momo-puff {
+  0%   { scale: 1; }
+  40%  { scale: 1.26; }
+  70%  { scale: .96; }
+  100% { scale: 1; }
+}
+@keyframes momo-dizzy {
+  0%,100% { rotate: 0deg; }
+  20%     { rotate: -16deg; }
+  40%     { rotate: 14deg; }
+  60%     { rotate: -10deg; }
+  80%     { rotate: 7deg; }
+}
+@keyframes momo-tip {
+  0%   { rotate: 0deg; }
+  35%  { rotate: -72deg; translate: 0 4px; }
+  70%  { rotate: 8deg; }
+  100% { rotate: 0deg; }
+}
+@keyframes momo-hide {
+  0%   { scale: 1; translate: 0 0; }
+  35%  { scale: .28; translate: 0 30px; }
+  65%  { scale: .28; translate: 0 30px; }
+  100% { scale: 1; translate: 0 0; }
+}
+
+/* What Momo just said. Sits under the character, never over the nav. */
+.mascot-quip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 9px 14px;
+  max-width: 220px;
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  box-shadow: 0 10px 22px rgba(20,33,61,.16), 0 2px 4px rgba(20,33,61,.08);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink, #14213D);
+  text-align: center;
+  animation: quip-in .3s cubic-bezier(.34,1.5,.64,1);
+}
+
+@keyframes quip-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.92); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
 @keyframes mascot-breathe {
   50% { transform: translate3d(var(--mx, 0), var(--my, 0), 0) scale(1.04); }
 }
@@ -348,4 +433,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mascot-host { animation: none !important; }
+  .mascot-quip { animation: none !important; }
 }

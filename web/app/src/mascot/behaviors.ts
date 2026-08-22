@@ -15,6 +15,14 @@ export const BEHAVIOR_IDS = {
   wave_at_user: 14,
   enter: 16,
   exit: 17,
+  poke_wobble: 20,
+  poke_hop: 21,
+  poke_squish: 22,
+  poke_spin: 23,
+  poke_puff: 24,
+  poke_dizzy: 25,
+  poke_tip: 26,
+  poke_hide: 27,
 } as const
 
 export type BehaviorKey = keyof typeof BEHAVIOR_IDS
@@ -64,6 +72,16 @@ export const BEHAVIORS: Behavior[] = [
   { key: 'celebrate_big', priority: 1, durationMs: 2600, cooldownMs: 0, weight: 1 },
   { key: 'enter', priority: 1, durationMs: 700, cooldownMs: 0, weight: 1 },
   { key: 'exit', priority: 1, durationMs: 500, cooldownMs: 0, weight: 1 },
+  /* Poke reactions. Weight 0 keeps them out of the ambient lottery — they only
+     ever play because a finger asked for them. */
+  { key: 'poke_wobble', priority: 0, durationMs: 600, cooldownMs: 0, weight: 0 },
+  { key: 'poke_hop',    priority: 0, durationMs: 550, cooldownMs: 0, weight: 0 },
+  { key: 'poke_squish', priority: 0, durationMs: 550, cooldownMs: 0, weight: 0 },
+  { key: 'poke_spin',   priority: 0, durationMs: 700, cooldownMs: 0, weight: 0 },
+  { key: 'poke_puff',   priority: 0, durationMs: 600, cooldownMs: 0, weight: 0 },
+  { key: 'poke_dizzy',  priority: 0, durationMs: 900, cooldownMs: 0, weight: 0 },
+  { key: 'poke_tip',    priority: 0, durationMs: 800, cooldownMs: 0, weight: 0 },
+  { key: 'poke_hide',   priority: 0, durationMs: 850, cooldownMs: 0, weight: 0 },
   { key: 'sniff_plate', priority: 0, screens: ['log'], durationMs: 3000, cooldownMs: 0, weight: 1 },
 ]
 
