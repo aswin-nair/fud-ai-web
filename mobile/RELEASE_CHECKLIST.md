@@ -2,9 +2,21 @@
 
 Private alpha after the Expo parity pass: EAS `preview` only. Do not submit
 App Store or Play until a later request. Camera, Apple Sign-In, and
-notification strings are in `app.config.ts`. `/api/auth/apple` needs
-`APPLE_CLIENT_ID` and still wants a signed identity-token verify before a
-store build.
+notification strings are in `app.config.ts`.
+
+## Apple decision (2026-08-30)
+
+Private alpha is **email + guest claim only** on the iOS login screen.
+
+Do not add Google to iOS until Sign in with Apple is real: identity token
+checked against Apple JWKS, `APPLE_CLIENT_ID` set, and the Apple entitlement
+on the signed build. App Store Guideline 4.8 requires Apple if another
+third-party login ships. `/api/auth/apple` may stay in the tree as a stub;
+it is not enough for a store build.
+
+Web keeps Google + email. Apple on the website is not required. Android may
+keep Google + email. A later store pass is iOS = Apple + email, and Google
+on iOS only after Apple verifies.
 
 
 This checklist prepares a release; it is not evidence that a build or hardware
