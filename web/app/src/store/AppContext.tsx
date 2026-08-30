@@ -55,6 +55,7 @@ import { clearAnalytics, finishLogFlow } from '../lib/analytics'
 import { clearOnboardingDraft } from '../lib/onboarding'
 import { clearNotificationHistory } from '../lib/notifications'
 import { clearLogDraft, hydrateLogDrafts } from '../lib/logDrafts'
+import { finalizeGuestClaim, guestUserId, hasPendingGuestClaim } from '../lib/guestMode'
 
 import { SplashScreen } from '../components/SplashScreen'
 import { PressableButton } from '../components/PressableButton'
@@ -147,13 +148,13 @@ const AppContext = createContext<AppContextValue | null>(null)
 
 
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ children, guest = false }: { children: ReactNode; guest?: boolean }) {
 
   const { user, signOut } = useAuth()
 
-  const cloud = isCloudBackend()
+  const cloud = !guest && isCloudBackend()
 
-  const userId = user!.sub
+  const userId = guest ? guestUserId() : user!.sub
 
   const [state, setState] = useState<AppState>(() => (cloud ? freshState() : loadState(userId)))
 
@@ -269,6 +270,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setCloudSyncConflict(false)
           setCloudSyncError(null)
           setHydratedFromDevice(false)
+          if (acknowledged.remaining === 0 && hasPendingGuestClaim(userId)) {
+            await finalizeGuestClaim(userId)
+          }
           if (acknowledged.destructive) {
             const deletionCallerIsWaiting = clearInFlight.current
             const cleared = freshState()
@@ -472,6 +476,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           try {
             if (!cached) await saveDurableLocalSnapshot(userId, next)
             if (!cancelled) setState(next)
+            if (!guest && hasPendingGuestClaim(userId)) await finalizeGuestClaim(userId)
           } catch {
             hydrationFailed = true
           }
@@ -542,6 +547,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
           if (remoteState) {
             await replaceDurableFromServer(userId, remoteState, remote.version)
+            if (hasPendingGuestClaim(userId)) await finalizeGuestClaim(userId)
             cloudVersion.current = remote.version
             cloudWritable.current = true
             if (!cancelled) setState(remoteState)
@@ -668,7 +674,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     }
 
-  }, [boundSessionToken, userId, cloud, hydrateAttempt, signOut])
+  }, [boundSessionToken, userId, cloud, guest, hydrateAttempt, signOut])
 
 
 
@@ -793,6 +799,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDestructiveRecovery(false)
         setConflictExported(false)
         setState(serverState)
+        if (hasPendingGuestClaim(userId)) await finalizeGuestClaim(userId)
         return
       }
 

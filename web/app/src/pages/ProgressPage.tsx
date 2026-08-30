@@ -4,7 +4,7 @@ import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
-import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
+import { getStreakWithFreezes, getAllBadges, getBreakfastComparison, getMonthConsistency } from '../lib/journey'
 import { IconChevronRight, IconMenuLines } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
 import { Surface } from '../components/Surface'
@@ -54,6 +54,7 @@ export function ProgressPage() {
   )
   const badges = getAllBadges(state.foodEntries, streak)
   const consistency = getMonthConsistency(state.foodEntries)
+  const breakfastComparison = getBreakfastComparison(state.foodEntries)
   const [showLog, setShowLog] = useState(false)
   const [weight, setWeight] = useState(String(state.profile.weightKg ?? ''))
   const [showHistory, setShowHistory] = useState(false)
@@ -199,6 +200,10 @@ export function ProgressPage() {
               </li>
             ))}
           </ol>
+          <div className="own-past-callout">
+            <strong>You logged breakfast {breakfastComparison.recent} of the last 7 days.</strong>
+            <span>Your best seven-day stretch is {breakfastComparison.best}.</span>
+          </div>
         </div>
 
         {/* Weight card */}

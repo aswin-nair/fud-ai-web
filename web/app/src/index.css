@@ -3,6 +3,7 @@
 @import './styles/base.css';
 @import './styles/components/buttons.css';
 @import './styles/components/nav.css';
+@import './styles/components/toggle.css';
 @import './styles/components/food.css';
 @import './styles/components/mascot.css';
 @import './styles/components/overlays.css';
@@ -20,3 +21,4 @@
 @import './styles/redesign.css';
 @import './styles/clay.css';
 @import './styles/enamel.css';
+@import './styles/a11y.css';

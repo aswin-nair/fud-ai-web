@@ -14,6 +14,7 @@ test.describe('Insights', () => {
     await expect(page.getByRole('heading', { name: 'Consistency' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Most logged' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Ticket archive' })).toBeVisible()
+    await expect(page.getByText(/You logged breakfast \d of the last 7 days/)).toBeVisible()
   })
 
   test('logs weight via modal', async ({ page }) => {

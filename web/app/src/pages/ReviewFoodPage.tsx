@@ -170,6 +170,7 @@ export function ReviewFoodPage() {
       mealType,
       servingSizeGrams: analysis.servingSizeGrams,
       ingredients: analysis.ingredients,
+      detailAdded: source === 'snapFood' || correctionTracked.current,
     } as const
     addEntry(entry)
     setPendingAnalysis(null)

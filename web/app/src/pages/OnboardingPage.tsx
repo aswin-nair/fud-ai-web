@@ -5,7 +5,7 @@ import welcome2 from '@assets/welcome-2.webp'
 import welcome3 from '@assets/welcome-3.webp'
 import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
-import type { ActivityLevel, Gender, MealType, UserProfile, WeightGoal } from '../types'
+import type { ActivityLevel, Gender, LoggingCommitment, MealType, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS, MEAL_LABELS } from '../types'
 import { IconChevronLeft, IconChevronRight } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
@@ -29,9 +29,16 @@ import {
   type OnboardingDraft,
 } from '../lib/onboarding'
 import { selectLogMethod, startLogFlow, track } from '../lib/analytics'
+import { guestUserId } from '../lib/guestMode'
 
-const STEPS = ['Age', 'About you', 'Goal', 'Body', 'Activity', 'Review', 'First meal']
+const STEPS = ['Age', 'About you', 'Goal', 'Body', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
+
+const COMMITMENTS: Array<{ id: LoggingCommitment; icon: string; title: string; description: string }> = [
+  { id: 'light', icon: '🌱', title: 'Light', description: 'One honest log makes the day.' },
+  { id: 'regular', icon: '🍽️', title: 'Regular', description: 'Aim for breakfast, lunch, and dinner.' },
+  { id: 'detailed', icon: '✨', title: 'Detailed', description: 'Main meals plus a photo, note, or correction.' },
+]
 
 const WELCOME_SLIDES = [
   {
@@ -80,7 +87,7 @@ export function OnboardingPage() {
   const { state, updateProfile, setOnboarded, addEntry } = useApp()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const userId = user?.sub ?? 'anonymous'
+  const userId = user?.sub ?? guestUserId()
   const finishing = useRef(false)
   const trackedSteps = useRef(new Set<number>())
   const [validationError, setValidationError] = useState<string | null>(null)
@@ -113,7 +120,7 @@ export function OnboardingPage() {
     trackedSteps.current.add(step)
     track({ name: 'onboarding_step_viewed', step: STEPS[step], step_index: step })
 
-    if (step === 5 && targets) {
+    if (step === 6 && targets) {
       track({ name: 'target_calculated', adjusted: targets.reasons.length > 0 })
       if (targets.reasons.length > 0) {
         track({ name: 'target_adjustment_explained', reasons: targets.reasons })
@@ -293,15 +300,15 @@ export function OnboardingPage() {
     <div className="app-shell">
       <main className="app-main onboarding-main">
         <div className="onboarding-header">
-          <div className="onboarding-steps" aria-hidden>
-            {STEPS.map((_, index) => (
-              <div
-                key={index}
-                className={`onboarding-step-dot${index < step ? ' done' : index === step ? ' current' : ''}`}
-              />
-            ))}
+          <div className="onboarding-progress" aria-hidden>
+            <span
+              className="onboarding-progress-fill"
+              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+            />
           </div>
-          <span className="onboarding-step-label">Step {step + 1} of {STEPS.length}: {STEPS[step]}</span>
+          <span className="onboarding-step-label">
+            Step {step + 1} of {STEPS.length}: {STEPS[step]}
+          </span>
         </div>
 
         {validationError && <div className="error-banner" role="alert">{validationError}</div>}
@@ -425,6 +432,32 @@ export function OnboardingPage() {
           </div>
         )}
 
+        {step === 5 && (
+          <div className="onboarding-step-content">
+            <h1 className="onboarding-title">Choose your pace</h1>
+            <p className="onboarding-sub">
+              This shapes your Day ring. It never changes your nutrition targets, and you can switch it later.
+            </p>
+            <div className="activity-option-list commitment-option-list">
+              {COMMITMENTS.map(commitment => (
+                <button
+                  key={commitment.id}
+                  type="button"
+                  className={`activity-option commitment-option${(profile.loggingCommitment ?? 'light') === commitment.id ? ' active' : ''}`}
+                  aria-pressed={(profile.loggingCommitment ?? 'light') === commitment.id}
+                  onClick={() => updateDraftProfile(current => ({ ...current, loggingCommitment: commitment.id }))}
+                >
+                  <span className="activity-option-icon">{commitment.icon}</span>
+                  <span className="commitment-option-copy">
+                    <strong>{commitment.title}</strong>
+                    <small>{commitment.description}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {step === 2 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your goal</h1>
@@ -487,7 +520,7 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 5 && targets && (
+        {step === 6 && targets && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your daily targets</h1>
             <p className="onboarding-sub">A calm starting estimate based on the profile you entered.</p>
@@ -596,7 +629,7 @@ export function OnboardingPage() {
           >
             {step === FIRST_MEAL_STEP
               ? 'Log first meal'
-              : step === 5
+              : step === 6
                 ? <>Continue to first meal <IconChevronRight size={16} strokeWidth={2.4} /></>
                 : <>Continue <IconChevronRight size={16} strokeWidth={2.4} /></>}
           </PressableButton>

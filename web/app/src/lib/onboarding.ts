@@ -1,4 +1,4 @@
-import type { MealType, UserProfile } from '../types'
+import type { LoggingCommitment, MealType, UserProfile } from '../types'
 
 export type BirthdayEligibility = 'missing' | 'invalid' | 'underage' | 'eligible'
 
@@ -12,7 +12,7 @@ export interface FirstMealDraft {
 }
 
 export interface OnboardingDraft {
-  version: 1
+  version: 2
   welcomeIndex: number
   step: number
   blocked: boolean
@@ -22,9 +22,10 @@ export interface OnboardingDraft {
 }
 
 const DRAFT_PREFIX = 'fud-onboarding-draft-'
-const LAST_STEP = 6
+const LAST_STEP = 7
 const LAST_WELCOME_INDEX = 3
 const MEAL_TYPES = new Set<MealType>(['breakfast', 'lunch', 'dinner', 'snack', 'other'])
+const COMMITMENTS = new Set<LoggingCommitment>(['light', 'regular', 'detailed'])
 
 interface DateParts {
   year: number
@@ -96,7 +97,7 @@ export function localDateInputValue(date = new Date()): string {
 
 export function createOnboardingDraft(profile: UserProfile): OnboardingDraft {
   return {
-    version: 1,
+    version: 2,
     welcomeIndex: 0,
     step: 0,
     blocked: false,
@@ -142,14 +143,25 @@ function normalizeDraft(raw: unknown, fallback: OnboardingDraft): OnboardingDraf
   const birthdayInput = stringValue(candidate.birthdayInput)
   const birthday = birthdayToIso(birthdayInput) ?? ''
   const mealType = MEAL_TYPES.has(rawMeal.mealType) ? rawMeal.mealType : fallback.firstMeal.mealType
+  const rawStep = clampInteger(candidate.step, 0, LAST_STEP, 0)
+  const step = (raw as { version?: unknown }).version === 1 && rawStep >= 5
+    ? Math.min(LAST_STEP, rawStep + 1)
+    : rawStep
 
   return {
-    version: 1,
+    version: 2,
     welcomeIndex: clampInteger(candidate.welcomeIndex, 0, LAST_WELCOME_INDEX, 0),
-    step: clampInteger(candidate.step, 0, LAST_STEP, 0),
+    step,
     blocked: candidate.blocked === true,
     birthdayInput,
-    profile: { ...fallback.profile, ...rawProfile, birthday },
+    profile: {
+      ...fallback.profile,
+      ...rawProfile,
+      birthday,
+      loggingCommitment: COMMITMENTS.has(rawProfile.loggingCommitment as LoggingCommitment)
+        ? rawProfile.loggingCommitment as LoggingCommitment
+        : fallback.profile.loggingCommitment,
+    },
     firstMeal: {
       name: stringValue(rawMeal.name),
       calories: stringValue(rawMeal.calories),

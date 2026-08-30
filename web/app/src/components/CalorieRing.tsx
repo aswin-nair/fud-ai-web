@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { RING_STROKE_RATIO } from '../lib/tokens'
 import { useCountUp } from '../hooks/useCountUp'
-import { useHaptic } from '../hooks/useHaptic'
+import { useFeel } from '../hooks/useHaptic'
 import { calorieProgress } from '@fud-ai/domain/nutrition'
 
 /**
@@ -40,7 +40,7 @@ export function CalorieRing({
   onLog,
   actionLabel = 'Tap to log',
 }: CalorieRingProps) {
-  const vibrate = useHaptic()
+  const feel = useFeel()
   const [pressed, setPressed] = useState(false)
   const strokeWidth = size * RING_STROKE_RATIO
   const radius = size / 2 - strokeWidth / 2
@@ -121,7 +121,7 @@ export function CalorieRing({
           type="button"
           className={`calorie-ring-centre is-actionable clay-squish${pressed ? ' is-pressed' : ''}`}
           onClick={onLog}
-          onPointerDown={() => { setPressed(true); vibrate(10) }}
+          onPointerDown={() => { setPressed(true); feel('press') }}
           onPointerUp={() => setPressed(false)}
           onPointerLeave={() => setPressed(false)}
           onPointerCancel={() => setPressed(false)}

@@ -1019,3 +1019,13 @@
 }
 
 .log-empty-sub { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; }
+.manual-default-note {
+  margin: 12px 0 18px;
+  padding: 10px 12px;
+  border-radius: var(--clay-radius-sm);
+  color: var(--ink-soft);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}

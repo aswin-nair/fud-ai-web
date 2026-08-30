@@ -3,6 +3,7 @@ import { LEVEL_NAMES, LEVEL_COMPANIONS } from '../lib/xp'
 import { Confetti } from './Confetti'
 import { IconChevronRight } from './icons'
 import { PressableButton } from './PressableButton'
+import { feel } from '../lib/feel'
 
 interface LevelUpOverlayProps {
   level: number
@@ -11,6 +12,10 @@ interface LevelUpOverlayProps {
 
 export function LevelUpOverlay({ level, onDone }: LevelUpOverlayProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    feel('level-up')
+  }, [])
 
   useEffect(() => {
     timerRef.current = setTimeout(onDone, 4000)

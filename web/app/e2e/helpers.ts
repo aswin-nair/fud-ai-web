@@ -54,8 +54,8 @@ export async function completeOnboarding(
   await page.getByLabel('Date of birth').fill(options?.birthday ?? birthdayYearsAgo(25))
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
 
-  // About, body, activity, and goal use safe defaults in routine feature tests.
-  for (let i = 0; i < 4; i++) {
+  // About, goal, body, activity, and pace use safe defaults in routine feature tests.
+  for (let i = 0; i < 5; i++) {
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
   }
   await page.getByRole('button', { name: 'Continue to first meal' }).click()

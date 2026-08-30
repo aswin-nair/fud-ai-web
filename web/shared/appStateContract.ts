@@ -41,6 +41,7 @@ const PROFILE_FIELDS = new Set([
   'soundEnabled',
   'hapticsEnabled',
   'trackingPaused',
+  'loggingCommitment',
 ])
 const INGREDIENT_FIELDS = new Set(['item', 'grams', 'calories', 'protein', 'carbs', 'fat'])
 const MEAL_FIELDS = new Set([
@@ -55,7 +56,7 @@ const MEAL_FIELDS = new Set([
   'servingSizeGrams',
   'ingredients',
 ])
-const FOOD_ENTRY_FIELDS = new Set([...MEAL_FIELDS, 'timestamp', 'source'])
+const FOOD_ENTRY_FIELDS = new Set([...MEAL_FIELDS, 'timestamp', 'source', 'detailAdded'])
 const WEIGHT_ENTRY_FIELDS = new Set(['id', 'date', 'weightKg'])
 const EXERCISE_ENTRY_FIELDS = new Set([
   'id',
@@ -200,6 +201,9 @@ function validProfile(value: unknown, onboarded: boolean, now: Date): string | n
   if (!optionalBoolean(value.soundEnabled) || !optionalBoolean(value.hapticsEnabled) || !optionalBoolean(value.trackingPaused)) {
     return 'profile preference flag is invalid'
   }
+  if (value.loggingCommitment !== undefined && !oneOf(value.loggingCommitment, ['light', 'regular', 'detailed'])) {
+    return 'profile.loggingCommitment is invalid'
+  }
 
   if (typeof value.goalWeightKg === 'number') {
     const metres = (value.heightCm as number) / 100
@@ -240,6 +244,7 @@ function validFoodEntry(value: unknown): boolean {
   return validMealBase(value, FOOD_ENTRY_FIELDS)
     && timestamp(value.timestamp)
     && oneOf(value.source, ['textInput', 'manual', 'snapFood', 'quickAdd', 'recent'])
+    && optionalBoolean(value.detailAdded)
 }
 
 function validWeightEntry(value: unknown): boolean {

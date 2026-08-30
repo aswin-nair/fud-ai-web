@@ -15,12 +15,11 @@ import {
 export type AnchorId =
   | 'fab'
   | 'macro_meter'
+  | 'calorie_ring'
   | 'streak_flame'
   | 'ticket_top'
   | 'last_entry'
   | 'water_row'
-  | 'quest_card_0'
-  | 'chest'
 
 export interface AnchorRect {
   x: number

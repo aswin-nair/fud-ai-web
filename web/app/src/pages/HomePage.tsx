@@ -11,15 +11,21 @@ import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
 import { startOfDay, sameDay, localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges, getTotalLoggedDays } from '../lib/journey'
-import { DAILY_XP_GOAL, applyNote, applyWaterChange, dailyXpTowardGoal, ticketNumber } from '../lib/enamelEconomy'
-import { useHaptic } from '../hooks/useHaptic'
-import { playLogConfirm, prefersReducedMotion, setFeelEnabled } from '../lib/feel'
+import { applyNote, applyWaterChange, ticketNumber } from '../lib/enamelEconomy'
+import { useFeel } from '../hooks/useHaptic'
+import { useTransitionNavigate } from '../hooks/useTransitionNavigate'
+import { playLogConfirm, setFeelEnabled } from '../lib/feel'
 import { evaluateNotifications } from '../lib/notifications'
 import { LogCelebration } from '../components/LogCelebration'
 import { Surface } from '../components/Surface'
-import type { XpEvent } from '../types'
+import { MEAL_LABELS, type XpEvent } from '../types'
 import { useAnchor } from '../mascot/anchors'
+import { CalorieRing } from '../components/CalorieRing'
+import { ambientLine } from '../lib/mascotVoice'
+import { effectiveCalories } from '../lib/profile'
 import { mascotReact } from '../mascot/MascotOverlay'
+import { dayRingProgress } from '../lib/dayRing'
+import { DayRing } from '../components/DayRing'
 
 const REVEAL_DELAY_MS = 420
 
@@ -28,16 +34,17 @@ interface JustLogged { id?: string; calories: number; name: string }
 interface CelebrationState {
   foodName: string
   awards: XpEvent[]
-  questJustCompleted: boolean
 }
 
-export function HomePage() {
+export function HomePage({ guest = false }: { guest?: boolean }) {
   const { state, ackLevelUp, patchGamification } = useApp()
   const { toast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
-  const vibrate = useHaptic()
+  const feel = useFeel()
+  const transitionTo = useTransitionNavigate()
   const streakAnchor = useAnchor('streak_flame')
+  const ringAnchor = useAnchor('calorie_ring')
   const [selectedDate, setSelectedDate] = useState(() => startOfDay())
   const [revealed, setRevealed] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -56,9 +63,21 @@ export function HomePage() {
     state.gamification.pauseProtectedDates,
   )
   const hasLoggedToday = state.foodEntries.some(e => sameDay(new Date(e.timestamp), new Date()))
-  const dayXp = dailyXpTowardGoal(state.gamification, selectedDayKey)
   const water = state.gamification.waterByDate[selectedDayKey] ?? 0
   const notes = state.gamification.notesByDate[selectedDayKey] ?? 0
+  const calorieTarget = effectiveCalories(profile)
+  const dayProgress = dayRingProgress(dayEntries, notes, profile.loggingCommitment ?? 'light')
+
+  /* §2.5: the line is chosen from logging behaviour and streak only. It never
+     inspects the calorie total, so there is no route from "went over" to a
+     different tone of voice. */
+  const voiceState = paused
+    ? 'neutral'
+    : !hasLoggedToday
+      ? 'sleepy'
+      : [7, 30, 100].includes(streak)
+        ? 'proud'
+        : 'idle'
 
   useEffect(() => {
     setFeelEnabled({
@@ -95,16 +114,16 @@ export function HomePage() {
       ? state.gamification.xpEvents.find(event => event.key === `meal-${justLogged.id}` || event.key === `enamel-manual-${justLogged.id}` || event.key === `enamel-photo-${justLogged.id}`)
       : undefined
     const fresh = mealEvent
-      ? state.gamification.xpEvents.filter(event => event.timestamp === mealEvent.timestamp)
+      ? state.gamification.xpEvents.filter(event => (
+          Math.abs(new Date(event.timestamp).getTime() - new Date(mealEvent.timestamp).getTime()) < 2_000
+        ))
       : state.gamification.xpEvents.slice(0, 4)
-    const questDone = fresh.some(event => event.key.startsWith('quest-') || event.key.startsWith('enamel-quest-'))
-    playLogConfirm({ questJustCompleted: questDone })
-    if (!prefersReducedMotion()) vibrate(15)
-    mascotReact(questDone ? 'celebrate_big' : 'celebrate_small')
+    const streakMilestone = fresh.some(event => event.key.startsWith('streak-'))
+    playLogConfirm({ streakMilestone })
+    mascotReact(streakMilestone ? 'celebrate_big' : 'celebrate_small')
     setCelebration({
       foodName: justLogged.name,
       awards: fresh,
-      questJustCompleted: questDone,
     })
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -115,7 +134,10 @@ export function HomePage() {
       const allBadges = getAllBadges(state.foodEntries, streak)
       const newIds = state.gamification.seenBadgeIds.slice(prev)
       const newBadge = allBadges.find(b => newIds.includes(b.id))
-      if (newBadge) toast(`${newBadge.emoji} Badge unlocked: ${newBadge.name}!`)
+      if (newBadge) {
+        feel('badge')
+        toast(`${newBadge.emoji} Badge unlocked: ${newBadge.name}!`)
+      }
     }
     prevSeenBadgeCount.current = current
   }, [state.gamification.seenBadgeIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -130,32 +152,27 @@ export function HomePage() {
           foodName={celebration.foodName}
           streak={streak}
           awards={celebration.awards}
+          cosmeticId={state.gamification.equippedCosmeticId}
           onDone={() => setCelebration(null)}
         />
       )}
 
-      <header className="home-enamel-header">
+      {/* Streak and level are durable context. The day's actual action lives
+          in the Day ring below instead of a second points target. */}
+      <header className="home-counter-chips">
         <button
           type="button"
-          className="home-streak-btn"
+          className="home-chip"
           ref={streakAnchor}
-          onClick={() => {
-            vibrate(10)
-            setShowDatePicker(true)
-          }}
-          aria-label="Choose date"
+          onClick={() => { feel('open'); setShowDatePicker(true) }}
+          aria-label={`${streak} day streak. Choose date.`}
         >
+          <span className="home-chip-icon" aria-hidden>🔥</span>
           <span className="tabular">{streak}</span>
-          <small>day streak</small>
         </button>
-        <div>
-          <h1 className="home-title">Today</h1>
-          <div className="home-xp-track" aria-hidden>
-            <div className="home-xp-fill" style={{ width: `${Math.min(100, (dayXp / DAILY_XP_GOAL) * 100)}%` }} />
-          </div>
-        </div>
-        <div className="home-gems tabular" aria-label={`${state.gamification.gems} gems`}>
-          ◆ {state.gamification.gems}
+        <div className="home-chip" aria-label={`Level ${state.gamification.level}, ${state.gamification.xp} total XP`}>
+          <span className="home-chip-icon" aria-hidden>⭐</span>
+          <span className="tabular">Level {state.gamification.level}</span>
         </div>
       </header>
 
@@ -176,7 +193,115 @@ export function HomePage() {
             <p className="page-sub">Calorie and macro numbers are hidden. Your streak is held where it is.</p>
           </Surface>
         ) : (
-          <Ticket
+          <>
+            {guest && (
+              <Surface className="guest-save-card">
+                <p className="home-today-kicker">YOUR FIRST LOG IS HERE</p>
+                <h1 className="onboarding-title">Save your progress</h1>
+                <p className="page-sub">
+                  Continue to create an account and keep this device copy available across sign-in.
+                </p>
+                <button
+                  type="button"
+                  className="home-log-cta"
+                  onClick={() => navigate('/login?mode=signup&claim=1')}
+                >
+                  Continue
+                </button>
+                <button
+                  type="button"
+                  className="settings-data-btn"
+                  onClick={() => navigate('/login?mode=signin&claim=1')}
+                >
+                  I already have an account
+                </button>
+              </Surface>
+            )}
+            {/* The Day ring is deliberately calculated from logging actions
+                only. The nutrition readout remains available just below it. */}
+            <div ref={ringAnchor} className="home-ring-anchor">
+              <Surface className="home-ring-hero">
+                <DayRing progress={dayProgress} />
+                <div className="home-factual-readout">
+                  <CalorieRing
+                    consumed={totals.calories}
+                    target={calorieTarget}
+                    size={132}
+                    onLog={() => guest ? navigate('/login?mode=signup&claim=1') : transitionTo('/log')}
+                  />
+                  <div className="home-factual-copy">
+                    <p className="home-ring-say">{ambientLine(voiceState, dayEntries.length)}</p>
+                    <p className="home-ring-sub tabular">
+                      {Math.round(totals.calories).toLocaleString()} of {Math.round(calorieTarget).toLocaleString()} today
+                    </p>
+                  </div>
+                </div>
+              </Surface>
+            </div>
+
+            <div className="home-macro-chips">
+              {[
+                { k: 'protein', label: 'PROTEIN', name: 'Protein', have: totals.protein, goal: effectiveProtein(profile) },
+                { k: 'carbs', label: 'CARBS', name: 'Carbs', have: totals.carbs, goal: effectiveCarbs(profile) },
+                { k: 'fat', label: 'FAT', name: 'Fat', have: totals.fat, goal: effectiveFat(profile) },
+              ].map(m => (
+                <div key={m.k} className={`home-macro-chip tone-${m.k}`}>
+                  <div className="home-macro-top">
+                    <span className="home-macro-label">{m.label}</span>
+                    <span className="home-macro-value tabular">{Math.round(m.have)}g</span>
+                  </div>
+                  <div
+                    className="home-macro-track"
+                    role="progressbar"
+                    aria-label={m.name}
+                    aria-valuemin={0}
+                    aria-valuemax={Math.round(m.goal)}
+                    aria-valuenow={Math.round(Math.min(m.have, m.goal))}
+                  >
+                    <span
+                      className="home-macro-fill"
+                      style={{ width: `${m.goal > 0 ? Math.min(100, (m.have / m.goal) * 100) : 0}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="home-today-list">
+              <div className="home-today-head">
+                <h2 className="home-today-kicker">TODAY</h2>
+                <span className="home-today-count">
+                  {dayEntries.length === 0
+                    ? 'nothing yet'
+                    : `${dayEntries.length} ${dayEntries.length === 1 ? 'meal' : 'meals'} · ${Math.round(totals.calories).toLocaleString()} kcal`}
+                </span>
+              </div>
+              {dayEntries.length === 0 ? (
+                <p className="home-today-empty">
+                  Your day starts the moment you log something. Anything counts.
+                </p>
+              ) : (
+                <div className="home-today-rows motion-stagger">
+                  {dayEntries.map(entry => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className="home-today-row"
+                      onClick={() => { feel('tap'); navigate(`/edit/${entry.id}`) }}
+                    >
+                      <span className="home-today-emoji" aria-hidden>{entry.emoji ?? '🍽'}</span>
+                      <span className="home-today-name">
+                        {entry.name}
+                        <small>{MEAL_LABELS[entry.mealType] ?? 'Meal'}</small>
+                      </span>
+                      <span className="home-today-kcal tabular">{Math.round(entry.calories)} kcal</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Ticket
             date={selectedDate}
             ticketNo={ticketNumber(state.foodEntries) || getTotalLoggedDays(state.foodEntries) || 1}
             entries={dayEntries}
@@ -191,12 +316,22 @@ export function HomePage() {
             paused={paused}
             onWater={n => patchGamification(g => applyWaterChange(g, selectedDayKey, n))}
             onNote={() => patchGamification(g => applyNote(g, selectedDayKey))}
-          />
+              variant="extras"
+            />
+
+            {!guest && <button
+              type="button"
+              className="home-log-cta"
+              onClick={() => { feel('press'); navigate('/log') }}
+            >
+              <span aria-hidden>＋</span> LOG A MEAL
+            </button>}
+          </>
         )}
         <div className="home-scroll-pad" />
       </main>
 
-      <BottomNav />
+      {!guest && <BottomNav />}
     </div>
   )
 }

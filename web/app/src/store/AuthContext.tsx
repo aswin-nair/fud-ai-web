@@ -6,6 +6,7 @@ import { AUTH_SESSION_STORAGE_KEY, loadAuthSession, saveAuthSession } from '../l
 import { googleAccount, loginAccount, logoutAccount, registerAccount } from '../lib/authService'
 import { apiRefreshSession, clearAuthToken, clearLegacyAuthToken } from '../lib/apiClient'
 import { isCloudBackend } from '../lib/dataBackend'
+import { stageGuestStateForAccount } from '../lib/guestMode'
 
 interface AuthContextValue {
   user: AuthUser | null
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!response.credential) return
     if (cloud) {
       const next = await googleAccount(response.credential, true)
+      await stageGuestStateForAccount(next.sub)
       persistUser(next, setUser)
       return
     }
@@ -85,11 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     const next = await loginAccount(email, password, cloud)
+    if (cloud) await stageGuestStateForAccount(next.sub)
     persistUser(next, setUser)
   }, [cloud])
 
   const signUpWithEmail = useCallback(async (name: string, email: string, password: string) => {
     const next = await registerAccount(name, email, password, cloud)
+    await stageGuestStateForAccount(next.sub)
     persistUser(next, setUser)
   }, [cloud])
 

@@ -8,6 +8,7 @@ import { BackLink } from '../components/BackLink'
 import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveManualLogDraft } from '../lib/logDrafts'
 import { validateManualFood } from '../lib/foodEntryValidation'
 import { useAuth } from '../store/AuthContext'
+import { recentMeals } from '../lib/meals'
 
 function inferMealType(): MealType {
   const h = new Date().getHours()
@@ -18,18 +19,24 @@ function inferMealType(): MealType {
 }
 
 export function ManualEntryPage() {
-  const { addEntry } = useApp()
+  const { state, addEntry } = useApp()
   const { user } = useAuth()
   const navigate = useNavigate()
   const requestedSlot = (useLocation().state as { mealType?: MealType } | null)?.mealType
   const userId = user?.sub ?? ''
   const saved = loadLogDrafts(userId).manual
-  const [name, setName] = useState(saved?.name ?? '')
-  const [calories, setCalories] = useState(saved?.calories ?? '')
-  const [protein, setProtein] = useState(saved?.protein ?? '')
-  const [carbs, setCarbs] = useState(saved?.carbs ?? '')
-  const [fat, setFat] = useState(saved?.fat ?? '')
-  const [mealType, setMealType] = useState<MealType>(requestedSlot ?? saved?.mealType ?? inferMealType)
+  const initialMealType = requestedSlot ?? saved?.mealType ?? inferMealType()
+  const recentDefault = saved
+    ? undefined
+    : recentMeals(state.foodEntries).find(entry => entry.mealType === initialMealType)
+      ?? recentMeals(state.foodEntries)[0]
+  const [templateName] = useState(recentDefault?.name ?? null)
+  const [name, setName] = useState(saved?.name ?? recentDefault?.name ?? '')
+  const [calories, setCalories] = useState(saved?.calories ?? (recentDefault ? String(recentDefault.calories) : ''))
+  const [protein, setProtein] = useState(saved?.protein ?? (recentDefault ? String(recentDefault.protein) : ''))
+  const [carbs, setCarbs] = useState(saved?.carbs ?? (recentDefault ? String(recentDefault.carbs) : ''))
+  const [fat, setFat] = useState(saved?.fat ?? (recentDefault ? String(recentDefault.fat) : ''))
+  const [mealType, setMealType] = useState<MealType>(initialMealType)
   const [servings, setServings] = useState(saved?.servings ?? 1)
   const [error, setError] = useState<string | null>(null)
 
@@ -95,6 +102,12 @@ export function ManualEntryPage() {
         <BackLink to="/log" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Manual entry</h1>
         <p className="page-sub">Log known calories and macros.</p>
+
+        {templateName && (
+          <p className="manual-default-note" role="status">
+            Started from your recent “{templateName}”. Adjust anything before logging.
+          </p>
+        )}
 
         {error && <div className="error-banner" role="alert">{error}</div>}
 

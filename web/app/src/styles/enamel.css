@@ -30,34 +30,8 @@
   box-shadow: var(--clay-coral-squish);
 }
 
-.home-enamel-header {
-  min-height: 88px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
-  align-items: center;
-  padding: 14px 16px 8px;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--enamel);
-}
 
-.home-streak-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  color: var(--apricot);
-  font-weight: 700;
-  min-height: 44px;
-}
 
-.home-streak-btn small {
-  color: var(--ink-mute);
-  font-weight: 500;
-  font-size: 0.68rem;
-}
 
 .home-xp-track {
   height: 8px;
@@ -72,12 +46,6 @@
   border-radius: inherit;
 }
 
-.home-gems {
-  font-weight: 700;
-  color: var(--ink);
-  min-width: 44px;
-  text-align: right;
-}
 
 .ticket {
   background: #fff;
@@ -189,11 +157,13 @@
   margin-bottom: 8px;
 }
 
-.ticket-glasses { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+/* Four across, two rows: eight 44px targets do not fit on one line at phone
+   width, and a 28px glass was never really hittable anyway. */
+.ticket-glasses { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 
 .ticket-glass {
-  height: 28px;
-  border-radius: 8px;
+  height: 44px;
+  border-radius: 12px;
   border: 1.5px solid var(--chalk);
   background: transparent;
 }
@@ -273,7 +243,7 @@
   background: var(--chalk);
 }
 
-.insights-heat-cell.is-logged { background: var(--apricot); }
+.insights-heat-cell.is-logged { background: var(--streak); }
 
 .torn-archive {
   display: flex;
@@ -434,4 +404,319 @@
 @media (prefers-reduced-motion: reduce) {
   .mascot-host { animation: none !important; }
   .mascot-quip { animation: none !important; }
+}
+
+/* ── Ring hero ───────────────────────────────────────────────
+   The ring is the hero and the ring is the action. Momo anchors here. */
+.home-ring-anchor { margin-bottom: var(--space-md); }
+
+.home-ring-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.home-ring-sub {
+  margin: 0;
+  font-size: var(--text-label);
+  color: var(--ink-mute);
+  text-align: center;
+}
+
+.home-factual-readout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--rule);
+}
+
+.home-factual-copy {
+  display: grid;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.home-factual-copy .home-ring-say {
+  text-align: left;
+}
+
+@media (max-width: 360px) {
+  .home-factual-readout {
+    flex-direction: column;
+  }
+
+  .home-factual-copy .home-ring-say {
+    text-align: center;
+  }
+}
+
+/* The arc is decorative and aria-hidden, but it paints over the centre and
+   would swallow every tap meant for the button underneath. */
+.calorie-ring-svg { pointer-events: none; }
+
+.calorie-ring-centre.is-actionable {
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  border-radius: 50%;
+  inset: 16%;
+  gap: 2px;
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  box-shadow: var(--clay-e2);
+  /* The base .calorie-ring-centre is a readout and opts out of hit-testing;
+     this variant is a real button, so it must opt back in. */
+  pointer-events: auto;
+}
+
+.calorie-ring-centre.is-actionable:focus-visible {
+  outline: 3px solid var(--on-track);
+  outline-offset: 3px;
+}
+
+.calorie-ring-action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-family: var(--display);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--on-track-deep);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+}
+
+/* ── Home, rebuilt to the prototype ──────────────────────────*/
+.home-counter-chips {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-lg) var(--space-md);
+}
+
+.home-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border: none;
+  border-radius: var(--clay-radius-sm);
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  box-shadow: var(--clay-e2);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink);
+  cursor: default;
+}
+
+button.home-chip { cursor: pointer; }
+button.home-chip:focus-visible { outline: 3px solid var(--on-track); outline-offset: 3px; }
+.home-chip-icon { font-size: 1rem; line-height: 1; }
+
+.home-macro-chips {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.home-macro-chip {
+  flex: 1;
+  padding: 10px 11px 12px;
+  border-radius: var(--clay-radius-sm);
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  box-shadow: var(--clay-e2);
+}
+
+.home-macro-top { display: flex; justify-content: space-between; align-items: baseline; }
+.home-macro-label { font-size: 0.53rem; font-weight: 800; letter-spacing: 0.07em; color: var(--ink-mute); }
+.home-macro-value { font-family: var(--display); font-weight: 600; font-size: 0.82rem; }
+.tone-protein .home-macro-value { color: var(--protein); }
+.tone-carbs   .home-macro-value { color: #E08A00; }
+.tone-fat     .home-macro-value { color: #1FA97A; }
+
+.home-macro-track {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  margin-top: 8px;
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  overflow: hidden;
+}
+
+.home-macro-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tone-protein .home-macro-fill { background: var(--protein); }
+.tone-carbs   .home-macro-fill { background: var(--carbs); }
+.tone-fat     .home-macro-fill { background: var(--fat); }
+
+.home-today-list { margin-bottom: var(--space-md); }
+
+.home-today-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px var(--space-sm);
+}
+.home-today-kicker { margin: 0; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.13em; color: var(--ink-mute); }
+.home-today-count { font-size: 0.66rem; color: var(--ink-soft); }
+
+.home-today-empty {
+  margin: 0;
+  padding: 18px 16px;
+  border-radius: var(--clay-radius-md);
+  text-align: center;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+}
+
+.home-today-rows { display: flex; flex-direction: column; gap: var(--space-sm); }
+
+.home-today-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 13px;
+  border: none;
+  border-radius: var(--clay-radius-sm);
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  /* e1 on purpose: this is a list, and e2 would cost a shadow per row. */
+  box-shadow: var(--clay-e1);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.home-today-row:focus-visible { outline: 3px solid var(--on-track); outline-offset: 2px; }
+
+.home-today-emoji {
+  width: 34px; height: 34px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  font-size: 1rem;
+}
+.home-today-name { flex: 1; font-family: var(--display); font-weight: 600; font-size: 0.82rem; }
+.home-today-name small {
+  display: block; margin-top: 1px;
+  font-family: var(--sans); font-weight: 500; font-size: 0.6rem; color: var(--ink-mute);
+}
+.home-today-kcal { font-family: var(--display); font-weight: 600; font-size: 0.8rem; color: var(--ink-soft); }
+
+.home-log-cta {
+  width: 100%;
+  height: 58px;
+  margin: var(--space-md) 0 var(--space-sm);
+  border: none;
+  border-radius: var(--clay-radius-lg);
+  color: var(--on-accent);
+  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
+  box-shadow: var(--clay-coral-raised);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: transform var(--squish-out) var(--squish-ease), box-shadow var(--squish-out) ease;
+}
+.home-log-cta:active {
+  transform: translateY(4px) scale(0.985);
+  box-shadow: var(--clay-coral-squish);
+  transition-duration: var(--squish-in);
+}
+.home-log-cta:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* Momo's ambient line, under the ring. Poking him replaces it with banter. */
+.home-ring-say {
+  margin: 0;
+  padding: 9px 15px;
+  max-width: 270px;
+  border-radius: var(--clay-radius-sm);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ── The signature moment ────────────────────────────────────
+   This is the beat the whole habit loop turns on, so it gets the character,
+   a real entrance, and long enough to actually read. */
+.celebrate-momo {
+  animation: celebrate-momo-in 620ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes celebrate-momo-in {
+  0%   { opacity: 0; transform: scale(0.4) translateY(26px); }
+  60%  { opacity: 1; transform: scale(1.12) translateY(-6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.celebrate-title {
+  font-family: var(--display);
+  animation: celebrate-title-in 460ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+}
+
+@keyframes celebrate-title-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The stats land last, staggered, so the eye is led rather than flooded. */
+.celebrate-stat {
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  box-shadow: var(--clay-e2);
+  border: none;
+  border-radius: var(--clay-radius-md);
+  animation: celebrate-stat-in 420ms cubic-bezier(0.34, 1.5, 0.64, 1) both;
+}
+
+.celebrate-stat:nth-child(1) { animation-delay: 260ms; }
+.celebrate-stat:nth-child(2) { animation-delay: 340ms; }
+
+@keyframes celebrate-stat-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+.celebrate-stat-value { font-family: var(--display); }
+
+.celebrate-burst {
+  animation: celebrate-burst-in 900ms ease-out both;
+}
+
+@keyframes celebrate-burst-in {
+  0%   { opacity: 0; transform: scale(0.6); }
+  40%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 0.75; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-momo,
+  .celebrate-title,
+  .celebrate-stat,
+  .celebrate-burst { animation: none !important; }
 }

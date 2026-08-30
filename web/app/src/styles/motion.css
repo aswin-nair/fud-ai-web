@@ -1,12 +1,57 @@
-/* ── Page slide-in transition ───────────────────────────────── */
+/* ── Page transitions ────────────────────────────────────────
+   Screens relate to each other instead of replacing each other: going deeper
+   enters from the right, coming back enters from the left. Only the arriving
+   screen animates — a true cross-fade would need both mounted at once, and the
+   direction alone carries almost all of the perceived continuity. */
+
+.nav-dir { display: contents; }
 
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes page-enter-forward {
+  from { opacity: 0; transform: translateX(22px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-enter-back {
+  from { opacity: 0; transform: translateX(-22px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 .app-shell {
   animation: page-enter 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-dir-forward .app-shell {
+  animation: page-enter-forward 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.nav-dir-back .app-shell {
+  animation: page-enter-back 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The app already has a `.motion-stagger` utility further down that does this
+   correctly, scoped to a container's own children. Per-class nth-of-type rules
+   were tried here and were wrong: nth-of-type counts by element type, so
+   interleaved section labels shifted every index by one. */
+
+/* ── Shared element: the ring carries into the log flow ──────
+   Where the browser supports view transitions, the hero morphs across the
+   navigation instead of cutting. Everywhere else this is inert and the
+   directional slide above still plays. */
+
+@supports (view-transition-name: none) {
+  .calorie-ring-centre { view-transition-name: log-hero; }
+  .log-hero-target { view-transition-name: log-hero; }
+
+  ::view-transition-old(log-hero),
+  ::view-transition-new(log-hero) {
+    animation-duration: 0.32s;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
 }
 
 /* ── Ripple press feedback ──────────────────────────────────── */

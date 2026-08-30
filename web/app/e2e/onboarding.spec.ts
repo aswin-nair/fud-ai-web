@@ -1,10 +1,22 @@
 import { test, expect } from '@playwright/test'
 
-import { birthdayYearsAgo, clearAppStorage, signUp } from './helpers'
+import { birthdayYearsAgo, clearAppStorage, completeOnboarding, signUp } from './helpers'
 
 test.describe('Onboarding activation', () => {
   test.beforeEach(async ({ page }) => {
     await clearAppStorage(page)
+  })
+
+  test('lets a guest build and log before asking them to save progress', async ({ page }) => {
+    await page.goto('/')
+    await expect(page).toHaveURL(/\/onboarding/)
+    await expect(page.locator('.auth-form')).toHaveCount(0)
+
+    await completeOnboarding(page, { meal: { name: 'Guest yogurt bowl' } })
+    await expect(page.getByRole('heading', { name: 'Save your progress' })).toBeVisible()
+    await expect(page.getByText('Guest yogurt bowl')).toBeVisible()
+    await expect(page.getByLabel('Main')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible()
   })
 
   test('requires an explicit adult birthday and persists an under-age block', async ({ page }) => {
@@ -44,6 +56,9 @@ test.describe('Onboarding activation', () => {
 
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Activity level' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Choose your pace' })).toBeVisible()
+    await page.getByRole('button', { name: 'Regular' }).click()
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Your daily targets' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue to first meal' }).click()
@@ -90,6 +105,8 @@ test.describe('Onboarding activation', () => {
     await expect(page.getByRole('heading', { name: 'Your body' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Activity level' })).toBeVisible()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Choose your pace' })).toBeVisible()
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Your daily targets' })).toBeVisible()
   })

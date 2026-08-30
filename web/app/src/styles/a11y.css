@@ -1,0 +1,79 @@
+/* ── Thumb safety ────────────────────────────────────────────
+   Apple HIG and Material both put the minimum tap target at 44px. An audit of
+   the live app found 32 of 83 interactive elements below it, which is the
+   single biggest thing between this and feeling professional on a real thumb.
+
+   The visual size stays as designed where it should — the HIT AREA is what
+   grows, via padding and min-height. */
+.settings-input,
+.settings-select,
+.settings-key-toggle {
+  min-height: 44px;
+}
+
+/* Small chips and icon buttons keep their look and gain a bigger reach. */
+.range-chip,
+.progress-log-btn,
+.ticket-note {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* The glasses size from their grid track, so only the height needs a floor. */
+.ticket-glass { min-height: 44px; }
+
+/* A back link is a 22px line of text; the padding is what makes it tappable. */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-right: 8px;
+}
+
+.home-chip { min-height: 44px; }
+
+/* The settings row hosts a 44px control, so it needs the height to match. */
+.settings-row { min-height: 56px; align-items: center; }
+
+/* Inline text links are line-height tall; padding is what makes them tappable. */
+.settings-byok-note a { min-height: 44px; padding-block: 8px; }
+
+/* Helpline numbers are the most important thing to hit correctly on Support:
+   someone reaching for one should not have to aim. */
+.support-phone {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 0;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────
+   The app carries 191 animation and transition declarations across 20
+   stylesheets, and only a fraction were individually guarded. Chasing each one
+   is a losing game — a new animation ships unguarded and nobody notices.
+
+   This is the blanket instead: everything is reduced at once, and because
+   a11y.css loads last, nothing downstream can opt back in. Durations go to
+   near-zero rather than to `none` so that animationend / transitionend still
+   fire and any logic waiting on them still runs. Delays collapse too, so
+   staggered content with `fill-mode: backwards` appears immediately instead of
+   waiting out its stagger while invisible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* A view transition is a full-screen morph — the most motion in the app. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -12,7 +12,8 @@ test.describe('Home & food logging', () => {
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'You showed up.' })).toBeVisible()
+    await expect(page.getByRole('img', { name: '1 of 1 chosen steps complete' })).toBeVisible()
     await expect(page.locator('.home-quest-row')).toHaveCount(0)
     await expect(page.locator('.meal-path')).toHaveCount(0)
   })
@@ -49,7 +50,7 @@ test.describe('Home & food logging', () => {
     })
 
     await expect(page.getByText('Greek Yogurt')).toBeVisible()
-    await expect(page.locator('.ticket-row-kcal', { hasText: '150' })).toBeVisible()
+    await expect(page.locator('.home-today-kcal', { hasText: '150' })).toBeVisible()
   })
 
   test('date picker keeps today calories after switching dates', async ({ page }) => {
@@ -85,7 +86,7 @@ test.describe('Home & food logging', () => {
     }
     await page.getByRole('button', { name: yesterdayLabel }).click()
     await expect(page.getByText('Oatmeal')).toHaveCount(0)
-    await expect(page.getByText(/Nothing logged yet|still ahead/)).toBeVisible()
+    await expect(page.getByText(/Nothing logged yet|still ahead|Your day starts/)).toBeVisible()
 
     await page.getByRole('button', { name: 'Choose date' }).click()
     await page.getByRole('button', { name: 'Jump to today' }).click()
@@ -114,7 +115,7 @@ test.describe('Home & food logging', () => {
 
     const celebration = page.getByRole('dialog', { name: 'Meal logged' })
     await expect(celebration).toContainText('Toast Test Meal')
-    await expect(celebration).toContainText('XP added')
+    await expect(celebration).toContainText('XP revealed')
     await expect(celebration.getByRole('button')).toHaveCount(0)
   })
 })

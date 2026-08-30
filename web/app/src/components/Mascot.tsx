@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { useHaptic } from '../hooks/useHaptic'
+import { useFeel } from '../hooks/useHaptic'
 import { useMascotLife } from '../hooks/useMascotLife'
 
 /**
@@ -39,12 +39,12 @@ export interface MascotProps {
 }
 
 export function Mascot({ state = 'idle', size = 96, onPoke }: MascotProps) {
-  const vibrate = useHaptic()
+  const feel = useFeel()
   const [poked, setPoked] = useState(false)
   const life = useMascotLife<HTMLDivElement & HTMLButtonElement>()
 
   function poke() {
-    vibrate(12)
+    feel('poke')
     // Restart the squash even on a rapid second poke.
     setPoked(false)
     requestAnimationFrame(() => setPoked(true))

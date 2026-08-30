@@ -3,7 +3,7 @@ import type { AnchorId } from './anchors'
 export const MOODS = ['neutral', 'sleepy', 'excited', 'proud', 'curious', 'cozy'] as const
 export type Mood = (typeof MOODS)[number]
 
-export type Screen = 'today' | 'log' | 'quests' | 'insights' | 'you'
+export type Screen = 'today' | 'log' | 'insights' | 'you'
 
 export const BEHAVIOR_IDS = {
   idle_breathe: 0,
@@ -123,7 +123,7 @@ export function deriveMood(ctx: Omit<BehaviorContext, 'hasAnchor'>): Mood {
 
 export function screenFromPath(pathname: string): Screen {
   if (pathname.startsWith('/log') || pathname.startsWith('/review')) return 'log'
-  if (pathname.startsWith('/journey')) return 'quests'
+  if (pathname.startsWith('/discover')) return 'log'
   if (pathname.startsWith('/progress')) return 'insights'
   if (pathname.startsWith('/settings') || pathname.startsWith('/about') || pathname.startsWith('/coach')) return 'you'
   return 'today'

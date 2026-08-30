@@ -62,6 +62,7 @@ export function EditFoodPage() {
       carbs: Number(carbs) || 0,
       fat: Number(fat) || 0,
       mealType,
+      detailAdded: true,
       // A manual full edit supersedes the AI's estimate — drop the now-stale breakdown
       // so FoodList doesn't show ingredient numbers that no longer add up.
       ingredients: undefined,

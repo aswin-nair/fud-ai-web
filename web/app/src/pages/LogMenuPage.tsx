@@ -126,7 +126,7 @@ export function LogMenuPage() {
         <BackLink to="/" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Log a meal</h1>
 
-        <div className="log-search-wrap">
+        <div className="log-search-wrap log-hero-target">
           <input
             className="log-search-input"
             value={query}

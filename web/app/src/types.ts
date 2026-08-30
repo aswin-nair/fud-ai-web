@@ -3,6 +3,7 @@ export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'ver
 export type WeightGoal = 'lose' | 'maintain' | 'gain'
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'other'
 export type FoodSource = 'textInput' | 'manual' | 'snapFood' | 'quickAdd' | 'recent'
+export type LoggingCommitment = 'light' | 'regular' | 'detailed'
 
 import type { AISettings } from './lib/aiConfig'
 
@@ -26,6 +27,7 @@ export interface UserProfile {
   soundEnabled?: boolean
   hapticsEnabled?: boolean
   trackingPaused?: boolean
+  loggingCommitment?: LoggingCommitment
 }
 
 export interface FoodIngredientLine {
@@ -50,6 +52,8 @@ export interface FoodEntry {
   mealType: MealType
   servingSizeGrams?: number
   ingredients?: FoodIngredientLine[]
+  /** True when the user reviewed or enriched the entry before saving. */
+  detailAdded?: boolean
 }
 
 export interface SavedMeal {

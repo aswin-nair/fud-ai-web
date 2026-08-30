@@ -452,3 +452,85 @@
   padding-top: 24px;
   margin-top: auto;
 }
+
+/* ── Smooth stepping ─────────────────────────────────────────
+   Each step slides in rather than snapping, so the flow reads as one
+   continuous form instead of seven separate pages. Keyed on the step index
+   in the markup, so React remounts the node and the animation replays. */
+.onboarding-step-content {
+  animation: onboarding-step-in var(--motion-enter) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes onboarding-step-in {
+  from { opacity: 0; transform: translateX(22px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* A filling bar reads progress at a glance; the dots stay as the fine detail. */
+.onboarding-progress {
+  /* A flex child with no intrinsic width collapses; the bar owns the row. */
+  flex: 1;
+  height: 11px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  overflow: hidden;
+}
+
+.onboarding-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
+  transition: width var(--motion-fill) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Options become clay: raised, and the chosen one warms and lifts. */
+.onboarding-chip {
+  border: none;
+  border-radius: var(--clay-radius-sm);
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  box-shadow: var(--clay-e1);
+  font-family: var(--display);
+  font-weight: 600;
+  transition: transform var(--squish-out) var(--squish-ease), box-shadow var(--squish-out) ease,
+              background var(--motion-press) ease, color var(--motion-press) ease;
+}
+
+.onboarding-chip:active { transform: scale(0.975); box-shadow: var(--clay-squish); }
+
+.onboarding-chip.active {
+  background: linear-gradient(160deg, #FFF3ED, #FFE0D2);
+  color: var(--on-track-deep);
+  box-shadow:
+    inset 0 6px 10px rgba(255, 255, 255, 0.9),
+    inset 0 -9px 14px rgba(200, 90, 50, 0.16),
+    0 14px 24px rgba(255, 107, 74, 0.2);
+}
+
+.onboarding-momo { display: grid; place-items: center; margin-bottom: var(--space-md); }
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-step-content { animation: none !important; }
+  .onboarding-progress-fill { transition: none !important; }
+}
+.commitment-option {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.commitment-option-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.commitment-option-copy strong {
+  font-family: var(--display);
+  color: var(--ink);
+}
+
+.commitment-option-copy small {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}

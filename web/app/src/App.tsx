@@ -26,6 +26,8 @@ import { SupportPage } from './pages/SupportPage'
 import { ComponentSheetPage } from './pages/ComponentSheetPage'
 import { AnchorProvider } from './mascot/anchors'
 import { MascotOverlay } from './mascot/MascotOverlay'
+import type { ReactNode } from 'react'
+import { useNavDirection } from './hooks/useNavDirection'
 
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
@@ -40,6 +42,16 @@ function routerBasename(): string | undefined {
   const base = import.meta.env.BASE_URL
   if (!base || base === '/') return undefined
   return base.endsWith('/') ? base.slice(0, -1) : base
+}
+
+/**
+ * Carries the navigation direction down to the page as a class, so a screen
+ * can slide in from the side the user came from. `display: contents` keeps the
+ * wrapper out of layout entirely.
+ */
+function DirectionalRoutes({ children }: { children: ReactNode }) {
+  const direction = useNavDirection()
+  return <div className={`nav-dir nav-dir-${direction}`}>{children}</div>
 }
 
 function AuthenticatedRoutes() {
@@ -57,6 +69,7 @@ function AuthenticatedRoutes() {
   return (
     <AnchorProvider>
     <MascotOverlay />
+    <DirectionalRoutes>
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/progress" element={<ProgressPage />} />
@@ -76,6 +89,36 @@ function AuthenticatedRoutes() {
       {import.meta.env.DEV && <Route path="/dev/components" element={<ComponentSheetPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </DirectionalRoutes>
+    </AnchorProvider>
+  )
+}
+
+function GuestRoutes() {
+  const { state } = useApp()
+
+  if (!state.onboarded) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    )
+  }
+
+  return (
+    <AnchorProvider>
+      <MascotOverlay />
+      <Routes>
+        <Route path="/" element={<HomePage guest />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </AnchorProvider>
   )
 }
@@ -96,13 +139,9 @@ function AppGate() {
 
   if (!user) {
     return (
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/" element={<LoginPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <AppProvider guest>
+        <GuestRoutes />
+      </AppProvider>
     )
   }
 

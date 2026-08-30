@@ -16,13 +16,12 @@
   align-items: stretch;
   justify-content: space-between;
   height: auto;
-  min-height: 64px;
-  padding: 6px 4px;
-  border-radius: 36px;
-  background: rgba(26, 23, 20, 0.94);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 32px rgba(38, 28, 16, 0.22);
+  min-height: 68px;
+  padding: 7px 6px;
+  border-radius: var(--clay-radius-xl);
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  box-shadow: var(--clay-e2);
+  border: none;
 }
 
 .nav-item {
@@ -102,3 +101,33 @@
 }
 
 .fab:hover { background: var(--coral-deep); }
+
+/* Clay nav: inactive tabs sit flush, the active one is pressed in. */
+.bottom-nav .nav-item {
+  color: var(--ink-mute);
+  border-radius: var(--clay-radius-sm);
+  margin: 0 2px;
+  transition: color var(--motion-press) ease, box-shadow var(--motion-press) ease,
+              background var(--motion-press) ease;
+}
+
+.bottom-nav .nav-item.active {
+  color: var(--on-track-deep);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+}
+
+.bottom-nav .nav-item span { font-family: var(--display); font-weight: 500; }
+
+.bottom-nav .nav-fab {
+  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
+  box-shadow: var(--clay-coral-raised);
+  border: none;
+  transition: transform var(--squish-out) var(--squish-ease), box-shadow var(--squish-out) ease;
+}
+
+.bottom-nav .nav-fab:active {
+  transform: translateY(3px) scale(0.96);
+  box-shadow: var(--clay-coral-squish);
+  transition-duration: var(--squish-in);
+}

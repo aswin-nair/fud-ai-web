@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MealSlot } from '@fud-ai/domain/meals'
 import { MEAL_LABELS } from '../types'
 import type { PathStatus } from '../lib/mealPath'
-import { useHaptic } from '../hooks/useHaptic'
+import { useFeel } from '../hooks/useHaptic'
 import { motion } from '../lib/tokens'
 
 const SLOT_ICON: Record<MealSlot, string> = {
@@ -23,7 +23,7 @@ export function PathNode({
   mascot?: boolean
   onSelect?: (slot: MealSlot) => void
 }) {
-  const vibrate = useHaptic()
+  const feel = useFeel()
   const prevStatus = useRef(status)
   const [popping, setPopping] = useState(false)
 
@@ -43,7 +43,7 @@ export function PathNode({
       className={`path-node clay-node is-${status}${mascot ? ' has-mascot' : ''}${popping ? ' is-popping' : ''}`}
       aria-current={status === 'current' ? 'step' : undefined}
       aria-label={`${MEAL_LABELS[slot]}, ${status}`}
-      onPointerDown={() => vibrate(10)}
+      onPointerDown={() => feel('tap')}
       onClick={() => onSelect?.(slot)}
     >
       <span className="path-node-face" aria-hidden>

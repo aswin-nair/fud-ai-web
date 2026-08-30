@@ -4,42 +4,15 @@ import {
   applyEnamelLogAwards,
   grantFreeFreezeAtStreak,
   markBrokenIfNeeded,
-  syncEnamelQuests,
 } from './enamelEconomy'
 import { applyFreeze, getAllBadges, getStreakWithFreezes } from './journey'
-import { syncQuest } from './quests'
-import { computeXpAwards, makeXpEvents, levelFromXp } from './xp'
+import { levelFromXp } from './xp'
 import { track } from './analytics'
-
-let sessionOpenedAt = Date.now()
-
-export function markSessionOpened(at = Date.now()): void {
-  sessionOpenedAt = at
-}
 
 export type LogAdvance = {
   gamification: GamificationState
   freezeApplied: { protectedStreak: number } | null
-  questJustCompleted: boolean
   streakMilestone: boolean
-}
-
-type Quest = NonNullable<GamificationState['quest']>
-
-function entriesOutsidePausedDays(
-  entries: FoodEntry[],
-  gamification: GamificationState,
-): FoodEntry[] {
-  const protectedDays = new Set(gamification.pauseProtectedDates)
-  return entries.filter(entry => !protectedDays.has(localDayKey(new Date(entry.timestamp))))
-}
-
-/** A completed quest is new when this quest itself was not already complete. */
-export function isNewQuestCompletion(previous: Quest | undefined, current: Quest): boolean {
-  return Boolean(
-    current.completedAt
-    && (previous?.date !== current.date || !previous.completedAt),
-  )
 }
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365]
@@ -87,7 +60,6 @@ export function openSession(state: AppState): LogAdvance {
     return {
       gamification: transitionTrackingPause(state.gamification, true, true),
       freezeApplied: null,
-      questJustCompleted: false,
       streakMilestone: false,
     }
   }
@@ -106,38 +78,18 @@ export function openSession(state: AppState): LogAdvance {
     track({ name: 'streak_freeze_applied', protected_streak: freezeApplied.protectedStreak })
   }
 
-  const today = localDayKey(new Date())
   const streak = getStreakWithFreezes(
     state.foodEntries,
     freezeUpdate.freezeUsedDates,
     state.gamification.pauseProtectedDates,
   )
-  // Opening the app may refresh visible progress, but it must not manufacture
-  // a completion timestamp or award. Only a real log commits completion.
-  const quest = syncQuest(
-    state.gamification.quest,
-    today,
-    entriesOutsidePausedDays(state.foodEntries, state.gamification),
-    streak,
-    false,
-  )
-  const enamelBase = { ...state.gamification, ...freezeUpdate, quest }
-  const enamelQuests = syncEnamelQuests(
-    enamelBase,
-    today,
-    {
-      entries: entriesOutsidePausedDays(state.foodEntries, state.gamification),
-      water: enamelBase.waterByDate?.[today] ?? 0,
-      notes: enamelBase.notesByDate?.[today] ?? 0,
-      sessionOpenedAt,
-    },
-    false,
-  )
+  // The retired legacy quest field remains untouched for stored-state
+  // compatibility. It no longer runs or awards invisible XP.
+  const enamelBase = { ...state.gamification, ...freezeUpdate }
 
   return {
-    gamification: grantFreeFreezeAtStreak({ ...enamelBase, enamelQuests }, streak),
+    gamification: grantFreeFreezeAtStreak(enamelBase, streak),
     freezeApplied,
-    questJustCompleted: false,
     streakMilestone: false,
   }
 }
@@ -153,7 +105,6 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     return {
       gamification: { ...paused, pauseProtectedDates: [...pauseProtectedDates].sort() },
       freezeApplied: null,
-      questJustCompleted: false,
       streakMilestone: false,
     }
   }
@@ -169,47 +120,21 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
       ) }
     : null
 
-  const awards = computeXpAwards(entry, state.foodEntries, { ...state.gamification, ...freezeUpdate })
   const logEventAt = new Date().toISOString()
-  const newEvents = makeXpEvents(awards, logEventAt)
-  const awardedKeys = new Set(state.gamification.awardedKeys)
-  for (const award of awards) awardedKeys.add(award.key)
-  const earnedXp = awards.reduce((sum, a) => sum + a.xp, 0)
-  const newXp = state.gamification.xp + earnedXp
-  const newLevel = levelFromXp(newXp)
-  const didLevelUp = newLevel > state.gamification.level
-
   const today = localDayKey(new Date(entry.timestamp))
   const streak = getStreakWithFreezes(
     allEntries,
     freezeUpdate.freezeUsedDates,
     state.gamification.pauseProtectedDates,
   )
-  const prevQuest = state.gamification.quest
-  const quest = syncQuest(
-    prevQuest,
-    today,
-    entriesOutsidePausedDays(allEntries, state.gamification),
-    streak,
-    true,
+  let newGam = applyEnamelLogAwards(
+    { ...state.gamification, ...freezeUpdate },
+    entry,
+    state.foodEntries,
   )
-  const questJustCompleted = isNewQuestCompletion(prevQuest, quest)
-
-  let xp = newXp
-  let events = [...newEvents, ...state.gamification.xpEvents]
-  const questKey = `quest-${quest.date}`
-  if (questJustCompleted && !awardedKeys.has(questKey)) {
-    events = [{
-      id: crypto.randomUUID(),
-      key: questKey,
-      xp: 25,
-      label: 'Quest completed',
-      timestamp: logEventAt,
-    }, ...events]
-    awardedKeys.add(questKey)
-    xp += 25
-    track({ name: 'quest_completed', type: quest.type })
-  }
+  const awardedKeys = new Set(newGam.awardedKeys)
+  let events = [...newGam.xpEvents]
+  let xp = newGam.xp
 
   const streakKey = `streak-${streak}`
   const streakMilestone = STREAK_MILESTONES.includes(streak)
@@ -224,34 +149,21 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     }, ...events]
     awardedKeys.add(streakKey)
     xp += 50
-    // Streak milestones stay a local XP award. Product telemetry only records
-    // the canonical freeze and quest events.
+    // Streak milestones stay a local XP award.
   }
 
-  let newGam: GamificationState = applyEnamelLogAwards({
-    ...state.gamification,
-    ...freezeUpdate,
+  const nextLevel = levelFromXp(xp)
+  newGam = {
+    ...newGam,
     xp,
-    level: levelFromXp(xp),
-    pendingLevelUp: didLevelUp || levelFromXp(xp) > state.gamification.level
-      ? levelFromXp(xp)
+    level: nextLevel,
+    pendingLevelUp: nextLevel > state.gamification.level
+      ? nextLevel
       : state.gamification.pendingLevelUp,
     xpEvents: events.slice(0, 50),
     awardedKeys: [...awardedKeys],
-    quest,
-  }, entry, state.foodEntries)
+  }
 
-  newGam.enamelQuests = syncEnamelQuests(
-    newGam,
-    today,
-    {
-      entries: entriesOutsidePausedDays(allEntries, newGam),
-      water: newGam.waterByDate?.[today] ?? 0,
-      notes: newGam.notesByDate?.[today] ?? 0,
-      sessionOpenedAt,
-    },
-    true,
-  )
   newGam = grantFreeFreezeAtStreak(newGam, streak)
   newGam = markBrokenIfNeeded(newGam, getStreakWithFreezes(
     state.foodEntries,
@@ -270,5 +182,5 @@ export function advanceAfterLog(state: AppState, entry: FoodEntry): LogAdvance {
     track({ name: 'streak_freeze_applied', protected_streak: freezeApplied.protectedStreak })
   }
 
-  return { gamification: newGam, freezeApplied, questJustCompleted, streakMilestone }
+  return { gamification: newGam, freezeApplied, streakMilestone }
 }

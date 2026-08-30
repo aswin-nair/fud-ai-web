@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import type { FoodEntry, GamificationState } from '../types'
-import { isNewQuestCompletion } from './gamification'
-import { QUEST_TYPES, questForDate, questTitle } from './quests'
+import { advanceAfterLog } from './gamification'
 import { defaultGamification } from './storage'
-import { computeXpAwards } from './xp'
+import { applyEnamelLogAwards } from './enamelEconomy'
 
 const emptyGamification: GamificationState = {
   ...defaultGamification(),
@@ -24,19 +23,9 @@ const entry: FoodEntry = {
 }
 
 describe('healthy engagement policy', () => {
-  it('generates logging-only quests', () => {
-    expect(QUEST_TYPES).toEqual(['log_n_meals', 'log_before', 'log_streak'])
-
-    for (let day = 1; day <= 28; day += 1) {
-      const date = `2026-08-${String(day).padStart(2, '0')}`
-      expect(questTitle(questForDate(date))).not.toMatch(/calorie|macro|protein|target|deficit/i)
-    }
-  })
-
   it('does not award XP for calorie or macro outcomes', () => {
-    const awards = computeXpAwards(entry, [], emptyGamification)
-    expect(awards.map(award => award.key)).not.toContain('balanced-2026-08-17')
-    expect(awards.map(award => award.label).join(' ')).not.toMatch(/calorie|macro|protein|target/i)
+    const next = applyEnamelLogAwards(emptyGamification, entry, [])
+    expect(next.xpEvents.map(event => event.label).join(' ')).not.toMatch(/calorie|macro|protein|target/i)
   })
 
   it('keeps old entry IDs idempotent after the visible feed is truncated', () => {
@@ -58,24 +47,27 @@ describe('healthy engagement policy', () => {
       ],
     }
 
-    expect(computeXpAwards(entry, [], gamification)).toEqual([])
+    const first = applyEnamelLogAwards(gamification, entry, [])
+    const replayed = applyEnamelLogAwards(first, entry, [])
+    expect(replayed).toEqual(first)
   })
 
-  it('recognizes a completed quest after the calendar day changes', () => {
-    const yesterday = {
-      date: '2026-08-16',
-      type: 'log_before' as const,
-      target: 1,
-      progress: 1,
-      completedAt: '2026-08-16T08:00:00.000Z',
+  it('does not advance or award a persisted legacy quest', () => {
+    const state = {
+      onboarded: true,
+      profile: {
+        name: '', gender: 'male' as const, birthday: '1990-01-01', heightCm: 175, weightKg: 70,
+        activityLevel: 'moderate' as const, goal: 'maintain' as const, trackingPaused: false,
+      },
+      foodEntries: [], weightEntries: [], exerciseEntries: [], favoriteMeals: [], chatMessages: [],
+      aiSettings: { provider: 'gemini' as const, apiKey: '', model: 'gemini-2.0-flash' },
+      gamification: {
+        ...emptyGamification,
+        quest: { date: '2026-08-17', type: 'log_n_meals' as const, target: 1, progress: 0, completedAt: null },
+      },
     }
-    const today = {
-      ...yesterday,
-      date: '2026-08-17',
-      completedAt: '2026-08-17T08:00:00.000Z',
-    }
-
-    expect(isNewQuestCompletion(yesterday, today)).toBe(true)
-    expect(isNewQuestCompletion(today, today)).toBe(false)
+    const next = advanceAfterLog(state, entry)
+    expect(next.gamification.quest).toEqual(state.gamification.quest)
+    expect(next.gamification.xpEvents.some(event => event.key.startsWith('quest-'))).toBe(false)
   })
 })

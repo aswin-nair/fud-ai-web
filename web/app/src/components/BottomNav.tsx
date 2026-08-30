@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { useHaptic } from '../hooks/useHaptic'
+import { useFeel } from '../hooks/useHaptic'
 import { preloadCamera } from '../lib/cameraPreload'
 import { useAnchor } from '../mascot/anchors'
 import { IconHome, IconJourney, IconPlus, IconProgress, IconSettings } from './icons'
@@ -7,12 +7,12 @@ import { IconHome, IconJourney, IconPlus, IconProgress, IconSettings } from './i
 const TABS = [
   { to: '/', end: true, label: 'Today', Icon: IconHome },
   { to: '/progress', label: 'Insights', Icon: IconProgress },
-  { to: '/journey', label: 'Quests', Icon: IconJourney },
+  { to: '/discover', label: 'Discover', Icon: IconJourney },
   { to: '/settings', label: 'You', Icon: IconSettings },
 ] as const
 
 export function BottomNav() {
-  const vibrate = useHaptic()
+  const feel = useFeel()
   const fabAnchor = useAnchor('fab')
 
   return (
@@ -23,7 +23,7 @@ export function BottomNav() {
             key={tab.to}
             to={tab.to}
             end={'end' in tab ? tab.end : undefined}
-            onPointerDown={() => vibrate(10)}
+            onPointerDown={() => feel('tap')}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
           >
             {({ isActive }) => (
@@ -42,7 +42,7 @@ export function BottomNav() {
           className="nav-fab"
           aria-label="Log"
           onPointerDown={() => {
-            vibrate(12)
+            feel('press')
             preloadCamera()
           }}
         >
@@ -53,7 +53,7 @@ export function BottomNav() {
           <NavLink
             key={tab.to}
             to={tab.to}
-            onPointerDown={() => vibrate(10)}
+            onPointerDown={() => feel('tap')}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
           >
             {({ isActive }) => (

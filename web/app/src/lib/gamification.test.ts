@@ -67,7 +67,7 @@ describe('tracking pause lifecycle', () => {
     ])
   })
 
-  it('does not consume a freeze or advance a quest during a paused session or log', () => {
+  it('does not consume a freeze or mutate a retired quest during a paused session or log', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2025, 5, 10, 12))
 
@@ -95,13 +95,12 @@ describe('tracking pause lifecycle', () => {
     expect(advanced.gamification.xp).toBe(0)
     expect(advanced.gamification.quest).toEqual(state.gamification.quest)
     expect(advanced.gamification.pauseProtectedDates).toEqual(['2025-06-10'])
-    expect(advanced.questJustCompleted).toBe(false)
     expect(advanced.freezeApplied).toBeNull()
   })
 })
 
-describe('quest completion ownership', () => {
-  it('refreshes a carried streak quest on open but commits it only after a log', () => {
+describe('retired quest compatibility', () => {
+  it('preserves stored quest data without running it or awarding invisible XP', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2025, 5, 10, 12))
 
@@ -116,16 +115,14 @@ describe('quest completion ownership', () => {
     }
 
     const opened = openSession(state)
-    expect(opened.gamification.quest?.progress).toBe(3)
+    expect(opened.gamification.quest?.progress).toBe(2)
     expect(opened.gamification.quest?.completedAt).toBeNull()
-    expect(opened.questJustCompleted).toBe(false)
 
     const advanced = advanceAfterLog(
       { ...state, gamification: opened.gamification },
       entryDaysAgo(0, 'committing-meal'),
     )
-    expect(advanced.gamification.quest?.completedAt).not.toBeNull()
-    expect(advanced.questJustCompleted).toBe(true)
-    expect(advanced.gamification.xpEvents.some(event => event.key === 'quest-2025-06-10')).toBe(true)
+    expect(advanced.gamification.quest).toEqual(state.gamification.quest)
+    expect(advanced.gamification.xpEvents.some(event => event.key.startsWith('quest-'))).toBe(false)
   })
 })

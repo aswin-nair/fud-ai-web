@@ -3,7 +3,7 @@ import logo from '@assets/calorie logo transparent.png'
 import { GoogleLogin } from '@react-oauth/google'
 import { isGoogleAuthConfigured } from '../lib/auth'
 import { GoogleOriginHelp } from '../components/GoogleOriginHelp'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { isCloudBackend } from '../lib/dataBackend'
 import { useAuth } from '../store/AuthContext'
 import { track } from '../lib/analytics'
@@ -14,8 +14,10 @@ type AuthMode = 'signin' | 'signup'
 export function LoginPage() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth()
   const googleConfigured = isGoogleAuthConfigured()
+  const [searchParams] = useSearchParams()
+  const claiming = searchParams.get('claim') === '1'
 
-  const [mode, setMode] = useState<AuthMode>('signin')
+  const [mode, setMode] = useState<AuthMode>(() => searchParams.get('mode') === 'signup' ? 'signup' : 'signin')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -63,8 +65,8 @@ export function LoginPage() {
         <h1 className="login-title">Fud AI</h1>
         <p className="login-sub">
           {mode === 'signin'
-            ? 'Log a meal in seconds. Build a habit that lasts.'
-            : 'Create an account to start your first log.'}
+            ? claiming ? 'Sign in to connect the progress on this device.' : 'Log a meal in seconds. Build a habit that lasts.'
+            : claiming ? 'Continue to save the progress you just made.' : 'Create an account when you are ready to keep your progress.'}
         </p>
 
         <div className="auth-tabs">
@@ -141,7 +143,7 @@ export function LoginPage() {
             </div>
           )}
           <PressableButton type="submit" fullWidth disabled={loading}>
-            {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+            {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : claiming ? 'Continue' : 'Create account'}
           </PressableButton>
           {mode === 'signin' && isCloudBackend() && (
             <p className="login-hint">
@@ -187,6 +189,11 @@ export function LoginPage() {
         <p className="login-foot">
           Local-first · BYOK AI · Privacy-first
         </p>
+        {!claiming && (
+          <p className="login-hint">
+            <Link to="/onboarding">Try Fud AI first</Link>
+          </p>
+        )}
       </div>
     </div>
   )

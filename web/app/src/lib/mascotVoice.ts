@@ -31,8 +31,8 @@ const AMBIENT: Record<MascotState, string[]> = {
     'Noted and filed.',
   ],
   celebrating: [
-    'Quest done!',
-    'That finishes it!',
+    'Day made!',
+    'That builds your rhythm.',
   ],
   proud: [
     'Look at that streak.',

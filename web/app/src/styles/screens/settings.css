@@ -206,3 +206,13 @@
   color: var(--ink-soft);
   line-height: 1.5;
 }
+.wardrobe-preview {
+  width: 112px;
+  height: 112px;
+  margin: 8px auto 16px;
+}
+
+.wardrobe-item:disabled {
+  cursor: default;
+  opacity: 0.58;
+}

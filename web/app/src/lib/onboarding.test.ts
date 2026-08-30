@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { birthdayEligibility, birthdayToIso, localDateInputValue } from './onboarding'
+import { birthdayEligibility, birthdayToIso, loadOnboardingDraft, localDateInputValue } from './onboarding'
+import { defaultProfile } from './profile'
 
 function localDate(year: number, month: number, day: number): Date {
   return new Date(year, month - 1, day, 12)
@@ -45,5 +46,31 @@ describe('date-only conversion', () => {
 
   it('formats the local date for date-input bounds', () => {
     expect(localDateInputValue(localDate(2026, 8, 7))).toBe('2026-08-07')
+  })
+})
+
+describe('onboarding draft migration', () => {
+  it('moves a legacy review step forward when inserting the commitment step', () => {
+    const stored = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => stored.set(key, value),
+      removeItem: (key: string) => stored.delete(key),
+    })
+    const profile = defaultProfile()
+    stored.set('fud-onboarding-draft-person', JSON.stringify({
+      version: 1,
+      welcomeIndex: 3,
+      step: 5,
+      blocked: false,
+      birthdayInput: '2000-01-01',
+      profile,
+      firstMeal: { name: '', calories: '', protein: '', carbs: '', fat: '', mealType: 'breakfast' },
+    }))
+
+    const migrated = loadOnboardingDraft('person', profile)
+    expect(migrated.version).toBe(2)
+    expect(migrated.step).toBe(6)
+    vi.unstubAllGlobals()
   })
 })

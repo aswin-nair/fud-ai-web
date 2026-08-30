@@ -326,3 +326,104 @@
   text-align: center;
   line-height: 1.4;
 }
+
+/* ── Clay across the remaining screens ───────────────────────
+   Four base classes carry almost every surface in the app — .card, .btn,
+   .field and .progress-card. Claying them here lifts Log, Progress, Journey,
+   Settings and the auth pages in one move, rather than restyling fourteen
+   screens by hand and drifting apart again. */
+
+.card {
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  border: none;
+  border-radius: var(--clay-radius-md);
+  box-shadow: var(--clay-e2);
+}
+
+.btn {
+  border: none;
+  border-radius: var(--clay-radius-sm);
+  font-family: var(--display);
+  letter-spacing: 0.02em;
+  transition: transform var(--squish-out) var(--squish-ease),
+              box-shadow var(--squish-out) ease,
+              background var(--motion-press) ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(3px) scale(0.985);
+  transition-duration: var(--squish-in);
+}
+
+.btn-primary {
+  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
+  color: var(--on-accent);
+  box-shadow: var(--clay-coral-raised);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
+}
+
+.btn-primary:active:not(:disabled) { box-shadow: var(--clay-coral-squish); }
+
+.btn-secondary,
+.btn-ghost {
+  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
+  color: var(--ink);
+  border: none;
+  box-shadow: var(--clay-e1);
+}
+
+.btn-secondary:active:not(:disabled),
+.btn-ghost:active:not(:disabled) { box-shadow: var(--clay-squish); }
+
+/* Anything that takes input is pressed INTO the surface, never raised out of
+   it — the natural claymorphic form for a field. */
+.field input,
+.field select,
+.field textarea {
+  border: none;
+  border-radius: var(--clay-radius-sm);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  font-family: var(--sans);
+  color: var(--ink);
+  transition: box-shadow var(--motion-press) ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  box-shadow: var(--clay-inset), 0 0 0 3px var(--coral-soft);
+}
+
+/* Headings take the display face, like every other number and title. */
+.page-title,
+.screen-title {
+  font-family: var(--display);
+  font-weight: 600;
+}
+
+/* The row's text is a span wrapping a <strong> and a <span>, both inline by
+   default — so the title and its description ran together on one line. The
+   wrapper stacks them and takes the remaining width. */
+.log-way-row > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.log-way-row > span:last-child > strong {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.log-way-row > span:last-child > .page-sub {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ink-mute);
+}

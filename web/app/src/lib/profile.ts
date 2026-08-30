@@ -320,6 +320,7 @@ export function defaultProfile(): UserProfile {
     soundEnabled: true,
     hapticsEnabled: true,
     trackingPaused: false,
+    loggingCommitment: 'light',
   }
 }
 

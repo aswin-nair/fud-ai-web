@@ -6,6 +6,7 @@ import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
 import { IconChevronRight, IconEdit, IconTrash } from './icons'
 import { useAnchor } from '../mascot/anchors'
+import { feel } from '../lib/feel'
 
 const SNAP_PX = 80
 
@@ -134,6 +135,7 @@ export function Ticket({
   onNote,
   notes,
   paused,
+  variant = 'full',
 }: {
   date: Date
   ticketNo: number
@@ -148,6 +150,8 @@ export function Ticket({
   onWater: (n: number) => void
   onNote: () => void
   notes: number
+  /** 'extras' renders only water and notes — Home now owns macros and the list. */
+  variant?: 'full' | 'extras'
   paused: boolean
 }) {
   const today = new Date()
@@ -168,6 +172,7 @@ export function Ticket({
   return (
     <section className={`ticket${isPast ? ' is-torn' : ''}${isFuture ? ' is-future' : ''}`} aria-label="Today's ticket">
       <div className="ticket-perf" ref={topAnchor} aria-hidden />
+      {variant === 'full' && (
       <header className="ticket-head">
         <div>
           <p className="ticket-kicker">Kitchen ticket</p>
@@ -175,8 +180,9 @@ export function Ticket({
         </div>
         <span className="ticket-no tabular">Ticket #{Math.max(1, ticketNo)}</span>
       </header>
+      )}
 
-      {!paused && (
+      {variant === 'full' && !paused && (
         <div className="ticket-macros" ref={macroAnchor}>
           <MacroSeg label="Protein" current={protein} goal={proteinGoal} tone="protein" />
           <MacroSeg label="Carbs" current={carbs} goal={carbsGoal} tone="carbs" />
@@ -184,7 +190,7 @@ export function Ticket({
         </div>
       )}
 
-      {isFuture ? (
+      {variant === 'extras' ? null : isFuture ? (
         <p className="ticket-empty">That day is still ahead. Come back when it is today.</p>
       ) : entries.length === 0 ? (
         <p className="ticket-empty">Nothing logged yet — start with breakfast</p>
@@ -217,13 +223,13 @@ export function Ticket({
                   className={`ticket-glass${filled ? ' is-filled' : ''}`}
                   disabled={readOnly}
                   aria-label={`Glass ${i + 1}${filled ? ', filled' : ''}`}
-                  onClick={() => onWater(filled && i === water - 1 ? water - 1 : i + 1)}
+                  onClick={() => { feel('water'); onWater(filled && i === water - 1 ? water - 1 : i + 1) }}
                 />
               )
             })}
           </div>
           {isToday && !paused && (
-            <button type="button" className="ticket-note" onClick={onNote} disabled={notes >= 3}>
+            <button type="button" className="ticket-note" onClick={() => { feel('tap'); onNote() }} disabled={notes >= 3}>
               {notes >= 3 ? 'Notes logged' : 'Add a kitchen note'}
             </button>
           )}

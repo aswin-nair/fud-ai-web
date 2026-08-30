@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useDialogFocus } from '../hooks/useDialogFocus'
 import { monthGridWeeks, sameDay, startOfDay } from '../lib/dates'
 import { IconChevronLeft, IconChevronRight, IconClose } from './icons'
+import { feel } from '../lib/feel'
 
 interface DatePickerModalProps {
   selectedDate: Date
@@ -16,12 +17,24 @@ function isFutureDay(date: Date, today: Date): boolean {
 }
 
 export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerModalProps) {
+  /* Every dismissal path — backdrop, the X, Escape — goes through here, so the
+     modal cannot close silently down one route and audibly down another.
+     Picking a date is a choice, not a dismissal, so it gets its own cue. */
+  const dismiss = () => {
+    feel('close')
+    onClose()
+  }
+  const choose = (d: Date) => {
+    feel('select')
+    onSelect(d)
+    onClose()
+  }
   const dialogRef = useRef<HTMLDivElement>(null)
   const [viewMonth, setViewMonth] = useState(() => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1))
   const today = startOfDay()
   const weeks = monthGridWeeks(viewMonth)
   const isCurrentMonth = viewMonth.getFullYear() === today.getFullYear() && viewMonth.getMonth() === today.getMonth()
-  useDialogFocus(dialogRef, onClose)
+  useDialogFocus(dialogRef, dismiss)
 
   function prevMonth() {
     setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))
@@ -33,7 +46,7 @@ export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerM
   }
 
   return (
-    <div className="date-modal-overlay" onClick={onClose} role="presentation">
+    <div className="date-modal-overlay" onClick={dismiss} role="presentation">
       <div
         ref={dialogRef}
         className="date-modal"
@@ -58,7 +71,7 @@ export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerM
           >
             <IconChevronRight size={17} strokeWidth={2.3} />
           </button>
-          <button type="button" className="date-modal-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="date-modal-close" onClick={dismiss} aria-label="Close">
             <IconClose size={15} strokeWidth={2.3} />
           </button>
         </div>
@@ -79,7 +92,7 @@ export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerM
                 type="button"
                 className={`date-modal-cell${selected ? ' selected' : ''}${isToday && !selected ? ' today' : ''}`}
                 disabled={future}
-                onClick={() => { onSelect(d); onClose() }}
+                onClick={() => choose(d)}
                 aria-label={d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 aria-pressed={selected}
                 aria-current={isToday ? 'date' : undefined}
@@ -93,7 +106,7 @@ export function DatePickerModal({ selectedDate, onSelect, onClose }: DatePickerM
         <button
           type="button"
           className="date-modal-today-btn"
-          onClick={() => { onSelect(startOfDay()); onClose() }}
+          onClick={() => choose(startOfDay())}
         >
           Jump to today
         </button>

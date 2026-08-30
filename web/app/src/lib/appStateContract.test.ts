@@ -21,6 +21,23 @@ describe('shared AppState runtime contract', () => {
     expect(validateAppState(validState(), NOW)).toEqual({ ok: true })
   })
 
+  it('accepts commitment and entry-detail metadata but rejects unknown commitment values', () => {
+    const state = validState()
+    state.profile.loggingCommitment = 'detailed'
+    state.foodEntries = [{
+      id: 'meal-1', name: 'Oats', calories: 300, protein: 12, carbs: 40, fat: 6,
+      timestamp: '2026-08-20T08:00:00.000Z', source: 'manual', mealType: 'breakfast', detailAdded: true,
+    }]
+    expect(validateAppState(state, NOW)).toEqual({ ok: true })
+
+    const invalid: Record<string, unknown> = structuredClone(state)
+    ;(invalid.profile as Record<string, unknown>).loggingCommitment = 'maximum'
+    expect(validateAppState(invalid, NOW)).toEqual({
+      ok: false,
+      error: 'profile.loggingCommitment is invalid',
+    })
+  })
+
   it('rejects an onboarded user who is not yet 18', () => {
     const state = validState()
     state.onboarded = true

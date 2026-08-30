@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react'
+import { Toggle, RadioDot } from '../components/Toggle'
 import { SettingsRow } from '../components/SettingsRow'
 import { Link } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
 import { BottomNav } from '../components/BottomNav'
-import type { ActivityLevel, AIProvider, Gender, UserProfile, WeightGoal } from '../types'
+import type { ActivityLevel, AIProvider, Gender, LoggingCommitment, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS } from '../types'
 import {
   OPENROUTER_MODELS,
@@ -33,9 +34,9 @@ import { isCloudBackend } from '../lib/dataBackend'
 import { deleteLocalAccount } from '../lib/localAuth'
 import { clearDurableUser } from '../lib/durableState'
 import { clearOnboardingDraft } from '../lib/onboarding'
-import { COSMETICS, buyCosmetic, buyFreeze, canRepairStreak, repairStreak } from '../lib/enamelEconomy'
-import { localDayKey } from '../lib/dates'
+import { COSMETICS, equipCosmetic } from '../lib/enamelEconomy'
 import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
+import { Momo } from '../components/Momo'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="settings-section-label">{children}</p>
@@ -69,6 +70,11 @@ export function SettingsPage() {
   const goalTargets = computeTargets(profile)
   const currentProfileIssue = profileInputIssue(profile) ?? goalWeightIssue(profile)
   const modelPresets = provider === 'openrouter' ? OPENROUTER_MODELS : GEMINI_MODELS
+  const currentStreak = getStreakWithFreezes(
+    state.foodEntries,
+    state.gamification.freezeUsedDates,
+    state.gamification.pauseProtectedDates,
+  )
 
   function handleProviderChange(next: AIProvider) {
     setProvider(next)
@@ -202,37 +208,16 @@ export function SettingsPage() {
         <SectionLabel>Streak</SectionLabel>
         <SettingsCard>
           <p className="page-sub" style={{ marginBottom: 8 }}>
-            {getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates, state.gamification.pauseProtectedDates)}-day streak · {state.gamification.streakFreezes} freezes
+            {currentStreak}-day streak · {state.gamification.streakFreezes} {state.gamification.streakFreezes === 1 ? 'freeze' : 'freezes'}
           </p>
           <div className="insights-heat" aria-hidden>
             {getMonthConsistency(state.foodEntries).days.map((logged, i) => (
               <span key={i} className={`insights-heat-cell${logged ? ' is-logged' : ''}`} />
             ))}
           </div>
-          <button
-            type="button"
-            className="settings-data-btn"
-            onClick={() => patchGamification(g => buyFreeze(g) ?? g)}
-          >
-            Buy a freeze · 100 gems
-          </button>
-          {canRepairStreak(
-            state.gamification,
-            state.foodEntries.length ? localDayKey(state.foodEntries[state.foodEntries.length - 1]!.timestamp) : null,
-            localDayKey(new Date()),
-          ) && (
-            <button
-              type="button"
-              className="settings-data-btn"
-              onClick={() => patchGamification(g => repairStreak(
-                g,
-                state.foodEntries.length ? localDayKey(state.foodEntries[state.foodEntries.length - 1]!.timestamp) : null,
-                localDayKey(new Date()),
-              ) ?? g)}
-            >
-              Repair streak · 200 gems
-            </button>
-          )}
+          <p className="page-sub" style={{ marginTop: 10 }}>
+            One refreshes monthly, and a 7-day streak can add another. Taking a break is always available below.
+          </p>
         </SettingsCard>
 
         <SectionLabel>Achievements</SectionLabel>
@@ -253,24 +238,21 @@ export function SettingsPage() {
         <SettingsCard>
           <p className="page-sub">A small kitchen companion. Never sad, never scoring your food.</p>
           <SettingsRow label="Lively" hint="More frequent antics">
-            <input
-              type="radio"
+            <RadioDot
               name="mascot-activity"
               checked={state.gamification.mascotActivity === 'lively'}
               onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'lively' }))}
             />
           </SettingsRow>
           <SettingsRow label="Calm" hint="Quieter, slower visits">
-            <input
-              type="radio"
+            <RadioDot
               name="mascot-activity"
               checked={state.gamification.mascotActivity === 'calm'}
               onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'calm' }))}
             />
           </SettingsRow>
           <SettingsRow label="Off" hint="Hide the companion">
-            <input
-              type="radio"
+            <RadioDot
               name="mascot-activity"
               checked={state.gamification.mascotActivity === 'off'}
               onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'off' }))}
@@ -280,27 +262,26 @@ export function SettingsPage() {
 
         <SectionLabel>Wardrobe</SectionLabel>
         <SettingsCard>
-          <p className="page-sub">Earn gems by logging. Nothing here is sold for money.</p>
+          <p className="page-sub">Cosmetics unlock directly as your logging streak grows.</p>
+          <div className="wardrobe-preview" aria-label="Momo wardrobe preview">
+            <Momo mood="proud" cosmeticId={state.gamification.equippedCosmeticId} />
+          </div>
           <div className="wardrobe-grid">
             {COSMETICS.map(item => {
-              const owned = state.gamification.ownedCosmeticIds.includes(item.id)
+              const unlocked = state.gamification.ownedCosmeticIds.includes(item.id)
+                || currentStreak >= item.unlockStreak
+              const equipped = state.gamification.equippedCosmeticId === item.id
               return (
                 <button
                   key={item.id}
                   type="button"
-                  className={`wardrobe-item${owned ? ' is-owned' : ''}`}
-                  onClick={() => patchGamification(g => (
-                    owned
-                      ? { ...g, equippedCosmeticId: item.id }
-                      : buyCosmetic(
-                        g,
-                        item.id,
-                        getStreakWithFreezes(state.foodEntries, g.freezeUsedDates, g.pauseProtectedDates),
-                      ) ?? g
-                  ))}
+                  className={`wardrobe-item${unlocked ? ' is-owned' : ''}`}
+                  disabled={!unlocked}
+                  aria-pressed={equipped}
+                  onClick={() => patchGamification(g => equipCosmetic(g, item.id, currentStreak) ?? g)}
                 >
                   <strong>{item.name}</strong>
-                  <span>{owned ? 'Owned' : `${item.price} gems`}</span>
+                  <span>{equipped ? 'Equipped' : unlocked ? 'Available' : `Unlocks at ${item.unlockStreak} days`}</span>
                 </button>
               )
             })}
@@ -486,6 +467,17 @@ export function SettingsPage() {
               ))}
             </select>
           </SettingsRow>
+          <SettingsRow label="Day-ring pace" hint="Controls logging steps only">
+            <select
+              className="settings-select"
+              value={profile.loggingCommitment ?? 'light'}
+              onChange={e => setProfile(p => ({ ...p, loggingCommitment: e.target.value as LoggingCommitment }))}
+            >
+              <option value="light">Light · one log</option>
+              <option value="regular">Regular · main meals</option>
+              <option value="detailed">Detailed · meals + detail</option>
+            </select>
+          </SettingsRow>
           <SettingsRow label="Goal">
             <select
               className="settings-select"
@@ -556,6 +548,7 @@ export function SettingsPage() {
             <div className="settings-key-wrap">
               <input
                 className="settings-input"
+                aria-label="API key"
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
@@ -570,6 +563,7 @@ export function SettingsPage() {
           <SettingsRow label="Model">
             <input
               className="settings-input"
+              aria-label="Model"
               list="model-presets"
               value={model}
               onChange={e => setModel(e.target.value)}
@@ -594,32 +588,31 @@ export function SettingsPage() {
               </button>
             </div>
           )}
-          <div className="settings-field-block">
+          <label className="settings-field-block" htmlFor="custom-instructions">
             <span className="settings-row-label">Custom instructions</span>
             <textarea
+              id="custom-instructions"
               className="settings-textarea"
               value={instructions}
               onChange={e => setInstructions(e.target.value)}
               placeholder="e.g. I follow a vegetarian diet"
               rows={3}
             />
-          </div>
+          </label>
         </SettingsCard>
 
         <SectionLabel>Feel</SectionLabel>
         <SettingsCard>
           <SettingsRow label="Sound" hint="Short cues when you log a meal">
-            <input
-              type="checkbox"
+            <Toggle
               checked={profile.soundEnabled !== false}
-              onChange={e => setProfile(p => ({ ...p, soundEnabled: e.target.checked }))}
+              onChange={next => setProfile(p => ({ ...p, soundEnabled: next }))}
             />
           </SettingsRow>
           <SettingsRow label="Haptics" hint="A light tap on press">
-            <input
-              type="checkbox"
+            <Toggle
               checked={profile.hapticsEnabled !== false}
-              onChange={e => setProfile(p => ({ ...p, hapticsEnabled: e.target.checked }))}
+              onChange={next => setProfile(p => ({ ...p, hapticsEnabled: next }))}
             />
           </SettingsRow>
           <SettingsRow label="Notifications" hint="At most two per day. Never about calories.">
@@ -637,11 +630,10 @@ export function SettingsPage() {
               ? 'Calorie, macro, and weight numbers are hidden and your streak is held.'
               : 'Hide calorie, macro, and weight numbers and hold your streak where it is.'}
           >
-            <input
-              type="checkbox"
+            <Toggle
               checked={Boolean(profile.trackingPaused)}
-              onChange={e => {
-                setProfile(p => ({ ...p, trackingPaused: e.target.checked }))
+              onChange={next => {
+                setProfile(p => ({ ...p, trackingPaused: next }))
               }}
             />
           </SettingsRow>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../store/AppContext'
 import { ACTIVITY_PRESETS, DURATION_OPTIONS, estimateKcal, type ActivityPreset } from '../lib/activities'
 import { useDialogFocus } from '../hooks/useDialogFocus'
-import { useHaptic } from '../hooks/useHaptic'
+import { useFeel } from '../hooks/useHaptic'
 
 interface ActivitySheetProps {
   defaultPreset?: ActivityPreset
@@ -12,7 +12,7 @@ interface ActivitySheetProps {
 
 export function ActivitySheet({ defaultPreset, onClose, onLogged }: ActivitySheetProps) {
   const { state, addExercise } = useApp()
-  const vibrate = useHaptic()
+  const feel = useFeel()
   const weightKg = state.profile.weightKg ?? 70
 
   const [selected, setSelected] = useState<ActivityPreset>(defaultPreset ?? ACTIVITY_PRESETS[0])
@@ -33,7 +33,7 @@ export function ActivitySheet({ defaultPreset, onClose, onLogged }: ActivityShee
   function handleLog() {
     if (saved) return
     setSaved(true)
-    vibrate(12)
+    feel('log-confirm')
     const entry = {
       id: crypto.randomUUID(),
       name: selected.name,
@@ -73,7 +73,7 @@ export function ActivitySheet({ defaultPreset, onClose, onLogged }: ActivityShee
               key={preset.id}
               type="button"
               className={`activity-preset-chip${selected.id === preset.id ? ' active' : ''}`}
-              onClick={() => { setSelected(preset); vibrate(8) }}
+              onClick={() => { setSelected(preset); feel('select') }}
             >
               <span className="activity-preset-emoji">{preset.emoji}</span>
               <span className="activity-preset-name">{preset.name}</span>
@@ -90,7 +90,7 @@ export function ActivitySheet({ defaultPreset, onClose, onLogged }: ActivityShee
                 key={d}
                 type="button"
                 className={`activity-dur-chip${durationMins === d ? ' active' : ''}`}
-                onClick={() => { setDurationMins(d); vibrate(6) }}
+                onClick={() => { setDurationMins(d); feel('select') }}
               >
                 {d}m
               </button>

@@ -7,9 +7,9 @@ test.describe('Navigation', () => {
   })
 
   test('bottom nav visits all tabs', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Quests' }).click()
-    await expect(page).toHaveURL('/journey')
-    await expect(page.getByRole('heading', { name: 'Quests' })).toBeVisible()
+    await nav(page).getByRole('link', { name: 'Discover' }).click()
+    await expect(page).toHaveURL('/discover')
+    await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Insights' }).click()
     await expect(page).toHaveURL('/progress')
@@ -25,13 +25,13 @@ test.describe('Navigation', () => {
 
     await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'You showed up.' })).toBeVisible()
   })
 
-  test('quests tab and you coach reach their full pages', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Quests' }).click()
-    await expect(page).toHaveURL('/journey')
-    await expect(page.getByRole('heading', { name: 'Quests' })).toBeVisible()
+  test('discover tab and you coach reach their full pages', async ({ page }) => {
+    await nav(page).getByRole('link', { name: 'Discover' }).click()
+    await expect(page).toHaveURL('/discover')
+    await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
@@ -49,10 +49,10 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL(/\/log\/manual/)
   })
 
-  test('sign out returns to login', async ({ page }) => {
+  test('sign out returns to pre-account onboarding', async ({ page }) => {
     await nav(page).getByRole('link', { name: 'You' }).click()
     await page.getByRole('button', { name: 'Sign out' }).click()
-    await expect(page).toHaveURL(/\/login/)
-    await expect(page.getByRole('heading', { name: 'Fud AI' })).toBeVisible()
+    await expect(page).toHaveURL(/\/onboarding/)
+    await expect(page.getByRole('heading', { name: 'Log a meal in seconds' })).toBeVisible()
   })
 })

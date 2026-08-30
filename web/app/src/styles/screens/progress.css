@@ -324,3 +324,18 @@
 
 /* Days that have not happened yet are absent, not missed. */
 .consistency-dot.is-future { opacity: 0.4; }
+.own-past-callout {
+  display: grid;
+  gap: 3px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--clay-radius-sm);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.own-past-callout span {
+  color: var(--ink-soft);
+}

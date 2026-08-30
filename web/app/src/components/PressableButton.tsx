@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useHaptic } from '../hooks/useHaptic'
+import { useFeel } from '../hooks/useHaptic'
 
 /**
  * The signature component, §6.1. The button looks physically raised and
@@ -36,13 +36,13 @@ export function PressableButton({
   to,
   ...rest
 }: PressableButtonProps) {
-  const vibrate = useHaptic()
+  const feel = useFeel()
   const [pressed, setPressed] = useState(false)
 
   function press() {
     if (disabled) return
     setPressed(true)
-    vibrate(10)
+    feel('press')
   }
 
   const release = () => setPressed(false)
