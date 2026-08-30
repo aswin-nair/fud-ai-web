@@ -13,10 +13,46 @@
 
 /* Small chips and icon buttons keep their look and gain a bigger reach. */
 .range-chip,
+.discover-chip,
+.star-btn,
 .progress-log-btn,
 .ticket-note {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* ── Discover ────────────────────────────────────────────────
+   Saved meals moved from a sub-page under /log to a primary tab, which put its
+   controls under the same floor as every other destination for the first time. */
+
+/* The search field is 22px of text inside a 11px-padded pill. Moving that
+   padding onto the input itself makes the input the 44px target and leaves the
+   pill exactly the height it was. */
+.discover-search { padding-block: 0; }
+.discover-search input { min-height: 44px; }
+
+/* These two keep their painted size: a 26px stepper and a 28px pill would look
+   heavy at 44. The transparent border grows the box that
+   getBoundingClientRect measures — which a pseudo-element would not have. */
+.ssc-btn {
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  border: 9px solid transparent;
+  border-radius: 50%;
+  background-clip: padding-box;
+}
+
+.ssc-btn:hover:not(:disabled) { background-clip: padding-box; }
+
+.log-pill-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 8px solid transparent;
+  background-clip: padding-box;
 }
 
 /* The glasses size from their grid track, so only the height needs a floor. */

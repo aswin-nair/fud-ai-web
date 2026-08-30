@@ -24,7 +24,9 @@ export type IconName =
   | 'home'
   | 'history'
   | 'profile'
-  | 'target';
+  | 'target'
+  | 'insights'
+  | 'discover';
 
 export type IconProps = {
   name: IconName;
@@ -116,6 +118,7 @@ function render(name: IconName, tint: string, stroke: StrokeStyle) {
           <Path d="M7.5 8.5v7M12 8.5v7M16.5 8.5v7" {...stroke} />
         </>
       );
+    case 'discover':
     case 'search':
       return (
         <>
@@ -132,6 +135,7 @@ function render(name: IconName, tint: string, stroke: StrokeStyle) {
           <Path d="M9.6 20.5v-5a2 2 0 0 1 2-2h.8a2 2 0 0 1 2 2v5" {...stroke} />
         </>
       );
+    case 'insights':
     case 'history':
       return (
         <>

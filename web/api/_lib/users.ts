@@ -8,7 +8,7 @@ interface DbUser {
   email: string
   name: string
   picture: string | null
-  provider: 'email' | 'google'
+  provider: 'email' | 'google' | 'apple'
   password_hash: string | null
   password_salt: string | null
 }
@@ -200,4 +200,37 @@ export async function upsertGoogleUser(input: {
     ON CONFLICT (user_id) DO NOTHING
   `
   return toSession(user)
+}
+
+export async function upsertAppleUser(input: {
+  appleSub: string
+  email: string
+  name: string
+}): Promise<SessionUser> {
+  const sql = getDb()
+  const existing = await findUserByExternalSub(input.appleSub)
+  const emailOwner = await findUserByEmail(input.email)
+  if (emailOwner && emailOwner.external_sub !== input.appleSub) {
+    throw new AccountProviderConflictError()
+  }
+  if (existing) return toSession(existing)
+  let rows: DbUser[]
+  try {
+    rows = asRows<DbUser>(await sql`
+      INSERT INTO users (external_sub, email, name, provider)
+      VALUES (${input.appleSub}, ${input.email.toLowerCase()}, ${input.name}, 'apple')
+      RETURNING *
+    `)
+  } catch (error) {
+    if (isUniqueViolation(error)) throw new AccountProviderConflictError()
+    throw error
+  }
+  const appleUser = rows[0]
+  if (!appleUser) throw new Error('Failed to create user')
+  await sql`
+    INSERT INTO user_states (user_id, state)
+    VALUES (${appleUser.id}::uuid, ${JSON.stringify({})}::jsonb)
+    ON CONFLICT (user_id) DO NOTHING
+  `
+  return toSession(appleUser)
 }

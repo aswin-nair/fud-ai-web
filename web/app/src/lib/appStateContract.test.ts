@@ -26,9 +26,14 @@ describe('shared AppState runtime contract', () => {
     state.profile.loggingCommitment = 'detailed'
     state.foodEntries = [{
       id: 'meal-1', name: 'Oats', calories: 300, protein: 12, carbs: 40, fat: 6,
-      timestamp: '2026-08-20T08:00:00.000Z', source: 'manual', mealType: 'breakfast', detailAdded: true,
+      timestamp: '2026-08-20T08:00:00.000Z', source: 'manual', mealType: 'breakfast',
+      detailAdded: true, localDate: '2026-08-20',
     }]
     expect(validateAppState(state, NOW)).toEqual({ ok: true })
+
+    const badDay: Record<string, unknown> = structuredClone(state)
+    ;(badDay.foodEntries as Array<Record<string, unknown>>)[0]!.localDate = '2026-02-30'
+    expect(validateAppState(badDay, NOW).ok).toBe(false)
 
     const invalid: Record<string, unknown> = structuredClone(state)
     ;(invalid.profile as Record<string, unknown>).loggingCommitment = 'maximum'

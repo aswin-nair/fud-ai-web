@@ -1,5 +1,12 @@
 # Mobile signed-build and smoke checklist
 
+Private alpha after the Expo parity pass: EAS `preview` only. Do not submit
+App Store or Play until a later request. Camera, Apple Sign-In, and
+notification strings are in `app.config.ts`. `/api/auth/apple` needs
+`APPLE_CLIENT_ID` and still wants a signed identity-token verify before a
+store build.
+
+
 This checklist prepares a release; it is not evidence that a build or hardware
 test passed. Every checkbox starts open and must be completed against one exact
 Git commit and one immutable EAS build URL.

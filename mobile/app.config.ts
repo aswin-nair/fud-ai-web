@@ -24,7 +24,11 @@ const config: ExpoConfig = {
       // There is no approved iCloud restore path for the nutrition database.
       // Runtime code also marks Documents/SQLite excluded from backup.
       UIFileSharingEnabled: false,
+      NSCameraUsageDescription: 'Fud AI uses the camera so you can log a meal from a photo.',
+      NSPhotoLibraryUsageDescription: 'Fud AI can use a library photo when you choose to log from one.',
+      NSUserNotificationsUsageDescription: 'Optional logging reminders. At most two a day, never about calories.',
     },
+    usesAppleSignIn: true,
     config: {
       // SecureStore uses the operating-system keychain/keystore. Fud AI does
       // not ship a custom, non-exempt encryption implementation.
@@ -43,6 +47,10 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     package: 'com.fudai.mobile',
+    permissions: [
+      'android.permission.CAMERA',
+      'android.permission.POST_NOTIFICATIONS',
+    ],
     predictiveBackGestureEnabled: false,
     versionCode: 1,
   },
@@ -83,6 +91,9 @@ const config: ExpoConfig = {
   extra: {
     // Leave unset. Mobile account and entity sync stay fail-closed.
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? '',
+    eas: {
+      projectId: 'fe3317de-ab58-4e1a-a633-3f2f25c65c23',
+    },
   },
   experiments: {
     typedRoutes: true,

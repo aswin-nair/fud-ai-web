@@ -8,56 +8,59 @@
 export const palette = {
   light: {
     // Nutrition semantics — one job each, never reused
-    onTrack: '#16C47F', // primary CTA, ring fill, success
-    onTrackDeep: '#0E9A5F', // the 4px button shadow face
-    onTrackSoft: '#7FE0B5', // over-budget overflow arc — NOT a warning
-    streak: '#FF6B35', // flame, streak card only
-    protein: '#4A9DFF',
-    carbs: '#FFB020',
-    fat: '#C77DFF',
-    xp: '#4A9DFF', // aliases protein deliberately; XP is informational
+    onTrack: '#FF6B4A',
+    onTrackDeep: '#DE4526',
+    onTrackSoft: '#FFC0A8',
+    streak: '#FF6B4A',
+    protein: '#4A86FF',
+    carbs: '#FFB43D',
+    fat: '#57D9A3',
+    xp: '#4A86FF',
+    herb: '#57D9A3',
+    enamel: '#FFF6EC',
+    dough: '#FFE9C9',
 
     // Destructive only. Never a nutrition state. See §2.4
-    danger: '#FF5A5A',
-    dangerDeep: '#D63E3E',
+    danger: '#E5484D',
+    dangerDeep: '#C13438',
 
-    // Surfaces
-    background: '#F7F8FA',
+    background: '#FFEFE0',
     surface: '#FFFFFF',
-    track: '#F0F1F5', // empty progress track
-    border: '#E6E8EE',
+    track: '#F6E3D0',
+    border: '#E8D4C2',
 
-    // Text
-    textPrimary: '#26262B',
-    textSecondary: '#5F5F68',
-    textMuted: '#8A8A94',
+    textPrimary: '#241A2E',
+    textSecondary: '#6D5C66',
+    textMuted: '#A2919A',
     textOnFill: '#FFFFFF',
 
-    // Tinted card backgrounds
-    tintStreak: '#FFF4EE',
-    tintOnTrack: '#E9FAF3',
+    tintStreak: '#FFF1E8',
+    tintOnTrack: '#FFE8E0',
   },
   dark: {
-    onTrack: '#1FD98C',
-    onTrackDeep: '#12A86B',
-    onTrackSoft: '#4FA982',
-    streak: '#FF7F4F',
+    onTrack: '#FF9070',
+    onTrackDeep: '#DE4526',
+    onTrackSoft: '#C47A68',
+    streak: '#FF9070',
     protein: '#6BAFFF',
     carbs: '#FFC24D',
-    fat: '#D49BFF',
+    fat: '#57D9A3',
     xp: '#6BAFFF',
+    herb: '#57D9A3',
+    enamel: '#2A1F24',
+    dough: '#3A2A22',
     danger: '#FF7070',
     dangerDeep: '#C93B3B',
-    background: '#121316',
-    surface: '#1C1E22',
-    track: '#2A2D33',
-    border: '#2F323A',
-    textPrimary: '#F2F3F5',
-    textSecondary: '#B0B3BB',
-    textMuted: '#7E828C',
+    background: '#1A1416',
+    surface: '#2A2226',
+    track: '#3A3034',
+    border: '#4A3E42',
+    textPrimary: '#FFF6EC',
+    textSecondary: '#D4C4BA',
+    textMuted: '#A2919A',
     textOnFill: '#FFFFFF',
     tintStreak: '#3A2116',
-    tintOnTrack: '#12251D',
+    tintOnTrack: '#3A1E18',
   },
 } as const;
 

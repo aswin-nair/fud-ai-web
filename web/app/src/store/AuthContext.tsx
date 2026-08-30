@@ -6,7 +6,7 @@ import { AUTH_SESSION_STORAGE_KEY, loadAuthSession, saveAuthSession } from '../l
 import { googleAccount, loginAccount, logoutAccount, registerAccount } from '../lib/authService'
 import { apiRefreshSession, clearAuthToken, clearLegacyAuthToken } from '../lib/apiClient'
 import { isCloudBackend } from '../lib/dataBackend'
-import { stageGuestStateForAccount } from '../lib/guestMode'
+import { markAccountSeen, stageGuestStateForAccount } from '../lib/guestMode'
 
 interface AuthContextValue {
   user: AuthUser | null
@@ -21,6 +21,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 function persistUser(user: AuthUser, setUser: (u: AuthUser) => void) {
   saveAuthSession(user)
+  markAccountSeen()
   setUser(user)
 }
 

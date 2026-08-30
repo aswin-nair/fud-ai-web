@@ -54,6 +54,8 @@ export interface FoodEntry {
   ingredients?: FoodIngredientLine[]
   /** True when the user reviewed or enriched the entry before saving. */
   detailAdded?: boolean
+  /** Calendar day YYYY-MM-DD written at log time. */
+  localDate?: string
 }
 
 export interface SavedMeal {

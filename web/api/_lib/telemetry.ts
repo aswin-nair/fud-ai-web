@@ -33,6 +33,7 @@ const API_ROUTES = new Set([
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/google',
+  '/api/auth/apple',
   '/api/auth/logout',
   '/api/auth/logout-all',
   '/api/auth/refresh',

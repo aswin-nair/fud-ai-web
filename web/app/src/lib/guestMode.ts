@@ -1,9 +1,29 @@
+import { canStageGuestClaim, guestUserIdFromDevice } from '@fud-ai/product/guestClaim'
 import { clearDurableUser, loadDurableState, saveDurableLocalSnapshot } from './durableState'
 import { clearOnboardingDraft } from './onboarding'
 import { clearUserState } from './storage'
 
 const DEVICE_ID_KEY = 'fud-ai-guest-device-id'
 const CLAIM_PREFIX = 'fud-ai-guest-claim-'
+const ACCOUNT_SEEN_KEY = 'fud-ai-account-seen'
+
+/**
+ * Remembers that this device has held a real account, so signing out lands on
+ * the login screen instead of restarting the guest journey. Without it a
+ * returning person is dropped into onboarding with no route back to their own
+ * data. Deleting the account clears it and the device is genuinely fresh again.
+ */
+export function markAccountSeen(): void {
+  try { localStorage.setItem(ACCOUNT_SEEN_KEY, '1') } catch { /* private mode */ }
+}
+
+export function hasSeenAccount(): boolean {
+  try { return localStorage.getItem(ACCOUNT_SEEN_KEY) === '1' } catch { return false }
+}
+
+export function clearAccountSeen(): void {
+  try { localStorage.removeItem(ACCOUNT_SEEN_KEY) } catch { /* private mode */ }
+}
 
 export function guestUserId(): string {
   let id = localStorage.getItem(DEVICE_ID_KEY)
@@ -11,7 +31,7 @@ export function guestUserId(): string {
     id = crypto.randomUUID()
     localStorage.setItem(DEVICE_ID_KEY, id)
   }
-  return `guest:${id}`
+  return guestUserIdFromDevice(id)
 }
 
 /**
@@ -22,11 +42,15 @@ export function guestUserId(): string {
 export async function stageGuestStateForAccount(accountId: string): Promise<boolean> {
   const sourceId = guestUserId()
   const guest = await loadDurableState(sourceId)
-  if (!guest?.state.onboarded || guest.state.foodEntries.length === 0) return false
   const account = await loadDurableState(accountId)
   // Never overwrite unsynced work from a previous account session. The guest
   // copy stays intact on its own key and can be exported or claimed later.
-  if (account?.pendingCount) return false
+  if (!canStageGuestClaim({
+    guestOnboarded: Boolean(guest?.state.onboarded),
+    guestFoodCount: guest?.state.foodEntries.length ?? 0,
+    accountPendingCount: account?.pendingCount ?? 0,
+  })) return false
+  if (!guest) return false
 
   await saveDurableLocalSnapshot(accountId, guest.state)
   localStorage.setItem(`${CLAIM_PREFIX}${accountId}`, sourceId)

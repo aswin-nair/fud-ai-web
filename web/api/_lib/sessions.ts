@@ -118,7 +118,7 @@ export async function rotateRefreshToken(presentedToken: string): Promise<Rotate
     email: string
     name: string
     picture: string | null
-    provider: 'email' | 'google'
+    provider: 'email' | 'google' | 'apple'
   }>(await sql`
     SELECT
       session.id,

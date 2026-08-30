@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import changePassword from './_auth/change-password.js'
 import forgotPassword from './_auth/forgot-password.js'
+import apple from './_auth/apple.js'
 import google from './_auth/google.js'
 import login from './_auth/login.js'
 import logout from './_auth/logout.js'
@@ -13,6 +14,7 @@ import { json, serverError } from './_lib/http.js'
 const AUTH_ACTIONS = {
   'change-password': changePassword,
   'forgot-password': forgotPassword,
+  apple,
   google,
   login,
   logout,

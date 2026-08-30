@@ -10,6 +10,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="blocked" options={{ gestureEnabled: false }} />
       <Stack.Screen name="activity" />
       <Stack.Screen name="goal" />
+      <Stack.Screen name="pace" />
       <Stack.Screen name="review" />
     </Stack>
   );

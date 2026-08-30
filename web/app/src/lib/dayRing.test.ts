@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { FoodEntry } from '../types'
 import { dayRingProgress } from './dayRing'
@@ -28,8 +27,9 @@ describe('dayRingProgress', () => {
     expect(dayRingProgress([entry('breakfast')], 1, 'detailed').arcs[2].value).toBe(1)
   })
 
-  it('keeps the progress engine independent of nutrition outcomes', () => {
-    const source = readFileSync(new URL('./dayRing.ts', import.meta.url), 'utf8')
-    expect(source).not.toMatch(/\b(calories?|macros?|targets?)\b/i)
-  })
+  /* The §3.3 guardrail — that the ring never reads calories, macros or targets —
+     is asserted against the real implementation in
+     packages/product/src/dayRing.test.ts, which the root `npm test` runs. It was
+     duplicated here until dayRing.ts became a re-export, at which point this
+     copy was scanning a four-line shim and passing without checking anything. */
 })

@@ -1,257 +1,161 @@
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-import { ScrollView, View } from 'react-native';
+import { dayRingProgress, localDayKey } from '@fud-ai/product'
+import { router } from 'expo-router';
+import { Pressable, ScrollView, View } from 'react-native';
 
 import { CalorieRing } from '@/components/domain/CalorieRing';
-import { MacroGroup } from '@/components/domain/MacroGroup';
-import { Mascot } from '@/components/domain/Mascot';
-import { MealRow } from '@/components/domain/MealRow';
-import { QuestCard } from '@/components/domain/QuestCard';
-import { StreakBadge } from '@/components/domain/StreakBadge';
+import { MomoOverlay } from '@/components/momo/MomoOverlay';
 import { Card } from '@/components/primitives/Card';
 import { PressableButton } from '@/components/primitives/PressableButton';
 import { Screen } from '@/components/primitives/Screen';
 import { Text } from '@/components/primitives/Text';
-import { deleteEntry, type EntryWithFood } from '@/db/queries/entries';
-import { type MealSlot } from '@/db/schema';
-import { MEAL_SLOT_LABEL, MEAL_SLOTS } from '@/logic/mealSlot';
-import { levelFor } from '@/logic/points';
-import { useDayStore } from '@/stores/dayStore';
-import { useFeedbackStore } from '@/stores/feedbackStore';
-import { useLogStore } from '@/stores/logStore';
-import { useProfileStore } from '@/stores/profileStore';
-import { openSession, recordChange } from '@/stores/progression';
-import { useQuestStore } from '@/stores/questStore';
+import { DayRing } from '@/components/today/DayRing';
+import { confirm as hapticConfirm } from '@/feel/haptics';
+import { play } from '@/feel/sound';
+import { ageOn, computeTargets } from '@/logic/nutrition';
+import { useApp } from '@/state/AppProvider';
+import { entriesForDay, loggingStreak, macroTotals } from '@/state/journey';
 import { useTheme } from '@/theme/useTheme';
-import { type QuestType } from '@/logic/quests';
-import { type IconName } from '@/components/icons/Icon';
 
-const QUEST_ICON: Record<QuestType, IconName> = {
-  log_n_meals: 'plus',
-  log_before: 'history',
-  log_streak: 'flame',
-};
-
-export default function Home() {
+export default function Today() {
   const theme = useTheme();
-  const profile = useProfileStore((s) => s.profile);
-  const timezone = useProfileStore((s) => s.timezone)();
-  const { entries, totals, streak, points } = useDayStore();
-  const beginLog = useLogStore((s) => s.begin);
-  const quest = useQuestStore();
-  // True for a couple of seconds after a log lands. §11.1.
-  const happy = useFeedbackStore((s) => s.happy);
-
-  useFocusEffect(
-    useCallback(() => {
-      // The freeze must be applied before anything reads the streak, or a user
-      // whose freeze covered yesterday sees a zero flash before it is rescued.
-      void openSession(timezone).then(() => recordChange(timezone));
-    }, [timezone]),
-  );
-
-  if (!profile) return null;
-
-  const paused = profile.trackingPaused;
-  const level = levelFor(points);
-
-  function openLog() {
-    beginLog();
-    router.push('/log');
-  }
-
-  async function remove(id: number) {
-    await deleteEntry(id);
-    await recordChange(timezone);
-  }
+  const { state, guest, importNotice, dismissImportNotice, setWater, addNote } = useApp();
+  const today = new Date();
+  const dayKey = localDayKey(today);
+  const dayEntries = entriesForDay(state.foodEntries, today);
+  const totals = macroTotals(dayEntries);
+  const streak = loggingStreak(state.foodEntries, state.gamification);
+  const notes = state.gamification.notesByDate[dayKey] ?? 0;
+  const water = state.gamification.waterByDate[dayKey] ?? 0;
+  const ring = dayRingProgress(dayEntries, notes, state.profile.loggingCommitment ?? 'light');
+  const paused = Boolean(state.profile.trackingPaused);
+  const targets = computeTargets({
+    sex: state.profile.gender === 'male' ? 'male' : 'female',
+    ageYears: ageOn(state.profile.birthday),
+    heightCm: state.profile.heightCm,
+    weightKg: state.profile.weightKg,
+    activityLevel: state.profile.activityLevel === 'extraActive' ? 'veryActive' : state.profile.activityLevel,
+    goal: state.profile.goal,
+    weeklyRatePct: state.profile.weeklyChangeKg ?? 0.5,
+  });
+  const calorieTarget = targets.ok ? targets.targets.dailyKcalTarget : 2000;
+  const proteinGoal = targets.ok ? targets.targets.proteinGTarget : 100;
+  const carbsGoal = targets.ok ? targets.targets.carbsGTarget : 200;
+  const fatGoal = targets.ok ? targets.targets.fatGTarget : 70;
 
   return (
     <Screen>
-      <ScrollView
-        contentContainerStyle={{
-          gap: theme.space.xl,
-          padding: theme.space.lg,
-          paddingBottom: theme.space.xxl * 3,
-        }}
-      >
-        <View
-          style={{
-            alignItems: 'center',
-            flexDirection: 'row',
-            gap: theme.space.sm,
-            justifyContent: 'space-between',
-          }}
-        >
-          <StreakBadge atRisk={streak.atRisk} count={streak.count} />
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text variant="label">{points} pts</Text>
-            <Text color="textMuted" variant="caption">
-              Level {level.level}
-            </Text>
-          </View>
+      <ScrollView contentContainerStyle={{ gap: theme.space.lg, padding: theme.space.lg, paddingBottom: 140 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text variant="title">Today</Text>
+          <Text color="onTrack" variant="subtitle">{streak} day streak · Lv {state.gamification.level}</Text>
         </View>
 
+        {importNotice ? (
+          <Card>
+            <Text variant="body">{importNotice}</Text>
+            <PressableButton label="Got it" onPress={dismissImportNotice} />
+          </Card>
+        ) : null}
+
+        {guest ? (
+          <Card>
+            <Text variant="subtitle">Save your progress</Text>
+            <Text color="textSecondary" variant="body">Create an account to keep this device log and sync it with the web app.</Text>
+            <PressableButton label="Save progress" onPress={() => router.push('/login?claim=1' as never)} />
+          </Card>
+        ) : null}
+
         {paused ? (
-          <PausedCard />
+          <Card>
+            <Text variant="subtitle">Tracking is paused</Text>
+            <Text color="textSecondary">Numbers are hidden. Your streak is held.</Text>
+          </Card>
         ) : (
           <>
-            <View style={{ alignItems: 'center', gap: theme.space.sm }}>
-              <View>
-                <CalorieRing
-                  consumed={totals.kcal}
-                  size={180}
-                  target={profile.dailyKcalTarget}
-                />
-                {/* Absolutely placed so appearing and leaving never reflows the
-                    ring — the ring is mid-animation at exactly this moment. */}
-                {happy ? (
-                  <View
-                    pointerEvents="none"
-                    style={{
-                      bottom: 0,
-                      position: 'absolute',
-                      right: -theme.space.xxl,
-                    }}
-                  >
-                    <Mascot size={64} state="happy" />
-                  </View>
-                ) : null}
-              </View>
-              <Text color="textMuted" variant="label">
-                {Math.round(totals.kcal)} of {profile.dailyKcalTarget} today
-              </Text>
+            <DayRing progress={ring} />
+            <Pressable onPress={() => guest ? router.push('/login?claim=1' as never) : router.push('/log')}>
+              <CalorieRing consumed={totals.calories} target={calorieTarget} />
+            </Pressable>
+            <View style={{ flexDirection: 'row', gap: theme.space.sm }}>
+              <MacroChip label="Protein" current={totals.protein} goal={proteinGoal} color="protein" />
+              <MacroChip label="Carbs" current={totals.carbs} goal={carbsGoal} color="carbs" />
+              <MacroChip label="Fat" current={totals.fat} goal={fatGoal} color="fat" />
             </View>
-
             <Card>
-              <MacroGroup
-                consumed={{
-                  protein: totals.proteinG,
-                  carbs: totals.carbsG,
-                  fat: totals.fatG,
-                }}
-                target={{
-                  protein: profile.proteinGTarget,
-                  carbs: profile.carbsGTarget,
-                  fat: profile.fatGTarget,
-                }}
+              <Text variant="subtitle">Water</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <Pressable
+                    key={i}
+                    onPress={() => setWater(dayKey, i + 1 === water ? i : i + 1)}
+                    style={{
+                      backgroundColor: i < water ? theme.colors.protein : theme.colors.track,
+                      borderRadius: 16,
+                      height: 32,
+                      width: 32,
+                    }}
+                  />
+                ))}
+              </View>
+              <PressableButton
+                label="Kitchen note"
+                onPress={() => addNote(dayKey)}
+                variant="secondary"
               />
             </Card>
-
-            {quest.spec ? (
-              <QuestCard
-                current={quest.progress}
-                goal={quest.spec.target}
-                icon={QUEST_ICON[quest.spec.type]}
-                title={quest.title}
-              />
-            ) : null}
+            <View style={{ gap: theme.space.sm }}>
+              <Text variant="subtitle">Logged</Text>
+              {dayEntries.length === 0 ? (
+                <Text color="textSecondary">Nothing logged yet — start with breakfast.</Text>
+              ) : dayEntries.map(entry => (
+                <Pressable key={entry.id} onPress={() => router.push(`/entry/${entry.id}`)}>
+                  <Card>
+                    <Text variant="body">{entry.name}</Text>
+                    <Text color="textSecondary" variant="caption">{Math.round(entry.calories)} kcal</Text>
+                  </Card>
+                </Pressable>
+              ))}
+            </View>
           </>
         )}
 
-        {entries.length === 0 ? (
-          <EmptyToday onLog={openLog} />
-        ) : (
-          MEAL_SLOTS.map((slot) => (
-            <SlotSection
-              entries={entries.filter((entry) => entry.mealSlot === slot)}
-              key={slot}
-              onDelete={(id) => void remove(id)}
-              onEdit={(id) => router.push(`/entry/${id}`)}
-              slot={slot}
-            />
-          ))
-        )}
+        {!guest ? (
+          <PressableButton
+            fullWidth
+            label="Log a meal"
+            onPress={() => {
+              void hapticConfirm();
+              play('logConfirm');
+              router.push('/log');
+            }}
+          />
+        ) : null}
       </ScrollView>
-
-      <View
-        style={{
-          bottom: theme.space.xl,
-          left: theme.space.lg,
-          position: 'absolute',
-          right: theme.space.lg,
-        }}
-      >
-        <PressableButton fullWidth label="Log a meal" onPress={openLog} />
-      </View>
+      <MomoOverlay />
     </Screen>
   );
 }
 
-function SlotSection({
-  slot,
-  entries,
-  onEdit,
-  onDelete,
+function MacroChip({
+  label,
+  current,
+  goal,
+  color,
 }: {
-  slot: MealSlot;
-  entries: EntryWithFood[];
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  label: string
+  current: number
+  goal: number
+  color: 'protein' | 'carbs' | 'fat'
 }) {
   const theme = useTheme();
-  if (entries.length === 0) return null;
-
+  const pct = goal > 0 ? Math.min(1, current / goal) : 0;
   return (
-    <View style={{ gap: theme.space.sm }}>
-      <Text color="textSecondary" variant="label">
-        {MEAL_SLOT_LABEL[slot]}
-      </Text>
-      <Card style={{ overflow: 'hidden', padding: 0 }}>
-        {entries.map((entry) => (
-          <MealRow
-            calories={entry.kcal}
-            key={entry.id}
-            macros={{
-              protein: entry.proteinG,
-              carbs: entry.carbsG,
-              fat: entry.fatG,
-            }}
-            name={entry.foodName ?? entry.customName ?? 'Entry'}
-            onDelete={() => onDelete(entry.id)}
-            onEdit={() => onEdit(entry.id)}
-            portion={`${formatServings(entry.servings)}×`}
-          />
-        ))}
-      </Card>
+    <View style={{ backgroundColor: theme.colors.surface, borderRadius: 16, flex: 1, padding: 10 }}>
+      <Text variant="caption">{label}</Text>
+      <View style={{ backgroundColor: theme.colors.track, borderRadius: 99, height: 6, marginVertical: 6 }}>
+        <View style={{ backgroundColor: theme.colors[color], borderRadius: 99, height: 6, width: `${pct * 100}%` }} />
+      </View>
+      <Text variant="caption">{Math.round(current)} / {goal}</Text>
     </View>
   );
-}
-
-/** An invitation, not an apology: names the space and offers one action. */
-function EmptyToday({ onLog }: { onLog: () => void }) {
-  const theme = useTheme();
-
-  return (
-    <Card style={{ alignItems: 'center', gap: theme.space.md }}>
-      <Mascot size={96} state="idle" />
-      <Text align="center" variant="subtitle">
-        Today is a blank page
-      </Text>
-      <Text align="center" color="textSecondary" variant="body">
-        Log anything at all and the day counts.
-      </Text>
-      <PressableButton label="Log a meal" onPress={onLog} variant="secondary" />
-    </Card>
-  );
-}
-
-function PausedCard() {
-  const theme = useTheme();
-
-  return (
-    <Card tint="onTrack" style={{ alignItems: 'center', gap: theme.space.md }}>
-      <Mascot size={96} state="sleeping" />
-      <Text align="center" variant="subtitle">
-        Tracking is paused
-      </Text>
-      <Text align="center" color="textSecondary" variant="body">
-        Calorie and macro numbers are hidden and your streak is held where it
-        is. Turn tracking back on in settings whenever you want to.
-      </Text>
-    </Card>
-  );
-}
-
-function formatServings(servings: number): string {
-  return Number.isInteger(servings) ? String(servings) : servings.toFixed(1);
 }

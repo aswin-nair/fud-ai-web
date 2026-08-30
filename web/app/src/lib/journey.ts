@@ -1,10 +1,11 @@
 import { grantMonthlyFreeze, planFreeze } from '@fud-ai/domain/freezes'
 import { deriveLoggingStreak } from '@fud-ai/domain/streak'
+import { entryDayKey } from '@fud-ai/product/localDate'
 import type { FoodEntry, GamificationState } from '../types'
 import { localDayKey } from './dates'
 
 export function getTotalLoggedDays(entries: FoodEntry[]): number {
-  return new Set(entries.map(e => localDayKey(new Date(e.timestamp)))).size
+  return new Set(entries.map(entryDayKey)).size
 }
 
 export interface MonthConsistency {
@@ -31,7 +32,7 @@ export function getMonthConsistency(
   const month = ref.getMonth()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  const loggedKeys = new Set(entries.map(e => localDayKey(new Date(e.timestamp))))
+  const loggedKeys = new Set(entries.map(entryDayKey))
   const isCurrentMonth =
     ref.getFullYear() === new Date().getFullYear() && ref.getMonth() === new Date().getMonth()
   const elapsed = isCurrentMonth ? ref.getDate() : daysInMonth
@@ -58,7 +59,7 @@ export function getStreakWithFreezes(
   if (!entries.length) return 0
 
   return deriveLoggingStreak({
-    loggedDates: entries.map(e => localDayKey(new Date(e.timestamp))),
+    loggedDates: entries.map(entryDayKey),
     freezeDates: freezeUsedDates,
     neutralDates: pauseProtectedDates,
     today: localDayKey(new Date()),
@@ -78,7 +79,7 @@ export function applyFreeze(
   freezeEarnedMonth = grant.earnedMonth
 
   const plan = planFreeze(
-    entries.map(entry => localDayKey(new Date(entry.timestamp))),
+    entries.map(entryDayKey),
     freezeUsedDates,
     today,
     streakFreezes,
@@ -156,7 +157,7 @@ export function getBreakfastComparison(
   const breakfastDays = new Set(
     entries
       .filter(entry => entry.mealType === 'breakfast')
-      .map(entry => localDayKey(entry.timestamp)),
+      .map(entryDayKey),
   )
   const countEndingOn = (end: Date) => {
     let count = 0

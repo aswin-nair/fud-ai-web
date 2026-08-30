@@ -5,7 +5,7 @@ export type AccountUser = {
   sub: string
   email: string
   name: string
-  provider: 'email' | 'google'
+  provider: 'email' | 'google' | 'apple'
 }
 
 export type MobileSessionResponse = {

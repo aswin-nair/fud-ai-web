@@ -20,8 +20,8 @@ import { initSound, releaseSound, setSoundEnabled } from '@/feel/sound';
 import { excludeNutritionDatabaseFromBackup } from '@/privacy/databaseBackupNative';
 import { loadRestoredOnboardingDraft } from '@/privacy/onboardingDraftStore';
 import { AppLockGate } from '@/security/AppLockGate';
+import { AppProvider, useApp } from '@/state/AppProvider';
 import { useOnboardingStore } from '@/stores/onboardingStore';
-import { useProfileStore } from '@/stores/profileStore';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 
 void SplashScreen.preventAutoHideAsync();
@@ -36,9 +36,6 @@ export default function RootLayout() {
 
   const { success: migrated, error: migrationError } = useMigrations();
   const [dataReady, setDataReady] = useState(false);
-  const loadProfile = useProfileStore((s) => s.load);
-  const soundOn = useProfileStore((s) => s.profile?.soundEnabled ?? true);
-  const hapticsOn = useProfileStore((s) => s.profile?.hapticsEnabled ?? true);
 
   const fontsSettled = fontsLoaded || fontError !== null;
 
@@ -51,12 +48,11 @@ export default function RootLayout() {
       .then(async () => {
         const draft = await loadRestoredOnboardingDraft();
         if (draft) useOnboardingStore.getState().set(draft);
-        await loadProfile();
         await excludeNutritionDatabaseFromBackup();
       })
       .catch(() => undefined)
       .finally(() => setDataReady(true));
-  }, [migrated, loadProfile]);
+  }, [migrated]);
 
   // The feel layer is set up once, before any screen can fire a cue.
   useEffect(() => {
@@ -72,10 +68,7 @@ export default function RootLayout() {
   // Both toggles are stored on the profile but consumed by plain modules, so
   // they are pushed across here rather than read at each call site. Covers the
   // initial load and every later flip of the switch in settings.
-  useEffect(() => {
-    setSoundEnabled(soundOn);
-    setHapticsEnabled(hapticsOn);
-  }, [soundOn, hapticsOn]);
+  // Feel toggles are pushed from AppFeelBridge after AppProvider mounts.
 
   const ready = fontsSettled && migrated && dataReady;
 
@@ -104,20 +97,35 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <ThemeProvider>
-        <AppLockGate>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(onboarding)" />
-            {/* The two log steps sit on the root stack rather than a nested one so
-                that dismissAll() on confirm returns all the way to Home. */}
-            <Stack.Screen name="log/index" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="log/portion" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="entry/[id]" options={{ presentation: 'modal' }} />
-          </Stack>
-        </AppLockGate>
+        <AppProvider>
+          <FeelBridge />
+          <AppLockGate>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(onboarding)" />
+              <Stack.Screen name="log/index" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="log/portion" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="log/photo" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="log/text" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="log/manual" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="entry/[id]" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="login" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="coach" />
+            </Stack>
+          </AppLockGate>
+        </AppProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
+}
+
+function FeelBridge() {
+  const { state } = useApp();
+  useEffect(() => {
+    setSoundEnabled(state.profile.soundEnabled ?? true);
+    setHapticsEnabled(state.profile.hapticsEnabled ?? true);
+  }, [state.profile.hapticsEnabled, state.profile.soundEnabled]);
+  return null;
 }
 
 const styles = StyleSheet.create({

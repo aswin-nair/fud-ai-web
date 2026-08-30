@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { type ActivityLevel, type Goal, type Sex } from '@/db/schema';
+import type { LoggingCommitment } from '@/state/types';
 
 export type OnboardingDraft = {
   name: string;
@@ -12,6 +13,7 @@ export type OnboardingDraft = {
   goal: Goal | null;
   weeklyRatePct: number;
   goalWeightKg: number | null;
+  loggingCommitment: LoggingCommitment;
 };
 
 const EMPTY: OnboardingDraft = {
@@ -24,6 +26,7 @@ const EMPTY: OnboardingDraft = {
   goal: null,
   weeklyRatePct: 0.5,
   goalWeightKg: null,
+  loggingCommitment: 'light',
 };
 
 type OnboardingState = OnboardingDraft & {

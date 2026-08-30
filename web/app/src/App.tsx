@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { googleClientId, isGoogleAuthConfigured } from './lib/auth'
+import { hasSeenAccount } from './lib/guestMode'
 import { AuthProvider, useAuth } from './store/AuthContext'
 import { AppProvider, useApp } from './store/AppContext'
 import { ToastProvider } from './components/Toast'
@@ -98,13 +99,18 @@ function GuestRoutes() {
   const { state } = useApp()
 
   if (!state.onboarded) {
+    // A device that has held an account belongs to someone coming back, not to a
+    // first-time visitor. Sending them to onboarding would make them rebuild a
+    // profile they already have, so the fallback becomes the login screen —
+    // which also covers session expiry, not just an explicit sign-out.
+    const fallback = hasSeenAccount() ? '/login' : '/onboarding'
     return (
       <Routes>
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+        <Route path="*" element={<Navigate to={fallback} replace />} />
       </Routes>
     )
   }

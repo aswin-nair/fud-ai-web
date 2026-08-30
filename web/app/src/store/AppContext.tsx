@@ -19,6 +19,7 @@ import {
   stateWithoutPrivateSecrets,
 } from '../lib/storage'
 
+import { stampLocalDate } from '@fud-ai/product/localDate'
 import { mealKey, entryToSaved, savedToEntry } from '../lib/meals'
 
 import { useAuth } from './AuthContext'
@@ -870,17 +871,18 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
     },
 
     addEntry: (entry) => {
+      const stamped = { ...entry, localDate: entry.localDate ?? stampLocalDate(entry.timestamp) }
       finishLogFlow({
-        entryId: entry.id,
-        source: entry.source,
-        mealSlot: entry.mealType,
+        entryId: stamped.id,
+        source: stamped.source,
+        mealSlot: stamped.mealType,
         firstLog: state.foodEntries.length === 0,
       })
       setState(s => {
-        const advanced = advanceAfterLog(s, entry)
+        const advanced = advanceAfterLog(s, stamped)
         return {
           ...s,
-          foodEntries: [...s.foodEntries, entry],
+          foodEntries: [...s.foodEntries, stamped],
           gamification: advanced.gamification,
         }
       })

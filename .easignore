@@ -1,0 +1,36 @@
+# EAS uses this instead of .gitignore when present. Keep both in sync
+# for secrets, plus drop web screenshots and other non-mobile bulk.
+
+node_modules/
+.DS_Store
+.env
+.env.*
+!.env.example
+web/.env
+web/app/.env.local
+.claude/
+.vercel
+.idea/
+.gradle/
+local.properties
+*.iml
+*.jks
+.cxx/
+DerivedData/
+build/
+ios/build-sim/
+ios/Local.xcconfig
+release-artifacts/
+mobile/dist-export/
+
+# Not needed to compile the Expo app
+/android/
+/ios/
+/web/
+/.tmp-enamel-zip/
+/docs/
+/scripts/
+/design/
+/ENGAGEMENT_PLAN.md
+/UI_PLAN.md
+**/.ui-shots/

@@ -8,7 +8,7 @@ export interface SessionUser {
   email: string
   name: string
   picture?: string
-  provider: 'email' | 'google'
+  provider: 'email' | 'google' | 'apple'
 }
 
 export interface SessionClaims {

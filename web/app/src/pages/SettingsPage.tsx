@@ -34,6 +34,7 @@ import { isCloudBackend } from '../lib/dataBackend'
 import { deleteLocalAccount } from '../lib/localAuth'
 import { clearDurableUser } from '../lib/durableState'
 import { clearOnboardingDraft } from '../lib/onboarding'
+import { clearAccountSeen } from '../lib/guestMode'
 import { COSMETICS, equipCosmetic } from '../lib/enamelEconomy'
 import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
 import { Momo } from '../components/Momo'
@@ -185,6 +186,10 @@ export function SettingsPage() {
         () => clearOnboardingDraft(user.sub),
         clearNotificationHistory,
         clearAnalytics,
+        // The account is gone, so this device is genuinely new again and should
+        // start at onboarding rather than a login screen for an account that
+        // no longer exists.
+        clearAccountSeen,
       ]) {
         try { cleanup() } catch { localCleanupFailed = true }
       }

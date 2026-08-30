@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import welcome1 from '@assets/welcome-1.webp'
 import welcome2 from '@assets/welcome-2.webp'
 import welcome3 from '@assets/welcome-3.webp'
@@ -291,6 +291,9 @@ export function OnboardingPage() {
             {isLast ? 'Get started' : 'Continue'}
             <IconChevronRight size={16} strokeWidth={2.4} />
           </PressableButton>
+          <Link to="/login" className="onboarding-signin-link welcome-signin-link">
+            I already have an account
+          </Link>
         </div>
       </div>
     )
@@ -309,6 +312,12 @@ export function OnboardingPage() {
           <span className="onboarding-step-label">
             Step {step + 1} of {STEPS.length}: {STEPS[step]}
           </span>
+          {/* The welcome carousel is skippable, so the way back to an existing
+              account has to survive here too — otherwise someone on a new
+              device rebuilds a profile they already have. */}
+          <Link to="/login" className="onboarding-signin-link">
+            I already have an account
+          </Link>
         </div>
 
         {validationError && <div className="error-banner" role="alert">{validationError}</div>}

@@ -11,10 +11,11 @@
     "test:staging": "npm run test:staging --prefix web",
     "preview": "npm run preview --prefix web/app",
     "lint": "npm run lint --prefix web/app",
-    "test": "npm run test:web && npm run test:api && npm run test:mobile",
+    "test": "npm run test:web && npm run test:api && npm run test:mobile && npm run test:product",
     "test:web": "npm run test --prefix web/app",
     "test:api": "npm run test:api --prefix web",
     "test:mobile": "npm run test --prefix mobile",
+    "test:product": "npm run test --prefix packages/product",
     "typecheck:api": "npm run typecheck:api --prefix web",
     "typecheck:mobile": "npm run typecheck --prefix mobile",
     "security:scan": "node scripts/security-scan.mjs",
@@ -28,6 +29,6 @@
     "support:check": "node scripts/support-resource-check.mjs",
     "copy-policy": "node --test scripts/copy-policy.test.mjs",
     "test:e2e": "npm run test:e2e --prefix web/app",
-    "ci": "npm run security:scan:test && npm run security:scan && npm run copy-policy && npm run release:check:test && npm run beta:rehearsal:test && npm run release:check:structure && npm run release:bundle && npm run support:check && npm run verify:deploy && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run test:staging && npm run typecheck:mobile && npm run test:mobile"
+    "ci": "npm run security:scan:test && npm run security:scan && npm run copy-policy && npm run release:check:test && npm run beta:rehearsal:test && npm run release:check:structure && npm run release:bundle && npm run support:check && npm run verify:deploy && npm run ci --prefix web/app && npm run test:api && npm run typecheck:api && npm run test:staging && npm run typecheck:mobile && npm run test:mobile && npm run test:product"
   }
 }

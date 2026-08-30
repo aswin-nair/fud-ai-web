@@ -1,4 +1,5 @@
 import type { AppState, FoodEntry, GamificationState } from '../types'
+import { entryDayKey } from '@fud-ai/product/localDate'
 import { localDayKey } from './dates'
 import { defaultProfile, profileInputIssue } from './profile'
 import { defaultAISettings, normalizeAISettings } from './aiConfig'
@@ -347,7 +348,7 @@ export function dayKey(date: Date): string {
 export function entriesForDay(entries: FoodEntry[], date: Date): FoodEntry[] {
   const key = dayKey(date)
   return entries
-    .filter(e => localDayKey(e.timestamp) === key)
+    .filter(e => entryDayKey(e) === key)
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
 }
 

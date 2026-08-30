@@ -55,7 +55,7 @@ export default function GoalStep() {
     });
     draft.set(nextDraft);
     void persistOnboardingDraft(nextDraft);
-    router.push('/(onboarding)/review');
+    router.push('/(onboarding)/pace' as never);
   }
 
   return (

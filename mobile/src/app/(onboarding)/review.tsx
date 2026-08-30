@@ -12,6 +12,8 @@ import { ageOn } from '@/logic/nutrition';
 import { computeTargets } from '@/logic/nutrition';
 import { pickDraftFields } from '@/privacy/onboardingDraft';
 import { persistOnboardingDraft } from '@/privacy/onboardingDraftStore';
+import { useApp } from '@/state/AppProvider';
+import { defaultProfile } from '@/state/defaults';
 import { useLogStore } from '@/stores/logStore';
 import { useOnboardingStore } from '@/stores/onboardingStore';
 import { useProfileStore } from '@/stores/profileStore';
@@ -22,6 +24,7 @@ export default function Review() {
   const draft = useOnboardingStore();
   const createProfile = useProfileStore((s) => s.create);
   const beginLog = useLogStore((s) => s.begin);
+  const completeOnboarding = useApp().completeOnboarding;
   const [saving, setSaving] = useState(false);
 
   const result = computeTargets({
@@ -85,12 +88,24 @@ export default function Review() {
         fatGTarget: targets.fatGTarget,
       });
 
+      completeOnboarding({
+        ...defaultProfile(),
+        name: draft.name || undefined,
+        birthday: draft.dateOfBirth,
+        gender: draft.sex === 'female' ? 'female' : 'male',
+        heightCm: draft.heightCm ?? 170,
+        weightKg: draft.weightKg ?? 70,
+        activityLevel: draft.activityLevel ?? 'sedentary',
+        goal: draft.goal ?? 'maintain',
+        weeklyChangeKg: draft.weeklyRatePct,
+        loggingCommitment: draft.loggingCommitment,
+      });
       await persistOnboardingDraft(pickDraftFields(draft), {
         profilePresent: true,
         firstLogRecorded: false,
       });
       beginLog();
-      router.replace('/log?firstMeal=1');
+      router.replace('/log/manual' as never);
     } finally {
       setSaving(false);
     }

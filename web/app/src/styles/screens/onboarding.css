@@ -313,6 +313,38 @@
   letter-spacing: 0.05em;
 }
 
+/* Quiet by design: the way back to an existing account must always be present,
+   without competing with the step the person is actually on. */
+.onboarding-signin-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.onboarding-signin-link:hover {
+  color: var(--coral-start);
+}
+
+.welcome-signin-link {
+  margin: 4px auto 0;
+  justify-content: center;
+  color: var(--on-accent);
+  opacity: 0.92;
+}
+
+.welcome-signin-link:hover {
+  color: var(--on-accent);
+  opacity: 1;
+}
+
 .onboarding-step-content {
   flex: 1;
   display: flex;

@@ -1,4 +1,5 @@
 import { defaultMealSlot } from '@fud-ai/domain/meals'
+import { stampLocalDate } from '@fud-ai/product/localDate'
 import type { FoodEntry, MealType, SavedMeal } from '../types'
 import { localDayKey } from './dates'
 
@@ -35,6 +36,7 @@ export function savedToEntry(saved: SavedMeal, source: FoodEntry['source'] = 'ma
     ingredients: saved.ingredients,
     source,
     timestamp: new Date().toISOString(),
+    localDate: stampLocalDate(new Date().toISOString()),
   }
 }
 
@@ -63,6 +65,7 @@ export function quickAddEntry(calories: number): FoodEntry {
     source: 'quickAdd',
     mealType: defaultMealType(),
     timestamp: new Date().toISOString(),
+    localDate: stampLocalDate(new Date().toISOString()),
   }
 }
 

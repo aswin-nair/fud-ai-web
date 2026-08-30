@@ -108,6 +108,7 @@ npx vercel deploy --prod
 | 404 on `/app/` | Root Directory must be `web`, not repo root |
 | Build fails | Check Vercel build logs; run `npm run build` in `web/app` locally |
 | Sign-up fails / 503 | `DATABASE_URL` or `JWT_SECRET` missing → add env vars → **Redeploy** |
+| Sign-in returns internal server error | Production still has the old two-table schema. Redeploy this release so the first login can create `auth_sessions` and `rate_limit_buckets`. `JWT_SECRET` must be 32+ characters. |
 | Google sign-in blocked | Add Vercel URL to Google **Authorized JavaScript origins** |
 | Data not syncing | `VITE_DATA_BACKEND` must be `neon` (rebuild required after change) |
 | Deploy fails after a green build | Hobby allows 12 serverless files under `api/` outside `_` folders. Keep auth behind `api/auth.ts`. |

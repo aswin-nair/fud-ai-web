@@ -56,7 +56,7 @@ const MEAL_FIELDS = new Set([
   'servingSizeGrams',
   'ingredients',
 ])
-const FOOD_ENTRY_FIELDS = new Set([...MEAL_FIELDS, 'timestamp', 'source', 'detailAdded'])
+const FOOD_ENTRY_FIELDS = new Set([...MEAL_FIELDS, 'timestamp', 'source', 'detailAdded', 'localDate'])
 const WEIGHT_ENTRY_FIELDS = new Set(['id', 'date', 'weightKg'])
 const EXERCISE_ENTRY_FIELDS = new Set([
   'id',
@@ -245,6 +245,7 @@ function validFoodEntry(value: unknown): boolean {
     && timestamp(value.timestamp)
     && oneOf(value.source, ['textInput', 'manual', 'snapFood', 'quickAdd', 'recent'])
     && optionalBoolean(value.detailAdded)
+    && (value.localDate === undefined || calendarDay(value.localDate))
 }
 
 function validWeightEntry(value: unknown): boolean {

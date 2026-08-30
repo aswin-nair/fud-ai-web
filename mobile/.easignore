@@ -1,0 +1,35 @@
+# EAS reads this file (next to eas.json) and applies it from the git root
+# in place of .gitignore. Keep secret/build junk ignored, and drop native
+# trees and web screenshots that are not part of the Expo compile.
+
+.git/
+node_modules/
+.DS_Store
+.env
+.env.*
+!.env.example
+.claude/
+.vercel
+.idea/
+.gradle/
+DerivedData/
+build/
+*.jks
+release-artifacts/
+mobile/dist-export/
+
+# Legacy native apps at the repo root — not the Expo project
+/android/
+/ios/
+
+# Web app, shots, and local scratch — not needed on the EAS worker
+/web/
+/.tmp-enamel-zip/
+/docs/
+/scripts/
+/design/
+/ENGAGEMENT_PLAN.md
+/UI_PLAN.md
+**/.ui-shots/
+packages/product/package-lock.json
+packages/product/node_modules/

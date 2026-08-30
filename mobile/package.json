@@ -5,6 +5,7 @@
   "dependencies": {
     "@fud-ai/contracts": "file:../packages/contracts",
     "@fud-ai/domain": "file:../packages/domain",
+    "@fud-ai/product": "file:../packages/product",
     "@expo-google-fonts/fredoka": "^0.4.1",
     "@expo-google-fonts/nunito-sans": "^0.4.2",
     "@expo/ui": "~57.0.11",
