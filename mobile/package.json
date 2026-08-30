@@ -66,5 +66,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate"
   },
+  "overrides": {
+    "image-size": "npm:image-size-next@2.1.1"
+  },
   "private": true
 }
