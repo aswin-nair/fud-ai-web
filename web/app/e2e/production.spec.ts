@@ -5,9 +5,10 @@ import { test, expect } from '@playwright/test'
  * Runs in the "production" project defined in playwright.config.ts.
  */
 test.describe('Production build', () => {
-  test('app loads at /app/ and shows login when signed out', async ({ page }) => {
+  test('app loads at /app/ and starts first-time guests in onboarding', async ({ page }) => {
     await page.goto('/app/')
-    await expect(page.getByRole('heading', { name: 'Fud AI' })).toBeVisible({ timeout: 15_000 })
+    await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: 'Log a meal in seconds' })).toBeVisible({ timeout: 15_000 })
   })
 
   test('client router works under /app/', async ({ page }) => {
