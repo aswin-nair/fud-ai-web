@@ -7,7 +7,7 @@ import { defineConfig } from 'vitest/config'
  */
 export default defineConfig({
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', '../../packages/product/src/**/*.test.ts'],
     /*
      * Pinned to a zone that actually observes DST. The streak walks calendar
      * days, so running these in UTC would make the DST cases vacuous — they

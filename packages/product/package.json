@@ -8,7 +8,8 @@
     "./dayRing": "./src/dayRing.ts",
     "./enamelAwards": "./src/enamelAwards.ts",
     "./guestClaim": "./src/guestClaim.ts",
-    "./localDate": "./src/localDate.ts"
+    "./localDate": "./src/localDate.ts",
+    "./mascotVoice": "./src/mascotVoice.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
