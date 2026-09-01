@@ -12,9 +12,16 @@ export const BEHAVIOR_IDS = {
   celebrate_big: 11,
   sniff_plate: 12,
   point_at_target: 13,
+  glance_at_log: 15,
   wave_at_user: 14,
   enter: 16,
   exit: 17,
+  check_ring: 30,
+  admire_streak: 31,
+  read_ticket: 32,
+  peek_last_entry: 33,
+  look_around: 34,
+  stretch: 35,
   poke_wobble: 20,
   poke_hop: 21,
   poke_squish: 22,
@@ -27,6 +34,16 @@ export const BEHAVIOR_IDS = {
 
 export type BehaviorKey = keyof typeof BEHAVIOR_IDS
 
+/**
+ * What a behaviour is allowed to know.
+ *
+ * §3.5: Momo reacts to logging behaviour and streak, never to a calorie total,
+ * a macro split or a particular food. That is why there is no `calories`,
+ * `macros` or `target` here and why there must never be — the fields on this
+ * interface are the whole surface a trigger can see, so keeping nutrition out
+ * of it makes the rule structural rather than a habit. behaviors.test.ts
+ * asserts it.
+ */
 export interface BehaviorContext {
   screen: Screen
   mood: Mood
@@ -34,6 +51,10 @@ export interface BehaviorContext {
   streak: number
   accountAgeDays: number
   idleSeconds: number
+  /** Whether anything has been logged today. Not how much. */
+  loggedToday: boolean
+  /** Every required arc of the day ring is closed — derived from logging only. */
+  ringComplete: boolean
   hasAnchor(id: AnchorId): boolean
 }
 
@@ -49,8 +70,12 @@ export interface Behavior {
 }
 
 export const BEHAVIORS: Behavior[] = [
+  /* `idle_breathe` stays at 4: it is the resting pose the overlay falls back to
+     by name, not something the lottery picks. `idle_blink` was sitting at 4 too
+     with a weight and a cooldown, which meant the same dead end as
+     `glance_at_log` — nothing plays it by name and the picker never sees it. */
   { key: 'idle_breathe', priority: 4, durationMs: 3000, cooldownMs: 0, weight: 10 },
-  { key: 'idle_blink', priority: 4, durationMs: 400, cooldownMs: 2500, weight: 6 },
+  { key: 'idle_blink', priority: 3, durationMs: 400, cooldownMs: 2500, weight: 6 },
   {
     key: 'point_at_target',
     priority: 2,
@@ -61,12 +86,85 @@ export const BEHAVIORS: Behavior[] = [
     weight: 6,
     when: c => c.idleSeconds > 25,
   },
+  /* The day is still empty and the user has paused. Momo looks over at the way
+     in — the log button — rather than saying anything about it. §2.5 keeps him
+     reacting to logging, never to numbers, so this reads `loggedToday` only. */
+  {
+    key: 'glance_at_log',
+    /* 2, not 1: `pickAmbient` only considers priorities 2 and 3, so at 1 this
+       had a `when` clause, a cooldown and the highest weight in the table and
+       could never once play. */
+    priority: 2,
+    screens: ['today'],
+    anchor: 'fab',
+    durationMs: 2200,
+    cooldownMs: 90_000,
+    weight: 9,
+    when: c => !c.loggedToday && c.idleSeconds > 14,
+  },
   {
     key: 'wave_at_user',
     priority: 2,
     durationMs: 1800,
     cooldownMs: 600_000,
     weight: 5,
+  },
+
+  /* Momo goes and stands next to the thing that changed.
+     Six anchors were registered around the app and only `fab` was ever visited,
+     so he drifted in a corner while the places he could have gone sat unused.
+     Every trigger below reads logging or streak only — never a number. */
+  {
+    key: 'check_ring',
+    priority: 2,
+    screens: ['today'],
+    anchor: 'calorie_ring',
+    durationMs: 2600,
+    cooldownMs: 70_000,
+    weight: 7,
+    when: c => c.loggedToday && !c.ringComplete,
+  },
+  {
+    key: 'admire_streak',
+    priority: 2,
+    screens: ['today'],
+    anchor: 'streak_flame',
+    durationMs: 2400,
+    cooldownMs: 120_000,
+    weight: 6,
+    when: c => c.streak >= 3,
+  },
+  {
+    key: 'peek_last_entry',
+    priority: 2,
+    screens: ['today'],
+    anchor: 'last_entry',
+    durationMs: 2200,
+    cooldownMs: 90_000,
+    weight: 6,
+    when: c => c.loggedToday,
+  },
+  {
+    key: 'read_ticket',
+    priority: 2,
+    screens: ['today'],
+    anchor: 'ticket_top',
+    durationMs: 2800,
+    cooldownMs: 110_000,
+    weight: 5,
+    when: c => c.loggedToday,
+  },
+
+  /* Unanchored filler so the lottery is not a coin flip between one pointing
+     animation and one wave. These play anywhere and cost nothing. */
+  { key: 'look_around', priority: 3, durationMs: 2000, cooldownMs: 35_000, weight: 6 },
+  {
+    key: 'stretch',
+    priority: 3,
+    durationMs: 2200,
+    cooldownMs: 90_000,
+    weight: 4,
+    when: c => c.idleSeconds > 40,
   },
   { key: 'celebrate_small', priority: 1, durationMs: 1400, cooldownMs: 0, weight: 1 },
   { key: 'celebrate_big', priority: 1, durationMs: 2600, cooldownMs: 0, weight: 1 },

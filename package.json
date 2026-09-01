@@ -15,7 +15,7 @@
     "test:web": "npm run test --prefix web/app",
     "test:api": "npm run test:api --prefix web",
     "test:mobile": "npm run test --prefix mobile",
-    "test:product": "npm exec --prefix web/app -- vitest run --config vitest.config.ts ../../packages/product/src",
+    "test:product": "npm exec --prefix web/app -- vitest run --root web/app --config vitest.config.ts ../../packages/product/src",
     "typecheck:api": "npm run typecheck:api --prefix web",
     "typecheck:mobile": "npm run typecheck --prefix mobile",
     "security:scan": "node scripts/security-scan.mjs",

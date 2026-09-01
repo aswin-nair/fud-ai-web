@@ -1,10 +1,14 @@
 export type AIProvider = 'openrouter' | 'gemini'
+export type MascotPersonality = 'warm' | 'witty' | 'sassy'
 
 export interface AISettings {
   provider: AIProvider
   apiKey: string
   model: string
   customInstructions?: string
+  /** Live model-authored mascot dialogue. Falls back locally when unavailable. */
+  mascotEnabled?: boolean
+  mascotPersonality?: MascotPersonality
 }
 
 // Ordered best-accuracy-first. `openrouter/free` is last: it randomly routes to whichever
@@ -38,6 +42,8 @@ export function defaultAISettings(): AISettings {
     provider: 'openrouter',
     apiKey: '',
     model: DEFAULT_OPENROUTER_MODEL,
+    mascotEnabled: true,
+    mascotPersonality: 'sassy',
   }
 }
 
@@ -56,6 +62,10 @@ export function normalizeAISettings(raw?: Partial<AISettings>): AISettings {
     apiKey: raw.apiKey ?? '',
     model: raw.model || (provider === 'openrouter' ? DEFAULT_OPENROUTER_MODEL : DEFAULT_GEMINI_MODEL),
     customInstructions: raw.customInstructions,
+    mascotEnabled: raw.mascotEnabled !== false,
+    mascotPersonality: raw.mascotPersonality === 'warm' || raw.mascotPersonality === 'witty'
+      ? raw.mascotPersonality
+      : 'sassy',
   }
 }
 

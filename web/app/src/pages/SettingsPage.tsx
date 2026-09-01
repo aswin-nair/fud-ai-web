@@ -6,6 +6,7 @@ import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
 import { BottomNav } from '../components/BottomNav'
 import type { ActivityLevel, AIProvider, Gender, LoggingCommitment, UserProfile, WeightGoal } from '../types'
+import type { MascotPersonality } from '../lib/aiConfig'
 import { ACTIVITY_LABELS, GOAL_LABELS } from '../types'
 import {
   OPENROUTER_MODELS,
@@ -56,6 +57,8 @@ export function SettingsPage() {
   const [showKey, setShowKey] = useState(false)
   const [model, setModel] = useState(state.aiSettings.model)
   const [instructions, setInstructions] = useState(state.aiSettings.customInstructions ?? '')
+  const [mascotEnabled, setMascotEnabled] = useState(state.aiSettings.mascotEnabled !== false)
+  const [mascotPersonality, setMascotPersonality] = useState<MascotPersonality>(state.aiSettings.mascotPersonality ?? 'sassy')
   const [saved, setSaved] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [accountAction, setAccountAction] = useState<'logout-all' | 'delete' | null>(null)
@@ -89,7 +92,14 @@ export function SettingsPage() {
     }
     const enablingPause = !state.profile.trackingPaused && Boolean(profile.trackingPaused)
     updateProfile(profile)
-    updateAISettings({ provider, apiKey, model, customInstructions: instructions || undefined })
+    updateAISettings({
+      provider,
+      apiKey,
+      model,
+      customInstructions: instructions || undefined,
+      mascotEnabled,
+      mascotPersonality,
+    })
     if (enablingPause) track({ name: 'pause_tracking_enabled' })
     setProfileError(null)
     setSaved(true)
@@ -120,6 +130,8 @@ export function SettingsPage() {
         setApiKey(next.aiSettings.apiKey)
         setModel(next.aiSettings.model)
         setInstructions(next.aiSettings.customInstructions ?? '')
+        setMascotEnabled(next.aiSettings.mascotEnabled !== false)
+        setMascotPersonality(next.aiSettings.mascotPersonality ?? 'sassy')
       } catch {
         alert('Invalid backup file')
       }
@@ -604,6 +616,31 @@ export function SettingsPage() {
               rows={3}
             />
           </label>
+          <SettingsRow
+            label="Momo live AI"
+            hint={apiKey.trim()
+              ? 'She writes fresh reactions in the background.'
+              : 'Add a key to unlock live dialogue; animation still works without one.'}
+          >
+            <Toggle checked={mascotEnabled} onChange={setMascotEnabled} />
+          </SettingsRow>
+          <SettingsRow label="Momo's personality" hint="Roasts only harmless app fumbles.">
+            <select
+              className="settings-select"
+              aria-label="Momo's personality"
+              value={mascotPersonality}
+              disabled={!mascotEnabled}
+              onChange={event => setMascotPersonality(event.target.value as MascotPersonality)}
+            >
+              <option value="warm">Warm</option>
+              <option value="witty">Witty</option>
+              <option value="sassy">Sassy</option>
+            </select>
+          </SettingsRow>
+          <p className="settings-byok-note">
+            Momo receives interaction labels such as “form fumble” or “milestone”—never meal names,
+            nutrition values, body data, or the text you type.
+          </p>
         </SettingsCard>
 
         <SectionLabel>Feel</SectionLabel>

@@ -100,7 +100,14 @@ const GAMIFICATION_FIELDS = new Set([
   'brokenFrom',
   'startedAt',
 ])
-const AI_SETTINGS_FIELDS = new Set(['provider', 'apiKey', 'model', 'customInstructions'])
+const AI_SETTINGS_FIELDS = new Set([
+  'provider',
+  'apiKey',
+  'model',
+  'customInstructions',
+  'mascotEnabled',
+  'mascotPersonality',
+])
 
 function row(value: unknown): value is Row {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -414,6 +421,12 @@ function validAISettings(value: unknown, allowApiKey: boolean): string | null {
   if (!text(value.model, 500, false)) return 'aiSettings.model is invalid'
   if (value.customInstructions !== undefined && !text(value.customInstructions, 20_000)) {
     return 'aiSettings.customInstructions is invalid'
+  }
+  if (value.mascotEnabled !== undefined && typeof value.mascotEnabled !== 'boolean') {
+    return 'aiSettings.mascotEnabled is invalid'
+  }
+  if (value.mascotPersonality !== undefined && !oneOf(value.mascotPersonality, ['warm', 'witty', 'sassy'])) {
+    return 'aiSettings.mascotPersonality is invalid'
   }
   return null
 }

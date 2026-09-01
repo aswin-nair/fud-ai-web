@@ -290,26 +290,269 @@
   height: 88px;
   pointer-events: auto;
   cursor: pointer;
+  padding: 0;
+  border: 0;
+  border-radius: 42%;
+  background: transparent;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overflow: visible;
 }
 
-.mascot-host.pose-idle_breathe:not(.is-static) { animation: mascot-breathe 3s ease-in-out infinite; }
-.mascot-host.pose-celebrate_small:not(.is-static),
-.mascot-host.pose-celebrate_big:not(.is-static) { animation: mascot-pop 1.2s ease; }
-.mascot-host.pose-sniff_plate:not(.is-static) { animation: mascot-sniff 1.4s ease-in-out infinite; }
-.mascot-host.pose-point_at_target:not(.is-static) { animation: mascot-point 1.6s ease; }
-.mascot-host.pose-enter:not(.is-static) { animation: mascot-enter 0.7s ease; }
+.mascot-host:focus-visible {
+  outline: 3px solid var(--cobalt, #416ec3);
+  outline-offset: 5px;
+}
+
+/* ── Momo's illustrated body ────────────────────────────────
+   The outer pose moves the whole character. These targets animate the acting:
+   eyes, arms, pleats, shadow and the little thought orbit. */
+.momo-art {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 7px 7px rgba(58, 42, 34, 0.14));
+}
+
+/* MascotVibe is the temporary base artwork. Keeping the vector layers in the
+   component makes the licensed export a one-file replacement and preserves
+   the existing pose, celebration, thinking and wardrobe overlays. */
+.mascotvibe-momo .momo-original-art { display: none; }
+.momo-mascotvibe-image {
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: 50% 78%;
+}
+.momo-raster-gesture-cues {
+  fill: none;
+  stroke: var(--coral, #ff7a50);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.momo-raster-wave-cues { animation: momo-raster-wave-cues 450ms ease-in-out 4; }
+.momo-raster-look-cues { animation: momo-raster-look-cues 1s ease-in-out 2; }
+.momo-raster-stretch-cues { animation: momo-raster-stretch-cues 700ms ease-in-out 3; }
+
+/* The MascotVibe preview is a single bitmap. Small image-level transforms and
+   comic hand marks give those three poses a readable performance without
+   claiming that the hidden vector arms can still articulate independently. */
+.momo-art.pose-wave_at_user .momo-mascotvibe-image {
+  animation: momo-raster-wave 1.8s ease-in-out;
+}
+.momo-art.pose-look_around .momo-mascotvibe-image {
+  animation: momo-raster-look 2s ease-in-out;
+}
+.momo-art.pose-stretch .momo-mascotvibe-image {
+  animation: momo-raster-stretch 2.2s ease-in-out;
+}
+.mascotvibe-momo.mood-sleepy .momo-mascotvibe-image {
+  opacity: 0.9;
+  filter: saturate(0.82) brightness(0.98);
+}
+.momo-mascotvibe-eye-cover { fill: #f4dfc5; }
+.momo-mascotvibe-eyes path {
+  fill: none;
+  stroke: #582440;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.momo-ground-shadow {
+  fill: #3a2a22;
+  opacity: 0.15;
+  transform-origin: 50px 99px;
+  animation: momo-shadow-breathe 3s ease-in-out infinite;
+}
+
+.momo-body-group { transform-origin: 50px 88px; }
+.momo-outline {
+  fill: none;
+  stroke: #9f7548;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  opacity: 0.65;
+}
+.momo-pleats,
+.momo-pleat-detail {
+  fill: none;
+  stroke: #c9975f;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.momo-pleats { stroke-width: 3.2; }
+.momo-pleat-detail { stroke-width: 1.6; opacity: 0.7; }
+.momo-highlight {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+.momo-arm {
+  fill: none;
+  stroke: #d8aa73;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.momo-wave-lines,
+.momo-celebration-sparks path {
+  fill: none;
+  stroke: var(--coral, #ff7a50);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.momo-celebration-sparks { fill: var(--cobalt, #416ec3); }
+.momo-blossom { fill: var(--coral, #ff7a50); }
+.momo-blossom-core { fill: #ffc85a; }
+.momo-open-eyes { fill: #fffdf8; stroke: #3a2a22; stroke-width: 1.8; }
+.momo-pupils { fill: #3a2a22; stroke: none; }
+.momo-eye-glint { fill: #fff; }
+.momo-lash,
+.momo-brow,
+.momo-mouth,
+.momo-sleepy-eyes path,
+.momo-blink-eyes path {
+  fill: none;
+  stroke: #3a2a22;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.momo-lash { stroke-width: 1.8; }
+.momo-brow { opacity: 0.72; }
+.momo-mouth { stroke-width: 3; }
+.momo-mouth-fill { fill: #7e493d; }
+.momo-feet { fill: #c69057; }
+
+.momo-art.pose-wave_at_user .momo-arm-left {
+  animation: momo-arm-wave 420ms ease-in-out 4;
+}
+.momo-art.pose-point_at_target .momo-arm-right,
+.momo-art.pose-glance_at_log .momo-arm-right {
+  animation: momo-arm-point 700ms ease-in-out 2;
+}
+.momo-art.pose-celebrate_big .momo-arm-left,
+.momo-art.pose-celebrate_big .momo-arm-right {
+  animation: momo-arm-cheer 480ms ease-in-out 4 alternate;
+}
+.momo-art.mood-curious .momo-pupils { transform: translateX(1.5px); }
+.momo-art.mood-sleepy .momo-body-group { transform: scaleY(0.98); }
+.momo-art.is-thinking .momo-pupils { animation: momo-think-gaze 1.25s ease-in-out infinite; }
+.momo-thought-orbit { fill: var(--cobalt, #416ec3); }
+.momo-thought-orbit circle { animation: momo-thought-pop 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.momo-thought-orbit circle:nth-child(2) { animation-delay: 140ms; }
+.momo-thought-orbit circle:nth-child(3) { animation-delay: 280ms; }
+
+@keyframes momo-shadow-breathe {
+  50% { transform: scaleX(0.86); opacity: 0.1; }
+}
+@keyframes momo-arm-wave {
+  50% { rotate: -15deg; translate: -2px -1px; }
+}
+@keyframes momo-arm-point {
+  50% { translate: 3px -2px; }
+}
+@keyframes momo-arm-cheer {
+  to { translate: 0 -3px; rotate: 5deg; }
+}
+@keyframes momo-think-gaze {
+  0%, 100% { transform: translate(-1px, 0); }
+  50% { transform: translate(2px, -2px); }
+}
+@keyframes momo-thought-pop {
+  0%, 100% { opacity: 0.35; transform: scale(0.75); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+@keyframes momo-raster-wave {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-1px) rotate(-2.5deg); }
+  55% { transform: translateY(0) rotate(1.5deg); }
+  78% { transform: translateY(-1px) rotate(-1.5deg); }
+}
+@keyframes momo-raster-look {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  28% { transform: translateX(-2px) rotate(-1.5deg); }
+  68% { transform: translateX(2px) rotate(1.5deg); }
+}
+@keyframes momo-raster-stretch {
+  0%, 100% { transform: translateY(0) scale(1); }
+  38% { transform: translateY(-2px) scale(0.985, 1.035); }
+  72% { transform: translateY(1px) scale(1.012, 0.985); }
+}
+@keyframes momo-raster-wave-cues {
+  0%, 100% { opacity: 0.25; transform: translate(1px, 2px); }
+  50% { opacity: 1; transform: translate(-1px, -1px); }
+}
+@keyframes momo-raster-look-cues {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@keyframes momo-raster-stretch-cues {
+  0%, 100% { opacity: 0.3; transform: translateY(2px); }
+  50% { opacity: 1; transform: translateY(-1px); }
+}
+
+/* Position and performance are separate elements on purpose.
+   The host carries an inline `transform: translate3d(...)` that says where Momo
+   is standing. Every pose is also a transform, so while they shared an element
+   the animation replaced the position outright and Momo snapped to the top-left
+   corner for the length of the animation — every pose except `breathe`, which
+   worked around it with --mx/--my vars. Animating the inner element instead
+   lets him wave without teleporting. */
+.mascot-pose {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 85%;
+}
+
+.mascot-host.is-static .mascot-pose { animation: none !important; }
+
+.mascot-pose.pose-idle_breathe:not(.is-static) { animation: mascot-breathe 3s ease-in-out infinite; }
+.mascot-pose.pose-celebrate_small:not(.is-static),
+.mascot-pose.pose-celebrate_big:not(.is-static) { animation: mascot-pop 1.2s ease; }
+.mascot-pose.pose-sniff_plate:not(.is-static) { animation: mascot-sniff 1.4s ease-in-out infinite; }
+.mascot-pose.pose-point_at_target:not(.is-static) { animation: mascot-point 1.6s ease; }
+
+/* A glance, not a point: he leans toward the log button and holds, which reads
+   as noticing rather than instructing. */
+@keyframes mascot-glance {
+  0%   { transform: rotate(0deg) translateX(0); }
+  30%  { transform: rotate(-7deg) translateX(3px); }
+  70%  { transform: rotate(-7deg) translateX(3px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+.mascot-pose.pose-glance_at_log:not(.is-static) { animation: mascot-glance 2.2s ease; }
+.mascot-pose.pose-enter:not(.is-static) { animation: mascot-enter 0.7s ease; }
+.mascot-pose.pose-exit:not(.is-static) { animation: mascot-exit 0.5s ease forwards; }
+
+/* These three were in the behaviour table with no animation attached, so they
+   played for their full duration and nothing moved. `wave_at_user` was one of
+   only two ambient behaviours, which is most of why Momo read as inert. */
+.mascot-pose.pose-wave_at_user:not(.is-static) { animation: mascot-wave 1.8s ease-in-out; }
+.mascot-pose.pose-idle_blink:not(.is-static) { animation: mascot-blink 0.4s ease; }
+.mascot-pose.pose-look_around:not(.is-static) { animation: mascot-look 2s ease-in-out; }
+.mascot-pose.pose-stretch:not(.is-static) { animation: mascot-stretch 2.2s ease-in-out; }
+.mascot-pose.pose-check_ring:not(.is-static) { animation: mascot-lean 2.6s ease-in-out; }
+.mascot-pose.pose-admire_streak:not(.is-static) { animation: mascot-admire 2.4s ease-in-out; }
+.mascot-pose.pose-peek_last_entry:not(.is-static) { animation: mascot-peek 2.2s ease-in-out; }
+.mascot-pose.pose-read_ticket:not(.is-static) { animation: mascot-read 2.8s ease-in-out; }
 
 /* ── Poke repertoire ─────────────────────────────────────────
    Eight reactions rather than one. A character that answers a finger the same
    way every time stops being funny on the third poke. */
-.mascot-host.pose-poke_wobble:not(.is-static) { animation: momo-wobble .6s ease-in-out; }
-.mascot-host.pose-poke_hop:not(.is-static)    { animation: momo-hop .55s cubic-bezier(.3,1.4,.5,1); }
-.mascot-host.pose-poke_squish:not(.is-static) { animation: momo-squish .55s cubic-bezier(.34,1.56,.64,1); }
-.mascot-host.pose-poke_spin:not(.is-static)   { animation: momo-spin .7s cubic-bezier(.4,0,.3,1); }
-.mascot-host.pose-poke_puff:not(.is-static)   { animation: momo-puff .6s cubic-bezier(.34,1.6,.5,1); }
-.mascot-host.pose-poke_dizzy:not(.is-static)  { animation: momo-dizzy .9s ease-in-out; }
-.mascot-host.pose-poke_tip:not(.is-static)    { animation: momo-tip .8s cubic-bezier(.3,1.3,.5,1); }
-.mascot-host.pose-poke_hide:not(.is-static)   { animation: momo-hide .85s cubic-bezier(.34,1.5,.5,1); }
+.mascot-pose.pose-poke_wobble:not(.is-static) { animation: momo-wobble .6s ease-in-out; }
+.mascot-pose.pose-poke_hop:not(.is-static)    { animation: momo-hop .55s cubic-bezier(.3,1.4,.5,1); }
+.mascot-pose.pose-poke_squish:not(.is-static) { animation: momo-squish .55s cubic-bezier(.34,1.56,.64,1); }
+.mascot-pose.pose-poke_spin:not(.is-static)   { animation: momo-spin .7s cubic-bezier(.4,0,.3,1); }
+.mascot-pose.pose-poke_puff:not(.is-static)   { animation: momo-puff .6s cubic-bezier(.34,1.6,.5,1); }
+.mascot-pose.pose-poke_dizzy:not(.is-static)  { animation: momo-dizzy .9s ease-in-out; }
+.mascot-pose.pose-poke_tip:not(.is-static)    { animation: momo-tip .8s cubic-bezier(.3,1.3,.5,1); }
+.mascot-pose.pose-poke_hide:not(.is-static)   { animation: momo-hide .85s cubic-bezier(.34,1.5,.5,1); }
 
 @keyframes momo-wobble {
   0%,100% { rotate: 0deg; }
@@ -363,25 +606,61 @@
 /* What Momo just said. Sits under the character, never over the nav. */
 .mascot-quip {
   position: absolute;
-  left: 50%;
+  left: auto;
+  right: -4px;
   bottom: calc(100% + 10px);
-  transform: translateX(-50%);
   margin: 0;
-  padding: 9px 14px;
-  max-width: 220px;
-  border-radius: 16px;
-  background: var(--surface, #fff);
+  width: max-content;
+  max-width: min(236px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border: 1px solid rgba(65, 110, 195, 0.14);
+  border-radius: 17px 17px 5px 17px;
+  background: color-mix(in srgb, var(--surface, #fff) 94%, var(--cobalt, #416ec3) 6%);
   box-shadow: 0 10px 22px rgba(20,33,61,.16), 0 2px 4px rgba(20,33,61,.08);
   font-size: 12.5px;
   line-height: 1.4;
+  font-weight: 650;
   color: var(--ink, #14213D);
-  text-align: center;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
   animation: quip-in .3s cubic-bezier(.34,1.5,.64,1);
 }
 
+.mascot-quip::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 100%;
+  border: 7px solid transparent;
+  border-top-color: color-mix(in srgb, var(--surface, #fff) 94%, var(--cobalt, #416ec3) 6%);
+  border-right-width: 2px;
+}
+
+.mascot-quip.is-thinking {
+  min-width: 54px;
+  text-align: center;
+}
+
+.mascot-thinking-dots { display: inline-flex; align-items: center; gap: 4px; min-height: 12px; }
+.mascot-thinking-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cobalt, #416ec3);
+  animation: momo-dot 900ms ease-in-out infinite;
+}
+.mascot-thinking-dots i:nth-child(2) { animation-delay: 120ms; }
+.mascot-thinking-dots i:nth-child(3) { animation-delay: 240ms; }
+
+@keyframes momo-dot {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
 @keyframes quip-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.92); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(6px) scale(.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes mascot-breathe {
@@ -400,10 +679,53 @@
 @keyframes mascot-enter {
   from { opacity: 0; transform: translateY(12px); }
 }
+@keyframes mascot-exit {
+  to { opacity: 0; transform: translateY(10px) scale(0.94); }
+}
+/* A wave is the arm, so the body only leans into it. */
+@keyframes mascot-wave {
+  20% { transform: rotate(-7deg); }
+  40% { transform: rotate(4deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(2deg); }
+}
+@keyframes mascot-blink {
+  50% { transform: scaleY(0.94); }
+}
+/* Looking about: a turn of the whole body, since the head does not rotate. */
+@keyframes mascot-look {
+  25% { transform: translateX(-5px) rotate(-5deg); }
+  70% { transform: translateX(5px) rotate(5deg); }
+}
+@keyframes mascot-stretch {
+  35% { transform: translateY(-6px) scaleY(1.08) scaleX(0.96); }
+  70% { transform: translateY(2px) scaleY(0.96) scaleX(1.04); }
+}
+/* Leaning in at whatever he has walked over to. */
+@keyframes mascot-lean {
+  30% { transform: translateY(3px) rotate(-8deg); }
+  75% { transform: translateY(3px) rotate(-5deg); }
+}
+@keyframes mascot-admire {
+  30% { transform: translateY(-5px) scale(1.06); }
+  65% { transform: translateY(-2px) scale(1.03); }
+}
+@keyframes mascot-peek {
+  30% { transform: translateX(-6px) rotate(-10deg); }
+  70% { transform: translateX(-3px) rotate(-6deg); }
+}
+@keyframes mascot-read {
+  25% { transform: translateY(4px) rotate(4deg); }
+  60% { transform: translateY(4px) rotate(-4deg); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .mascot-host { animation: none !important; }
+  .mascot-host,
+  .mascot-pose { animation: none !important; }
   .mascot-quip { animation: none !important; }
+  .momo-art *,
+  .mascot-thinking-dots i { animation: none !important; }
+  .momo-raster-gesture-cues { display: none; }
 }
 
 /* ── Ring hero ───────────────────────────────────────────────

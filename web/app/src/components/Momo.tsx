@@ -1,68 +1,191 @@
+import { useId } from 'react'
+
 import type { Mood } from '../mascot/behaviors'
 
+// Temporary preview asset: replacing this file with the licensed export keeps
+// every Momo usage and behaviour wired without another component change.
+const MASCOTVIBE_PREVIEW = `${import.meta.env.BASE_URL}mascots/momo-mascotvibe-preview-watermarked.png`
+
 /**
- * Momo.
- *
- * A dumpling rather than a blob: the pleated crown gives a silhouette you can
- * recognise at 20px, and dough is the one material where squash-and-stretch is
- * literally true, so the poke animations read as the character rather than as
- * an effect applied to it.
+ * Momo is a hand-drawn dumpling with a recognisable pleated silhouette. Her
+ * face and limbs are separate animation targets so a behaviour changes the
+ * performance, not merely the position of an otherwise static sticker.
  */
 export function Momo({
   mood = 'neutral',
   pose = 'idle_breathe',
   cosmeticId = null,
-}: { mood?: Mood; pose?: string; cosmeticId?: string | null }) {
+  thinking = false,
+}: { mood?: Mood; pose?: string; cosmeticId?: string | null; thinking?: boolean }) {
+  const rawId = useId().replace(/:/g, '')
+  const doughId = `momo-dough-${rawId}`
+  const cheekId = `momo-cheek-${rawId}`
   const blush = mood === 'excited' || mood === 'proud' || mood === 'cozy'
   const blinking = pose === 'idle_blink'
-  const eyeR = blinking ? 1.1 : 5
+  const celebrating = pose === 'celebrate_small' || pose === 'celebrate_big' || mood === 'proud'
+  const startled = pose === 'poke_hop' || pose === 'poke_squish' || pose === 'poke_tip'
+  const sleepy = mood === 'sleepy'
+  const waving = pose === 'wave_at_user'
+  const lookingAround = pose === 'look_around'
+  const stretching = pose === 'stretch'
+  const pointing = pose === 'point_at_target' || pose === 'glance_at_log'
 
   return (
-    <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden>
+    <svg
+      viewBox="0 0 100 108"
+      width="100%"
+      height="100%"
+      className={`momo-art mascotvibe-momo mood-${mood} pose-${pose}${thinking ? ' is-thinking' : ''}`}
+      aria-hidden
+    >
       <defs>
-        <linearGradient id="momo-dough" x1="0" y1="0" x2="0.3" y2="1">
-          <stop offset="0%" stopColor="#FFF6E4" />
-          <stop offset="100%" stopColor="#E9C89A" />
-        </linearGradient>
+        <radialGradient id={doughId} cx="32%" cy="24%" r="78%">
+          <stop offset="0%" stopColor="#FFFDF6" />
+          <stop offset="58%" stopColor="#F8E7C9" />
+          <stop offset="100%" stopColor="#DDB47D" />
+        </radialGradient>
+        <radialGradient id={cheekId} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FF8066" stopOpacity="0.58" />
+          <stop offset="100%" stopColor="#FF8066" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
-      <ellipse cx="50" cy="93" rx="26" ry="4.5" fill="#3A2A22" opacity="0.13" />
-
-      {/* Stub arms, behind the body so every join stays soft. */}
-      <path d="M22 76 Q14 84 22 88" stroke="#E4BE8C" strokeWidth="7" fill="none" strokeLinecap="round" />
-      <path d="M78 76 Q86 84 78 88" stroke="#E4BE8C" strokeWidth="7" fill="none" strokeLinecap="round" />
-
-      <ellipse cx="50" cy="60" rx="35" ry="30" fill="url(#momo-dough)" />
-      {/* The light sits top-left, matching every other surface in the app. */}
-      <ellipse cx="42" cy="45" rx="17" ry="8" fill="#FFFFFF" opacity="0.55" />
-
-      {/* Real pleats — the one detail that makes it a dumpling and not a bun. */}
-      <path
-        d="M16 48q8.5-14 17 0 8.5-14 17 0 8.5-14 17 0 8.5-14 17 0"
-        fill="none"
-        stroke="#E4BE8C"
-        strokeWidth="4.6"
-        strokeLinecap="round"
+      <image
+        className="momo-mascotvibe-image"
+        href={MASCOTVIBE_PREVIEW}
+        x="-60"
+        y="-12"
+        width="220"
+        height="120"
+        preserveAspectRatio="xMidYMid meet"
       />
 
-      <circle cx="39" cy="59" r={eyeR} fill="#3A2A22" />
-      <circle cx="61" cy="59" r={eyeR} fill="#3A2A22" />
-      {!blinking && <circle cx="40.8" cy="57.2" r="1.7" fill="#FFFFFF" />}
-      {!blinking && <circle cx="62.8" cy="57.2" r="1.7" fill="#FFFFFF" />}
+      {/* The preview is one flat raster, so its hidden vector arms cannot
+          articulate. These small, visible motion marks combine with the
+          image-level tilt/ stretch to make the hand-led poses read honestly. */}
+      {waving && (
+        <g className="momo-raster-gesture-cues momo-raster-wave-cues">
+          <path d="M11 61Q5 57 4 50M16 57Q14 50 17 45" />
+        </g>
+      )}
+      {lookingAround && (
+        <g className="momo-raster-gesture-cues momo-raster-look-cues">
+          <path d="M8 54H2M5 51l-3 3 3 3M92 54h6M95 51l3 3-3 3" />
+        </g>
+      )}
+      {stretching && (
+        <g className="momo-raster-gesture-cues momo-raster-stretch-cues">
+          <path d="M12 72Q5 67 5 59M5 59l-3 5M5 59l5 2M88 72q7-5 7-13M95 59l-4 5M95 59l3 5" />
+        </g>
+      )}
 
-      {blush && <ellipse cx="30" cy="68" rx="5" ry="3.4" fill="#FF9070" opacity="0.42" />}
-      {blush && <ellipse cx="70" cy="68" rx="5" ry="3.4" fill="#FF9070" opacity="0.42" />}
+      <ellipse className="momo-ground-shadow momo-original-art" cx="50" cy="99" rx="27" ry="5" />
 
-      <path
-        d={mood === 'sleepy' ? 'M44 70h12' : 'M44 70a6.5 6.5 0 0 0 12 0'}
-        fill="none"
-        stroke="#3A2A22"
-        strokeWidth="3.3"
-        strokeLinecap="round"
-      />
+      <g className="momo-arms">
+        <path
+          className="momo-arm momo-arm-left momo-original-art"
+          d={waving ? 'M24 67Q8 56 14 42' : celebrating ? 'M24 66Q10 55 15 42' : 'M23 69Q12 77 19 84'}
+        />
+        <path
+          className="momo-arm momo-arm-right momo-original-art"
+          d={pointing ? 'M77 67Q91 63 94 52' : celebrating ? 'M76 66Q90 53 84 40' : 'M77 69Q88 77 81 84'}
+        />
+        {waving && <path className="momo-wave-lines momo-original-art" d="M8 35q-5 4-2 9M16 31q-4-2-7 0" />}
+      </g>
+
+      <g className="momo-body-group momo-original-art">
+        <path
+          className="momo-body"
+          d="M16 66C14 49 20 37 31 31c6-3 10-9 19-9s13 6 19 9c11 6 17 18 15 35-2 18-13 28-34 28S18 84 16 66Z"
+          fill={`url(#${doughId})`}
+        />
+        <path className="momo-outline" d="M16 66C14 49 20 37 31 31c6-3 10-9 19-9s13 6 19 9c11 6 17 18 15 35-2 18-13 28-34 28S18 84 16 66Z" />
+        <path className="momo-pleats" d="M20 48Q27 33 34 45Q42 27 50 43Q58 27 66 45Q73 33 80 48" />
+        <path className="momo-pleat-detail" d="M34 45l-3-10M50 43V28M66 45l3-10" />
+        <path className="momo-highlight" d="M27 49c4-11 12-17 21-18" />
+
+        <g className="momo-blossom">
+          <circle cx="69" cy="28" r="3.4" />
+          <circle cx="75" cy="29" r="3.4" />
+          <circle cx="72" cy="23.5" r="3.4" />
+          <circle cx="72" cy="27" r="2.1" className="momo-blossom-core" />
+        </g>
+
+        <g className="momo-face">
+          {sleepy ? (
+            <g className="momo-sleepy-eyes">
+              <path d="M32 60q6 6 12 0" />
+              <path d="M56 60q6 6 12 0" />
+            </g>
+          ) : blinking ? (
+            <g className="momo-blink-eyes"><path d="M32 61h12M56 61h12" /></g>
+          ) : (
+            <g className="momo-open-eyes">
+              <ellipse cx="38" cy="60" rx={startled ? 6 : 5.4} ry={startled ? 7 : 6.2} />
+              <ellipse cx="62" cy="60" rx={startled ? 6 : 5.4} ry={startled ? 7 : 6.2} />
+              <g className="momo-pupils">
+                <circle cx="38" cy="61" r="3.1" />
+                <circle cx="62" cy="61" r="3.1" />
+                <circle cx="36.8" cy="59.4" r="1.25" className="momo-eye-glint" />
+                <circle cx="60.8" cy="59.4" r="1.25" className="momo-eye-glint" />
+              </g>
+              <path className="momo-lash" d="M32 55l-2-2M68 55l2-2" />
+            </g>
+          )}
+
+          <path className="momo-brow momo-brow-left" d={startled ? 'M32 49q6-3 12 0' : 'M32 51q6-2 12 0'} />
+          <path className="momo-brow momo-brow-right" d={startled ? 'M56 49q6-3 12 0' : 'M56 51q6-2 12 0'} />
+          {blush && <ellipse cx="28" cy="71" rx="8" ry="5" fill={`url(#${cheekId})`} />}
+          {blush && <ellipse cx="72" cy="71" rx="8" ry="5" fill={`url(#${cheekId})`} />}
+
+          {startled ? (
+            <ellipse className="momo-mouth-fill" cx="50" cy="74" rx="4.2" ry="5.2" />
+          ) : (
+            <path
+              className="momo-mouth"
+              d={sleepy
+                ? 'M45 75q5-3 10 0'
+                : celebrating
+                  ? 'M41 72q9 12 18 0'
+                  : mood === 'curious'
+                    ? 'M44 74q6 4 12 0'
+                    : 'M43 72q7 8 14 0'}
+            />
+          )}
+        </g>
+      </g>
+
+      <g className="momo-feet momo-original-art">
+        <ellipse cx="34" cy="92" rx="9" ry="5" />
+        <ellipse cx="66" cy="92" rx="9" ry="5" />
+      </g>
+
+      {(sleepy || blinking) && (
+        <g className="momo-mascotvibe-eyes">
+          <ellipse className="momo-mascotvibe-eye-cover" cx="36" cy="48" rx="6" ry="5.5" />
+          <ellipse className="momo-mascotvibe-eye-cover" cx="64" cy="48" rx="6" ry="5.5" />
+          <path d={sleepy ? 'M31 48q5 5 10 0M59 48q5 5 10 0' : 'M31 48h10M59 48h10'} />
+        </g>
+      )}
+
+      {celebrating && (
+        <g className="momo-celebration-sparks">
+          <path d="M12 25v8M8 29h8M87 21v8M83 25h8" />
+          <circle cx="17" cy="16" r="2" />
+          <circle cx="84" cy="37" r="1.8" />
+        </g>
+      )}
+
+      {thinking && (
+        <g className="momo-thought-orbit">
+          <circle cx="80" cy="18" r="2.2" />
+          <circle cx="87" cy="12" r="3" />
+          <circle cx="95" cy="5" r="4" />
+        </g>
+      )}
 
       {cosmeticId === 'chef-hat' && (
-        <g>
+        <g className="momo-cosmetic momo-chef-hat">
           <circle cx="38" cy="25" r="12" fill="#FFFDF8" stroke="#D9C7AF" strokeWidth="2" />
           <circle cx="52" cy="20" r="15" fill="#FFFDF8" stroke="#D9C7AF" strokeWidth="2" />
           <circle cx="66" cy="26" r="11" fill="#FFFDF8" stroke="#D9C7AF" strokeWidth="2" />
@@ -70,30 +193,30 @@ export function Momo({
         </g>
       )}
       {cosmeticId === 'apron' && (
-        <path d="M35 73q15 7 30 0l4 19H31z" fill="#6B9FFF" stroke="#416EC3" strokeWidth="2" />
+        <path className="momo-cosmetic" d="M35 73q15 7 30 0l4 19H31z" fill="#6B9FFF" stroke="#416EC3" strokeWidth="2" />
       )}
       {cosmeticId === 'scarf' && (
-        <g fill="#FF7A50" stroke="#D95A36" strokeWidth="1.8">
+        <g className="momo-cosmetic" fill="#FF7A50" stroke="#D95A36" strokeWidth="1.8">
           <path d="M28 73q22 9 44 0l-3 9q-19 7-38 0z" />
           <path d="M61 79l12 10-9 3-7-12z" />
         </g>
       )}
       {cosmeticId === 'bow' && (
-        <g fill="#FF6B9D" stroke="#C84975" strokeWidth="1.8">
+        <g className="momo-cosmetic" fill="#FF6B9D" stroke="#C84975" strokeWidth="1.8">
           <path d="M50 78q-10-10-16-3t10 10z" />
           <path d="M50 78q10-10 16-3t-10 10z" />
           <circle cx="50" cy="79" r="4" />
         </g>
       )}
       {cosmeticId === 'specs' && (
-        <g fill="none" stroke="#3A2A22" strokeWidth="2.5">
+        <g className="momo-cosmetic" fill="none" stroke="#3A2A22" strokeWidth="2.5">
           <circle cx="39" cy="59" r="9" />
           <circle cx="61" cy="59" r="9" />
           <path d="M48 59h4M30 57l-7-3M70 57l7-3" />
         </g>
       )}
       {cosmeticId === 'medal' && (
-        <g>
+        <g className="momo-cosmetic">
           <path d="M44 74l6 10 6-10" fill="none" stroke="#6B9FFF" strokeWidth="4" />
           <circle cx="50" cy="86" r="7" fill="#FFB347" stroke="#C67A17" strokeWidth="2" />
           <path d="M50 82l1.3 2.5 2.7.4-2 2 .5 2.8-2.5-1.3-2.5 1.3.5-2.8-2-2 2.7-.4z" fill="#FFF6E4" />

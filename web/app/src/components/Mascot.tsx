@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import type { MascotState } from '@fud-ai/product/mascotVoice'
 import { useFeel } from '../hooks/useHaptic'
 import { useMascotLife } from '../hooks/useMascotLife'
 
@@ -16,13 +17,9 @@ import { useMascotLife } from '../hooks/useMascotLife'
  * small feet against wide arms. Repeating one radius at one size is what makes
  * flat vector art look generic.
  */
-export type MascotState =
-  | 'idle'
-  | 'happy'
-  | 'celebrating'
-  | 'sleepy'
-  | 'proud'
-  | 'neutral'
+/* One definition, shared with the voice and with mobile. Re-exported here
+   because most of the app reaches for it through the component. */
+export type { MascotState } from '@fud-ai/product/mascotVoice'
 
 export interface MascotProps {
   state?: MascotState
