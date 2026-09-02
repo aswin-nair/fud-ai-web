@@ -13,11 +13,10 @@ const RECENT_KEY = 'fud-ai-momo-recent'
 const VARIANT_KEY = 'fud-ai-momo-variant'
 
 /**
- * Half the smallest pool, roughly. The corpus guarantees at least twelve lines
- * per pool, so remembering eight leaves room to find something fresh while
- * pushing repeats far enough apart to stop registering as repeats.
+ * Long enough to span several gestures and a full tapping exchange. Individual
+ * pools still fall back safely if a very long session exhausts every option.
  */
-const RECENT_MAX = 8
+const RECENT_MAX = 16
 
 export function recentLines(): string[] {
   try {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { restPosition, shouldVolunteerTaunt, targetFromRect } from './controller'
+import {
+  authPosition,
+  restPosition,
+  roamPosition,
+  shouldVolunteerTaunt,
+  targetFromRect,
+  travelDurationMs,
+} from './controller'
 
 const SIZE = 88
 const VIEW = { width: 420, height: 900 }
@@ -59,6 +66,81 @@ describe('resting place', () => {
 
     expect(rest.x === 0 && rest.y === 0).toBe(false)
   })
+
+  it('rests inside the centred app on a wide desktop', () => {
+    const desktop = { width: 1440, height: 900 }
+    const rest = restPosition(SIZE, desktop)
+
+    expect(rest.x).toBeLessThanOrEqual((desktop.width + 480) / 2 - SIZE)
+    expect(rest.x).toBeGreaterThanOrEqual((desktop.width - 480) / 2)
+  })
+})
+
+describe('authentication resting place', () => {
+  it('stands beside the form on a wide screen', () => {
+    const desktop = { width: 1264, height: 709 }
+    const spot = authPosition(SIZE, desktop)
+    const cardRight = (desktop.width + 420) / 2
+
+    expect(spot.x).toBeGreaterThan(cardRight)
+    expect(spot.x + SIZE).toBeLessThan(desktop.width)
+  })
+
+  it('uses the quiet top corner on a compact screen', () => {
+    const compact = { width: 390, height: 844 }
+    const spot = authPosition(SIZE, compact)
+
+    expect(spot.x).toBe(compact.width - SIZE - 20)
+    expect(spot.y).toBe(18)
+    expect(spot.x + SIZE).toBeLessThan(compact.width)
+  })
+})
+
+describe('walking around the viewport', () => {
+  it('stays below the header and above the bottom navigation', () => {
+    for (const roll of [0, 0.25, 0.5, 0.75, 1]) {
+      const spot = roamPosition(SIZE, VIEW, undefined, () => roll)
+
+      expect(spot.x).toBeGreaterThanOrEqual(0)
+      expect(spot.x + SIZE).toBeLessThanOrEqual(VIEW.width)
+      expect(spot.y).toBeGreaterThanOrEqual(104)
+      expect(spot.y + SIZE).toBeLessThanOrEqual(VIEW.height - 112)
+    }
+  })
+
+  it('mirrors a nearby roll so the walk is visibly different', () => {
+    const current = { x: 200, y: 400 }
+    const spot = roamPosition(SIZE, VIEW, current, () => 0.5)
+
+    expect(Math.hypot(spot.x - current.x, spot.y - current.y)).toBeGreaterThanOrEqual(48)
+  })
+
+  it('stays inside the centred app stage on a wide desktop', () => {
+    const desktop = { width: 1440, height: 900 }
+    const left = (desktop.width - 480) / 2
+    const spot = roamPosition(SIZE, desktop, undefined, () => 0)
+
+    expect(spot.x).toBeGreaterThanOrEqual(left)
+    expect(spot.x + SIZE).toBeLessThanOrEqual(left + 480)
+  })
+
+  it('parks in an edge lane instead of covering the centre action', () => {
+    const left = roamPosition(SIZE, VIEW, undefined, () => 0.25)
+    const right = roamPosition(SIZE, VIEW, undefined, () => 0.75)
+
+    expect(left.x).toBeLessThanOrEqual(48)
+    expect(right.x).toBeGreaterThanOrEqual(VIEW.width - SIZE - 48)
+  })
+
+  it('scales walking time with distance and honours reduced motion', () => {
+    const near = travelDurationMs({ x: 10, y: 10 }, { x: 60, y: 10 })
+    const far = travelDurationMs({ x: 10, y: 10 }, { x: 350, y: 700 })
+
+    expect(near).toBeGreaterThanOrEqual(650)
+    expect(far).toBeGreaterThan(near)
+    expect(far).toBeLessThanOrEqual(2200)
+    expect(travelDurationMs({ x: 10, y: 10 }, { x: 350, y: 700 }, true)).toBe(0)
+  })
 })
 
 describe('volunteered taunts', () => {
@@ -81,15 +163,15 @@ describe('volunteered taunts', () => {
   })
 
   it('does not interrupt active use or recent speech', () => {
-    expect(shouldVolunteerTaunt({ ...eligible, idleSeconds: 17 }, () => 0)).toBe(false)
+    expect(shouldVolunteerTaunt({ ...eligible, idleSeconds: 11 }, () => 0)).toBe(false)
     expect(shouldVolunteerTaunt({ ...eligible, elapsedSinceSpeechMs: 44_999 }, () => 0)).toBe(false)
   })
 
   it('requires more quiet time and uses a smaller chance in calm mode', () => {
-    const calm = { ...eligible, activity: 'calm' as const, idleSeconds: 35 }
+    const calm = { ...eligible, activity: 'calm' as const, idleSeconds: 29 }
     expect(shouldVolunteerTaunt(calm, () => 0)).toBe(false)
-    expect(shouldVolunteerTaunt({ ...calm, idleSeconds: 36 }, () => 0.15)).toBe(true)
-    expect(shouldVolunteerTaunt({ ...calm, idleSeconds: 36 }, () => 0.2)).toBe(false)
+    expect(shouldVolunteerTaunt({ ...calm, idleSeconds: 30 }, () => 0.21)).toBe(true)
+    expect(shouldVolunteerTaunt({ ...calm, idleSeconds: 30 }, () => 0.3)).toBe(false)
   })
 
   it.each([

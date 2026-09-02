@@ -168,4 +168,28 @@ describe('the ambient lottery has real choices', () => {
       expect(b.priority, b.key).toBe(0)
     }
   })
+
+  it('makes roaming a first-class ambient action', () => {
+    const wander = BEHAVIOR_BY_KEY.get('wander')!
+
+    expect(wander.priority).toBe(2)
+    expect(wander.roams).toBe(true)
+    expect(wander.when!(ctx({ idleSeconds: 9 }))).toBe(true)
+  })
+
+  it('keeps several physical bits available without an anchor', () => {
+    const roamingActions = BEHAVIORS.filter(b =>
+      (b.priority === 2 || b.priority === 3)
+      && !b.anchor
+      && (!b.when || b.when(ctx({ idleSeconds: 60 }))),
+    )
+
+    expect(roamingActions.map(b => b.key)).toEqual(expect.arrayContaining([
+      'wander',
+      'tiny_dance',
+      'happy_hop',
+      'ponder',
+      'bow',
+    ]))
+  })
 })

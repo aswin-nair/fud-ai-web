@@ -298,6 +298,7 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   overflow: visible;
+  will-change: transform;
 }
 
 .mascot-host:focus-visible {
@@ -335,6 +336,11 @@
 .momo-raster-wave-cues { animation: momo-raster-wave-cues 450ms ease-in-out 4; }
 .momo-raster-look-cues { animation: momo-raster-look-cues 1s ease-in-out 2; }
 .momo-raster-stretch-cues { animation: momo-raster-stretch-cues 700ms ease-in-out 3; }
+.momo-raster-wander-cues { animation: momo-raster-wander-cues 650ms ease-in-out 2; }
+.momo-raster-dance-cues { animation: momo-raster-dance-cues 600ms ease-in-out 4; }
+.momo-raster-hop-cues { animation: momo-raster-hop-cues 600ms ease-out 2; }
+.momo-raster-ponder-cues { animation: momo-raster-ponder-cues 1.2s ease-in-out 2; }
+.momo-raster-bow-cues { animation: momo-raster-bow-cues 800ms ease-in-out 2; }
 
 /* The MascotVibe preview is a single bitmap. Small image-level transforms and
    comic hand marks give those three poses a readable performance without
@@ -496,6 +502,27 @@
   0%, 100% { opacity: 0.3; transform: translateY(2px); }
   50% { opacity: 1; transform: translateY(-1px); }
 }
+@keyframes momo-raster-wander-cues {
+  0% { opacity: 0; transform: translateX(5px); }
+  50% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateX(-5px); }
+}
+@keyframes momo-raster-dance-cues {
+  0%, 100% { opacity: 0.25; transform: translateY(2px) rotate(-2deg); }
+  50% { opacity: 1; transform: translateY(-3px) rotate(2deg); }
+}
+@keyframes momo-raster-hop-cues {
+  0%, 100% { opacity: 0; transform: scaleX(0.8); }
+  55% { opacity: 1; transform: scaleX(1.08); }
+}
+@keyframes momo-raster-ponder-cues {
+  0%, 100% { opacity: 0.35; transform: translateY(1px); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes momo-raster-bow-cues {
+  0%, 100% { opacity: 0.25; transform: translateY(-2px); }
+  50% { opacity: 1; transform: translateY(2px); }
+}
 
 /* Position and performance are separate elements on purpose.
    The host carries an inline `transform: translate3d(...)` that says where Momo
@@ -509,6 +536,11 @@
   height: 100%;
   transform-origin: 50% 85%;
 }
+
+/* The host crosses the screen while this inner layer supplies footsteps. The
+   destination action starts from frame one when the walk class is removed. */
+.mascot-pose.is-walking.walk-right { animation: mascot-walk-right 420ms ease-in-out infinite !important; }
+.mascot-pose.is-walking.walk-left { animation: mascot-walk-left 420ms ease-in-out infinite !important; }
 
 .mascot-host.is-static .mascot-pose { animation: none !important; }
 
@@ -541,6 +573,11 @@
 .mascot-pose.pose-admire_streak:not(.is-static) { animation: mascot-admire 2.4s ease-in-out; }
 .mascot-pose.pose-peek_last_entry:not(.is-static) { animation: mascot-peek 2.2s ease-in-out; }
 .mascot-pose.pose-read_ticket:not(.is-static) { animation: mascot-read 2.8s ease-in-out; }
+.mascot-pose.pose-wander:not(.is-static) { animation: mascot-arrive .9s ease-out; }
+.mascot-pose.pose-tiny_dance:not(.is-static) { animation: mascot-tiny-dance 2.4s ease-in-out; }
+.mascot-pose.pose-happy_hop:not(.is-static) { animation: mascot-happy-hop 1.2s cubic-bezier(.3,1.35,.5,1); }
+.mascot-pose.pose-ponder:not(.is-static) { animation: mascot-ponder 2.4s ease-in-out; }
+.mascot-pose.pose-bow:not(.is-static) { animation: mascot-bow 1.6s ease-in-out; }
 
 /* ── Poke repertoire ─────────────────────────────────────────
    Eight reactions rather than one. A character that answers a finger the same
@@ -637,6 +674,31 @@
   border-right-width: 2px;
 }
 
+.mascot-host.is-on-left .mascot-quip {
+  left: -4px;
+  right: auto;
+  border-radius: 17px 17px 17px 5px;
+}
+
+.mascot-host.is-on-left .mascot-quip::after {
+  left: 14px;
+  right: auto;
+  border-right-width: 7px;
+  border-left-width: 2px;
+}
+
+.mascot-host.bubble-below .mascot-quip {
+  top: calc(100% + 10px);
+  bottom: auto;
+}
+
+.mascot-host.bubble-below .mascot-quip::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: color-mix(in srgb, var(--surface, #fff) 94%, var(--cobalt, #416ec3) 6%);
+}
+
 .mascot-quip.is-thinking {
   min-width: 54px;
   text-align: center;
@@ -717,6 +779,43 @@
 @keyframes mascot-read {
   25% { transform: translateY(4px) rotate(4deg); }
   60% { transform: translateY(4px) rotate(-4deg); }
+}
+@keyframes mascot-walk-right {
+  0%, 100% { transform: translateY(0) rotate(-2deg) scaleX(1); }
+  50% { transform: translateY(-5px) rotate(3deg) scaleX(1); }
+}
+@keyframes mascot-walk-left {
+  0%, 100% { transform: translateY(0) rotate(2deg) scaleX(-1); }
+  50% { transform: translateY(-5px) rotate(-3deg) scaleX(-1); }
+}
+@keyframes mascot-arrive {
+  0% { transform: translateY(-3px) scale(.96); }
+  45% { transform: translateY(2px) scale(1.04,.96); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes mascot-tiny-dance {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  15% { transform: translateY(-5px) rotate(-9deg); }
+  32% { transform: translateY(0) rotate(8deg); }
+  49% { transform: translateY(-6px) rotate(-7deg); }
+  66% { transform: translateY(0) rotate(9deg); }
+  83% { transform: translateY(-4px) rotate(-4deg); }
+}
+@keyframes mascot-happy-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  20% { transform: translateY(3px) scale(1.08,.92); }
+  52% { transform: translateY(-24px) scale(.94,1.08); }
+  78% { transform: translateY(1px) scale(1.04,.96); }
+}
+@keyframes mascot-ponder {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30%, 72% { transform: translateY(2px) rotate(-8deg); }
+  48% { transform: translateY(1px) rotate(-5deg) scale(1.02); }
+}
+@keyframes mascot-bow {
+  0%, 100% { transform: translateY(0) rotate(0deg) scaleY(1); }
+  38%, 68% { transform: translateY(9px) rotate(8deg) scaleY(.88); }
+  84% { transform: translateY(-2px) rotate(-2deg) scaleY(1.03); }
 }
 
 @media (prefers-reduced-motion: reduce) {

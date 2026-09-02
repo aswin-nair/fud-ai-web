@@ -16,7 +16,7 @@ import {
 import { AMBIENT, FIRST_LOG, LATE_NIGHT, REPERTOIRE, RETURNING, RING_COMPLETE, TAUNTS } from './mascotLines'
 
 const BANNED = /\b(bad|cheat|guilty|earned|naughty|sinful|damage|burn it off)\b/i
-const ABOUT_FOOD = /\b(calorie|kcal|weight|fat|fatty|skinny|lazy|greedy|diet|deficit|over|under|too much|too little)\b/i
+const ABOUT_FOOD = /\b(calories?|kcals?|macros?|nutrition|food|meals?|eat|eating|exercise|appearance|protein|carbs?|weight|fat|fatty|skinny|lazy|greedy|diet|deficit|body|bodies|over|under|too much|too little)\b/i
 const CRUEL = /\b(stupid|idiot|useless|pathetic|failure|loser|shame|disgusting)\b/i
 
 function ctx(over: Partial<VoiceContext> = {}): VoiceContext {
@@ -122,7 +122,7 @@ describe('volunteer taunts', () => {
   it('gives every roaming gesture a deep pool of matching jokes', () => {
     expect(Object.keys(TAUNTS).sort()).toEqual([...TAUNT_POSES].sort())
     for (const pose of TAUNT_POSES) {
-      expect(TAUNTS[pose].length, `${pose} is too shallow`).toBeGreaterThanOrEqual(6)
+      expect(TAUNTS[pose].length, `${pose} is too shallow`).toBeGreaterThanOrEqual(12)
       expect(tauntAct(pose).pose).toBe(pose)
     }
   })
@@ -281,9 +281,16 @@ describe('the poke repertoire', () => {
     expect(pokeAct(9).line).toMatch(/count/i)
   })
 
-  it('settles on the last beat rather than looping back', () => {
-    expect(pokeAct(99)).toEqual(pokeAct(9))
+  it('keeps the last pose rather than looping back', () => {
+    expect(pokeAct(99).pose).toBe(pokeAct(9).pose)
     expect(pokeAct(99).line).not.toBe(pokeAct(1).line)
+  })
+
+  it('keeps varying the wording after the escalation is complete', () => {
+    const late = [9, 10, 11, 12, 13].map(n => pokeAct(n, 0))
+
+    expect(new Set(late.map(act => act.pose)).size).toBe(1)
+    expect(new Set(late.map(act => act.line)).size).toBeGreaterThan(1)
   })
 
   /* The pose ladder is the joke and must not move; the wording is what varies

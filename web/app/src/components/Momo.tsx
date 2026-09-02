@@ -28,6 +28,11 @@ export function Momo({
   const waving = pose === 'wave_at_user'
   const lookingAround = pose === 'look_around'
   const stretching = pose === 'stretch'
+  const wandering = pose === 'wander'
+  const dancing = pose === 'tiny_dance'
+  const hopping = pose === 'happy_hop'
+  const pondering = pose === 'ponder'
+  const bowing = pose === 'bow'
   const pointing = pose === 'point_at_target' || pose === 'glance_at_log'
 
   return (
@@ -76,6 +81,36 @@ export function Momo({
       {stretching && (
         <g className="momo-raster-gesture-cues momo-raster-stretch-cues">
           <path d="M12 72Q5 67 5 59M5 59l-3 5M5 59l5 2M88 72q7-5 7-13M95 59l-4 5M95 59l3 5" />
+        </g>
+      )}
+      {wandering && (
+        <g className="momo-raster-gesture-cues momo-raster-wander-cues">
+          <path d="M13 94q4-4 8 0M4 101q4-4 8 0M84 97q4-4 8 0" />
+        </g>
+      )}
+      {dancing && (
+        <g className="momo-raster-gesture-cues momo-raster-dance-cues">
+          <path d="M11 51V37l9-3v14M11 39l9-3M78 42V28l9 3v14" />
+          <circle cx="8" cy="53" r="3" />
+          <circle cx="18" cy="50" r="3" />
+          <circle cx="76" cy="44" r="3" />
+          <circle cx="86" cy="47" r="3" />
+        </g>
+      )}
+      {hopping && (
+        <g className="momo-raster-gesture-cues momo-raster-hop-cues">
+          <path d="M18 94l-8 5M24 97l-3 8M82 94l8 5M76 97l3 8" />
+        </g>
+      )}
+      {pondering && (
+        <g className="momo-raster-gesture-cues momo-raster-ponder-cues">
+          <path d="M82 28c0-7 11-7 11 0 0 6-6 5-6 11" />
+          <circle cx="87" cy="45" r="1.8" />
+        </g>
+      )}
+      {bowing && (
+        <g className="momo-raster-gesture-cues momo-raster-bow-cues">
+          <path d="M8 58q7 7 15 5M92 58q-7 7-15 5" />
         </g>
       )}
 

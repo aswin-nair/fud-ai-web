@@ -22,6 +22,11 @@ export const BEHAVIOR_IDS = {
   peek_last_entry: 33,
   look_around: 34,
   stretch: 35,
+  wander: 36,
+  tiny_dance: 37,
+  happy_hop: 38,
+  ponder: 39,
+  bow: 40,
   poke_wobble: 20,
   poke_hop: 21,
   poke_squish: 22,
@@ -63,6 +68,8 @@ export interface Behavior {
   priority: 0 | 1 | 2 | 3 | 4
   screens?: Screen[]
   anchor?: AnchorId
+  /** Pick a safe, non-anchored viewport destination before performing. */
+  roams?: boolean
   durationMs: number
   cooldownMs: number
   weight: number
@@ -166,6 +173,19 @@ export const BEHAVIORS: Behavior[] = [
     weight: 4,
     when: c => c.idleSeconds > 40,
   },
+  {
+    key: 'wander',
+    priority: 2,
+    roams: true,
+    durationMs: 900,
+    cooldownMs: 18_000,
+    weight: 10,
+    when: c => c.idleSeconds > 8,
+  },
+  { key: 'tiny_dance', priority: 3, durationMs: 2400, cooldownMs: 65_000, weight: 5 },
+  { key: 'happy_hop', priority: 3, durationMs: 1200, cooldownMs: 42_000, weight: 6 },
+  { key: 'ponder', priority: 3, durationMs: 2400, cooldownMs: 52_000, weight: 5 },
+  { key: 'bow', priority: 3, durationMs: 1600, cooldownMs: 72_000, weight: 4 },
   { key: 'celebrate_small', priority: 1, durationMs: 1400, cooldownMs: 0, weight: 1 },
   { key: 'celebrate_big', priority: 1, durationMs: 2600, cooldownMs: 0, weight: 1 },
   { key: 'enter', priority: 1, durationMs: 700, cooldownMs: 0, weight: 1 },

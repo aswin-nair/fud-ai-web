@@ -29,7 +29,8 @@ export interface MascotAIContext {
 
 const BANNED = [
   /\b(?:\x62\x61\x64|\x63\x68\x65\x61\x74|\x67\x75\x69\x6c\x74\x79|\x65\x61\x72\x6e\x65\x64|\x6e\x61\x75\x67\x68\x74\x79|\x73\x69\x6e\x66\x75\x6c|\x64\x61\x6d\x61\x67\x65|\x62\x75\x72\x6e\x20\x69\x74\x20\x6f\x66\x66)\b/i,
-  /\b(?:calorie|kcal|macro|weight|fat|fatty|skinny|diet|deficit|body|bmi)\b/i,
+  /\b(?:calories?|kcals?|macros?|nutrition|food|meals?|eat|eating|exercise|appearance|protein|carbs?|weight|fat|fatty|skinny|diet|deficit|body|bodies|bmi)\b/i,
+  /\b(?:work it off|work off)\b/i,
   /\b(?:overeat|undereat|too much|too little|greedy|lazy)\b/i,
   /\b(?:stupid|idiot|useless|pathetic|failure|loser|shame|disgusting|hopeless)\b/i,
   /\b(?:kill yourself|self[- ]?harm|starve|purge)\b/i,

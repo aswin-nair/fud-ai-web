@@ -105,13 +105,16 @@ function GuestRoutes() {
     // which also covers session expiry, not just an explicit sign-out.
     const fallback = hasSeenAccount() ? '/login' : '/onboarding'
     return (
-      <Routes>
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="*" element={<Navigate to={fallback} replace />} />
-      </Routes>
+      <AnchorProvider>
+        <MascotOverlay />
+        <Routes>
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="*" element={<Navigate to={fallback} replace />} />
+        </Routes>
+      </AnchorProvider>
     )
   }
 

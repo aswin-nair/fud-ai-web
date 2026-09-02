@@ -13,12 +13,15 @@ import {
   type Mood,
 } from './behaviors'
 import {
+  authPosition,
   behaviorByKey,
   pickAmbient,
   restPosition,
+  roamPosition,
   scheduleDelay,
   shouldVolunteerTaunt,
   targetFromRect,
+  travelDurationMs,
 } from './controller'
 import {
   daysSincePreviousLog,
@@ -41,8 +44,7 @@ import {
 
 const SIZE = 88
 const MOVE_MS = 600
-/** A mascot that comments every time he moves is a mascot you turn off. */
-const SPEAK_COOLDOWN_MS = 45_000
+const SPEAK_COOLDOWN_MS = { lively: 28_000, calm: 60_000, off: Infinity } as const
 
 let handle: {
   react(key: BehaviorKey): void
@@ -95,8 +97,14 @@ export function MascotOverlay() {
   const currentRef = useRef<{ key: BehaviorKey; endsAt: number } | null>(null)
   const cooldowns = useRef(new Map<BehaviorKey, number>())
   const timerRef = useRef<number | null>(null)
+  const walkTimerRef = useRef<number | null>(null)
+  const positionRef = useRef({ x: 0, y: 0 })
   const [pose, setPose] = useState<BehaviorKey>('idle_breathe')
   const [poseRun, setPoseRun] = useState(0)
+  const [walking, setWalking] = useState(false)
+  const [walkDirection, setWalkDirection] = useState<'left' | 'right'>('left')
+  const [bubbleSide, setBubbleSide] = useState<'left' | 'right'>('right')
+  const [bubblePlacement, setBubblePlacement] = useState<'above' | 'below'>('above')
   const [mood, setMood] = useState<Mood>('neutral')
   const [paused, setPaused] = useState(false)
   const [says, setSays] = useState<string | null>(null)
@@ -108,9 +116,12 @@ export function MascotOverlay() {
   const aiRequests = useRef(new Map<string, Promise<string[]>>())
   const aiControllers = useRef(new Set<AbortController>())
   const thinkingCount = useRef(0)
+  const mascotEngaged = useRef(false)
 
   const screen = screenFromPath(location.pathname)
+  const authScreen = location.pathname.startsWith('/login')
   const activity = (state.gamification.mascotActivity ?? 'lively') as ActivityLevel
+  const speechCooldownMs = SPEAK_COOLDOWN_MS[activity]
   const streak = getStreakWithFreezes(
     state.foodEntries,
     state.gamification.freezeUsedDates,
@@ -158,27 +169,79 @@ export function MascotOverlay() {
   const place = useCallback((x: number, y: number, ms = MOVE_MS) => {
     const host = hostRef.current
     if (!host) return
-    host.style.transition = reduced ? 'none' : `transform ${ms}ms cubic-bezier(.34,1.4,.64,1)`
+    host.style.transition = reduced || ms <= 0
+      ? 'none'
+      : `transform ${ms}ms cubic-bezier(.2,.72,.3,1)`
     host.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    positionRef.current = { x, y }
   }, [reduced])
+
+  const stopWalk = useCallback(() => {
+    if (walkTimerRef.current === null) return
+    window.clearTimeout(walkTimerRef.current)
+    walkTimerRef.current = null
+
+    const host = hostRef.current
+    if (host) {
+      const transform = window.getComputedStyle(host).transform
+      if (transform && transform !== 'none') {
+        try {
+          const matrix = new DOMMatrixReadOnly(transform)
+          host.style.transition = 'none'
+          host.style.transform = `translate3d(${matrix.m41}px, ${matrix.m42}px, 0)`
+          positionRef.current = { x: matrix.m41, y: matrix.m42 }
+        } catch {
+          /* A non-matrix transform is harmless; the next destination replaces it. */
+        }
+      }
+    }
+    setWalking(false)
+  }, [])
 
   const play = useCallback((key: BehaviorKey) => {
     const behavior = behaviorByKey(key)
     if (!behavior) return
-    if (behavior.anchor && anchors) {
+    stopWalk()
+    let next: { x: number; y: number } | null = null
+    if (behavior.anchor) {
+      if (!anchors) return
       const rect = anchors.getRect(behavior.anchor)
       if (!rect) return
-      const next = targetFromRect(rect, SIZE)
-      place(next.x, next.y)
+      next = targetFromRect(rect, SIZE)
+    } else if (behavior.roams && !authScreen) {
+      next = roamPosition(SIZE, undefined, positionRef.current)
     }
-    currentRef.current = { key, endsAt: Date.now() + behavior.durationMs }
-    cooldowns.current.set(key, Date.now() + behavior.cooldownMs)
+
+    let travelMs = 0
+    if (next) {
+      const from = positionRef.current
+      travelMs = travelDurationMs(from, next, reduced)
+      setWalkDirection(next.x < from.x ? 'left' : 'right')
+      setBubbleSide(next.x + SIZE / 2 < window.innerWidth / 2 ? 'left' : 'right')
+      setBubblePlacement(next.y < 150 ? 'below' : 'above')
+      setWalking(travelMs > 0)
+      place(next.x, next.y, travelMs)
+      if (travelMs > 0) {
+        walkTimerRef.current = window.setTimeout(() => {
+          walkTimerRef.current = null
+          setWalking(false)
+          // Removing the walk cycle starts the destination action from frame one.
+          setPoseRun(run => run + 1)
+        }, travelMs)
+      }
+    } else {
+      setWalking(false)
+    }
+
+    const now = Date.now()
+    currentRef.current = { key, endsAt: now + travelMs + behavior.durationMs }
+    cooldowns.current.set(key, now + behavior.cooldownMs)
     setPose(key)
     // A one-shot CSS animation does not restart when React receives the same
     // pose string twice. Remount only the performance wrapper so two waves in
     // different taunts both visibly wave.
     setPoseRun(run => run + 1)
-  }, [anchors, place])
+  }, [anchors, authScreen, place, reduced, stopWalk])
 
   const react = useCallback((key: BehaviorKey) => {
     lastInteraction.current = Date.now()
@@ -189,7 +252,8 @@ export function MascotOverlay() {
   const say = useCallback((line: string) => {
     setSays(line)
     if (sayTimer.current) window.clearTimeout(sayTimer.current)
-    sayTimer.current = window.setTimeout(() => setSays(null), 3200)
+    const holdMs = Math.min(5200, Math.max(3600, line.length * 58))
+    sayTimer.current = window.setTimeout(() => setSays(null), holdMs)
   }, [])
 
   const contextFor = useCallback((event: MascotAIEvent, pokeStage?: MascotAIContext['pokeStage']): MascotAIContext => {
@@ -287,7 +351,7 @@ export function MascotOverlay() {
    * the line it just showed.
    */
   const speak = useCallback((hour: number) => {
-    if (Date.now() - lastSpokeAt.current < SPEAK_COOLDOWN_MS) return
+    if (Date.now() - lastSpokeAt.current < speechCooldownMs) return
     lastSpokeAt.current = Date.now()
     const line = momoLine({
       state: voiceState,
@@ -305,7 +369,7 @@ export function MascotOverlay() {
         ? 'ring_complete'
         : 'ambient'
     void deliver(event, event === 'ambient' ? line : EVENT_FALLBACKS[event])
-  }, [deliver, voiceState, todayKey, todayEntries.length, loggedDayKeys, ringComplete])
+  }, [deliver, voiceState, todayKey, todayEntries.length, loggedDayKeys, ringComplete, speechCooldownMs])
 
   /**
    * A volunteered joke is local on purpose: the shared repertoire pairs each
@@ -319,7 +383,7 @@ export function MascotOverlay() {
       activity,
       idleSeconds,
       elapsedSinceSpeechMs: now - lastSpokeAt.current,
-      speechCooldownMs: SPEAK_COOLDOWN_MS,
+      speechCooldownMs,
       reducedMotion: reduced,
       paused,
       quietScreen: quiet,
@@ -335,7 +399,7 @@ export function MascotOverlay() {
     rememberLine(act.line)
     say(act.line)
     return true
-  }, [activity, paused, play, quiet, reduced, say])
+  }, [activity, paused, play, quiet, reduced, say, speechCooldownMs])
 
   const respond = useCallback((event: MascotAIEvent) => {
     const reaction: Partial<Record<MascotAIEvent, BehaviorKey>> = {
@@ -370,9 +434,9 @@ export function MascotOverlay() {
     // Hidden, paused and reduced-motion mascots must be silent at the network
     // boundary too—not merely absent from the screen. This prevents an idle
     // provider request from consuming quota after Momo has been turned off.
-    if (!aiEnabled || activity === 'off' || quiet || reduced || paused) return
+    if (!aiEnabled || activity === 'off' || quiet || reduced || paused || authScreen) return
     void fillAIPool(contextFor('ambient'))
-  }, [activity, aiEnabled, contextFor, fillAIPool, paused, quiet, reduced])
+  }, [activity, aiEnabled, authScreen, contextFor, fillAIPool, paused, quiet, reduced])
 
   /**
    * Put him in his corner the moment the element exists.
@@ -384,11 +448,35 @@ export function MascotOverlay() {
    */
   const attachHost = useCallback((el: HTMLButtonElement | null) => {
     hostRef.current = el
-    if (!el || el.style.transform) return
-    const rest = restPosition(SIZE)
+    if (!el) {
+      mascotEngaged.current = false
+      return
+    }
+    if (el.style.transform) return
+    const rest = authScreen ? authPosition(SIZE) : restPosition(SIZE)
     el.style.transition = 'none'
     el.style.transform = `translate3d(${rest.x}px, ${rest.y}px, 0)`
-  }, [])
+    positionRef.current = rest
+    setBubbleSide(authScreen && window.innerWidth >= 900
+      ? 'left'
+      : rest.x + SIZE / 2 < window.innerWidth / 2 ? 'left' : 'right')
+    setBubblePlacement(rest.y < 150 ? 'below' : 'above')
+  }, [authScreen])
+
+  useEffect(() => {
+    const keepInsideStage = () => {
+      stopWalk()
+      const rest = authScreen ? authPosition(SIZE) : restPosition(SIZE)
+      setBubbleSide(authScreen && window.innerWidth >= 900
+        ? 'left'
+        : rest.x + SIZE / 2 < window.innerWidth / 2 ? 'left' : 'right')
+      setBubblePlacement(rest.y < 150 ? 'below' : 'above')
+      place(rest.x, rest.y, 0)
+    }
+    keepInsideStage()
+    window.addEventListener('resize', keepInsideStage)
+    return () => window.removeEventListener('resize', keepInsideStage)
+  }, [authScreen, place, stopWalk])
 
   useEffect(() => {
     const touch = () => { lastInteraction.current = Date.now() }
@@ -421,7 +509,7 @@ export function MascotOverlay() {
   useEffect(() => {
     if (timerRef.current) window.clearTimeout(timerRef.current)
     // `reduced` already covers activity === 'off' — see where it is defined.
-    if (reduced || paused || quiet) return
+    if (reduced || paused || quiet || authScreen) return
     const tick = () => {
       const delay = scheduleDelay(accountAgeDays, activity)
       if (!Number.isFinite(delay)) return
@@ -438,7 +526,11 @@ export function MascotOverlay() {
           hasAnchor: (id: Parameters<NonNullable<typeof anchors>['has']>[0]) => anchors?.getRect(id) != null,
         }
         setMood(deriveMood(ctx))
-        if (!currentRef.current || currentRef.current.endsAt <= Date.now()) {
+        if (
+          ctx.idleSeconds >= 4
+          && !mascotEngaged.current
+          && (!currentRef.current || currentRef.current.endsAt <= Date.now())
+        ) {
           if (!volunteerTaunt(ctx.idleSeconds)) {
             const next = pickAmbient(ctx, cooldowns.current, Date.now())
             if (next) {
@@ -457,7 +549,7 @@ export function MascotOverlay() {
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current)
     }
-  }, [accountAgeDays, activity, anchors, loggedToday, mood, paused, play, quiet, reduced, ringComplete, screen, speak, streak, volunteerTaunt])
+  }, [accountAgeDays, activity, anchors, authScreen, loggedToday, mood, paused, play, quiet, reduced, ringComplete, screen, speak, streak, volunteerTaunt])
 
   /* `exit` was in the behaviour table but nothing ever played it, so Momo
      teleported between screens. Playing it on the way out gives the move a
@@ -468,11 +560,12 @@ export function MascotOverlay() {
     previousScreen.current = screen
     if (leaving !== null && leaving !== screen) react('exit')
     const t = window.setTimeout(() => {
-      if (screen === 'log') react('sniff_plate')
+      if (authScreen) react('wave_at_user')
+      else if (screen === 'log') react('sniff_plate')
       else react('enter')
     }, leaving === null ? 0 : 260)
     return () => window.clearTimeout(t)
-  }, [screen]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [screen, authScreen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * A poke plays the next beat of the repertoire and says the line written for
@@ -495,6 +588,7 @@ export function MascotOverlay() {
 
   useEffect(() => () => {
     if (sayTimer.current) window.clearTimeout(sayTimer.current)
+    if (walkTimerRef.current) window.clearTimeout(walkTimerRef.current)
     for (const controller of aiControllers.current) controller.abort()
   }, [])
 
@@ -508,7 +602,14 @@ export function MascotOverlay() {
       <button
         ref={attachHost}
         type="button"
-        className={`mascot-host mood-${mood}${reduced ? ' is-static' : ''}`}
+        className={`mascot-host mood-${mood} is-on-${bubbleSide} bubble-${bubblePlacement}${authScreen ? ' is-auth' : ''}${walking ? ' is-walking' : ''}${reduced ? ' is-static' : ''}`}
+        onPointerEnter={() => { mascotEngaged.current = true }}
+        onPointerLeave={() => { mascotEngaged.current = false }}
+        onFocus={() => {
+          mascotEngaged.current = true
+          stopWalk()
+        }}
+        onBlur={() => { mascotEngaged.current = false }}
         onClick={(event) => {
           event.stopPropagation()
           poke()
@@ -516,7 +617,7 @@ export function MascotOverlay() {
         aria-label="Talk to Momo"
         aria-expanded={Boolean(says || thinking)}
       >
-        <div key={poseRun} className={`mascot-pose pose-${pose}`}>
+        <div key={poseRun} className={`mascot-pose pose-${pose}${walking ? ` is-walking walk-${walkDirection}` : ''}`}>
           <Momo
             mood={mood}
             pose={pose}

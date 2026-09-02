@@ -183,10 +183,14 @@ export interface PokeAct {
  * but does not recite.
  */
 export function pokeAct(n: number, variant = 0): PokeAct {
-  const i = Math.min(Math.max(1, Math.trunc(n)), REPERTOIRE.length) - 1
+  const count = Math.max(1, Math.trunc(n))
+  const i = Math.min(count, REPERTOIRE.length) - 1
   const beat = REPERTOIRE[i]!
   const v = Math.abs(Math.trunc(variant))
-  return { pose: beat.pose, line: beat.lines[(v + i) % beat.lines.length]! }
+  // Once the escalation has reached its final beat, keep the put-upon pose but
+  // rotate the wording. A long tapping session should not freeze on one line.
+  const turn = count > REPERTOIRE.length ? count - 1 : i
+  return { pose: beat.pose, line: beat.lines[(v + turn) % beat.lines.length]! }
 }
 
 /** Every poke line, for the copy-safety test. */
@@ -203,6 +207,11 @@ export const TAUNT_POSES = [
   'wave_at_user',
   'look_around',
   'stretch',
+  'wander',
+  'tiny_dance',
+  'happy_hop',
+  'ponder',
+  'bow',
 ] as const
 
 export type TauntPose = (typeof TAUNT_POSES)[number]
