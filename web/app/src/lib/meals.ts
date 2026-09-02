@@ -106,3 +106,21 @@ export function dailyCalorieSeries(entries: FoodEntry[], days: number): { label:
   }
   return result
 }
+
+/**
+ * Scale a saved meal by a portion multiplier.
+ *
+ * Pure and separately tested because it writes real numbers into the log: a
+ * silent rounding or a missed macro here shows up as a wrong calorie total,
+ * not as a visual glitch.
+ */
+export function scaleMeal(meal: SavedMeal, multiplier: number): SavedMeal {
+  if (multiplier === 1) return meal
+  return {
+    ...meal,
+    calories: Math.round(meal.calories * multiplier),
+    protein: Math.round(meal.protein * multiplier),
+    carbs: Math.round(meal.carbs * multiplier),
+    fat: Math.round(meal.fat * multiplier),
+  }
+}

@@ -12,6 +12,7 @@ import { type ColorToken } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
 
 export type ProgressBarProps = {
+  accessibilityLabel: string;
   value: number;
   max: number;
   color: ColorToken;
@@ -39,6 +40,7 @@ function fractions(value: number, max: number) {
 }
 
 export function ProgressBar({
+  accessibilityLabel,
   value,
   max,
   color,
@@ -71,8 +73,14 @@ export function ProgressBar({
 
   return (
     <View
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="progressbar"
-      accessibilityValue={{ min: 0, max, now: value }}
+      accessibilityValue={{
+        min: 0,
+        max,
+        now: Math.min(max, Math.max(0, value)),
+        text: `${value} of ${max}`,
+      }}
       style={[
         {
           backgroundColor: theme.colors.track,

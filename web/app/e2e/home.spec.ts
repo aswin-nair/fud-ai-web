@@ -86,7 +86,10 @@ test.describe('Home & food logging', () => {
     }
     await page.getByRole('button', { name: yesterdayLabel }).click()
     await expect(page.getByText('Oatmeal')).toHaveCount(0)
-    await expect(page.getByText(/Nothing logged yet|still ahead|Your day starts/)).toBeVisible()
+    await expect(page.getByText('Yesterday’s snapshot')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'YESTERDAY' })).toBeVisible()
+    await expect(page.getByText('Nothing was logged yesterday.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'LOG A MEAL TODAY' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Choose date' }).click()
     await page.getByRole('button', { name: 'Jump to today' }).click()
@@ -95,8 +98,6 @@ test.describe('Home & food logging', () => {
 
   test('log FAB reaches every option from the log menu', async ({ page }) => {
     await page.getByTestId('fab').click()
-    await expect(page).toHaveURL('/log/photo')
-    await page.getByRole('link', { name: /More ways to log/i }).click()
     await expect(page).toHaveURL('/log')
     await expect(page.getByRole('link', { name: /Describe your meal/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Snap a photo/i })).toBeVisible()
@@ -116,6 +117,6 @@ test.describe('Home & food logging', () => {
     const celebration = page.getByRole('dialog', { name: 'Meal logged' })
     await expect(celebration).toContainText('Toast Test Meal')
     await expect(celebration).toContainText('XP revealed')
-    await expect(celebration.getByRole('button')).toHaveCount(0)
+    await expect(celebration.getByRole('button', { name: 'Continue' })).toBeVisible()
   })
 })

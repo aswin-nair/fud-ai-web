@@ -6,7 +6,7 @@
 }
 
 .nav-item { color: var(--ink-mute); }
-.nav-item.active { color: var(--cobalt); }
+.nav-item.active { color: var(--coral-text); }
 .nav-item.active .nav-item-inner { background: rgba(31, 95, 209, 0.08); }
 
 .nav-fab {
@@ -16,7 +16,7 @@
   margin-top: -22px;
   border-radius: 50%;
   background: var(--cobalt);
-  color: #fff;
+  color: var(--on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@
   text-decoration: none;
 }
 
-.nav-fab:hover { text-decoration: none; color: #fff; }
+.nav-fab:hover { text-decoration: none; color: var(--on-brand); }
 .nav-fab:active {
   transform: translateY(2px);
   box-shadow: var(--clay-coral-squish);
@@ -173,14 +173,14 @@
 .ticket-note {
   margin-top: 10px;
   font-size: 0.8rem;
-  color: var(--cobalt);
+  color: var(--coral-text);
   min-height: 36px;
 }
 
 .ticket-stamp {
   margin-top: 14px;
   font-family: var(--display);
-  color: var(--herb);
+  color: var(--fat-text);
   letter-spacing: 0.04em;
 }
 
@@ -910,7 +910,7 @@
   font-family: var(--display);
   font-size: var(--text-caption);
   font-weight: 600;
-  color: var(--on-track-deep);
+  color: var(--coral-text);
   background: var(--paper-deep);
   box-shadow: var(--clay-inset);
 }
@@ -961,9 +961,9 @@ button.home-chip:focus-visible { outline: 3px solid var(--on-track); outline-off
 .home-macro-top { display: flex; justify-content: space-between; align-items: baseline; }
 .home-macro-label { font-size: 0.53rem; font-weight: 800; letter-spacing: 0.07em; color: var(--ink-mute); }
 .home-macro-value { font-family: var(--display); font-weight: 600; font-size: 0.82rem; }
-.tone-protein .home-macro-value { color: var(--protein); }
-.tone-carbs   .home-macro-value { color: #E08A00; }
-.tone-fat     .home-macro-value { color: #1FA97A; }
+.tone-protein .home-macro-value { color: var(--protein-text); }
+.tone-carbs   .home-macro-value { color: var(--carbs-text); }
+.tone-fat     .home-macro-value { color: var(--fat-text); }
 
 .home-macro-track {
   height: 8px;
@@ -1048,7 +1048,7 @@ button.home-chip:focus-visible { outline: 3px solid var(--on-track); outline-off
   margin: var(--space-md) 0 var(--space-sm);
   border: none;
   border-radius: var(--clay-radius-lg);
-  color: var(--on-accent);
+  color: var(--on-brand);
   background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
   box-shadow: var(--clay-coral-raised);
   font-family: var(--display);

@@ -5,11 +5,13 @@ import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
 import { HomeSkeleton } from '../components/HomeSkeleton'
 import { Ticket } from '../components/Ticket'
+import { SwipeRow } from '../components/SwipeRow'
+import { PullToRefresh } from '../components/PullToRefresh'
 import { useToast } from '../components/Toast'
 import { useApp } from '../store/AppContext'
 import { entriesForDay, macroTotals } from '../lib/storage'
 import { effectiveProtein, effectiveCarbs, effectiveFat } from '../lib/profile'
-import { startOfDay, sameDay, localDayKey } from '../lib/dates'
+import { formatDayLabel, startOfDay, sameDay, localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges, getTotalLoggedDays } from '../lib/journey'
 import { applyNote, applyWaterChange, ticketNumber } from '../lib/enamelEconomy'
 import { useFeel } from '../hooks/useHaptic'
@@ -21,9 +23,8 @@ import { Surface } from '../components/Surface'
 import { MEAL_LABELS, type XpEvent } from '../types'
 import { useAnchor } from '../mascot/anchors'
 import { CalorieRing } from '../components/CalorieRing'
-import { ambientLine } from '../lib/mascotVoice'
 import { effectiveCalories } from '../lib/profile'
-import { mascotReact } from '../mascot/MascotOverlay'
+import { mascotEvent } from '../mascot/MascotOverlay'
 import { dayRingProgress } from '../lib/dayRing'
 import { DayRing } from '../components/DayRing'
 
@@ -34,10 +35,11 @@ interface JustLogged { id?: string; calories: number; name: string }
 interface CelebrationState {
   foodName: string
   awards: XpEvent[]
+  mascotEvent: 'log_success' | 'milestone'
 }
 
 export function HomePage({ guest = false }: { guest?: boolean }) {
-  const { state, ackLevelUp, patchGamification } = useApp()
+  const { state, ackLevelUp, patchGamification, deleteEntry, refresh } = useApp()
   const { toast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
@@ -56,6 +58,18 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   const totals = macroTotals(dayEntries)
   const profile = state.profile
   const selectedDayKey = localDayKey(selectedDate)
+  const selectedDayLabel = formatDayLabel(selectedDate)
+  const selectedDayIsToday = selectedDayLabel === 'Today'
+  const snapshotLabel = selectedDayIsToday
+    ? 'Today’s snapshot'
+    : selectedDayLabel === 'Yesterday'
+      ? 'Yesterday’s snapshot'
+      : `${selectedDayLabel} snapshot`
+  const totalDateLabel = selectedDayIsToday
+    ? 'today'
+    : selectedDayLabel === 'Yesterday'
+      ? 'yesterday'
+      : `on ${selectedDayLabel}`
   const paused = Boolean(profile.trackingPaused)
   const streak = getStreakWithFreezes(
     state.foodEntries,
@@ -67,18 +81,6 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   const notes = state.gamification.notesByDate[selectedDayKey] ?? 0
   const calorieTarget = effectiveCalories(profile)
   const dayProgress = dayRingProgress(dayEntries, notes, profile.loggingCommitment ?? 'light')
-
-  /* §2.5: the line is chosen from logging behaviour and streak only. It never
-     inspects the calorie total, so there is no route from "went over" to a
-     different tone of voice. */
-  const voiceState = paused
-    ? 'neutral'
-    : !hasLoggedToday
-      ? 'sleepy'
-      : [7, 30, 100].includes(streak)
-        ? 'proud'
-        : 'idle'
-
   useEffect(() => {
     setFeelEnabled({
       sound: profile.soundEnabled !== false,
@@ -120,10 +122,10 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       : state.gamification.xpEvents.slice(0, 4)
     const streakMilestone = fresh.some(event => event.key.startsWith('streak-'))
     playLogConfirm({ streakMilestone })
-    mascotReact(streakMilestone ? 'celebrate_big' : 'celebrate_small')
     setCelebration({
       foodName: justLogged.name,
       awards: fresh,
+      mascotEvent: streakMilestone ? 'milestone' : 'log_success',
     })
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -137,6 +139,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       if (newBadge) {
         feel('badge')
         toast(`${newBadge.emoji} Badge unlocked: ${newBadge.name}!`)
+        mascotEvent('milestone')
       }
     }
     prevSeenBadgeCount.current = current
@@ -153,7 +156,11 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
           streak={streak}
           awards={celebration.awards}
           cosmeticId={state.gamification.equippedCosmeticId}
-          onDone={() => setCelebration(null)}
+          onDone={() => {
+            const event = celebration.mascotEvent
+            setCelebration(null)
+            window.setTimeout(() => mascotEvent(event), 120)
+          }}
         />
       )}
 
@@ -184,6 +191,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
         />
       )}
 
+      <PullToRefresh onRefresh={refresh}>
       <main className="app-main home-main">
         {!revealed ? (
           <HomeSkeleton />
@@ -228,11 +236,12 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                     target={calorieTarget}
                     size={132}
                     onLog={() => guest ? navigate('/login?mode=signup&claim=1') : transitionTo('/log')}
+                    actionLabel={selectedDayIsToday ? 'Tap to log' : 'Log for today'}
                   />
                   <div className="home-factual-copy">
-                    <p className="home-ring-say">{ambientLine(voiceState, dayEntries.length)}</p>
+                    <p className="home-ring-say">{snapshotLabel}</p>
                     <p className="home-ring-sub tabular">
-                      {Math.round(totals.calories).toLocaleString()} of {Math.round(calorieTarget).toLocaleString()} today
+                      {Math.round(totals.calories).toLocaleString()} of {Math.round(calorieTarget).toLocaleString()} {totalDateLabel}
                     </p>
                   </div>
                 </div>
@@ -269,7 +278,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
 
             <div className="home-today-list">
               <div className="home-today-head">
-                <h2 className="home-today-kicker">TODAY</h2>
+                <h2 className="home-today-kicker">{selectedDayLabel.toUpperCase()}</h2>
                 <span className="home-today-count">
                   {dayEntries.length === 0
                     ? 'nothing yet'
@@ -278,24 +287,34 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               </div>
               {dayEntries.length === 0 ? (
                 <p className="home-today-empty">
-                  Your day starts the moment you log something. Anything counts.
+                  {selectedDayIsToday
+                    ? 'Your day starts the moment you log something. Anything counts.'
+                    : `Nothing was logged ${totalDateLabel}.`}
                 </p>
               ) : (
                 <div className="home-today-rows motion-stagger">
                   {dayEntries.map(entry => (
-                    <button
+                    <SwipeRow
                       key={entry.id}
-                      type="button"
-                      className="home-today-row"
-                      onClick={() => { feel('tap'); navigate(`/edit/${entry.id}`) }}
+                      label={entry.name}
+                      actions={[
+                        { label: 'Edit', onAct: () => navigate(`/edit/${entry.id}`) },
+                        { label: 'Delete', tone: 'danger', onAct: () => deleteEntry(entry.id) },
+                      ]}
                     >
-                      <span className="home-today-emoji" aria-hidden>{entry.emoji ?? '🍽'}</span>
-                      <span className="home-today-name">
-                        {entry.name}
-                        <small>{MEAL_LABELS[entry.mealType] ?? 'Meal'}</small>
-                      </span>
-                      <span className="home-today-kcal tabular">{Math.round(entry.calories)} kcal</span>
-                    </button>
+                      <button
+                        type="button"
+                        className="home-today-row"
+                        onClick={() => { feel('tap'); navigate(`/edit/${entry.id}`) }}
+                      >
+                        <span className="home-today-emoji" aria-hidden>{entry.emoji ?? '🍽'}</span>
+                        <span className="home-today-name">
+                          {entry.name}
+                          <small>{MEAL_LABELS[entry.mealType] ?? 'Meal'}</small>
+                        </span>
+                        <span className="home-today-kcal tabular">{Math.round(entry.calories)} kcal</span>
+                      </button>
+                    </SwipeRow>
                   ))}
                 </div>
               )}
@@ -324,12 +343,13 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               className="home-log-cta"
               onClick={() => { feel('press'); navigate('/log') }}
             >
-              <span aria-hidden>＋</span> LOG A MEAL
+              <span aria-hidden>＋</span> {selectedDayIsToday ? 'LOG A MEAL' : 'LOG A MEAL TODAY'}
             </button>}
           </>
         )}
         <div className="home-scroll-pad" />
       </main>
+      </PullToRefresh>
 
       {!guest && <BottomNav />}
     </div>

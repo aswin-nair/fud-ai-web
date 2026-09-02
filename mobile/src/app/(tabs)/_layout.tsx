@@ -36,9 +36,10 @@ export default function TabsLayout() {
           title: 'Log',
           tabBarButton: () => (
             <Pressable
-              accessibilityLabel="Log"
+              accessibilityLabel="Log a meal"
+              accessibilityHint="Opens all meal logging options"
               accessibilityRole="button"
-              onPress={() => router.push('/log/photo' as never)}
+              onPress={() => router.push('/log' as never)}
               style={{ alignItems: 'center', justifyContent: 'center', marginTop: -16 }}
             >
               <View
@@ -51,14 +52,14 @@ export default function TabsLayout() {
                   width: 56,
                 }}
               >
-                <Icon color="textOnFill" name="camera" size={26} />
+                <Icon color="textOnPrimary" name="plus" size={26} />
               </View>
               <Text color="onTrack" variant="caption">Log</Text>
             </Pressable>
           ),
         }}
       />
-      <Tabs.Screen name="discover" options={{ title: 'Discover', tabBarIcon: icon('discover') }} />
+      <Tabs.Screen name="discover" options={{ title: 'Saved', tabBarIcon: icon('discover') }} />
       <Tabs.Screen name="you" options={{ title: 'You', tabBarIcon: icon('profile') }} />
       <Tabs.Screen name="history" options={{ href: null }} />
       <Tabs.Screen name="profile" options={{ href: null }} />

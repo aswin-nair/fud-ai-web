@@ -60,7 +60,7 @@ export function MealRow({ name, portion, calories, macros, onEdit, onDelete }: M
         <Action
           background="danger"
           icon="trash"
-          iconColor="textOnFill"
+          iconColor="textOnDanger"
           label="Delete"
           onPress={confirmDelete}
         />

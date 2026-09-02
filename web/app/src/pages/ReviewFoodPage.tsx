@@ -30,7 +30,14 @@ const MACROS = [
 ] as const
 
 export function ReviewFoodPage() {
-  const { pendingAnalysis, setPendingAnalysis, addEntry, pendingSource } = useApp()
+  const {
+    pendingAnalysis,
+    setPendingAnalysis,
+    pendingImagePreview,
+    setPendingImagePreview,
+    addEntry,
+    pendingSource,
+  } = useApp()
   const { user } = useAuth()
   const navigate = useNavigate()
   const userId = user?.sub ?? ''
@@ -174,16 +181,31 @@ export function ReviewFoodPage() {
     } as const
     addEntry(entry)
     setPendingAnalysis(null)
+    setPendingImagePreview(null)
     clearLogDraft(userId, 'review')
     navigate('/', { state: { justLogged: { id: entry.id, calories: cals, name: analysis.name } } })
+  }
+
+  function discard() {
+    setPendingAnalysis(null)
+    setPendingImagePreview(null)
+    clearLogDraft(userId, 'review')
+    navigate('/log')
   }
 
   return (
     <div className="app-shell">
       <main className="app-main review-page motion-stagger">
-        <BackLink onClick={() => navigate('/log')} />
+        <BackLink onClick={discard} />
 
         {error && <div className="error-banner" role="alert">{error}</div>}
+
+        {source === 'snapFood' && pendingImagePreview && (
+          <figure className="review-photo-evidence">
+            <img src={pendingImagePreview} alt="Meal photo being reviewed" />
+            <figcaption>Original photo · kept only for this review</figcaption>
+          </figure>
+        )}
 
         {/* Food identity row */}
         <div className="review-hero">
@@ -232,6 +254,11 @@ export function ReviewFoodPage() {
             aria-label="Increase servings"
           ><IconPlus size={18} strokeWidth={2.4} /></button>
         </div>
+        {analysis.servingSizeGrams > 0 && (
+          <p className="review-portion-estimate">
+            Estimated portion: <strong>{Math.round(analysis.servingSizeGrams)} g</strong>
+          </p>
+        )}
 
         {/* Calorie hero */}
         <div className="review-section-label" style={{ marginTop: 20 }}>Calories</div>

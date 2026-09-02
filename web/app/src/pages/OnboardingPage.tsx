@@ -31,7 +31,7 @@ import {
 import { selectLogMethod, startLogFlow, track } from '../lib/analytics'
 import { guestUserId } from '../lib/guestMode'
 
-const STEPS = ['Age', 'About you', 'Goal', 'Body', 'Activity', 'Your pace', 'Review', 'First meal']
+const STEPS = ['Age', 'About you', 'Body', 'Goal', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
 
 const COMMITMENTS: Array<{ id: LoggingCommitment; icon: string; title: string; description: string }> = [
@@ -168,7 +168,7 @@ export function OnboardingPage() {
       track({ name: 'age_gate_passed' })
     }
 
-    if (step === 2) {
+    if (step === 2 || step === 3 || step === 6) {
       const issue = profileInputIssue(profile) ?? goalWeightIssue(profile)
       if (issue) {
         setValidationError(issue)
@@ -303,7 +303,15 @@ export function OnboardingPage() {
     <div className="app-shell">
       <main className="app-main onboarding-main">
         <div className="onboarding-header">
-          <div className="onboarding-progress" aria-hidden>
+          <div
+            className="onboarding-progress"
+            role="progressbar"
+            aria-label="Onboarding progress"
+            aria-valuemin={1}
+            aria-valuemax={STEPS.length}
+            aria-valuenow={step + 1}
+            aria-valuetext={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
+          >
             <span
               className="onboarding-progress-fill"
               style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
@@ -326,6 +334,7 @@ export function OnboardingPage() {
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">What is your date of birth?</h1>
             <p className="onboarding-sub">We use this to keep goal calculations appropriate for adults.</p>
+            <p className="onboarding-clamp-hint">You can edit or delete this profile later from You.</p>
             <div className="field">
               <label htmlFor="onboarding-birthday">Date of birth</label>
               <input
@@ -344,7 +353,7 @@ export function OnboardingPage() {
         {step === 1 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">About you</h1>
-            <p className="onboarding-sub">A name is optional. The equation uses the selection below to estimate your needs.</p>
+            <p className="onboarding-sub">A name is optional. Choose the equation that best matches your physiology; this is separate from your identity.</p>
             <div className="field">
               <label htmlFor="onboarding-name">Your name <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span></label>
               <input
@@ -356,9 +365,9 @@ export function OnboardingPage() {
               />
             </div>
             <div className="field">
-              <span className="onboarding-step-label">Sex used by the equation</span>
-              <div className="onboarding-chip-row">
-                {(['male', 'female', 'other'] as Gender[]).map(gender => (
+              <span className="onboarding-step-label" id="equation-label">Equation used for the estimate</span>
+              <div className="onboarding-chip-row" role="group" aria-labelledby="equation-label">
+                {(['female', 'male'] as Gender[]).map(gender => (
                   <button
                     key={gender}
                     type="button"
@@ -366,7 +375,7 @@ export function OnboardingPage() {
                     aria-pressed={profile.gender === gender}
                     onClick={() => updateDraftProfile(current => ({ ...current, gender }))}
                   >
-                    {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                    {gender === 'female' ? 'Female equation' : 'Male equation'}
                   </button>
                 ))}
               </div>
@@ -374,10 +383,10 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your body</h1>
-            <p className="onboarding-sub">Optional. Used to calculate your basal metabolic rate. You can skip this and keep the starting estimate.</p>
+            <p className="onboarding-sub">Used to calculate your starting estimate. The values shown are starting values—change them to match you.</p>
             <div className="field">
               <label htmlFor="onboarding-height">Height (cm)</label>
               <input
@@ -467,7 +476,7 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your goal</h1>
             <p className="onboarding-sub">This adjusts your calorie target.</p>
@@ -624,11 +633,6 @@ export function OnboardingPage() {
           {step > 0 && (
             <PressableButton variant="ghost" onClick={back}>
               <IconChevronLeft size={15} strokeWidth={2.4} /> Back
-            </PressableButton>
-          )}
-          {step === 3 && (
-            <PressableButton variant="ghost" onClick={next}>
-              Skip
             </PressableButton>
           )}
           <PressableButton

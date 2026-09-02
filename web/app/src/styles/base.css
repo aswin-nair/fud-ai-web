@@ -26,7 +26,7 @@ button {
   background: none;
 }
 
-a { color: var(--cobalt); text-decoration: none; }
+a { color: var(--coral-text); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .app-shell {
@@ -96,7 +96,7 @@ a:hover { text-decoration: underline; }
 
 .btn-secondary {
   background: var(--coral-soft);
-  color: var(--coral-deep);
+  color: var(--coral-text);
   border: 1px solid rgba(255, 122, 80, 0.3);
 }
 
@@ -104,8 +104,6 @@ a:hover { text-decoration: underline; }
   color: var(--ink-soft);
   border: 1px solid var(--rule);
 }
-
-.btn-block { width: 100%; }
 
 .field { margin-bottom: 16px; }
 
@@ -158,5 +156,5 @@ a:hover { text-decoration: underline; }
 .chip.active {
   background: var(--coral-soft);
   border-color: var(--coral);
-  color: var(--coral);
+  color: var(--coral-text);
 }

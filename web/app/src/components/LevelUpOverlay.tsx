@@ -4,6 +4,7 @@ import { Confetti } from './Confetti'
 import { IconChevronRight } from './icons'
 import { PressableButton } from './PressableButton'
 import { feel } from '../lib/feel'
+import { useDialogFocus } from '../hooks/useDialogFocus'
 
 interface LevelUpOverlayProps {
   level: number
@@ -12,6 +13,8 @@ interface LevelUpOverlayProps {
 
 export function LevelUpOverlay({ level, onDone }: LevelUpOverlayProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogFocus(dialogRef, onDone)
 
   useEffect(() => {
     feel('level-up')
@@ -30,7 +33,7 @@ export function LevelUpOverlay({ level, onDone }: LevelUpOverlayProps) {
   return (
     <>
       <Confetti />
-      <div className="levelup-overlay" role="dialog" aria-modal aria-label={`Level ${level} reached`}>
+      <div ref={dialogRef} className="levelup-overlay" role="dialog" aria-modal aria-label={`Level ${level} reached`}>
         <div className="levelup-card">
           <div className="levelup-companion">{companion}</div>
           <div className="levelup-badge">Level up</div>

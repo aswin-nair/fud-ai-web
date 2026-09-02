@@ -31,7 +31,7 @@ interface StatCardProps {
 }
 
 function StatCard({ label, value, sub, accent }: StatCardProps) {
-  const valueColor = accent ? 'var(--cobalt)' : undefined
+  const valueColor = accent ? 'var(--coral-text)' : undefined
 
   return (
     <div className="progress-stat-card">

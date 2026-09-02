@@ -61,7 +61,7 @@
 .celebrate-stat-value {
   font-family: var(--serif);
   font-size: var(--text-title);
-  color: var(--coral);
+  color: var(--coral-text);
 }
 
 .celebrate-flame { margin-right: 4px; }
@@ -94,7 +94,7 @@
   animation: reward-reveal 340ms cubic-bezier(.2,.8,.2,1) both;
 }
 
-.celebrate-awards strong { color: var(--coral); }
+.celebrate-awards strong { color: var(--coral-text); }
 
 @keyframes reward-reveal {
   from { opacity: 0; transform: translateY(8px) scale(.98); }
@@ -217,7 +217,7 @@
 
 .streak-day.is-logged .streak-day-dot {
   background: var(--coral);
-  color: var(--on-accent);
+  color: var(--on-brand);
 }
 
 .streak-day.is-frozen .streak-day-dot {
@@ -226,7 +226,7 @@
 
 .streak-day.is-today .streak-day-dot { border-color: var(--coral); }
 
-.streak-day.is-today .streak-day-label { color: var(--coral); font-weight: 700; }
+.streak-day.is-today .streak-day-label { color: var(--coral-text); font-weight: 700; }
 
 /* ── CalorieRing (§7.1) ──────────────────────────────────────
    The transition is on the arc itself, so it always moves from where it is

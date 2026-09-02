@@ -11,9 +11,23 @@ const SCREENS = [
   { name: 'Home', path: '/' },
   { name: 'Log', path: '/log' },
   { name: 'Insights', path: '/progress' },
-  { name: 'Discover', path: '/discover' },
+  { name: 'Saved', path: '/discover' },
   { name: 'Settings', path: '/settings' },
   { name: 'Support', path: '/support' },
+]
+
+const RESPONSIVE_VIEWPORTS = [
+  { width: 320, height: 568 },
+  { width: 360, height: 640 },
+  { width: 390, height: 844 },
+  { width: 480, height: 900 },
+  { width: 1280, height: 800 },
+]
+
+const RESPONSIVE_SCREENS = [
+  { name: 'Home', path: '/' },
+  { name: 'Log', path: '/log' },
+  { name: 'Saved', path: '/discover' },
 ]
 
 interface Scan {
@@ -117,5 +131,31 @@ test.describe('Tap targets', () => {
     const calm = page.locator('.settings-row').filter({ hasText: 'Calm' }).locator('input[type="radio"]')
     await calm.check()
     await expect(calm).toBeChecked()
+  })
+
+  test('Core flows fit the supported viewport matrix without horizontal clipping', async ({ page }) => {
+    for (const viewport of RESPONSIVE_VIEWPORTS) {
+      await page.setViewportSize(viewport)
+
+      for (const screen of RESPONSIVE_SCREENS) {
+        await page.goto(screen.path)
+        await page.getByLabel('Main').waitFor({ state: 'visible' })
+
+        const layout = await page.evaluate(() => {
+          const nav = document.querySelector<HTMLElement>('.bottom-nav-wrap')?.getBoundingClientRect()
+          return {
+            viewportWidth: document.documentElement.clientWidth,
+            pageWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+            navLeft: nav?.left ?? -1,
+            navRight: nav?.right ?? Number.POSITIVE_INFINITY,
+          }
+        })
+
+        const context = `${screen.name} at ${viewport.width}×${viewport.height}`
+        expect(layout.pageWidth, `${context} overflows horizontally`).toBeLessThanOrEqual(layout.viewportWidth + 1)
+        expect(layout.navLeft, `${context} clips the bottom navigation on the left`).toBeGreaterThanOrEqual(-1)
+        expect(layout.navRight, `${context} clips the bottom navigation on the right`).toBeLessThanOrEqual(layout.viewportWidth + 1)
+      }
+    }
   })
 })

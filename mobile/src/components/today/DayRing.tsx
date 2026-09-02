@@ -16,7 +16,20 @@ export function DayRing({ progress }: { progress: DayRingProgress }) {
 
   return (
     <View style={{ alignItems: 'center', gap: theme.space.sm }}>
-      <View style={{ height: size, width: size }}>
+      <View
+        accessible
+        accessibilityLabel="Daily logging progress"
+        accessibilityRole="progressbar"
+        accessibilityValue={{
+          min: 0,
+          max: progress.requiredTotal,
+          now: progress.requiredComplete,
+          text: progress.complete
+            ? 'Day made'
+            : `${progress.requiredComplete} of ${progress.requiredTotal} chosen steps complete`,
+        }}
+        style={{ height: size, width: size }}
+      >
         <Svg height={size} width={size}>
           {rings.map(ring => {
             const circ = 2 * Math.PI * ring.radius;

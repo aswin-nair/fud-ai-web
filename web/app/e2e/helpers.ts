@@ -78,7 +78,8 @@ export async function completeOnboarding(
   if (options?.dismissCelebration !== false) {
     const celebration = page.getByRole('dialog', { name: 'Meal logged' })
     await celebration.waitFor()
-    await celebration.waitFor({ state: 'hidden', timeout: 4000 })
+    await celebration.getByRole('button', { name: 'Continue' }).click()
+    await celebration.waitFor({ state: 'hidden' })
   }
 }
 
@@ -106,7 +107,7 @@ export async function logManualMeal(
   options?: { dismissCelebration?: boolean },
 ): Promise<void> {
   await page.getByTestId('fab').click()
-  await page.waitForURL('/log/photo')
+  await page.waitForURL('/log')
   await page.getByRole('link', { name: /Manual entry/i }).click()
   await page.waitForURL(/\/log\/manual/)
 
@@ -121,6 +122,7 @@ export async function logManualMeal(
   const celebration = page.getByRole('dialog', { name: 'Meal logged' })
   await celebration.waitFor()
   if (options?.dismissCelebration !== false) {
-    await celebration.waitFor({ state: 'hidden', timeout: 4000 })
+    await celebration.getByRole('button', { name: 'Continue' }).click()
+    await celebration.waitFor({ state: 'hidden' })
   }
 }

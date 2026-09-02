@@ -8,6 +8,34 @@
   gap: 0;
 }
 
+.review-photo-evidence {
+  margin: 16px 0;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-card);
+}
+
+.review-photo-evidence img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+}
+
+.review-photo-evidence figcaption {
+  padding: 9px 12px;
+  color: var(--ink-mute);
+  font-size: var(--text-caption);
+}
+
+.review-portion-estimate {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  text-align: center;
+}
+
 .review-hero {
   display: flex;
   align-items: center;
@@ -167,7 +195,7 @@
 .review-cal-hero-unit {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--coral-start);
+  color: var(--coral-text);
   opacity: 0.8;
   flex-shrink: 0;
 }
@@ -327,12 +355,12 @@
 }
 
 .meal-type-btn.active .meal-type-label {
-  color: var(--coral-start);
+  color: var(--coral-text);
 }
 
 .btn-log {
   background: linear-gradient(135deg, var(--coral-start), var(--coral-end));
-  color: var(--on-accent);
+  color: var(--on-brand);
   font-size: 1rem;
   font-weight: 700;
   border-radius: var(--radius);
@@ -353,34 +381,11 @@
   padding: 10px 0 4px;
 }
 
-.edit-hero {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 0 20px;
-}
-
 .edit-hero-emoji {
   font-size: 3rem;
   line-height: 1;
   flex-shrink: 0;
 }
-
-.edit-name-input {
-  flex: 1;
-  font-size: 1.2rem;
-  font-weight: 700;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid var(--rule);
-  color: var(--ink);
-  padding: 4px 0;
-  outline: none;
-  transition: border-color 0.15s;
-  min-width: 0;
-}
-
-.edit-name-input:focus { border-color: var(--coral-start); }
 
 .fav-btn {
   display: inline-flex;
@@ -395,7 +400,7 @@
   line-height: 1;
 }
 
-.fav-btn.active { color: var(--carbs); }
+.fav-btn.active { color: var(--carbs-text); }
 .fav-btn:hover { transform: scale(1.15); }
 
 /* ── LogTextPage ────────────────────────────────────────────── */
@@ -411,7 +416,7 @@
   margin-bottom: 16px;
 }
 
-.no-key-banner a { color: var(--coral-start); font-weight: 600; }
+.no-key-banner a { color: var(--coral-text); font-weight: 600; }
 
 .text-log-area {
   position: relative;
@@ -470,7 +475,7 @@
 
 .example-chip:hover {
   border-color: var(--coral-start);
-  color: var(--coral-start);
+  color: var(--coral-text);
 }
 
 .analyzing-ring {
@@ -505,6 +510,55 @@
 }
 
 /* ── PhotoLogPage ───────────────────────────────────────────── */
+
+.photo-setup-card {
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--paper-card);
+}
+
+.photo-setup-card h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.photo-setup-card p {
+  margin: 6px 0 16px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.photo-setup-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.photo-setup-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--paper-deep);
+  font-weight: 700;
+  text-align: center;
+}
+
+.photo-setup-link:hover { text-decoration: none; }
+
+.photo-setup-link.is-primary {
+  border-color: var(--coral-text);
+  color: var(--coral-text);
+  background: var(--coral-soft);
+}
 
 .photo-upload-zone {
   display: flex;
@@ -688,7 +742,7 @@
 .discover-count-badge {
   font-size: 0.68rem;
   font-weight: 700;
-  color: var(--coral-start);
+  color: var(--coral-text);
   background: var(--coral-soft);
   border-radius: 999px;
   padding: 1px 8px;
@@ -782,7 +836,7 @@
 
 .saved-section-icon {
   font-size: 1rem;
-  color: var(--coral-start);
+  color: var(--coral-text);
 }
 
 .saved-section-title {
@@ -888,7 +942,7 @@
 .log-pill-btn {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--on-accent);
+  color: var(--on-brand);
   background: linear-gradient(135deg, var(--coral-start), var(--coral-end));
   border-radius: 999px;
   padding: 5px 12px;
@@ -912,7 +966,7 @@
 
 .star-btn:hover { transform: scale(1.12); }
 
-.star-btn.active { color: var(--carbs); }
+.star-btn.active { color: var(--carbs-text); }
 
 /* ── Log pick screen (§9.1) ──────────────────────────────────
    Search first, recents underneath, quick add when the query is a number. */
@@ -956,7 +1010,7 @@
   height: 34px;
   flex: none;
   border-radius: 50%;
-  color: var(--on-accent);
+  color: var(--on-brand);
   background: var(--coral);
 }
 
@@ -1000,7 +1054,7 @@
   flex: none;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--coral);
+  color: var(--coral-text);
 }
 
 .log-empty {

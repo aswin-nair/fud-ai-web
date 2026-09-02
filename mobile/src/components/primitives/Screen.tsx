@@ -65,7 +65,7 @@ export function ScreenHeader({
           </Pressable>
         ) : null}
 
-        <Text variant="title" style={{ flex: 1 }}>
+        <Text accessibilityRole="header" variant="title" style={{ flex: 1 }}>
           {title ?? ''}
         </Text>
 
@@ -73,7 +73,7 @@ export function ScreenHeader({
       </View>
 
       {progress !== undefined ? (
-        <ProgressBar color="onTrack" height={4} max={1} value={progress} />
+        <ProgressBar accessibilityLabel="Onboarding progress" color="onTrack" height={4} max={1} value={progress} />
       ) : null}
     </View>
   );

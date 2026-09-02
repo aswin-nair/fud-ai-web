@@ -71,7 +71,7 @@
 }
 
 .nav-item.active {
-  color: var(--coral-start);
+  color: var(--coral-text);
 }
 
 .nav-item.active svg {
@@ -90,7 +90,7 @@
   height: 56px;
   border-radius: 50%;
   background: var(--coral);
-  color: var(--on-accent);
+  color: var(--on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,7 +100,7 @@
   font-weight: 300;
 }
 
-.fab:hover { background: var(--coral-deep); }
+.fab:hover { background: var(--clay-coral-base); }
 
 /* Clay nav: inactive tabs sit flush, the active one is pressed in. */
 .bottom-nav .nav-item {
@@ -112,7 +112,7 @@
 }
 
 .bottom-nav .nav-item.active {
-  color: var(--on-track-deep);
+  color: var(--coral-text);
   background: var(--paper-deep);
   box-shadow: var(--clay-inset);
 }

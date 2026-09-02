@@ -127,6 +127,9 @@ interface AppContextValue {
 
   ackLevelUp: () => void
 
+  /** Re-pull from the backend and flush anything queued. Drives pull-to-refresh. */
+  refresh: () => Promise<void>
+
   patchGamification: (updater: (g: GamificationState) => GamificationState) => void
 
   addExercise: (entry: ExerciseEntry) => void
@@ -136,6 +139,11 @@ interface AppContextValue {
   pendingAnalysis: FoodAnalysis | null
 
   setPendingAnalysis: (a: FoodAnalysis | null) => void
+
+  /** Ephemeral evidence shown only while reviewing a photo analysis. Never persisted. */
+  pendingImagePreview: string | null
+
+  setPendingImagePreview: (preview: string | null) => void
 
   pendingSource: FoodEntry['source']
 
@@ -188,6 +196,8 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
   const [splashExiting, setSplashExiting] = useState(false)
 
   const [pendingAnalysis, setPendingAnalysis] = useState<FoodAnalysis | null>(null)
+
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null)
 
   const [pendingSource, setPendingSource] = useState<FoodEntry['source']>('textInput')
 
@@ -289,6 +299,7 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
               setStorageRecovery('Server deletion was confirmed, but some browser recovery storage still needs cleanup.')
             }
             setPendingAnalysis(null)
+            setPendingImagePreview(null)
             setState(cleared)
             if (!deletionCallerIsWaiting) {
               setDestructiveRecovery(false)
@@ -442,6 +453,8 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
     setDestructiveRecovery(false)
 
     setPendingAnalysis(null)
+
+    setPendingImagePreview(null)
 
     setSplashExiting(false)
 
@@ -987,6 +1000,13 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
 
     replaceState: (next) => setState(next),
 
+    /* Re-runs the same hydration the app does on open, and pushes anything
+       still queued, so the gesture does real work rather than spinning. */
+    refresh: async () => {
+      setHydrateAttempt(attempt => attempt + 1)
+      await drainOutbox().catch(() => undefined)
+    },
+
     ackLevelUp: () => setState(s => ({
       ...s,
       gamification: { ...s.gamification, pendingLevelUp: null },
@@ -1050,6 +1070,7 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
       setPendingSyncCount(0)
       setDestructiveRecovery(false)
       setPendingAnalysis(null)
+      setPendingImagePreview(null)
       clearOnboardingDraft(userId)
       clearLogDraft(userId)
       clearNotificationHistory()
@@ -1061,11 +1082,15 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
 
     setPendingAnalysis,
 
+    pendingImagePreview,
+
+    setPendingImagePreview,
+
     pendingSource,
 
     setPendingSource,
 
-  }), [state, loading, pendingAnalysis, pendingSource, userId, cloud, networkOnline, saveCloudSnapshot])
+  }), [state, loading, pendingAnalysis, pendingImagePreview, pendingSource, userId, cloud, networkOnline, drainOutbox, saveCloudSnapshot])
 
 
 

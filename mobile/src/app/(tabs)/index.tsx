@@ -46,7 +46,7 @@ export default function Today() {
     <Screen>
       <ScrollView contentContainerStyle={{ gap: theme.space.lg, padding: theme.space.lg, paddingBottom: 140 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text variant="title">Today</Text>
+          <Text accessibilityRole="header" variant="title">Today</Text>
           <Text color="onTrack" variant="subtitle">{streak} day streak · Lv {state.gamification.level}</Text>
         </View>
 
@@ -73,7 +73,12 @@ export default function Today() {
         ) : (
           <>
             <DayRing progress={ring} />
-            <Pressable onPress={() => guest ? router.push('/login?claim=1' as never) : router.push('/log')}>
+            <Pressable
+              accessibilityLabel={`Log a meal. ${Math.round(totals.calories)} of ${Math.round(calorieTarget)} kilocalories today`}
+              accessibilityHint="Opens all meal logging options"
+              accessibilityRole="button"
+              onPress={() => guest ? router.push('/login?claim=1' as never) : router.push('/log')}
+            >
               <CalorieRing consumed={totals.calories} target={calorieTarget} />
             </Pressable>
             <View style={{ flexDirection: 'row', gap: theme.space.sm }}>
@@ -87,6 +92,9 @@ export default function Today() {
                 {Array.from({ length: 8 }, (_, i) => (
                   <Pressable
                     key={i}
+                    accessibilityLabel={`Water glass ${i + 1}`}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: i < water }}
                     onPress={() => setWater(dayKey, i + 1 === water ? i : i + 1)}
                     style={{
                       backgroundColor: i < water ? theme.colors.protein : theme.colors.track,

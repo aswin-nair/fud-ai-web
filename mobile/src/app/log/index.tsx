@@ -20,20 +20,15 @@ import { TextField } from '@/components/primitives/TextField';
 import { getRecentsAndFavorites, searchFoods } from '@/db/queries/foods';
 import { type Food } from '@/db/schema';
 import { defaultMealSlot } from '@/logic/mealSlot';
-import { localHourIn } from '@/logic/dates';
-import { logEntry } from '@/db/queries/entries';
-import { enqueueLoggedMeal } from '@/sync/enqueueMeal';
-import { completeFirstLogIfNeeded } from '@/privacy/firstLog';
+import { useApp } from '@/state/AppProvider';
+import { stampEntry } from '@/state/awards';
 import { useLogStore } from '@/stores/logStore';
-import { recordLog } from '@/stores/progression';
-import { useProfileStore } from '@/stores/profileStore';
 import { useTheme } from '@/theme/useTheme';
 
 export default function LogSearch() {
   const theme = useTheme();
   const firstMeal = useLocalSearchParams<{ firstMeal?: string }>().firstMeal === '1';
   const pick = useLogStore((s) => s.pick);
-  const timezone = useProfileStore((s) => s.timezone);
 
   const input = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
@@ -192,7 +187,6 @@ export default function LogSearch() {
 
       <QuickAdd
         onDismiss={() => setQuickAddOpen(false)}
-        timezone={timezone()}
         visible={quickAddOpen}
       />
     </Screen>
@@ -258,13 +252,12 @@ function EmptyResults({ query, onQuickAdd }: { query: string; onQuickAdd: () => 
 function QuickAdd({
   visible,
   onDismiss,
-  timezone,
 }: {
   visible: boolean;
   onDismiss: () => void;
-  timezone: string;
 }) {
   const theme = useTheme();
+  const { addEntry } = useApp();
   const [kcal, setKcal] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -276,20 +269,17 @@ function QuickAdd({
     setSaving(true);
 
     try {
-      const entry = await logEntry({
-        customName: 'Quick add',
-        servings: 1,
-        kcal: value,
-        proteinG: 0,
-        carbsG: 0,
-        fatG: 0,
-        mealSlot: defaultMealSlot(localHourIn(timezone)),
-        timezone,
-      });
-      await enqueueLoggedMeal(entry, timezone, 'Quick add');
-
-      await recordLog(timezone);
-      await completeFirstLogIfNeeded();
+      addEntry(stampEntry({
+        id: crypto.randomUUID(),
+        name: 'Quick add',
+        calories: value,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        timestamp: new Date().toISOString(),
+        source: 'quickAdd',
+        mealType: defaultMealSlot(new Date().getHours()),
+      }));
       setKcal('');
       onDismiss();
       router.dismissAll();
@@ -307,6 +297,7 @@ function QuickAdd({
       <TextField
         autoFocus
         keyboardType="number-pad"
+        label="Calories"
         onChangeText={setKcal}
         placeholder="0"
         suffix="kcal"

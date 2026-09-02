@@ -30,6 +30,7 @@ export function MacroBar({ label, consumed, target, color, delay }: MacroBarProp
         </Text>
       </View>
       <ProgressBar
+        accessibilityLabel={`${label} progress`}
         color={color}
         delay={delay}
         height={BAR_HEIGHT}

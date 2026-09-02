@@ -40,7 +40,7 @@
   bottom: 0;
   width: 80px;
   background: var(--danger);
-  color: var(--on-accent);
+  color: var(--on-danger);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -257,7 +257,7 @@
 .fqe-cal-unit {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--coral-start);
+  color: var(--coral-text);
   opacity: 0.8;
   flex-shrink: 0;
 }
@@ -287,7 +287,7 @@
 .fqe-btn-save {
   flex: 1;
   background: var(--gradient-calorie);
-  color: var(--on-accent);
+  color: var(--on-brand);
 }
 
 .fqe-btn-save:hover { opacity: 0.88; }
@@ -295,7 +295,7 @@
 
 .fqe-btn-delete {
   background: transparent;
-  color: var(--coral-deep);
+  color: var(--coral-text);
   border: 1.5px solid rgba(230, 57, 70, 0.3);
   padding: 10px 12px;
 }
@@ -313,10 +313,7 @@
 .fqe-btn-edit:hover { color: var(--ink); border-color: var(--rule-strong); }
 
 /* Keep old classes as no-ops so nothing breaks */
-.food-quick-breakdown, .food-quick-nutrient, .food-quick-nutrient-value,
-.food-quick-nutrient-label, .food-quick-cal-row, .food-quick-label,
-.food-quick-input, .food-quick-unit, .food-quick-actions,
-.fq-update, .fq-delete, .fq-full { /* legacy — replaced */ }
+.food-quick-breakdown, .food-quick-nutrient, .food-quick-nutrient-value, .food-quick-nutrient-label, .food-quick-cal-row, .food-quick-label, .food-quick-input, .food-quick-unit, .food-quick-actions, .fq-delete, .fq-full { /* legacy — replaced */ }
 
 /* ── Badges (Progress page) ─────────────────────────────────── */
 

@@ -7,28 +7,25 @@ import { PressableButton } from '@/components/primitives/PressableButton';
 import { Screen, ScreenHeader } from '@/components/primitives/Screen';
 import { Stepper } from '@/components/primitives/Stepper';
 import { Text } from '@/components/primitives/Text';
-import { logEntry } from '@/db/queries/entries';
-import { enqueueLoggedMeal } from '@/sync/enqueueMeal';
 import { type MealSlot } from '@/db/schema';
-import { LOG_CONFIRM, sequence, type Beat } from '@/feel/motion';
+import { LOG_CONFIRM, sequence } from '@/feel/motion';
 import { play } from '@/feel/sound';
-import { localHourIn } from '@/logic/dates';
 import { defaultMealSlot, MEAL_SLOT_LABEL, MEAL_SLOTS } from '@/logic/mealSlot';
-import { completeFirstLogIfNeeded } from '@/privacy/firstLog';
+import { useApp } from '@/state/AppProvider';
+import { stampEntry } from '@/state/awards';
 import { cheer } from '@/stores/feedbackStore';
 import { useLogStore } from '@/stores/logStore';
-import { recordLog, type LogOutcome } from '@/stores/progression';
-import { useProfileStore } from '@/stores/profileStore';
 import { useTheme } from '@/theme/useTheme';
 
 export default function Portion() {
   const theme = useTheme();
+  const { addEntry } = useApp();
   const food = useLogStore((s) => s.food);
+  const source = useLogStore((s) => s.source);
   const reset = useLogStore((s) => s.reset);
-  const timezone = useProfileStore((s) => s.timezone)();
 
   const [servings, setServings] = useState(1);
-  const [slot, setSlot] = useState<MealSlot>(defaultMealSlot(localHourIn(timezone)));
+  const [slot, setSlot] = useState<MealSlot>(defaultMealSlot(new Date().getHours()));
   const [saving, setSaving] = useState(false);
 
   if (!food) {
@@ -68,20 +65,19 @@ export default function Portion() {
     setSaving(true);
 
     try {
-      const entry = await logEntry({
-        foodId: food.id,
-        servings,
-        kcal: preview.kcal,
-        proteinG: preview.proteinG,
-        carbsG: preview.carbsG,
-        fatG: preview.fatG,
-        mealSlot: slot,
-        timezone,
-      });
-      await enqueueLoggedMeal(entry, timezone, food.name);
-
-      const outcome = await recordLog(timezone);
-      await completeFirstLogIfNeeded();
+      addEntry(stampEntry({
+        id: crypto.randomUUID(),
+        name: food.name,
+        calories: preview.kcal,
+        protein: preview.proteinG,
+        carbs: preview.carbsG,
+        fat: preview.fatG,
+        timestamp: new Date().toISOString(),
+        source: source === 'recent' ? 'recent' : 'manual',
+        mealType: slot,
+        servingSizeGrams: food.servingGrams == null ? undefined : food.servingGrams * servings,
+        detailAdded: true,
+      }));
       reset();
 
       const since = (offset: number) => Math.max(offset - (Date.now() - pressedAt), 0);
@@ -91,7 +87,6 @@ export default function Portion() {
         { at: since(LOG_CONFIRM.dismiss), run: () => router.dismissAll() },
         { at: since(LOG_CONFIRM.ring), run: () => play('logConfirm') },
         { at: since(LOG_CONFIRM.mascot), run: cheer },
-        ...celebrationBeat(outcome, since(LOG_CONFIRM.quest)),
       ]);
     } finally {
       setSaving(false);
@@ -169,18 +164,6 @@ export default function Portion() {
   );
 }
 
-/**
- * At most one celebration cue. A milestone outranks a quest when a log happens
- * to land both — two sounds on top of each other reads as a glitch, not a
- * bigger reward. The quest card pops and fires its own confetti on Home; this
- * only supplies the sound to go with it.
- */
-function celebrationBeat(outcome: LogOutcome, at: number): Beat[] {
-  if (outcome.streakMilestone) return [{ at, run: () => play('streakMilestone') }];
-  if (outcome.questCompleted) return [{ at, run: () => play('questComplete') }];
-  return [];
-}
-
 function SlotChip({
   slot,
   selected,
@@ -206,7 +189,7 @@ function SlotChip({
         paddingVertical: theme.space.sm,
       }}
     >
-      <Text align="center" color={selected ? 'textOnFill' : 'textSecondary'} variant="caption">
+      <Text align="center" color={selected ? 'textOnPrimary' : 'textSecondary'} variant="caption">
         {MEAL_SLOT_LABEL[slot]}
       </Text>
     </Pressable>

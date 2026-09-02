@@ -35,9 +35,9 @@ const FACE_HEIGHT = 52;
 
 const PALETTES: Record<ButtonVariant, { face: ColorToken; deep: ColorToken; label: ColorToken }> =
   {
-    primary: { face: 'onTrack', deep: 'onTrackDeep', label: 'textOnFill' },
+    primary: { face: 'onTrack', deep: 'onTrackDeep', label: 'textOnPrimary' },
     secondary: { face: 'surface', deep: 'border', label: 'textPrimary' },
-    destructive: { face: 'danger', deep: 'dangerDeep', label: 'textOnFill' },
+    destructive: { face: 'danger', deep: 'dangerDeep', label: 'textOnDanger' },
   };
 
 /**

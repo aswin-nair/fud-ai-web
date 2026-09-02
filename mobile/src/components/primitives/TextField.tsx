@@ -14,7 +14,7 @@ export type TextFieldProps = TextInputProps & {
 const FIELD_HEIGHT = 52;
 
 export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
-  { label, suffix, hint, style, ...rest },
+  { label, suffix, hint, style, accessibilityLabel, accessibilityHint, ...rest },
   ref,
 ) {
   const theme = useTheme();
@@ -40,6 +40,8 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
         }}
       >
         <TextInput
+          accessibilityHint={accessibilityHint ?? hint}
+          accessibilityLabel={accessibilityLabel ?? label ?? rest.placeholder ?? 'Text input'}
           placeholderTextColor={theme.colors.textMuted}
           ref={ref}
           style={[

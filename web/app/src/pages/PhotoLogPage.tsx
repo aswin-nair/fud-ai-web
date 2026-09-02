@@ -7,9 +7,11 @@ import { BackLink } from '../components/BackLink'
 import { IconClose } from '../components/icons'
 import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
+import { Momo } from '../components/Momo'
+import { mascotEvent } from '../mascot/MascotOverlay'
 
 export function PhotoLogPage() {
-  const { state, setPendingAnalysis, setPendingSource } = useApp()
+  const { state, setPendingAnalysis, setPendingImagePreview, setPendingSource } = useApp()
   const navigate = useNavigate()
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
@@ -28,13 +30,16 @@ export function PhotoLogPage() {
   async function handleFile(file: File) {
     if (!file.type.startsWith('image/')) {
       setError('Choose an image file, or log the meal manually.')
+      mascotEvent('form_fumble')
       return
     }
     if (file.size > 15 * 1024 * 1024) {
       setError('That image is larger than 15 MB. Choose a smaller image or log manually.')
+      mascotEvent('form_fumble')
       return
     }
     selectedFileRef.current = file
+    setPendingImagePreview(null)
     requestRef.current?.abort()
     const controller = new AbortController()
     requestRef.current = controller
@@ -52,10 +57,12 @@ export function PhotoLogPage() {
       track({ name: 'ai_analysis_completed', method: 'photo_ai' })
       setPendingSource('snapFood')
       setPendingAnalysis(analysis)
+      setPendingImagePreview(`data:${mimeType};base64,${base64}`)
       navigate('/review')
     } catch (e) {
       track({ name: 'ai_analysis_failed', method: 'photo_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
+      if (!(e instanceof Error) || !/cancelled/i.test(e.message)) mascotEvent('ai_fumble')
     } finally {
       if (requestRef.current === controller) requestRef.current = null
       setLoading(false)
@@ -73,12 +80,10 @@ export function PhotoLogPage() {
           )}
           <div className="analyzing-overlay" role="status" aria-live="polite">
             {preview && <img src={preview} alt="" className="photo-preview analyzing-photo" />}
-            <div className="mascot-host pose-sniff_plate" aria-hidden style={{ position: 'relative', width: 88, height: 88 }}>
-              <svg viewBox="0 0 88 88" width="88" height="88">
-                <path d="M16 48c0-18 12-32 28-32s28 14 28 32c0 14-8 24-28 24S16 62 16 48z" fill="#F3E4C8" stroke="#14213D" strokeWidth="2.2" />
-                <circle cx="34" cy="46" r="3.2" fill="#14213D" />
-                <circle cx="54" cy="46" r="3.2" fill="#14213D" />
-              </svg>
+            <div className="mascot-host" aria-hidden style={{ position: 'relative', width: 88, height: 88 }}>
+              <div className="mascot-pose pose-sniff_plate">
+                <Momo mood="curious" pose="sniff_plate" />
+              </div>
             </div>
             <p className="analyzing-title">Sniffing out the plate…</p>
             <p className="analyzing-sub">Reading the photo</p>
@@ -105,14 +110,20 @@ export function PhotoLogPage() {
         {error && <div className="error-banner" role="alert">{error}</div>}
 
         {!hasKey && (
-          <div className="no-key-banner">
-            Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings.
-            Use a vision-capable model (e.g. <code>gemini-2.0-flash</code>), or{' '}
-            <Link to="/log/manual">log manually</Link>.
+          <div className="photo-setup-card" role="region" aria-labelledby="photo-setup-title">
+            <h2 id="photo-setup-title">Photo analysis needs setup</h2>
+            <p>
+              Add a {providerLabel(state.aiSettings.provider)} API key before choosing a photo.
+              You can keep logging without AI.
+            </p>
+            <div className="photo-setup-actions">
+              <Link to="/settings" className="photo-setup-link is-primary">Set up AI</Link>
+              <Link to="/log/manual" className="photo-setup-link">Log manually</Link>
+            </div>
           </div>
         )}
 
-        {preview ? (
+        {hasKey && (preview ? (
           <div className="photo-preview-wrap">
             <img src={preview} alt="Food preview" className="photo-preview" />
             <button
@@ -135,9 +146,9 @@ export function PhotoLogPage() {
             <p className="photo-upload-title">Tap to choose a photo</p>
             <p className="photo-upload-sub">JPG, PNG, HEIC — any food image</p>
           </button>
-        )}
+        ))}
 
-        {preview && error && selectedFileRef.current && (
+        {hasKey && preview && error && selectedFileRef.current && (
           <PressableButton
             fullWidth
             variant="secondary"
@@ -154,7 +165,7 @@ export function PhotoLogPage() {
           <Link to="/log/manual">Manual entry</Link>
         </p>
 
-        <div className="photo-btn-row">
+        {hasKey && <div className="photo-btn-row">
           <button
             type="button"
             className="photo-source-btn"
@@ -171,7 +182,7 @@ export function PhotoLogPage() {
           >
             <span aria-hidden>🖼️</span> Gallery
           </button>
-        </div>
+        </div>}
 
         <input
           ref={cameraRef}

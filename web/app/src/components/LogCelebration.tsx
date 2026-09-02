@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { track } from '../lib/analytics'
 import { useCountUp } from '../hooks/useCountUp'
@@ -6,6 +6,8 @@ import { prefersReducedMotion } from '../lib/tokens'
 import type { XpEvent } from '../types'
 import { Momo } from './Momo'
 import { useFeel } from '../hooks/useHaptic'
+import { useDialogFocus } from '../hooks/useDialogFocus'
+import { PressableButton } from './PressableButton'
 
 export interface LogCelebrationProps {
   foodName: string
@@ -26,6 +28,8 @@ export function LogCelebration({
   const [shown, setShown] = useState(false)
   const [visibleCount, setVisibleCount] = useState(reduced ? awards.length : 0)
   const feel = useFeel()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialogFocus(dialogRef, onDone)
   const visibleAwards = awards.slice(0, visibleCount)
   const revealedXp = visibleAwards.reduce((sum, award) => sum + award.xp, 0)
   const countedXp = useCountUp(revealedXp)
@@ -58,8 +62,10 @@ export function LogCelebration({
 
   return (
     <div
+      ref={dialogRef}
       className={`celebrate-overlay${shown ? ' is-shown' : ''}`}
       role="dialog"
+      aria-modal
       aria-live="polite"
       aria-label="Meal logged"
     >
@@ -94,6 +100,7 @@ export function LogCelebration({
             </span>
           </div>
         </div>
+        <PressableButton label="Continue" variant="secondary" onClick={onDone} />
       </div>
     </div>
   )

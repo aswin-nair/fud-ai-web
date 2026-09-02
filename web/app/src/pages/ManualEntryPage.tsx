@@ -9,6 +9,7 @@ import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveManualLogDraft } fr
 import { validateManualFood } from '../lib/foodEntryValidation'
 import { useAuth } from '../store/AuthContext'
 import { recentMeals } from '../lib/meals'
+import { mascotEvent } from '../mascot/MascotOverlay'
 
 function inferMealType(): MealType {
   const h = new Date().getHours()
@@ -77,6 +78,7 @@ export function ManualEntryPage() {
     const result = validateManualFood({ name, calories, protein, carbs, fat, servings })
     if (!result.ok) {
       setError(result.error)
+      mascotEvent('form_fumble')
       return
     }
     const entry = {

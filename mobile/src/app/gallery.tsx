@@ -114,7 +114,7 @@ export default function Gallery() {
           <Text variant="label" color="textSecondary">
             {progress} of 100
           </Text>
-          <ProgressBar value={progress} max={100} color="onTrack" />
+          <ProgressBar accessibilityLabel="Example progress" value={progress} max={100} color="onTrack" />
           <PressableButton
             variant="secondary"
             label={progress === 40 ? 'Animate to 70' : 'Animate to 40'}
@@ -124,14 +124,14 @@ export default function Gallery() {
           <Text variant="label" color="textSecondary">
             120 of 100, overflow segment
           </Text>
-          <ProgressBar value={120} max={100} color="onTrack" overflowColor="onTrackSoft" />
+          <ProgressBar accessibilityLabel="Example progress with overflow" value={120} max={100} color="onTrack" overflowColor="onTrackSoft" />
 
           <Text variant="label" color="textSecondary">
             Macro colours
           </Text>
-          <ProgressBar value={82} max={140} color="protein" />
-          <ProgressBar value={210} max={260} color="carbs" />
-          <ProgressBar value={48} max={70} color="fat" />
+          <ProgressBar accessibilityLabel="Protein example" value={82} max={140} color="protein" />
+          <ProgressBar accessibilityLabel="Carbs example" value={210} max={260} color="carbs" />
+          <ProgressBar accessibilityLabel="Fat example" value={48} max={70} color="fat" />
         </Section>
 
         <Section title="Sheet">

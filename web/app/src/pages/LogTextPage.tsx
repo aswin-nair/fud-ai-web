@@ -8,6 +8,7 @@ import { track } from '../lib/analytics'
 import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveTextLogDraft } from '../lib/logDrafts'
 import { useAuth } from '../store/AuthContext'
 import { PressableButton } from '../components/PressableButton'
+import { mascotEvent } from '../mascot/MascotOverlay'
 
 const EXAMPLES = [
   '2 scrambled eggs, toast with butter',
@@ -17,7 +18,7 @@ const EXAMPLES = [
 ]
 
 export function LogTextPage() {
-  const { state, setPendingAnalysis, setPendingSource } = useApp()
+  const { state, setPendingAnalysis, setPendingImagePreview, setPendingSource } = useApp()
   const { user } = useAuth()
   const navigate = useNavigate()
   const userId = user?.sub ?? ''
@@ -56,11 +57,13 @@ export function LogTextPage() {
       track({ name: 'ai_analysis_completed', method: 'text_ai' })
       setPendingSource('textInput')
       setPendingAnalysis(analysis)
+      setPendingImagePreview(null)
       clearLogDraft(userId, 'text')
       navigate('/review')
     } catch (e) {
       track({ name: 'ai_analysis_failed', method: 'text_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
+      if (!(e instanceof Error) || !/cancelled/i.test(e.message)) mascotEvent('ai_fumble')
     } finally {
       if (requestRef.current === controller) requestRef.current = null
       setLoading(false)

@@ -1,0 +1,151 @@
+/* ── Swipe-to-reveal row ─────────────────────────────────────
+   The actions sit behind the row and are uncovered by dragging it left. They
+   are ordinary buttons the whole time, so nothing here is the only route to
+   an action. */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--clay-radius-md);
+}
+
+.swipe-row-actions {
+  position: absolute;
+  inset: 0 0 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.swipe-row-action {
+  border: none;
+  min-width: 74px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--ink-soft);
+  cursor: pointer;
+}
+
+.swipe-row-action.is-danger { background: var(--danger-text); }
+.swipe-row-action:last-child { border-radius: 0 var(--clay-radius-md) var(--clay-radius-md) 0; }
+
+.swipe-row-face {
+  position: relative;
+  /* The browser keeps the vertical axis; only the horizontal drag is ours. */
+  touch-action: pan-y;
+  will-change: transform;
+}
+
+/* The face has to be opaque, or the actions show through it at rest. */
+.swipe-row-face > * { background: var(--paper-card); }
+
+/* ── Portion sheet ───────────────────────────────────────────
+   Opened by press-and-hold or the context-menu gesture on a repeat meal. */
+.portion-overlay {
+  position: fixed;
+  inset: 0;
+  /* Above the bottom nav (100), which otherwise swallows taps on the sheet. */
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(36 26 46 / 0.34);
+  padding: 16px;
+}
+
+.portion-sheet {
+  width: 100%;
+  max-width: 420px;
+  background: var(--paper-card);
+  border-radius: var(--clay-radius-lg);
+  box-shadow: var(--clay-e3, 0 18px 40px rgb(0 0 0 / 0.22));
+  padding: 20px 18px calc(18px + env(safe-area-inset-bottom));
+}
+
+.portion-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.portion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.portion-close {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  background: var(--paper-deep);
+  cursor: pointer;
+}
+
+.portion-sub { margin: 2px 0 14px; font-size: 0.82rem; color: var(--ink-mute); }
+
+.portion-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.portion-option {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  border-radius: var(--clay-radius-md);
+  background: var(--paper-deep);
+  box-shadow: var(--clay-inset);
+  cursor: pointer;
+}
+
+.portion-option.is-default { box-shadow: var(--clay-inset), inset 0 0 0 2px var(--coral-text); }
+.portion-mult { font-family: var(--display); font-weight: 600; color: var(--ink); }
+.portion-kcal { font-size: 0.68rem; color: var(--ink-mute); }
+
+/* ── Pull to refresh ─────────────────────────────────────────
+   Momo is the indicator: he grows as you pull and brightens once the gesture
+   would actually fire. */
+.ptr { position: relative; }
+
+.ptr-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.ptr-momo {
+  width: 46px;
+  height: 46px;
+  transform-origin: center bottom;
+  transition: transform 0.16s ease;
+}
+
+.ptr-indicator.phase-refreshing .ptr-momo {
+  animation: ptr-bob 0.9s ease-in-out infinite;
+}
+
+@keyframes ptr-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-6px) scale(1); }
+}
+
+.ptr-content { will-change: transform; }

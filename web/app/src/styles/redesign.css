@@ -1,6 +1,4 @@
 .field label,
-.log-section-label,
-.progress-stat-label,
 .eyebrow {
   display: block;
   font-size: var(--text-caption);
@@ -109,7 +107,7 @@
   text-align: right;
   font-family: var(--display);
   font-weight: 600;
-  color: var(--coral);
+  color: var(--coral-text);
 }
 
 .home-meals-logged span {
@@ -180,7 +178,7 @@
 .path-node.is-done .path-node-face {
   background: var(--coral);
   border-color: var(--edge-coral);
-  color: var(--on-accent);
+  color: var(--on-brand);
 }
 
 .path-node.is-current .path-node-face {
@@ -222,7 +220,7 @@
 }
 
 .nav-item { color: var(--ink-mute); }
-.nav-item.active { color: var(--coral); }
+.nav-item.active { color: var(--coral-text); }
 .nav-item.active .nav-item-inner { background: var(--coral-soft); }
 .nav-item-inner {
   min-height: 44px;
@@ -263,7 +261,7 @@
 
 .nav-log-btn {
   background: var(--coral);
-  color: var(--on-accent);
+  color: var(--on-brand);
   border: var(--edge-width) solid var(--edge-coral);
   border-bottom-width: var(--edge-depth);
 }

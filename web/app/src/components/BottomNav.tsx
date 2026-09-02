@@ -1,13 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { useFeel } from '../hooks/useHaptic'
-import { preloadCamera } from '../lib/cameraPreload'
 import { useAnchor } from '../mascot/anchors'
 import { IconHome, IconJourney, IconPlus, IconProgress, IconSettings } from './icons'
 
 const TABS = [
   { to: '/', end: true, label: 'Today', Icon: IconHome },
   { to: '/progress', label: 'Insights', Icon: IconProgress },
-  { to: '/discover', label: 'Discover', Icon: IconJourney },
+  { to: '/discover', label: 'Saved', Icon: IconJourney },
   { to: '/settings', label: 'You', Icon: IconSettings },
 ] as const
 
@@ -36,14 +35,13 @@ export function BottomNav() {
         ))}
 
         <NavLink
-          to="/log/photo"
+          to="/log"
           data-testid="fab"
           ref={fabAnchor}
-          className="nav-fab"
-          aria-label="Log"
+          className={({ isActive }) => `nav-fab${isActive ? ' active' : ''}`}
+          aria-label="Log a meal"
           onPointerDown={() => {
             feel('press')
-            preloadCamera()
           }}
         >
           <IconPlus size={26} />

@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
+import { PortionSheet } from '../components/PortionSheet'
+import { useLongPress } from '../hooks/useLongPress'
 import { IconCamera, IconClipboard, IconEdit, IconPlus, IconStar } from '../components/icons'
 import { useApp } from '../store/AppContext'
 import { recordFoodSearch, selectLogMethod, startLogFlow, type LogMethod } from '../lib/analytics'
@@ -12,8 +14,10 @@ import {
   quickAddEntry,
   recentMeals,
   savedToEntry,
+  scaleMeal,
 } from '../lib/meals'
 import type { FoodEntry, SavedMeal } from '../types'
+import { mascotEvent } from '../mascot/MascotOverlay'
 
 const OTHER_WAYS = [
   {
@@ -64,6 +68,8 @@ export function LogMenuPage() {
   const { state, addEntry } = useApp()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [portionFor, setPortionFor] = useState<{ item: FoodEntry | SavedMeal; source: LogMethod } | null>(null)
+  const lastEmptyTease = useRef('')
 
   useEffect(() => {
     startLogFlow('search', state.foodEntries.length === 0)
@@ -99,6 +105,10 @@ export function LogMenuPage() {
     if (!needle || parseQuickAdd(needle) !== null) return
     const handle = window.setTimeout(() => {
       recordFoodSearch(matches.length)
+      if (matches.length === 0 && lastEmptyTease.current !== needle) {
+        lastEmptyTease.current = needle
+        mascotEvent('empty_search')
+      }
     }, 300)
     return () => window.clearTimeout(handle)
   }, [query, matches.length])
@@ -113,15 +123,27 @@ export function LogMenuPage() {
     commit(quickAddEntry(calories), 'quick_add')
   }
 
-  function logAgain(item: FoodEntry | SavedMeal, source: LogMethod) {
+  function logAgain(item: FoodEntry | SavedMeal, source: LogMethod, multiplier = 1) {
     const saved: SavedMeal = 'timestamp' in item
       ? { ...item, id: crypto.randomUUID() }
       : item
-    commit(savedToEntry(saved, 'recent'), source)
+    commit(savedToEntry(scaleMeal(saved, multiplier), 'recent'), source)
   }
 
   return (
     <div className="app-shell">
+      {portionFor && (
+        <PortionSheet
+          name={portionFor.item.name}
+          calories={portionFor.item.calories}
+          onPick={m => {
+            const { item, source } = portionFor
+            setPortionFor(null)
+            logAgain(item, source, m)
+          }}
+          onClose={() => setPortionFor(null)}
+        />
+      )}
       <main className="app-main motion-stagger">
         <BackLink to="/" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Log a meal</h1>
@@ -166,6 +188,7 @@ export function LogMenuPage() {
                       emoji={entry.emoji}
                       calories={entry.calories}
                       onPick={() => logAgain(entry, 'recent')}
+                      onHold={() => setPortionFor({ item: entry, source: 'recent' })}
                     />
                   ))}
                 </div>
@@ -183,6 +206,7 @@ export function LogMenuPage() {
                       emoji={meal.emoji}
                       calories={meal.calories}
                       onPick={() => logAgain(meal, 'favourite')}
+                      onHold={() => setPortionFor({ item: meal, source: 'favourite' })}
                     />
                   ))}
                 </div>
@@ -260,14 +284,22 @@ function PickRow({
   emoji,
   calories,
   onPick,
+  onHold,
 }: {
   name: string
   emoji?: string
   calories: number
   onPick: () => void
+  onHold?: () => void
 }) {
+  const hold = useLongPress(() => onHold?.())
   return (
-    <button type="button" className="log-pick-row press-spring" onClick={onPick}>
+    <button
+      type="button"
+      className="log-pick-row press-spring"
+      onClick={() => { if (!hold.consumed()) onPick() }}
+      {...(onHold ? hold.handlers : {})}
+    >
       <span className="log-pick-emoji">{emoji ?? '🍽️'}</span>
       <span className="log-pick-name">{name}</span>
       <span className="log-pick-kcal">{Math.round(calories)} kcal</span>

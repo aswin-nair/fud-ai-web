@@ -162,7 +162,6 @@
 @media (prefers-reduced-motion: reduce) {
   .home-section-enter,
   .home-hero-enter,
-  .ring-pop,
   .streak-fire,
   .streak-card.at-risk,
   .food-empty-plate,
@@ -236,7 +235,6 @@
 .log-pick-row,
 .log-quick-add,
 .journey-badge,
-.journey-path-node,
 .starter-chip,
 .ssc-btn,
 .star-btn,
@@ -286,8 +284,7 @@
 .ssc-btn:active,
 .food-section-header:active { transform: scale(0.96); }
 .star-btn:active { transform: scale(1.18); }
-.journey-badge:active,
-.journey-path-node:active { transform: scale(0.94); }
+.journey-badge:active { transform: scale(0.94); }
 
 /* ── Path travel + node life ────────────────────────────────── */
 .meal-path-progress {
@@ -344,7 +341,6 @@
 @media (prefers-reduced-motion: reduce) {
   .home-section-enter,
   .home-hero-enter,
-  .ring-pop,
   .streak-fire,
   .streak-card.at-risk,
   .food-empty-plate,

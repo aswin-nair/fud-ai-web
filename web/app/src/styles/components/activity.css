@@ -271,7 +271,7 @@
   border-radius: 50px;
   border: none;
   background: linear-gradient(135deg, var(--protein) 0%, var(--mint) 100%);
-  color: var(--on-accent);
+  color: var(--on-brand);
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;

@@ -18,7 +18,9 @@
   --paper-warm: #FFFFFF;
   --paper-card: #FFFFFF;
   --ink-soft: #6D5C66;
-  --ink-mute: #A2919A;
+  /* Darkened from #A2919A, which sat at 2.79:1 on the warm ground — below AA
+     for the 99 places this token carries secondary text. */
+  --ink-mute: #7D6974;
   --ink-muted: var(--ink-mute);
   --rule: rgba(36, 26, 46, 0.09);
   --rule-strong: rgba(36, 26, 46, 0.17);
@@ -27,8 +29,21 @@
   --coral-start: #FF9070;
   --coral-end: var(--coral-hue);
   --coral-deep: #DE4526;
+  /* Coral as TEXT, not as a fill. The brand coral is deliberately unchanged —
+     it is the identity — but at 2.64:1 it cannot carry a label. This is the
+     same hue taken down to 4.5:1 so small coral text passes AA. */
+  --coral-text: #C72400;
+
+  /* Text-only variants of the nutrition and status hues. The fills keep the
+     original colours — a macro bar is a shape, and shapes are not held to the
+     4.5:1 text rule — but the same hue carrying a number has to be readable.
+     Each is the original taken down to 4.5:1 on the deepest card ground. */
+  --protein-text: #1260FF;
+  --carbs-text: #9D6000;
+  --fat-text: #1C7D55;
+  --danger-text: #D81F25;
   --coral-soft: rgba(255, 107, 74, 0.14);
-  --gradient-calorie: linear-gradient(160deg, #FF9070, #DE4526);
+  --gradient-calorie: linear-gradient(160deg, #FF9070, #F0663C);
   --green-goal: var(--herb);
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -140,13 +155,18 @@
   --press-depth: 4px;
 
   --on-accent: #FFFFFF;
+  /* Action fills are intentionally bright and friendly. Dark role colours keep
+     their labels readable without muting the Fud AI coral palette. */
+  --on-brand: var(--ink);
+  --on-danger: #1A1416;
   --ink-press: #000000;
   --edge-width: 2px;
   --edge-depth: 5px;
   --edge-coral: #1749A8;
   --edge-neutral: var(--chalk);
   --edge-danger: var(--danger-deep);
-  --amber-ink: #B8650C;
+  /* Was #B8650C — 3.77:1 on the amber card it sits on, below AA. */
+  --amber-ink: #8A4B00;
   --amber-deep: var(--apricot);
   --protein-ink: #1749A8;
   --protein-soft: #DCE6F8;

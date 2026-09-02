@@ -443,15 +443,15 @@ export function SettingsPage() {
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Protein</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--protein)' }}>{effectiveProtein(profile)}g</strong>
+            <strong className="settings-goal-value" style={{ color: 'var(--protein-text)' }}>{effectiveProtein(profile)}g</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Carbs</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--carbs)' }}>{effectiveCarbs(profile)}g</strong>
+            <strong className="settings-goal-value" style={{ color: 'var(--carbs-text)' }}>{effectiveCarbs(profile)}g</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Fat</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--fat)' }}>{effectiveFat(profile)}g</strong>
+            <strong className="settings-goal-value" style={{ color: 'var(--fat-text)' }}>{effectiveFat(profile)}g</strong>
           </div>
         </div>
 

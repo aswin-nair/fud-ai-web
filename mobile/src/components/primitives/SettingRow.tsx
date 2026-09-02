@@ -57,6 +57,9 @@ export function SettingRow(props: SettingRowProps) {
 
       {props.kind === 'toggle' ? (
         <Switch
+          accessibilityHint={props.detail}
+          accessibilityLabel={props.label}
+          accessibilityState={{ checked: props.value }}
           onValueChange={props.onValueChange}
           thumbColor={theme.colors.surface}
           trackColor={{ false: theme.colors.track, true: theme.colors.onTrack }}
@@ -68,7 +71,12 @@ export function SettingRow(props: SettingRowProps) {
 
   if (props.kind === 'navigate') {
     return (
-      <Pressable accessibilityRole="button" onPress={props.onPress}>
+      <Pressable
+        accessibilityHint={props.detail}
+        accessibilityLabel={props.label}
+        accessibilityRole="button"
+        onPress={props.onPress}
+      >
         {body}
       </Pressable>
     );

@@ -35,8 +35,36 @@ function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo(0, 0)
+    document.title = `${routeTitle(pathname)} · Fud AI`
+
+    const frame = window.requestAnimationFrame(() => {
+      const heading = document.querySelector<HTMLElement>('main h1')
+      if (!heading) return
+      heading.tabIndex = -1
+      heading.focus({ preventScroll: true })
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [pathname])
   return null
+}
+
+function routeTitle(pathname: string): string {
+  if (pathname === '/') return 'Today'
+  if (pathname === '/progress') return 'Insights'
+  if (pathname === '/discover' || pathname === '/log/saved') return 'Saved'
+  if (pathname === '/settings') return 'You'
+  if (pathname.startsWith('/log/photo')) return 'Photo log'
+  if (pathname.startsWith('/log/text')) return 'Describe a meal'
+  if (pathname.startsWith('/log/manual')) return 'Manual log'
+  if (pathname === '/log') return 'Log a meal'
+  if (pathname === '/review') return 'Review meal'
+  if (pathname.startsWith('/edit/')) return 'Edit meal'
+  if (pathname === '/coach') return 'AI Coach'
+  if (pathname === '/support') return 'Support'
+  if (pathname === '/about') return 'About'
+  if (pathname === '/onboarding') return 'Get started'
+  if (pathname === '/login') return 'Sign in'
+  return 'Fud AI'
 }
 
 function routerBasename(): string | undefined {

@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { palette } from '@/theme/tokens';
+
 const SRC = fileURLToPath(new URL('../', import.meta.url));
 const BANNED = /\b(bad|cheat|guilty|earned|naughty|sinful|damage)\b|burn it off/i;
 
@@ -21,6 +23,18 @@ function stripComments(source: string): string {
   return source
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/(^|[^:])\/\/.*$/gm, '$1');
+}
+
+function luminance(hex: string): number {
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(1 + offset, 3 + offset), 16) / 255)
+    .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrast(foreground: string, background: string): number {
+  const a = luminance(foreground);
+  const b = luminance(background);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
 describe('mobile product language and color policy', () => {
@@ -50,6 +64,16 @@ describe('mobile product language and color policy', () => {
     expect(destructiveFiles.length).toBeGreaterThan(0);
     for (const path of destructiveFiles) {
       expect(stripComments(readFileSync(path, 'utf8')), path).toMatch(/delete/i);
+    }
+  });
+
+  it('keeps essential text and action labels at WCAG AA contrast', () => {
+    for (const colors of Object.values(palette)) {
+      expect(contrast(colors.textPrimary, colors.background)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.textSecondary, colors.background)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.textMuted, colors.surface)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.textOnPrimary, colors.onTrack)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.textOnDanger, colors.danger)).toBeGreaterThanOrEqual(4.5);
     }
   });
 });

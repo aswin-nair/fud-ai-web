@@ -81,7 +81,7 @@ export function QuestCard({
           </Text>
         </View>
 
-        <ProgressBar color={color} max={goal} value={current} />
+        <ProgressBar accessibilityLabel={`${title} progress`} color={color} max={goal} value={current} />
 
         <Confetti fire={bursting} />
       </Card>

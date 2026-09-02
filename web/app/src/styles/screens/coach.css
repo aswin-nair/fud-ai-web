@@ -69,7 +69,7 @@
   line-height: 1.5;
 }
 
-.coach-no-key-card a { color: var(--coral-start); }
+.coach-no-key-card a { color: var(--coral-text); }
 
 .coach-no-key-icon {
   display: block;
@@ -146,7 +146,7 @@
 
 .chat-bubble.user .chat-bubble-text {
   background: linear-gradient(135deg, var(--coral-start), var(--coral-end));
-  color: var(--on-accent);
+  color: var(--on-brand);
   border-bottom-right-radius: 4px;
 }
 
@@ -194,7 +194,7 @@
   content: '•';
   position: absolute;
   left: 0;
-  color: var(--coral-start);
+  color: var(--coral-text);
   font-size: 0.75rem;
   top: 2px;
 }
@@ -282,7 +282,7 @@
 
 .starter-chip:hover {
   border-color: var(--coral-start);
-  color: var(--coral-start);
+  color: var(--coral-text);
 }
 
 .chat-input-bar {
@@ -331,7 +331,7 @@
   height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--coral-start), var(--coral-end));
-  color: var(--on-accent);
+  color: var(--on-brand);
   font-size: 1.1rem;
   display: flex;
   align-items: center;

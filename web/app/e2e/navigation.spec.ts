@@ -7,7 +7,7 @@ test.describe('Navigation', () => {
   })
 
   test('bottom nav visits all tabs', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Discover' }).click()
+    await nav(page).getByRole('link', { name: 'Saved' }).click()
     await expect(page).toHaveURL('/discover')
     await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
 
@@ -29,7 +29,7 @@ test.describe('Navigation', () => {
   })
 
   test('discover tab and you coach reach their full pages', async ({ page }) => {
-    await nav(page).getByRole('link', { name: 'Discover' }).click()
+    await nav(page).getByRole('link', { name: 'Saved' }).click()
     await expect(page).toHaveURL('/discover')
     await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
 
@@ -42,11 +42,25 @@ test.describe('Navigation', () => {
     await expect(page.getByText('AI Coach')).toBeVisible()
   })
 
-  test('log FAB reaches photo then manual entry', async ({ page }) => {
+  test('log FAB opens every logging method without requiring AI', async ({ page }) => {
     await page.getByTestId('fab').click()
-    await expect(page).toHaveURL('/log/photo')
+    await expect(page).toHaveURL('/log')
+    await expect(page.getByRole('link', { name: /Describe your meal/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Snap a photo/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Saved meals/i })).toBeVisible()
     await page.getByRole('link', { name: /Manual entry/i }).click()
     await expect(page).toHaveURL(/\/log\/manual/)
+  })
+
+  test('photo logging has a useful no-key recovery path', async ({ page }) => {
+    await page.getByTestId('fab').click()
+    await page.getByRole('link', { name: /Snap a photo/i }).click()
+
+    await expect(page).toHaveURL('/log/photo')
+    await expect(page.getByRole('heading', { name: 'Photo analysis needs setup' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Set up AI' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Log manually' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Tap to choose a photo' })).toHaveCount(0)
   })
 
   /* This asserted a return to onboarding until the sign-out trap was fixed: a

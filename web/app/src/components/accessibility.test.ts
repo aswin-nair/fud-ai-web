@@ -117,11 +117,10 @@ describe('primary component accessibility contracts', () => {
     expect(html).toContain('<nav class="bottom-nav-wrap" aria-label="Main"')
     expect(html).toContain('Today')
     expect(html).toContain('Insights')
-    expect(html).toContain('Discover')
+    expect(html).toContain('Saved')
     expect(html).toContain('You')
-    expect(html).toContain('aria-label="Log"')
-    expect(html).not.toContain('Saved')
-    expect(html).not.toContain('aria-label="Log food"')
+    expect(html).toContain('aria-label="Log a meal"')
+    expect(html).toContain('href="/log"')
   })
 
   it('names clay fields and keeps path nodes labeled', () => {

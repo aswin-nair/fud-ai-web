@@ -43,6 +43,12 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05)
 }
 
+function cssHexToken(name: string): string {
+  const value = css.match(new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, 'i'))?.[1]
+  if (!value) throw new Error(`Missing hex token ${name}`)
+  return value
+}
+
 function mix(foreground: string, background: string, alpha: number): string {
   const [fr, fg, fb] = hex(foreground)
   const [br, bg, bb] = hex(background)
@@ -53,6 +59,23 @@ function mix(foreground: string, background: string, alpha: number): string {
 }
 
 describe('enamel contrast and paint budgets', () => {
+  it('keeps action labels AA-readable on every brand and danger fill', () => {
+    const onBrand = cssHexToken('--ink')
+    const onDanger = cssHexToken('--on-danger')
+    const brandFills = [
+      cssHexToken('--coral-hue'),
+      cssHexToken('--coral-start'),
+      cssHexToken('--clay-coral-base'),
+      cssHexToken('--clay-coral-lift'),
+    ]
+
+    expect(css).toContain('--on-brand: var(--ink)')
+    for (const fill of brandFills) {
+      expect(contrast(onBrand, fill)).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(contrast(onDanger, cssHexToken('--danger'))).toBeGreaterThanOrEqual(4.5)
+  })
+
   it('keeps ink readable on enamel, including inset darkening', () => {
     const darkened = mix('#1A1410', clay.base, clay.innerDarkAlpha)
     expect(contrast(clay.ink, clay.base)).toBeGreaterThanOrEqual(7)

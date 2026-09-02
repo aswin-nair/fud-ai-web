@@ -137,7 +137,7 @@ export function SavedMealsPage() {
   const [filter, setFilter] = useState<Filter>('all')
   const recents = recentMeals(state.foodEntries)
 
-  // Reached both as the "Discover" tab and as a shortcut from the Log menu — only
+  // Reached both as the "Saved" tab and as a shortcut from the Log menu — only
   // the latter is a sub-page that needs a way back.
   const isSubRoute = location.pathname === '/log/saved'
 
@@ -195,12 +195,13 @@ export function SavedMealsPage() {
           />
         </div>
 
-        <div className="discover-chip-row">
+        <div className="discover-chip-row" role="group" aria-label="Filter saved meals by type">
           {FILTERS.map(f => (
             <button
               key={f}
               type="button"
               className={`discover-chip${filter === f ? ' active' : ''}`}
+              aria-pressed={filter === f}
               onClick={() => setFilter(f)}
             >
               {FILTER_LABELS[f]}

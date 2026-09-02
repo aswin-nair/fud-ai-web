@@ -37,6 +37,9 @@ export function CalorieRing({ consumed, target, size = DEFAULT_SIZE }: CalorieRi
   const centre = size / 2;
 
   const { progress, overflow, isOver, remaining, overBy } = calorieProgress(consumed, target);
+  const valueText = isOver
+    ? `${Math.round(consumed)} of ${Math.round(target)} kilocalories, ${overBy} over`
+    : `${Math.round(consumed)} of ${Math.round(target)} kilocalories, ${remaining} left`;
 
   const fill = useSharedValue(progress);
   const over = useSharedValue(overflow);
@@ -60,7 +63,18 @@ export function CalorieRing({ consumed, target, size = DEFAULT_SIZE }: CalorieRi
   }));
 
   return (
-    <View style={{ height: size, width: size }}>
+    <View
+      accessible
+      accessibilityLabel="Calories consumed"
+      accessibilityRole="progressbar"
+      accessibilityValue={{
+        min: 0,
+        max: Math.round(target),
+        now: Math.min(Math.round(consumed), Math.round(target)),
+        text: valueText,
+      }}
+      style={{ height: size, width: size }}
+    >
       <Svg height={size} width={size}>
         {/* Rotated so the arc starts at 12 o'clock rather than 3. */}
         <G transform={`rotate(-90 ${centre} ${centre})`}>

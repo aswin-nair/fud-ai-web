@@ -173,7 +173,7 @@
   line-height: 1.5;
 }
 
-.settings-byok-note a { color: var(--coral-start); }
+.settings-byok-note a { color: var(--coral-text); }
 
 /* ── Support screen (§2.8) ───────────────────────────────────
    Quiet by design. The phone number is the one emphatic element. */
@@ -196,7 +196,7 @@
   display: inline-block;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--coral);
+  color: var(--coral-text);
   text-decoration: none;
   margin-bottom: 6px;
 }

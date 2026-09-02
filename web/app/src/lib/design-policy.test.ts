@@ -44,7 +44,10 @@ describe('outcome and destructive color policy', () => {
 
   it('uses danger—not the brand accent—for the delete-data control', () => {
     const rule = css.match(/\.settings-data-btn\.danger\s*\{([^}]*)\}/)?.[1]
-    expect(rule).toContain('var(--danger)')
+    // Either the fill or its AA-contrast text variant is fine; both are the
+    // danger hue. What §2.4 forbids is the brand accent on a destructive
+    // control, which is what the second assertion actually guards.
+    expect(rule).toMatch(/var\(--danger(-text)?\)/)
     expect(rule).not.toContain('var(--coral')
   })
 

@@ -31,8 +31,10 @@ export const palette = {
 
     textPrimary: '#241A2E',
     textSecondary: '#6D5C66',
-    textMuted: '#A2919A',
+    textMuted: '#7D6974',
     textOnFill: '#FFFFFF',
+    textOnPrimary: '#241A2E',
+    textOnDanger: '#1A1416',
 
     tintStreak: '#FFF1E8',
     tintOnTrack: '#FFE8E0',
@@ -59,6 +61,8 @@ export const palette = {
     textSecondary: '#D4C4BA',
     textMuted: '#A2919A',
     textOnFill: '#FFFFFF',
+    textOnPrimary: '#1A1416',
+    textOnDanger: '#1A1416',
     tintStreak: '#3A2116',
     tintOnTrack: '#3A1E18',
   },
