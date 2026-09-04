@@ -21,7 +21,7 @@ test.describe('Onboarding activation', () => {
 
   test('requires an explicit adult birthday and persists an under-age block', async ({ page }) => {
     await signUp(page)
-    await page.getByRole('button', { name: 'Skip' }).click()
+    await page.getByRole('button', { name: 'Get started' }).click()
 
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('alert')).toHaveText('Enter your date of birth to continue.')
@@ -37,7 +37,7 @@ test.describe('Onboarding activation', () => {
 
   test('resumes the draft and activates only after a real first meal', async ({ page }) => {
     await signUp(page, { name: 'Activation User' })
-    await page.getByRole('button', { name: 'Skip' }).click()
+    await page.getByRole('button', { name: 'Get started' }).click()
 
     // Exact eighteenth birthday is eligible.
     await page.getByLabel('Date of birth').fill(birthdayYearsAgo(18))
@@ -89,7 +89,7 @@ test.describe('Onboarding activation', () => {
 
   test('refuses a goal weight below BMI 18.5 before showing targets', async ({ page }) => {
     await signUp(page)
-    await page.getByRole('button', { name: 'Skip' }).click()
+    await page.getByRole('button', { name: 'Get started' }).click()
     await page.getByLabel('Date of birth').fill(birthdayYearsAgo(25))
 
     await page.getByRole('button', { name: 'Continue', exact: true }).click()

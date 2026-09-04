@@ -26,9 +26,9 @@ test.describe('Authentication', () => {
 
     await signUp(page, { email, name: 'Test User' })
     await expect(page).toHaveURL(/\/onboarding/)
-    await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Get started' })).toBeVisible()
 
-    await page.getByRole('button', { name: 'Skip' }).click()
+    await page.getByRole('button', { name: 'Get started' }).click()
     await expect(page.getByRole('heading', { name: 'What is your date of birth?' })).toBeVisible()
   })
 

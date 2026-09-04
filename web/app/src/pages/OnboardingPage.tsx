@@ -43,8 +43,8 @@ const COMMITMENTS: Array<{ id: LoggingCommitment; icon: string; title: string; d
 const WELCOME_SLIDES = [
   {
     image: welcome1,
-    title: 'Log a meal in seconds',
-    sub: 'Build a habit that lasts with simple tracking and a small reward for showing up.',
+    title: 'Food tracking, at your pace.',
+    sub: 'Track meals, calories, and macros. Start with your profile, then log your first meal.',
   },
   {
     image: welcome2,
@@ -262,40 +262,57 @@ export function OnboardingPage() {
     const isLast = draft.welcomeIndex === WELCOME_SLIDES.length - 1
 
     return (
-      <div className="welcome-shell">
-        <img key={draft.welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
-        <div className="welcome-scrim" aria-hidden />
+      <main className="welcome-shell welcome-refresh" aria-label="Welcome to Fud AI">
+        <header className="welcome-brand-row">
+          <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
+          <span className="welcome-intro-label">Welcome</span>
+        </header>
+        <div className="welcome-image-frame">
+          <img key={draft.welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
+        </div>
 
-        {draft.welcomeIndex < WELCOME_SLIDES.length - 1 && (
-          <button type="button" className="welcome-skip" onClick={skipWelcome}>
-            Skip
-          </button>
-        )}
-
-        <div className="welcome-content">
+        <section className="welcome-content" aria-labelledby="welcome-heading">
+          <div className="welcome-copy" aria-live="polite" aria-atomic="true">
+            <p className="welcome-kicker">{['Your everyday food journal', 'Progress, without pressure', 'A starting point, not a rulebook'][draft.welcomeIndex]}</p>
+            <h1 className="welcome-title" id="welcome-heading">{slide.title}</h1>
+            <p className="welcome-sub">{slide.sub}</p>
+          </div>
+          <nav className="welcome-slide-nav" aria-label="Introduction slides">
           <div className="welcome-dots">
             {WELCOME_SLIDES.map((_, index) => (
               <button
                 key={index}
                 type="button"
                 className={`welcome-dot${index === draft.welcomeIndex ? ' active' : ''}`}
-                aria-label={`Go to slide ${index + 1}`}
+                aria-label={`Go to slide ${index + 1}: ${WELCOME_SLIDES[index].title}`}
                 aria-current={index === draft.welcomeIndex ? 'step' : undefined}
                 onClick={() => updateDraft(current => ({ ...current, welcomeIndex: index }))}
-              />
+              ><span aria-hidden="true" /></button>
             ))}
           </div>
-          <h1 className="welcome-title" key={`t-${draft.welcomeIndex}`}>{slide.title}</h1>
-          <p className="welcome-sub" key={`s-${draft.welcomeIndex}`}>{slide.sub}</p>
-          <PressableButton fullWidth onClick={nextWelcome}>
-            {isLast ? 'Get started' : 'Continue'}
+          <span className="welcome-slide-count" aria-hidden="true">{draft.welcomeIndex + 1} / {WELCOME_SLIDES.length}</span>
+          <div className="welcome-slide-arrows">
+            <button type="button" aria-label="Previous introduction" disabled={draft.welcomeIndex === 0}
+              onClick={() => updateDraft(current => ({ ...current, welcomeIndex: Math.max(0, current.welcomeIndex - 1) }))}>
+              <IconChevronLeft size={18} />
+            </button>
+            <button type="button" aria-label="Next introduction" disabled={isLast} onClick={nextWelcome}>
+              <IconChevronRight size={18} />
+            </button>
+          </div>
+          </nav>
+          <div className="welcome-actions">
+          <PressableButton fullWidth onClick={skipWelcome}>
+            Get started
             <IconChevronRight size={16} strokeWidth={2.4} />
           </PressableButton>
+          <p className="welcome-setup-note">Set up your profile · Intro slides are optional</p>
           <Link to="/login" className="onboarding-signin-link welcome-signin-link">
-            I already have an account
+            Already have an account? <strong>Sign in</strong>
           </Link>
-        </div>
-      </div>
+          </div>
+        </section>
+      </main>
     )
   }
 

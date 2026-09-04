@@ -47,8 +47,8 @@ export async function completeOnboarding(
     dismissCelebration?: boolean
   },
 ): Promise<void> {
-  // Skip the marketing welcome slides that lead into the profile-setup steps.
-  await page.getByRole('button', { name: 'Skip' }).click()
+  // Enter profile setup directly; the introduction is optional.
+  await page.getByRole('button', { name: 'Get started' }).click()
 
   await page.getByRole('heading', { name: 'What is your date of birth?' }).waitFor()
   await page.getByLabel('Date of birth').fill(options?.birthday ?? birthdayYearsAgo(25))

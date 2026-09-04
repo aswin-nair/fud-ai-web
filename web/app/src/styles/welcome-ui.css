@@ -1,0 +1,41 @@
+/* A food-journal cover: photography above, readable actions on a solid surface. */
+.welcome-refresh {
+  height: auto;
+  min-height: 100dvh;
+  max-width: 560px;
+  overflow: visible;
+  background: var(--paper-card);
+  color: var(--ink);
+  padding: max(1rem, env(safe-area-inset-top)) 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+}
+.welcome-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.welcome-brand { font: 600 1.5rem/1.2 var(--display); letter-spacing: -.04em; }
+.welcome-brand > span { color: var(--coral-text); }
+.welcome-intro-label { font-size: .875rem; color: var(--ink-soft); }
+.welcome-image-frame { position: relative; height: clamp(150px, 28dvh, 260px); overflow: hidden; border-radius: 24px; background: var(--paper-warm); }
+.welcome-refresh .welcome-photo { position: static; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; animation: none; }
+.welcome-refresh .welcome-content { position: static; padding: 1.5rem 0 0; gap: 0; }
+.welcome-kicker { margin: 0 0 .75rem; color: var(--coral-text); font-size: .875rem; font-weight: 600; }
+.welcome-refresh .welcome-title { margin: 0; max-width: 15ch; color: var(--ink); font: 600 clamp(2rem, 7vw, 2.75rem)/1.12 var(--display); letter-spacing: -.035em; animation: none; }
+.welcome-refresh .welcome-sub { margin: .875rem 0 0; max-width: 44ch; color: var(--ink-soft); font-size: 1rem; line-height: 1.6; animation: none; }
+.welcome-slide-nav { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: .875rem 0 1.25rem; }
+.welcome-refresh .welcome-dots { gap: 0; margin: 0; }
+.welcome-refresh .welcome-dot { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 12px; background: transparent; transition: none; cursor: pointer; }
+.welcome-dot > span { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-soft); }
+.welcome-dot.active > span { width: 24px; border-radius: 6px; background: var(--coral-text); }
+.welcome-slide-count { font-size: .875rem; color: var(--ink-soft); }
+.welcome-slide-arrows { display: flex; gap: .25rem; margin-left: auto; }
+.welcome-slide-arrows button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--rule-strong); border-radius: 50%; background: var(--paper-card); color: var(--ink); cursor: pointer; }
+.welcome-slide-arrows button:disabled { opacity: .4; cursor: default; }
+.welcome-slide-nav button:focus-visible, .welcome-refresh .welcome-signin-link:focus-visible { outline: 3px solid var(--coral-text); outline-offset: 3px; }
+.welcome-actions { border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+.welcome-refresh .pressable-face { min-height: 52px; font-size: 1rem; }
+.welcome-setup-note { margin: .75rem 0 .25rem; font-size: .875rem; line-height: 1.5; text-align: center; color: var(--ink-soft); }
+.welcome-refresh .welcome-signin-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25rem; min-height: 44px; margin: 0; font-size: .875rem; color: var(--ink-soft); text-decoration: none; }
+.welcome-refresh .welcome-signin-link strong { color: var(--coral-text); text-decoration: underline; text-underline-offset: .2em; }
+@media (min-width: 768px) {
+  .welcome-refresh { min-height: 0; margin: 2rem auto; padding: 1.5rem 2rem; border: 1px solid var(--rule); border-radius: 32px; }
+}
+@media (max-height: 650px) {
+  .welcome-image-frame { height: 150px; }
+}
