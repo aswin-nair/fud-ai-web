@@ -1,0 +1,69 @@
+/* One continuous profile form, with a distinct question and action on each page. */
+.setup-refresh { max-width: 560px; }
+.setup-refresh .onboarding-main { padding: max(1rem, env(safe-area-inset-top)) 1.25rem max(1rem, env(safe-area-inset-bottom)); }
+.setup-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.setup-refresh .onboarding-signin-link { font-size: .875rem; white-space: normal; text-align: right; }
+.setup-refresh .onboarding-header { display: grid; gap: .75rem; padding: 1.25rem 0 1.75rem; }
+.setup-step-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .5rem; }
+.setup-refresh .onboarding-step-label { font-size: .875rem; text-transform: none; letter-spacing: 0; }
+.setup-section-label { font-size: .875rem; color: var(--ink-soft); }
+.setup-refresh .onboarding-progress { width: 100%; height: 6px; }
+.setup-form { flex: 1; display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.setup-refresh .onboarding-step-content { gap: .75rem; animation: none; min-width: 0; }
+.setup-refresh .onboarding-title { margin: 0; font: 600 clamp(1.75rem, 6vw, 2.25rem)/1.2 var(--display); letter-spacing: -.03em; }
+.setup-refresh .onboarding-title:focus { outline: none; }
+.setup-refresh .onboarding-sub { margin: 0 0 .75rem; font-size: 1rem; line-height: 1.6; }
+.setup-refresh .field { margin: 0 0 .75rem; min-width: 0; }
+.setup-refresh .field label { font-size: .875rem; margin-bottom: .5rem; }
+.setup-refresh input { font-size: 1rem; min-height: 52px; min-width: 0; max-width: 100%; box-shadow: none; border: 1px solid var(--rule-strong); }
+.setup-refresh input:focus-visible { outline: 3px solid var(--coral-text); outline-offset: 2px; }
+.setup-refresh input[aria-invalid="true"] { border-color: var(--danger-text); }
+.setup-field-hint, .setup-refresh .onboarding-clamp-hint { font-size: .875rem; line-height: 1.55; color: var(--ink-soft); margin: .5rem 0 .75rem; }
+.setup-note { padding: 1rem; border-left: 3px solid var(--rule-strong); background: var(--paper-warm); color: var(--ink-soft); font-size: .875rem; line-height: 1.6; margin: .5rem 0; border-radius: 0 12px 12px 0; }
+.setup-refresh .onboarding-chip, .setup-refresh .activity-option { display: flex; align-items: center; gap: .75rem; min-height: 56px; padding: 1rem; border: 1px solid var(--rule-strong); border-radius: 16px; background: var(--paper-card); box-shadow: none; color: var(--ink); font-size: 1rem; }
+.setup-refresh .onboarding-chip.active, .setup-refresh .activity-option.active { border: 2px solid var(--coral-text); padding: calc(1rem - 1px); background: var(--coral-soft); box-shadow: none; color: var(--ink); }
+.setup-refresh .onboarding-chip-row, .setup-refresh .activity-option-list { gap: .75rem; }
+.setup-selected { margin-left: auto; flex-shrink: 0; font-size: 1.125rem; color: var(--coral-text); }
+.setup-option-copy { display: grid; gap: .375rem; }
+.setup-option-copy small, .setup-refresh .commitment-option-copy small { font-size: .875rem; font-weight: 400; line-height: 1.5; color: var(--ink-soft); }
+.setup-refresh .activity-option-label, .setup-refresh .commitment-option-copy strong { font-size: 1rem; line-height: 1.5; }
+.setup-optional { padding: 0 1rem; border: 1px solid var(--rule); border-radius: 16px; margin-bottom: .5rem; }
+.setup-optional summary { padding: 1rem 0; font-size: 1rem; cursor: pointer; }
+.setup-optional summary span, .setup-macro-label span { color: var(--ink-soft); font-size: .875rem; margin-left: .375rem; }
+.setup-refresh .onboarding-goals-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; gap: .625rem; }
+.setup-refresh .onboarding-goal-card { padding: 1rem .75rem; border-radius: 16px; background: var(--paper-card); box-shadow: none; }
+.setup-refresh .onboarding-goal-label { font-size: .875rem; letter-spacing: 0; text-transform: none; color: var(--ink-soft); }
+.setup-refresh .onboarding-goal-value { font: 600 1.5rem/1.3 var(--display); overflow-wrap: anywhere; color: var(--ink); }
+.setup-refresh .onboarding-goal-card:first-child { background: var(--coral-soft); }
+.setup-refresh .onboarding-goal-card:first-child .onboarding-goal-value { font-size: 2.5rem; color: var(--coral-text); }
+.setup-refresh .onboarding-goal-card:nth-child(2) { border-top: 3px solid var(--protein); }
+.setup-refresh .onboarding-goal-card:nth-child(3) { border-top: 3px solid var(--carbs); }
+.setup-refresh .onboarding-goal-card:nth-child(4) { border-top: 3px solid var(--fat); }
+.setup-refresh .onboarding-goal-unit { font-size: .875rem; color: var(--ink-soft); }
+.setup-refresh .onboarding-clamp-note { font-size: .875rem; line-height: 1.6; }
+.setup-profile-review { margin-top: .75rem; padding: 1rem; border: 1px solid var(--rule); border-radius: 16px; }
+.setup-profile-review h2 { margin: 0 0 .75rem; font: 600 1rem/1.5 var(--display); }
+.setup-profile-review dl { margin: 0; font-size: .875rem; }
+.setup-profile-review dl > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; padding-block: .5rem; border-top: 1px solid var(--rule); }
+.setup-profile-review dt { color: var(--ink-soft); }
+.setup-profile-review dd { margin: 0; max-width: 32ch; }
+.setup-edit-link { font: inherit; font-size: .875rem; text-decoration: underline; color: var(--coral-text); background: transparent; border: 0; min-height: 44px; padding: .5rem 0; cursor: pointer; }
+.setup-macro-label { font-size: .875rem; font-weight: 600; margin: 0; }
+.setup-refresh .review-grid { gap: .625rem; }
+.setup-meal-review { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; padding: 1rem; border: 1px solid var(--rule-strong); border-radius: 16px; background: var(--paper-card); }
+.setup-meal-review span { font-size: 1rem; overflow-wrap: anywhere; min-width: 0; }
+.setup-meal-review strong { font: 600 1.25rem/1.4 var(--display); }
+.setup-meal-review small { flex-basis: 100%; font-size: .875rem; color: var(--ink-soft); }
+.setup-refresh .onboarding-actions { align-items: stretch; padding-top: 1.5rem; gap: .75rem; }
+.setup-refresh .onboarding-actions > .is-full { flex: 1; width: auto; }
+.setup-refresh .onboarding-actions .pressable-face { min-height: 52px; font-size: 1rem; }
+.setup-next-hint { font-size: .875rem; color: var(--ink-soft); text-align: right; margin: .75rem 0 0; }
+.setup-refresh button:focus-visible, .setup-refresh summary:focus-visible, .setup-refresh a:focus-visible { outline: 3px solid var(--coral-text); outline-offset: 3px; }
+@media (min-width: 768px) {
+  .setup-refresh { margin: 2rem auto; border: 1px solid var(--rule); border-radius: 28px; background: var(--paper-card); }
+  .setup-refresh .onboarding-main { min-height: min(760px, calc(100dvh - 4rem)); padding: 1.5rem 2rem; }
+}
+@media (max-width: 360px) {
+  .setup-refresh .onboarding-goals-grid { grid-template-columns: 1fr; }
+  .setup-refresh .onboarding-actions { flex-wrap: wrap; }
+}
