@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { IconClose } from './icons'
 
 type ToastType = 'success' | 'error' | 'info'
@@ -22,11 +22,27 @@ let seq = 0
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
+  const hovered = useRef(new Set<number>())
+  const focused = useRef(new Set<number>())
+  useEffect(() => {
+    const activeTimers = timers.current
+    return () => { activeTimers.forEach(clearTimeout); activeTimers.clear() }
+  }, [])
+  useEffect(() => {
+    const visible = new Set(items.map(item => item.id))
+    for (const [id, timer] of timers.current) {
+      if (!visible.has(id)) { clearTimeout(timer); timers.current.delete(id) }
+    }
+    for (const id of hovered.current) if (!visible.has(id)) hovered.current.delete(id)
+    for (const id of focused.current) if (!visible.has(id)) focused.current.delete(id)
+  }, [items])
 
   const dismiss = useCallback((id: number) => {
     setItems(p => p.filter(t => t.id !== id))
     clearTimeout(timers.current.get(id))
     timers.current.delete(id)
+    hovered.current.delete(id)
+    focused.current.delete(id)
   }, [])
 
   const toast = useCallback((
@@ -35,15 +51,33 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   ) => {
     const id = ++seq
     setItems(p => [...p.slice(-2), { id, msg, type: opts?.type ?? 'success', action: opts?.action }])
-    timers.current.set(id, setTimeout(() => dismiss(id), opts?.action ? 4500 : 2500))
+    timers.current.set(id, setTimeout(() => dismiss(id), opts?.action ? 10000 : 4000))
   }, [dismiss])
+
+  function pause(id: number) {
+    clearTimeout(timers.current.get(id))
+    timers.current.delete(id)
+  }
+  function resume(item: ToastItem) {
+    if (hovered.current.has(item.id) || focused.current.has(item.id)) return
+    pause(item.id)
+    timers.current.set(item.id, setTimeout(() => dismiss(item.id), item.action ? 10000 : 4000))
+  }
 
   return (
     <ToastCtx.Provider value={{ toast }}>
       {children}
       <div className="toast-stack" aria-live="polite">
         {items.map(item => (
-          <div key={item.id} className={`toast toast-${item.type}`} role="status">
+          <div key={item.id} className={`toast toast-${item.type}`} role="status"
+            onMouseEnter={() => { hovered.current.add(item.id); pause(item.id) }}
+            onMouseLeave={() => { hovered.current.delete(item.id); resume(item) }}
+            onFocusCapture={() => { focused.current.add(item.id); pause(item.id) }}
+            onBlurCapture={event => {
+              if (event.currentTarget.contains(event.relatedTarget)) return
+              focused.current.delete(item.id)
+              resume(item)
+            }}>
             <span className="toast-msg">{item.msg}</span>
             {item.action && (
               <button

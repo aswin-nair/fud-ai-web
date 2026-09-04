@@ -47,9 +47,13 @@ describe('daily UI contracts', () => {
     state.favoriteMeals = [{ id: 'saved', name: 'Rice', calories: 200, protein: 4, carbs: 44, fat: 1, mealType: 'lunch' }]
     const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(LogMenuPage)))
     expect(html).toContain('aria-label="Adjust portion for Oats">Portion</button>')
-    expect(html).toContain('aria-label="Adjust portion for Rice">Portion</button>')
+    expect(html).toContain('aria-label="Your meal shortcuts"')
+    expect(html).toContain('Favourites</button>')
     expect(html).not.toMatch(/<button\b[^>]*>(?:(?!<\/button>)[\s\S])*<button\b/)
-    expect(html.indexOf('Ways to log a meal')).toBeLessThan(html.indexOf('Log again'))
+    expect(html.indexOf('Log again')).toBeLessThan(html.indexOf('Ways to log a meal'))
+    state.foodEntries = []
+    const favouritesHtml = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(LogMenuPage)))
+    expect(favouritesHtml).toContain('aria-label="Adjust portion for Rice">Portion</button>')
   })
 
   it('shows a serving-scaled review before the native submit action', () => {

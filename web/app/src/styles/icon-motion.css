@@ -1,0 +1,19 @@
+.ui-icon { flex-shrink: 0; vertical-align: middle; transform-origin: center; }
+.ui-icon.is-active { stroke-width: 2.6; }
+@keyframes icon-pop { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.18); } }
+@keyframes icon-tilt { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-12deg); } 65% { transform: rotate(9deg); } }
+@keyframes icon-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes icon-draw { from { stroke-dasharray: 32; stroke-dashoffset: 32; } to { stroke-dasharray: 32; stroke-dashoffset: 0; } }
+/* One short response per interaction; no autoplay or loop. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(button, a):is(:focus-visible, :active) .ui-icon-pop { animation: icon-pop 360ms ease-out; }
+  :is(button, a):is(:focus-visible, :active) .ui-icon-tilt { animation: icon-tilt 420ms ease-out; }
+  :is(button, a):is(:focus-visible, :active) .ui-icon-nudge { animation: icon-nudge 360ms ease-out; }
+  :is(button, a):is(:focus-visible, :active) .ui-icon-draw > :is(path, polyline, line) { animation: icon-draw 420ms ease-out; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :is(button, a):hover .ui-icon-pop { animation: icon-pop 360ms ease-out; }
+  :is(button, a):hover .ui-icon-tilt { animation: icon-tilt 420ms ease-out; }
+  :is(button, a):hover .ui-icon-nudge { animation: icon-nudge 360ms ease-out; }
+  :is(button, a):hover .ui-icon-draw > :is(path, polyline, line) { animation: icon-draw 420ms ease-out; }
+}

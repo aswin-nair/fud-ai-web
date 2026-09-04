@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
 import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
-import { HomeSkeleton } from '../components/HomeSkeleton'
+import { MomoSticker } from '../components/MomoSticker'
+import { HabitMilestones } from '../components/HabitMilestones'
+import { FoodIcon, IconCalendar, IconFlame, IconStar, IconPlus, IconCamera, IconJourney, IconArrowRight, IconProtein, IconCarbs, IconWater, IconMeal, IconShield } from '../components/icons'
 import { Ticket } from '../components/Ticket'
 import { SwipeRow } from '../components/SwipeRow'
 import { PullToRefresh } from '../components/PullToRefresh'
@@ -15,12 +17,11 @@ import { formatDayLabel, startOfDay, sameDay, localDayKey } from '../lib/dates'
 import { getStreakWithFreezes, getAllBadges, getTotalLoggedDays } from '../lib/journey'
 import { applyNote, applyWaterChange, ticketNumber } from '../lib/enamelEconomy'
 import { useFeel } from '../hooks/useHaptic'
-import { useTransitionNavigate } from '../hooks/useTransitionNavigate'
 import { playLogConfirm, setFeelEnabled } from '../lib/feel'
 import { evaluateNotifications } from '../lib/notifications'
 import { LogCelebration } from '../components/LogCelebration'
 import { Surface } from '../components/Surface'
-import { MEAL_LABELS, type XpEvent } from '../types'
+import { MEAL_LABELS, type FoodEntry, type XpEvent } from '../types'
 import { useAnchor } from '../mascot/anchors'
 import { CalorieRing } from '../components/CalorieRing'
 import { effectiveCalories } from '../lib/profile'
@@ -28,27 +29,24 @@ import { mascotEvent } from '../mascot/MascotOverlay'
 import { dayRingProgress } from '../lib/dayRing'
 import { DayRing } from '../components/DayRing'
 
-const REVEAL_DELAY_MS = 420
-
 interface JustLogged { id?: string; calories: number; name: string }
 
 interface CelebrationState {
+  entryId?: string
   foodName: string
   awards: XpEvent[]
   mascotEvent: 'log_success' | 'milestone'
 }
 
 export function HomePage({ guest = false }: { guest?: boolean }) {
-  const { state, ackLevelUp, patchGamification, deleteEntry, refresh } = useApp()
+  const { state, ackLevelUp, patchGamification, deleteEntry, restoreEntry, refresh } = useApp()
   const { toast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
   const feel = useFeel()
-  const transitionTo = useTransitionNavigate()
   const streakAnchor = useAnchor('streak_flame')
   const ringAnchor = useAnchor('calorie_ring')
   const [selectedDate, setSelectedDate] = useState(() => startOfDay())
-  const [revealed, setRevealed] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [celebration, setCelebration] = useState<CelebrationState | null>(null)
   const loggedNavKey = useRef('')
@@ -102,11 +100,6 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   }, [paused, hasLoggedToday, streak, state.gamification.streakFreezes, state.foodEntries])
 
   useEffect(() => {
-    const t = setTimeout(() => setRevealed(true), REVEAL_DELAY_MS)
-    return () => clearTimeout(t)
-  }, [])
-
-  useEffect(() => {
     const justLogged = (location.state as { justLogged?: JustLogged } | null)?.justLogged
     if (!justLogged) return
     if (loggedNavKey.current === location.key) return
@@ -123,6 +116,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
     const streakMilestone = fresh.some(event => event.key.startsWith('streak-'))
     playLogConfirm({ streakMilestone })
     setCelebration({
+      entryId: justLogged.id,
       foodName: justLogged.name,
       awards: fresh,
       mascotEvent: streakMilestone ? 'milestone' : 'log_success',
@@ -138,7 +132,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       const newBadge = allBadges.find(b => newIds.includes(b.id))
       if (newBadge) {
         feel('badge')
-        toast(`${newBadge.emoji} Badge unlocked: ${newBadge.name}!`)
+        toast(`Badge unlocked: ${newBadge.name}!`)
         mascotEvent('milestone')
       }
     }
@@ -146,6 +140,13 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   }, [state.gamification.seenBadgeIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const pendingLevelUp = state.gamification.pendingLevelUp
+  function removeMeal(entry: FoodEntry) {
+    deleteEntry(entry.id)
+    toast(`Removed ${entry.name}`, {
+      type: 'info',
+      action: { label: 'Undo', fn: () => restoreEntry(entry) },
+    })
+  }
 
   return (
     <div className="app-shell home-shell today-refresh">
@@ -158,14 +159,17 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
           cosmeticId={state.gamification.equippedCosmeticId}
           onDone={() => {
             const event = celebration.mascotEvent
+            const entryId = celebration.entryId
+            if (entryId) toast(`Logged ${celebration.foodName}`, {
+              action: { label: 'Undo', fn: () => deleteEntry(entryId) },
+            })
             setCelebration(null)
             window.setTimeout(() => mascotEvent(event), 120)
           }}
         />
       )}
 
-      {/* Streak and level are durable context. The day's actual action lives
-          in the Day ring below instead of a second points target. */}
+      {/* Streak and level remain context; meal logging is the primary action. */}
       <header className="home-counter-chips">
         <div className="today-heading">
           <p className="today-date">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
@@ -178,11 +182,11 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
           onClick={() => { feel('open'); setShowDatePicker(true) }}
           aria-label={`${streak} day streak. Choose date.`}
         >
-          <span className="home-chip-icon" aria-hidden>🔥</span>
+          <IconFlame size={22} />
           <span className="tabular">{streak}<span className="today-streak-label"> day streak</span></span>
         </button>
         <div className="home-chip" aria-label={`Level ${state.gamification.level}, ${state.gamification.xp} total XP`}>
-          <span className="home-chip-icon" aria-hidden>⭐</span>
+          <IconStar size={22} />
           <span className="tabular">Level {state.gamification.level}</span>
         </div>
       </header>
@@ -197,12 +201,11 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
 
       <PullToRefresh onRefresh={refresh}>
       <main className="app-main home-main">
-        {!revealed ? (
-          <HomeSkeleton />
-        ) : paused ? (
+        {paused ? (
           <Surface className="home-ring-hero" style={{ textAlign: 'center' }}>
             <p className="onboarding-title" style={{ fontSize: '1.2rem' }}>Tracking is paused</p>
             <p className="page-sub">Calorie and macro numbers are hidden. Your streak is held where it is.</p>
+            <Link className="today-shortcut" to="/settings">Manage pause <IconArrowRight /></Link>
           </Surface>
         ) : (
           <>
@@ -229,22 +232,23 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                 </button>
               </Surface>
             )}
-            {/* The Day ring is deliberately calculated from logging actions
-                only. The nutrition readout remains available just below it. */}
+            {/* Nutrition stays factual; optional habit progress is separate below. */}
             <div ref={ringAnchor} className="home-ring-anchor">
-              <Surface className="home-ring-hero">
+              <Surface className="home-ring-hero today-nutrition-card">
+                <div className="today-summary-heading">
+                  <h2>{snapshotLabel}</h2>
+                  <button type="button" className="today-date-button" onClick={() => setShowDatePicker(true)} aria-label="Choose date"><IconCalendar /></button>
+                </div>
                 <div className="home-factual-readout">
                   <CalorieRing
                     consumed={totals.calories}
                     target={calorieTarget}
-                    size={132}
-                    onLog={() => guest ? navigate('/login?mode=signup&claim=1') : transitionTo('/log')}
-                    actionLabel={selectedDayIsToday ? 'Tap to log' : 'Log for today'}
+                    size={156}
                   />
                   <div className="home-factual-copy">
-                    <p className="home-ring-say">{snapshotLabel}</p>
+                    <p className="today-energy-value tabular">{Math.round(totals.calories).toLocaleString()}<span>kcal logged</span></p>
                     <p className="home-ring-sub tabular">
-                      {Math.round(totals.calories).toLocaleString()} of {Math.round(calorieTarget).toLocaleString()} kcal {totalDateLabel}
+                      Daily guide: {Math.round(calorieTarget).toLocaleString()} kcal
                     </p>
                   </div>
                 </div>
@@ -253,19 +257,24 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                   className="home-log-cta"
                   onClick={() => { feel('press'); navigate('/log') }}
                 >
-                  <span aria-hidden>＋</span> {selectedDayIsToday ? 'Log a meal' : 'Log a meal today'}
+                  <IconPlus size={24} /> {selectedDayIsToday ? 'Log a meal' : 'Log a meal today'} <IconArrowRight size={22} />
                 </button>}
-                <DayRing progress={dayProgress} />
+                {!guest && <div className="today-shortcuts">
+                  <Link className="today-shortcut" to="/log/photo"><IconCamera /> Scan food</Link>
+                  <Link className="today-shortcut" to="/log/saved"><IconJourney /> Saved meals</Link>
+                </div>}
+                <p className="today-guide-note">A guide, not a grade.</p>
               </Surface>
             </div>
 
             <div className="home-macro-chips">
               {[
-                { k: 'protein', label: 'PROTEIN', name: 'Protein', have: totals.protein, goal: effectiveProtein(profile) },
-                { k: 'carbs', label: 'CARBS', name: 'Carbs', have: totals.carbs, goal: effectiveCarbs(profile) },
-                { k: 'fat', label: 'FAT', name: 'Fat', have: totals.fat, goal: effectiveFat(profile) },
+                { k: 'protein', Icon: IconProtein, name: 'Protein', have: totals.protein, goal: effectiveProtein(profile) },
+                { k: 'carbs', Icon: IconCarbs, name: 'Carbs', have: totals.carbs, goal: effectiveCarbs(profile) },
+                { k: 'fat', Icon: IconWater, name: 'Fat', have: totals.fat, goal: effectiveFat(profile) },
               ].map(m => (
                 <div key={m.k} className={`home-macro-chip tone-${m.k}`}>
+                  <m.Icon size={24} />
                   <div className="home-macro-top">
                     <span className="home-macro-label">{m.name}</span>
                     <span className="home-macro-value tabular">{Math.round(m.have)}g</span>
@@ -288,6 +297,15 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               ))}
             </div>
 
+            {state.gamification.mascotActivity !== 'off' && !profile.mascotMuted && <aside className="today-momo-note">
+              <MomoSticker mood={dayEntries.length > 0 ? 'proud' : 'cozy'} />
+              <div><strong>Momo’s little reminder</strong><p>{selectedDayIsToday
+                ? dayEntries.length > 0 ? 'You showed up. That’s the part worth celebrating.' : 'Fancy breakfast, leftover pizza—it all belongs here.'
+                : 'A page from your food story. No grades attached.'}</p>
+                {profile.mascotRoasts && <button type="button" className="today-roast-button" onClick={() => mascotEvent('poke')}>Roast me <IconFlame size={18} /></button>}
+              </div>
+            </aside>}
+
             <div className="home-today-list">
               <div className="home-today-head">
                 <h2 className="home-today-kicker">Your meals</h2>
@@ -298,11 +316,10 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                 </span>
               </div>
               {dayEntries.length === 0 ? (
-                <p className="home-today-empty">
-                  {selectedDayIsToday
-                    ? 'Your day starts the moment you log something. Anything counts.'
-                    : `Nothing was logged ${totalDateLabel}.`}
-                </p>
+                <div className="home-today-empty"><IconMeal size={32} />
+                  <strong>{selectedDayIsToday ? 'Your table is ready' : 'A quiet page'}</strong>
+                  <p>{selectedDayIsToday ? 'Start with whatever you ate. You can change the details later.' : `Nothing was logged ${totalDateLabel}.`}</p>
+                </div>
               ) : (
                 <div className="home-today-rows motion-stagger">
                   {dayEntries.map(entry => (
@@ -311,7 +328,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                       label={entry.name}
                       actions={[
                         { label: 'Edit', onAct: () => navigate(`/edit/${entry.id}`) },
-                        { label: 'Delete', tone: 'danger', onAct: () => deleteEntry(entry.id) },
+                        { label: 'Delete', tone: 'danger', onAct: () => removeMeal(entry) },
                       ]}
                     >
                       <button
@@ -319,7 +336,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                         className="home-today-row"
                         onClick={() => { feel('tap'); navigate(`/edit/${entry.id}`) }}
                       >
-                        <span className="home-today-emoji" aria-hidden>{entry.emoji ?? '🍽'}</span>
+                        <span className="home-today-emoji"><FoodIcon emoji={entry.emoji} /></span>
                         <span className="home-today-name">
                           {entry.name}
                           <small>{MEAL_LABELS[entry.mealType] ?? 'Meal'}</small>
@@ -349,6 +366,11 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
             onNote={() => patchGamification(g => applyNote(g, selectedDayKey))}
               variant="extras"
             />
+            <section className="today-routine-card">
+              <DayRing progress={dayProgress} />
+              {state.gamification.streakFreezes > 0 && <p className="today-freeze-note"><IconShield /> {state.gamification.streakFreezes} streak {state.gamification.streakFreezes === 1 ? 'freeze' : 'freezes'} available for a day off.</p>}
+            </section>
+            <HabitMilestones loggedDays={getTotalLoggedDays(state.foodEntries)} />
 
           </>
         )}

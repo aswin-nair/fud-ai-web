@@ -7,7 +7,7 @@ import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
 import type { ActivityLevel, Gender, LoggingCommitment, MealType, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS, MEAL_LABELS } from '../types'
-import { IconChevronLeft, IconChevronRight } from '../components/icons'
+import { FoodIcon, IconChevronLeft, IconChevronRight, IconMeal, IconSparkles, IconSprout, IconRest, IconWalk, IconWorkout, IconEnergy, IconFlame } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
 import { MomoSticker } from '../components/MomoSticker'
 import {
@@ -50,10 +50,10 @@ const GOAL_DESCRIPTIONS: Record<WeightGoal, string> = {
   gain: 'Set a gradual weight-gain target.',
 }
 
-const COMMITMENTS: Array<{ id: LoggingCommitment; icon: string; title: string; description: string }> = [
-  { id: 'light', icon: '🌱', title: 'Light', description: 'One honest log makes the day.' },
-  { id: 'regular', icon: '🍽️', title: 'Regular', description: 'Aim for breakfast, lunch, and dinner.' },
-  { id: 'detailed', icon: '✨', title: 'Detailed', description: 'Main meals plus a photo, note, or correction.' },
+const COMMITMENTS: Array<{ id: LoggingCommitment; Icon: typeof IconMeal; title: string; description: string }> = [
+  { id: 'light', Icon: IconSprout, title: 'Light', description: 'One honest log makes the day.' },
+  { id: 'regular', Icon: IconMeal, title: 'Regular', description: 'Aim for breakfast, lunch, and dinner.' },
+  { id: 'detailed', Icon: IconSparkles, title: 'Detailed', description: 'Main meals plus a photo, note, or correction.' },
 ]
 
 const WELCOME_SLIDES = [
@@ -74,13 +74,13 @@ const WELCOME_SLIDES = [
   },
 ] as const
 
-const ACTIVITY_ICONS: Record<ActivityLevel, string> = {
-  sedentary: '🪑',
-  light: '🚶',
-  moderate: '🏃',
-  active: '🏋️',
-  veryActive: '⚡',
-  extraActive: '🔥',
+const ACTIVITY_ICONS: Record<ActivityLevel, typeof IconMeal> = {
+  sedentary: IconRest,
+  light: IconWalk,
+  moderate: IconWorkout,
+  active: IconWorkout,
+  veryActive: IconEnergy,
+  extraActive: IconFlame,
 }
 
 const ACTIVITY_DESCRIPTIONS: Record<ActivityLevel, string> = {
@@ -312,7 +312,7 @@ export function OnboardingPage() {
         <div className="welcome-image-frame">
           <img key={draft.welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
         </div>
-          <span className="welcome-food-sticker" aria-hidden="true">🍜</span>
+          <span className="welcome-food-sticker" aria-hidden="true"><FoodIcon emoji="🍜" size={32} /></span>
           <MomoSticker />
         </div>
 
@@ -519,7 +519,9 @@ export function OnboardingPage() {
             <h1 className="onboarding-title">Activity level</h1>
             <p className="onboarding-sub">How active are you on a typical day?</p>
             <div className="activity-option-list" role="group" aria-label="Activity level">
-              {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map(level => (
+              {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map(level => {
+                const ActivityIcon = ACTIVITY_ICONS[level]
+                return (
                 <button
                   key={level}
                   type="button"
@@ -527,11 +529,11 @@ export function OnboardingPage() {
                   aria-pressed={profile.activityLevel === level}
                   onClick={() => updateDraftProfile(current => ({ ...current, activityLevel: level }))}
                 >
-                  <span className="activity-option-icon" aria-hidden="true">{ACTIVITY_ICONS[level]}</span>
+                  <span className="activity-option-icon" aria-hidden="true"><ActivityIcon size={28} /></span>
                   <span className="setup-option-copy"><strong className="activity-option-label">{ACTIVITY_LABELS[level]}</strong><small>{ACTIVITY_DESCRIPTIONS[level]}</small></span>
                   {profile.activityLevel === level && <span className="setup-selected" aria-hidden="true">✓</span>}
                 </button>
-              ))}
+              )})}
             </div>
           </div>
         )}
@@ -551,7 +553,7 @@ export function OnboardingPage() {
                   aria-pressed={(profile.loggingCommitment ?? 'light') === commitment.id}
                   onClick={() => updateDraftProfile(current => ({ ...current, loggingCommitment: commitment.id }))}
                 >
-                  <span className="activity-option-icon" aria-hidden="true">{commitment.icon}</span>
+                  <span className="activity-option-icon" aria-hidden="true"><commitment.Icon size={28} /></span>
                   <span className="commitment-option-copy">
                     <strong>{commitment.title}</strong>
                     <small>{commitment.description}</small>

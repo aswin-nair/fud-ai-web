@@ -47,6 +47,7 @@ describe('shared AppState runtime contract', () => {
     const state = validState()
     state.profile.mascotMuted = true
     state.profile.mascotReducedMotion = true
+    state.profile.mascotRoasts = true
     expect(validateAppState(state, NOW)).toEqual({ ok: true })
 
     const invalid: Record<string, unknown> = structuredClone(state)
@@ -55,6 +56,16 @@ describe('shared AppState runtime contract', () => {
       ok: false,
       error: 'profile preference flag is invalid',
     })
+  })
+
+  it('keeps roast mode opt-in and validates its persisted flag', () => {
+    const state = validState()
+    expect(state.profile.mascotRoasts).toBe(false)
+    delete state.profile.mascotRoasts
+    expect(validateAppState(state, NOW)).toEqual({ ok: true })
+    const invalid: Record<string, unknown> = structuredClone(state)
+    ;(invalid.profile as Record<string, unknown>).mascotRoasts = 'yes'
+    expect(validateAppState(invalid, NOW)).toEqual({ ok: false, error: 'profile preference flag is invalid' })
   })
 
   it('rejects an onboarded user who is not yet 18', () => {

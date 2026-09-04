@@ -5,7 +5,7 @@ import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
 import { PortionSheet } from '../components/PortionSheet'
 import { useLongPress } from '../hooks/useLongPress'
-import { IconCamera, IconClipboard, IconEdit, IconPlus, IconStar } from '../components/icons'
+import { FoodIcon, IconCamera, IconClipboard, IconEdit, IconPlus, IconStar, IconHistory } from '../components/icons'
 import { useApp } from '../store/AppContext'
 import { recordFoodSearch, selectLogMethod, startLogFlow, type LogMethod } from '../lib/analytics'
 import {
@@ -58,8 +58,8 @@ const OTHER_WAYS = [
 const RECENT_LIMIT = 12
 
 /**
- * Show logging methods before recents without opening the mobile keyboard.
- * Familiar meals keep their one-tap path, with a visible portion alternative.
+ * New users see entry methods; returning users see their meal shortcuts first.
+ * Neither path opens the mobile keyboard on arrival.
  *
  * Typing a bare number turns the same field into Quick add.
  */
@@ -67,6 +67,8 @@ export function LogMenuPage() {
   const { state, addEntry } = useApp()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [shelf, setShelf] = useState<'recent' | 'favourite'>('recent')
+  const [showAllRecents, setShowAllRecents] = useState(false)
   const [portionFor, setPortionFor] = useState<{ item: FoodEntry | SavedMeal; source: LogMethod } | null>(null)
   const lastEmptyTease = useRef('')
 
@@ -129,6 +131,20 @@ export function LogMenuPage() {
     commit(savedToEntry(scaleMeal(saved, multiplier), 'recent'), source)
   }
 
+  const loggingMethods = (
+        <nav className="log-method-grid" aria-label="Ways to log a meal">
+          {OTHER_WAYS.map(opt => (
+            <Link key={opt.to} to={opt.to} className="log-method-card" data-method={opt.method}
+              onClick={() => selectLogMethod(opt.method)}>
+              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={28} /></span>
+              <strong>{opt.title}</strong>
+              <span>{opt.desc}</span>
+            </Link>
+          ))}
+        </nav>
+  )
+  const activeShelf = recents.length === 0 ? 'favourite' : favourites.length === 0 ? 'recent' : shelf
+
   return (
     <div className="app-shell log-refresh">
       {portionFor && (
@@ -150,16 +166,8 @@ export function LogMenuPage() {
           <p className="log-intro">Something new, or a familiar favourite?</p>
         </header>
 
-        <nav className="log-method-grid" aria-label="Ways to log a meal">
-          {OTHER_WAYS.map(opt => (
-            <Link key={opt.to} to={opt.to} className="log-method-card" data-method={opt.method}
-              onClick={() => selectLogMethod(opt.method)}>
-              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={28} /></span>
-              <strong>{opt.title}</strong>
-              <span>{opt.desc}</span>
-            </Link>
-          ))}
-        </nav>
+        {recents.length === 0 && favourites.length === 0 && loggingMethods}
+
 
         <div className="log-search-wrap log-hero-target">
           <label className="log-search-label" htmlFor="log-meal-search">Find a previous meal</label>
@@ -194,12 +202,16 @@ export function LogMenuPage() {
 
         {query.trim() === '' ? (
           <>
-            {recents.length > 0 && (
+            {(recents.length > 0 || favourites.length > 0) && <div className="log-shelf-tabs" role="group" aria-label="Your meal shortcuts">
+              <button type="button" aria-pressed={activeShelf === 'recent'} disabled={recents.length === 0} onClick={() => setShelf('recent')}><IconHistory /> Recent</button>
+              <button type="button" aria-pressed={activeShelf === 'favourite'} disabled={favourites.length === 0} onClick={() => setShelf('favourite')}><IconStar /> Favourites</button>
+            </div>}
+            {activeShelf === 'recent' && recents.length > 0 && (
               <>
                 <h2 className="eyebrow">Log again</h2>
                 <p className="log-list-hint">Tap a meal to log it, or choose Portion to adjust.</p>
                 <div className="log-pick-list motion-list">
-                  {recents.map(entry => (
+                  {(showAllRecents ? recents : recents.slice(0, 4)).map(entry => (
                     <PickRow
                       key={entry.id}
                       name={entry.name}
@@ -210,10 +222,11 @@ export function LogMenuPage() {
                     />
                   ))}
                 </div>
+                {recents.length > 4 && <button type="button" className="log-show-more" aria-expanded={showAllRecents} onClick={() => setShowAllRecents(value => !value)}>{showAllRecents ? 'Show fewer meals' : 'Show more recent meals'}</button>}
               </>
             )}
 
-            {favourites.length > 0 && (
+            {activeShelf === 'favourite' && favourites.length > 0 && (
               <>
                 <h2 className="eyebrow">Favourites</h2>
                 <div className="log-pick-list motion-list">
@@ -265,13 +278,17 @@ export function LogMenuPage() {
             ) : (
               <div className="log-empty">
                 <p className="log-empty-sub">
-                  No recent or Saved meals match “{query.trim()}”. Choose a logging method above to add something new.
+                  No recent or Saved meals match “{query.trim()}”. Choose a logging method to add something new.
                 </p>
               </div>
             )}
           </>
         )}
 
+        {(recents.length > 0 || favourites.length > 0) && <section className="log-new-meal">
+          <h2>Something new?</h2>
+          {loggingMethods}
+        </section>}
       </main>
       <BottomNav />
     </div>
@@ -300,7 +317,7 @@ function PickRow({
       onClick={() => { if (!hold.consumed()) onPick() }}
       {...(onHold ? hold.handlers : {})}
     >
-      <span className="log-pick-emoji">{emoji ?? '🍽️'}</span>
+      <span className="log-pick-emoji"><FoodIcon emoji={emoji} /></span>
       <span className="log-pick-name">{name}</span>
       <span className="log-pick-kcal">{Math.round(calories)} kcal</span>
     </button>

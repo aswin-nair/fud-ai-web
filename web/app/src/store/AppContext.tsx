@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { restoreDeletedEntry } from '../lib/entryUndo'
+import { IconCloud, IconOffline, IconShield } from '../components/icons'
 
 import type {
 
@@ -108,6 +110,7 @@ interface AppContextValue {
   updateEntry: (entry: FoodEntry) => void
 
   deleteEntry: (id: string) => void
+  restoreEntry: (entry: FoodEntry) => void
 
   addWeightEntry: (weightKg: number, date?: string) => void
 
@@ -909,6 +912,11 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
 
     })),
 
+    restoreEntry: (entry) => setState(s => ({
+      ...s,
+      foodEntries: restoreDeletedEntry(s.foodEntries, entry),
+    })),
+
     deleteEntry: (id) => setState(s => ({
 
       ...s,
@@ -1178,6 +1186,7 @@ export function AppProvider({ children, guest = false }: { children: ReactNode; 
           role={cloudSyncConflict ? 'alert' : 'status'}
           aria-live={cloudSyncConflict ? 'assertive' : 'polite'}
         >
+          {!networkOnline ? <IconOffline /> : cloudSyncConflict || cloudSyncError ? <IconShield /> : <IconCloud />}
           <span>{syncMessage}</span>
           {(pendingSyncCount > 0 || cloudSyncConflict || cloudSyncError) && (
             <div>

@@ -28,7 +28,7 @@ import { clearUserState, exportData, importData } from '../lib/storage'
 import { clearAnalytics, track } from '../lib/analytics'
 import { clearNotificationHistory, requestNotifyPermission } from '../lib/notifications'
 import { userInitials } from '../lib/auth'
-import { IconArrowUpRight, IconCheck, IconChevronRight, IconCoach } from '../components/icons'
+import { IconArrowUpRight, IconCheck, IconChevronRight, IconCoach, IconTrophy } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
 import { apiChangePassword, apiDeleteAccount, apiLogoutAll, loadAuthToken, saveAuthToken } from '../lib/apiClient'
 import { isCloudBackend } from '../lib/dataBackend'
@@ -40,6 +40,7 @@ import { COSMETICS, equipCosmetic } from '../lib/enamelEconomy'
 import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
 import { Momo } from '../components/Momo'
 import { MomoSticker } from '../components/MomoSticker'
+import { RoastPreview } from '../components/RoastPreview'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="settings-section-label">{children}</h3>
@@ -464,7 +465,7 @@ export function SettingsPage() {
           <div className="wardrobe-grid">
             {unlockedBadges.map(badge => (
               <div key={badge.id} className="wardrobe-item is-owned">
-                {badge.emoji} {badge.name}
+                <IconTrophy size={18} /> {badge.name}
               </div>
             ))}
           </div>
@@ -506,6 +507,14 @@ export function SettingsPage() {
               onChange={next => setProfile(p => ({ ...p, mascotMuted: next }))}
             />
           </SettingsRow>
+          <SettingsRow label="Roast mode" hint="Opt in to playful teasing about app habits. Never your body or food · apply with Save settings">
+            <Toggle
+              checked={profile.mascotRoasts === true}
+              onChange={next => setProfile(p => ({ ...p, mascotRoasts: next }))}
+            />
+          </SettingsRow>
+          {profile.mascotRoasts && mascotVisible && !profile.mascotMuted && !profile.trackingPaused
+            && <RoastPreview reducedMotion={profile.mascotReducedMotion === true} />}
           <SettingsRow label="Reduce Momo motion" hint="Stop roaming and gestures · apply with Save settings">
             <Toggle
               checked={profile.mascotReducedMotion === true}

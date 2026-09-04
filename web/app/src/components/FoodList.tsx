@@ -5,15 +5,15 @@ import { MEAL_LABELS } from '../types'
 import { sameDay } from '../lib/dates'
 import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
-import { IconChevronDown, IconChevronRight, IconEdit, IconPlus, IconTrash } from './icons'
+import { FoodIcon, IconMeal, IconBreakfast, IconLunch, IconDinner, IconChevronDown, IconChevronRight, IconEdit, IconPlus, IconTrash } from './icons'
 import { PressableButton } from './PressableButton'
 
 const TIPS = [
-  'Snap a photo to log in seconds 📷',
-  'Type what you ate — AI does the rest ✨',
-  'Re-log saved meals with one tap ⭐',
-  'Track macros alongside calories 💪',
-  'Your streak grows every day you log 🔥',
+  'Snap a photo and review the estimate.',
+  'Describe your meal to get a starting estimate.',
+  'Re-log saved meals with one tap.',
+  'Track macros alongside calories.',
+  'Your streak grows every day you log.',
 ]
 
 function EmptyState({ isToday }: { isToday: boolean }) {
@@ -29,7 +29,7 @@ function EmptyState({ isToday }: { isToday: boolean }) {
     <section className="food-log-section">
       <h2 className="food-section-title muted">{isToday ? "Today's Food" : 'Food Log'}</h2>
       <div className="food-empty-state">
-        <div className="food-empty-plate" aria-hidden>🍽️</div>
+        <div className="food-empty-plate" aria-hidden><IconMeal size={36} /></div>
         <p className="food-empty-tip" key={tipIdx}>{TIPS[tipIdx]}</p>
         <PressableButton className="food-empty-cta" onClick={() => navigate('/log')}>
           <IconPlus size={16} strokeWidth={2.6} /> Add meal
@@ -41,18 +41,18 @@ function EmptyState({ isToday }: { isToday: boolean }) {
 
 const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack', 'other']
 
-const MEAL_ICONS: Record<MealType, string> = {
-  breakfast: '🌅',
-  lunch: '☀️',
-  dinner: '🌙',
-  snack: '🍎',
-  other: '🍽️',
+const MEAL_ICONS: Record<MealType, typeof IconMeal> = {
+  breakfast: IconBreakfast,
+  lunch: IconLunch,
+  dinner: IconDinner,
+  snack: IconMeal,
+  other: IconMeal,
 }
 
 const SNAP_PX = 80
 
 function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean }) {
-  const { deleteEntry, updateEntry, addEntry } = useApp()
+  const { deleteEntry, updateEntry, restoreEntry } = useApp()
   const { toast } = useToast()
   const navigate = useNavigate()
   const cardRef = useRef<HTMLDivElement>(null)
@@ -118,7 +118,7 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
     deleteEntry(entry.id)
     toast(`Deleted ${entry.name}`, {
       type: 'info',
-      action: { label: 'Undo', fn: () => addEntry(saved) },
+      action: { label: 'Undo', fn: () => restoreEntry(saved) },
     })
   }
 
@@ -176,7 +176,7 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
           tabIndex={0}
           onKeyDown={e => e.key === 'Enter' && handleCardClick()}
         >
-          <span className="food-card-emoji">{entry.emoji ?? '🍽️'}</span>
+          <span className="food-card-emoji"><FoodIcon emoji={entry.emoji} /></span>
           <div className="food-card-info">
             <div className="food-card-top">
               <span className="food-card-name">{entry.name}</span>
@@ -329,7 +329,7 @@ export function FoodList({ entries, selectedDate }: FoodListProps) {
               onClick={() => toggleSection(meal)}
               aria-expanded={!isCollapsed}
             >
-              <span className="food-section-icon">{MEAL_ICONS[meal]}</span>
+              <span className="food-section-icon">{(() => { const MealIcon = MEAL_ICONS[meal]; return <MealIcon /> })()}</span>
               <h2 className="food-section-title">{MEAL_LABELS[meal]}</h2>
               <span className="food-section-total">{Math.round(mealCals)} kcal</span>
               <span

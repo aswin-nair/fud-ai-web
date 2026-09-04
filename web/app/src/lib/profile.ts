@@ -321,6 +321,7 @@ export function defaultProfile(): UserProfile {
     hapticsEnabled: true,
     mascotMuted: false,
     mascotReducedMotion: false,
+    mascotRoasts: false,
     trackingPaused: false,
     loggingCommitment: 'light',
   }

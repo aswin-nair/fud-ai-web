@@ -4,7 +4,7 @@ import type { FoodEntry } from '../types'
 import { sameDay } from '../lib/dates'
 import { useApp } from '../store/AppContext'
 import { useToast } from './Toast'
-import { IconChevronRight, IconEdit, IconTrash } from './icons'
+import { FoodIcon, IconChevronRight, IconEdit, IconTrash, IconWater } from './icons'
 import { useAnchor } from '../mascot/anchors'
 import { feel } from '../lib/feel'
 
@@ -19,7 +19,7 @@ function TicketRow({
   readOnly: boolean
   last: boolean
 }) {
-  const { deleteEntry, addEntry } = useApp()
+  const { deleteEntry, restoreEntry } = useApp()
   const { toast } = useToast()
   const navigate = useNavigate()
   const cardRef = useRef<HTMLDivElement>(null)
@@ -77,7 +77,7 @@ function TicketRow({
     deleteEntry(entry.id)
     toast(`Deleted ${entry.name}`, {
       type: 'info',
-      action: { label: 'Undo', fn: () => addEntry(saved) },
+      action: { label: 'Undo', fn: () => restoreEntry(saved) },
     })
   }
 
@@ -110,7 +110,7 @@ function TicketRow({
           }}
           onKeyDown={e => e.key === 'Enter' && !readOnly && navigate(`/edit/${entry.id}`)}
         >
-          <span className="ticket-thumb" aria-hidden>{entry.emoji ?? '🍽️'}</span>
+          <span className="ticket-thumb"><FoodIcon emoji={entry.emoji} /></span>
           <span className="ticket-row-name">{entry.name}</span>
           <span className="ticket-row-kcal tabular">{Math.round(entry.calories)}</span>
           <IconChevronRight size={16} />
@@ -210,7 +210,7 @@ export function Ticket({
       {!paused && !isFuture && (
         <div className="ticket-water" ref={waterAnchor}>
           <div className="ticket-water-head">
-            <span>Water</span>
+            <span><IconWater /> Water</span>
             <span className="tabular">{water}/8</span>
           </div>
           <div className="ticket-glasses" role="group" aria-label="Water glasses">

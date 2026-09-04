@@ -17,6 +17,17 @@ const renderPage = () => renderToStaticMarkup(createElement(MemoryRouter, { init
 beforeEach(() => { state = freshState() })
 
 describe('You page UI', () => {
+  it('offers an opt-in roast preview without an AI key, honoring mute and hide', () => {
+    expect(renderPage()).toContain('Roast mode')
+    expect(renderPage()).not.toContain('Roast me')
+    state.profile.mascotRoasts = true
+    expect(renderPage()).toContain('Roast me')
+    state.profile.mascotMuted = true
+    expect(renderPage()).not.toContain('Roast me')
+    state.profile.mascotMuted = false
+    state.gamification.mascotActivity = 'off'
+    expect(renderPage()).not.toContain('Roast me')
+  })
   it('respects Hide Momo for the decorative profile sticker', () => {
     expect(renderPage()).toContain('class="momo-sticker" aria-hidden="true"')
     state.gamification.mascotActivity = 'off'

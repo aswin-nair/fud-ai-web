@@ -31,6 +31,7 @@ import {
   TAUNT_POSES,
 } from '../lib/mascotVoice'
 import { recentLines, rememberLine, sessionVariant } from '../lib/mascotMemory'
+import { pickRoast } from '../lib/mascotRoasts'
 import { dayRingProgress } from '../lib/dayRing'
 import { Momo } from '../components/Momo'
 import {
@@ -157,6 +158,8 @@ export function MascotOverlay() {
   const thinkingCount = useRef(0)
   const mascotEngaged = useRef(false)
   const mutedRef = useRef(state.profile.mascotMuted === true)
+  const roastHistory = useRef<string[]>([])
+  const dialogueEpoch = useRef(0)
 
   const screen = screenFromPath(location.pathname)
   const authScreen = location.pathname.startsWith('/login')
@@ -188,18 +191,34 @@ export function MascotOverlay() {
   )
 
   const muted = state.profile.mascotMuted === true
+  const roastEnabled = state.profile.mascotRoasts === true
   mutedRef.current = muted
   const reduced = motionReduced || state.profile.mascotReducedMotion === true || activity === 'off'
   // Login owns an inline guide; a second floating Momo would compete with it.
-  const quiet = location.pathname.startsWith('/support') || authScreen
+  const quiet = Boolean(state.profile.trackingPaused) || location.pathname.startsWith('/support') || authScreen
     || location.pathname.startsWith('/onboarding')
     || location.pathname.startsWith('/settings')
     || location.pathname.startsWith('/coach')
   const aiEnabled = Boolean(
     !muted
+    && !roastEnabled
     && state.aiSettings.apiKey.trim()
     && state.aiSettings.mascotEnabled !== false,
   )
+
+  // A preference or visibility change invalidates pending speech too, not
+  // just the bubble. Late provider replies cannot overwrite a local roast.
+  useEffect(() => {
+    dialogueEpoch.current += 1
+    setSays(null)
+    setThinking(false)
+    thinkingCount.current = 0
+    if (sayTimer.current) window.clearTimeout(sayTimer.current)
+    for (const controller of aiControllers.current) controller.abort()
+    aiControllers.current.clear()
+    aiRequests.current.clear()
+    aiPools.current.clear()
+  }, [roastEnabled, muted, quiet, activity])
 
   const place = useCallback((x: number, y: number, ms = MOVE_MS) => {
     const host = hostRef.current
@@ -320,6 +339,7 @@ export function MascotOverlay() {
       recentDialogue(key),
       controller.signal,
     ).then(lines => {
+      if (controller.signal.aborted) return []
       if (lines.length > 0) aiPools.current.set(key, lines)
       return lines
     }).catch(() => []).finally(() => {
@@ -341,6 +361,7 @@ export function MascotOverlay() {
     pokeStage?: MascotAIContext['pokeStage'],
   ) => {
     if (mutedRef.current) return
+    const epoch = ++dialogueEpoch.current
     const context = contextFor(event, pokeStage)
     const key = mascotAIContextKey(context)
     const heard = recentDialogue(key)
@@ -377,7 +398,7 @@ export function MascotOverlay() {
     const lines = await fillAIPool(context)
     thinkingCount.current = Math.max(0, thinkingCount.current - 1)
     setThinking(thinkingCount.current > 0)
-    if (mutedRef.current) return
+    if (mutedRef.current || epoch !== dialogueEpoch.current) return
     const latest = recentLines()[0]
     let line = lines.shift()
     while (line && line === latest) line = lines.shift()
@@ -394,6 +415,17 @@ export function MascotOverlay() {
    * you turn off. The same session memory keeps her from repeating
    * the line it just showed.
    */
+  const roast = useCallback(() => {
+    if (!roastEnabled || mutedRef.current || activity === 'off' || paused || quiet) return
+    dialogueEpoch.current += 1
+    const act = pickRoast(screen, Math.floor(Math.random() * 10000), [...roastHistory.current, ...recentLines()], 'poke')
+    roastHistory.current = [act.line, ...roastHistory.current].slice(0, 16)
+    react(act.pose)
+    lastSpokeAt.current = Date.now()
+    rememberLine(act.line, 'roast')
+    say(act.line)
+  }, [activity, paused, quiet, react, roastEnabled, say, screen])
+
   const speak = useCallback(() => {
     if (muted) return
     if (Date.now() - lastSpokeAt.current < speechCooldownMs) return
@@ -428,19 +460,24 @@ export function MascotOverlay() {
     const poseIndex = Math.floor(Math.random() * TAUNT_POSES.length)
     const tauntPose = TAUNT_POSES[poseIndex] ?? TAUNT_POSES[0]
     const seed = sessionVariant() + Math.floor(Math.random() * 10_000)
-    const act = tauntAct(tauntPose, seed, recentLines())
+    const act = roastEnabled
+      ? pickRoast(screen, seed, [...roastHistory.current, ...recentLines()])
+      : tauntAct(tauntPose, seed, recentLines())
 
     play(act.pose)
     if (!muted) {
+      dialogueEpoch.current += 1
+      if (roastEnabled) roastHistory.current = [act.line, ...roastHistory.current].slice(0, 16)
       const contextKey = mascotAIContextKey(contextFor('ambient'))
       lastSpokeAt.current = now
       rememberLine(act.line, contextKey)
       say(act.line)
     }
     return true
-  }, [activity, contextFor, interactionPaused, muted, paused, play, quiet, reduced, say, speechCooldownMs])
+  }, [activity, contextFor, interactionPaused, muted, paused, play, quiet, reduced, roastEnabled, say, screen, speechCooldownMs])
 
   const respond = useCallback((event: MascotAIEvent) => {
+    if (event === 'poke' && roastEnabled) { roast(); return }
     const reaction: Partial<Record<MascotAIEvent, BehaviorKey>> = {
       log_success: 'celebrate_small',
       milestone: 'celebrate_big',
@@ -457,7 +494,7 @@ export function MascotOverlay() {
       lastSpokeAt.current = Date.now()
       void deliver(event)
     }
-  }, [deliver, muted, react])
+  }, [deliver, muted, react, roast, roastEnabled])
 
   useEffect(() => {
     handle = { react, event: respond }
@@ -691,6 +728,7 @@ export function MascotOverlay() {
    * back mid-sulk is funnier than a character that forgets.
    */
   const poke = useCallback(() => {
+    if (roastEnabled) { roast(); return }
     pokes.current += 1
     // The pose ladder is the joke and stays put; the session variant shifts only
     // the wording, so the fourth poke is recognisably the fourth without being
@@ -702,7 +740,7 @@ export function MascotOverlay() {
     lastSpokeAt.current = Date.now()
     const pokeStage = pokes.current <= 1 ? 'hello' : pokes.current <= 4 ? 'again' : 'relentless'
     if (!muted) void deliver('poke', pokeStage)
-  }, [deliver, muted, react])
+  }, [deliver, muted, react, roast, roastEnabled])
 
   useEffect(() => () => {
     if (sayTimer.current) window.clearTimeout(sayTimer.current)

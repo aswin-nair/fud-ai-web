@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
-import { IconMinus, IconPlus, IconSearch, IconStar } from '../components/icons'
+import { FoodIcon, IconMinus, IconPlus, IconSearch, IconStar } from '../components/icons'
 import { useApp, isFavorite } from '../store/AppContext'
 import { recentMeals, mealKey } from '../lib/meals'
 import { filterMealLibrary } from '../lib/mealLibrary'
@@ -44,7 +44,7 @@ function DiscoverCard({
   return (
     <article className="discover-card" aria-label={name}>
       <div className="discover-card-top">
-        <span className="discover-card-emoji">{emoji ?? '🍽️'}</span>
+        <span className="discover-card-emoji"><FoodIcon emoji={emoji} size={28} /></span>
         <button
           type="button"
           className={`star-btn${starred ? ' active' : ''}`}
@@ -95,7 +95,7 @@ function MealRow({
 
   return (
     <article className="saved-meal-row" aria-label={name}>
-      <span className="saved-meal-emoji">{emoji ?? '🍽️'}</span>
+      <span className="saved-meal-emoji"><FoodIcon emoji={emoji} /></span>
       <div className="saved-meal-info">
         <h3 className="saved-meal-name">{name}</h3>
         <div className="saved-meal-meta">

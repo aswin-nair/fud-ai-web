@@ -30,6 +30,8 @@ export interface UserProfile {
   mascotMuted?: boolean
   /** Disable Momo's roaming and decorative gestures independently of OS settings. */
   mascotReducedMotion?: boolean
+  /** Explicit opt-in to reviewed jokes about app interactions, never health data. */
+  mascotRoasts?: boolean
   trackingPaused?: boolean
   loggingCommitment?: LoggingCommitment
 }

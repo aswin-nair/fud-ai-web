@@ -42,6 +42,7 @@ const PROFILE_FIELDS = new Set([
   'hapticsEnabled',
   'mascotMuted',
   'mascotReducedMotion',
+  'mascotRoasts',
   'trackingPaused',
   'loggingCommitment',
 ])
@@ -212,6 +213,7 @@ function validProfile(value: unknown, onboarded: boolean, now: Date): string | n
     || !optionalBoolean(value.hapticsEnabled)
     || !optionalBoolean(value.mascotMuted)
     || !optionalBoolean(value.mascotReducedMotion)
+    || !optionalBoolean(value.mascotRoasts)
     || !optionalBoolean(value.trackingPaused)
   ) {
     return 'profile preference flag is invalid'

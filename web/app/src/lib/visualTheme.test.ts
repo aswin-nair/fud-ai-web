@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const tokens = readFileSync(new URL('../styles/tokens.css', import.meta.url), 'utf8')
@@ -26,6 +26,11 @@ function contrast(text: string, background: string) {
 }
 
 describe('shared visual theme', () => {
+  it('resolves every stylesheet import from the source folder', () => {
+    for (const [, relativePath] of imports.matchAll(/@import ['"]([^'"]+)['"]/g)) {
+      expect(existsSync(new URL(`../${relativePath}`, import.meta.url)), relativePath).toBe(true)
+    }
+  })
   it('keeps ink readable on every colourful sticker and action surface', () => {
     for (const background of ['--fun-yellow', '--fun-green', '--fun-blue', '--fun-pink', '--fun-lilac', '--coral-hue']) {
       expect(contrast('--ink', background), `Ink on ${background}`).toBeGreaterThanOrEqual(4.5)

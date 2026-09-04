@@ -4,8 +4,9 @@ import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
 import { useApp } from '../store/AppContext'
 import { effectiveCalories } from '../lib/profile'
 import { localDayKey } from '../lib/dates'
-import { getStreakWithFreezes, getAllBadges, getBreakfastComparison, getMonthConsistency } from '../lib/journey'
-import { IconChevronRight, IconMenuLines } from '../components/icons'
+import { getStreakWithFreezes, getAllBadges, getBreakfastComparison, getMonthConsistency, getTotalLoggedDays } from '../lib/journey'
+import { HabitMilestones } from '../components/HabitMilestones'
+import { IconChevronRight, IconMenuLines, IconFlame, IconTrophy } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
 import { Surface } from '../components/Surface'
 import { WeightLogSheet } from '../components/WeightLogSheet'
@@ -148,6 +149,7 @@ export function ProgressPage() {
           <p className="insights-intro">See your routine over time, one logged day at a time.</p>
         </header>
 
+        <HabitMilestones loggedDays={getTotalLoggedDays(state.foodEntries)} />
 
         {/* §9.3: consistency leads. Calories and weight are downstream of the
             habit, so the habit is what the page opens with. */}
@@ -308,7 +310,7 @@ export function ProgressPage() {
           </div>
           {streak > 0 && (
             <div className="streak-banner">
-              <span className="streak-banner-fire">🔥</span>
+              <span className="streak-banner-fire"><IconFlame size={30} /></span>
               <div>
                 <span className="streak-banner-num">{streak}-day streak</span>
                 <span className="streak-banner-sub"> — keep it going!</span>
@@ -321,7 +323,7 @@ export function ProgressPage() {
               const next = badges.find(b => !b.unlocked)
               return (next ? [...unlocked, next] : unlocked).map(b => (
                 <div key={b.id} className={`badge-card${b.unlocked ? ' unlocked' : ' locked'}`}>
-                  <span className="badge-emoji">{b.emoji}</span>
+                  <span className="badge-emoji"><IconTrophy size={26} /></span>
                   <span className="badge-name">{b.name}</span>
                   <span className="badge-desc">{b.desc}</span>
                 </div>
