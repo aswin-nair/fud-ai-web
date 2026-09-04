@@ -41,7 +41,7 @@ import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/
 import { Momo } from '../components/Momo'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="settings-section-label">{children}</p>
+  return <h3 className="settings-section-label">{children}</h3>
 }
 
 function SettingsCard({ children }: { children: React.ReactNode }) {
@@ -68,6 +68,7 @@ export function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [passwordBusy, setPasswordBusy] = useState(false)
+  const [passwordSaved, setPasswordSaved] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const cloud = isCloudBackend()
 
@@ -80,6 +81,14 @@ export function SettingsPage() {
     state.gamification.pauseProtectedDates,
   )
   const mascotVisible = state.gamification.mascotActivity !== 'off'
+  const hasChanges = JSON.stringify(profile) !== JSON.stringify(state.profile)
+    || provider !== state.aiSettings.provider
+    || apiKey !== state.aiSettings.apiKey
+    || model !== state.aiSettings.model
+    || instructions !== (state.aiSettings.customInstructions ?? '')
+    || mascotEnabled !== (state.aiSettings.mascotEnabled !== false)
+    || mascotPersonality !== (state.aiSettings.mascotPersonality ?? 'sassy')
+  const unlockedBadges = getAllBadges(state.foodEntries, currentStreak).filter(badge => badge.unlocked)
 
   function handleProviderChange(next: AIProvider) {
     setProvider(next)
@@ -104,7 +113,6 @@ export function SettingsPage() {
     if (enablingPause) track({ name: 'pause_tracking_enabled' })
     setProfileError(null)
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
   }
 
   function handleExport() {
@@ -144,12 +152,13 @@ export function SettingsPage() {
     if (!cloud || user?.provider !== 'email' || passwordBusy) return
     setAccountError(null)
     setPasswordBusy(true)
+    setPasswordSaved(false)
     try {
       const next = await apiChangePassword(currentPassword, newPassword)
       saveAuthToken(next.token)
       setCurrentPassword('')
       setNewPassword('')
-      setSaved(true)
+      setPasswordSaved(true)
     } catch (error) {
       setAccountError(error instanceof Error ? error.message : 'Could not update the password.')
     } finally {
@@ -219,10 +228,223 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="app-shell">
-      <main className="app-main motion-stagger">
-        <h1 className="page-title">You</h1>
+    <div className="app-shell you-refresh">
+      <main className="app-main">
+        <header className="you-header">
+          <div>
+            <p className="you-eyebrow">Your space</p>
+            <h1 className="page-title">You</h1>
+            <p className="page-sub">Make Fud AI feel like you.</p>
+          </div>
+          <div className="you-avatar" aria-hidden="true">{userInitials(profile.name || user?.name || 'You')}</div>
+        </header>
+        <div className="you-identity">
+          <strong>{profile.name || user?.name || 'Your food journal'}</strong>
+          <span>{profile.trackingPaused ? 'A little breathing room. Tracking paused.' : 'Your routine. Your pace.'}</span>
+        </div>
+        <nav className="you-shortcuts" aria-label="You page sections">
+          <a href="#you-profile">Profile &amp; goals</a>
+          <a href="#you-preferences">Preferences</a>
+          <a href="#you-momo">Momo</a>
+          <a href="#you-ai">AI setup</a>
+          <a href="#you-account">Account</a>
+          <a href="#you-data">Your data</a>
+        </nav>
+        <div className="you-save-bar">
+          <div className="settings-saved-banner" role="status" aria-live="polite">
+            {hasChanges ? 'Unsaved changes' : saved ? <><IconCheck size={16} /> Settings saved</> : 'Settings up to date'}
+          </div>
+          <PressableButton label="Save settings" onClick={saveProfile} disabled={!hasChanges || Boolean(currentProfileIssue)} />
+          {currentProfileIssue && <a className="you-save-error" href="#you-profile">Check your profile to save</a>}
+        </div>
 
+        <section className="you-section" id="you-profile" aria-labelledby="you-profile-title" tabIndex={-1}>
+          <header className="you-section-heading">
+            <h2 id="you-profile-title">Profile &amp; goals</h2>
+            <p>Keep your details current. Your daily targets update as you edit.</p>
+          </header>
+        {/* Daily goals summary */}
+        {profile.trackingPaused ? <p className="you-pause-note">Tracking is paused. Your daily target numbers are hidden.</p> : currentProfileIssue ? <p className="you-pause-note">Check your profile details to preview daily targets.</p> : <>
+        <SectionLabel>Daily goals</SectionLabel>
+        {/* §2.1: never clamp silently — say which floor is holding the number. */}
+        {goalTargets.clamped && (
+          <p className="settings-clamp-note">{goalTargets.clamped}</p>
+        )}
+        <div className="settings-goals-grid">
+          <div className="settings-goal-card">
+            <span className="settings-goal-label">Calories</span>
+            <strong className="settings-goal-value">{goalTargets.calories}</strong>
+          </div>
+          <div className="settings-goal-card">
+            <span className="settings-goal-label">Protein</span>
+            <strong className="settings-goal-value" style={{ color: 'var(--protein-text)' }}>{effectiveProtein(profile)}g</strong>
+          </div>
+          <div className="settings-goal-card">
+            <span className="settings-goal-label">Carbs</span>
+            <strong className="settings-goal-value" style={{ color: 'var(--carbs-text)' }}>{effectiveCarbs(profile)}g</strong>
+          </div>
+          <div className="settings-goal-card">
+            <span className="settings-goal-label">Fat</span>
+            <strong className="settings-goal-value" style={{ color: 'var(--fat-text)' }}>{effectiveFat(profile)}g</strong>
+          </div>
+        </div>
+
+        </>}
+        {/* Profile */}
+        <SectionLabel>Profile</SectionLabel>
+        {(profileError || currentProfileIssue) && (
+          <div className="error-banner" role="alert">{profileError ?? currentProfileIssue}</div>
+        )}
+        <SettingsCard>
+          <SettingsRow label="Name">
+            <input className="settings-input" autoComplete="given-name" value={profile.name ?? ''} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />
+          </SettingsRow>
+          <SettingsRow label="Gender">
+            <select className="settings-select" value={profile.gender} onChange={e => setProfile(p => ({ ...p, gender: e.target.value as Gender }))}>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </SettingsRow>
+          <SettingsRow label="Height" hint="cm">
+            <input className="settings-input" type="number" inputMode="decimal" step="0.1" value={profile.heightCm} onChange={e => setProfile(p => ({ ...p, heightCm: Number(e.target.value) }))} />
+          </SettingsRow>
+          <SettingsRow label="Weight" hint="kg">
+            <input className="settings-input" type="number" inputMode="decimal" step="0.1" value={profile.weightKg} onChange={e => setProfile(p => ({ ...p, weightKg: Number(e.target.value) }))} />
+          </SettingsRow>
+          <SettingsRow label="Activity">
+            <select className="settings-select" value={profile.activityLevel} onChange={e => setProfile(p => ({ ...p, activityLevel: e.target.value as ActivityLevel }))}>
+              {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map(k => (
+                <option key={k} value={k}>{ACTIVITY_LABELS[k]}</option>
+              ))}
+            </select>
+          </SettingsRow>
+          <SettingsRow label="Day-ring pace" hint="Controls logging steps only">
+            <select
+              className="settings-select"
+              value={profile.loggingCommitment ?? 'light'}
+              onChange={e => setProfile(p => ({ ...p, loggingCommitment: e.target.value as LoggingCommitment }))}
+            >
+              <option value="light">Light · one log</option>
+              <option value="regular">Regular · main meals</option>
+              <option value="detailed">Detailed · meals + detail</option>
+            </select>
+          </SettingsRow>
+          <SettingsRow label="Goal">
+            <select
+              className="settings-select"
+              value={profile.goal}
+              onChange={e => {
+                const goal = e.target.value as WeightGoal
+                setProfile(p => ({
+                  ...p,
+                  goal,
+                  goalWeightKg: goal === 'maintain' ? undefined : p.goalWeightKg,
+                }))
+              }}
+            >
+              {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(k => (
+                <option key={k} value={k}>{GOAL_LABELS[k]}</option>
+              ))}
+            </select>
+          </SettingsRow>
+          {profile.goal !== 'maintain' && (
+            <SettingsRow label="Weekly change" hint={`kg · max ${maxWeeklyChangeKg(profile)}`}>
+              <input
+                className="settings-input"
+                type="number"
+                inputMode="decimal"
+                min="0.1"
+                max={maxWeeklyChangeKg(profile)}
+                step="0.1"
+                value={profile.weeklyChangeKg ?? 0.5}
+                onChange={e => setProfile(p => ({ ...p, weeklyChangeKg: Number(e.target.value) }))}
+              />
+            </SettingsRow>
+          )}
+          {(profile.goal !== 'maintain' || profile.goalWeightKg != null) && (
+            <SettingsRow label="Goal weight" hint="kg · optional">
+              <input
+                className="settings-input"
+                type="number"
+                inputMode="decimal"
+                min="1"
+                step="0.1"
+                value={profile.goalWeightKg ?? ''}
+                onChange={e => {
+                  setProfileError(null)
+                  setProfile(p => ({
+                    ...p,
+                    goalWeightKg: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }}
+              />
+            </SettingsRow>
+          )}
+        </SettingsCard>
+        </section>
+
+        <section className="you-section" id="you-preferences" aria-labelledby="you-preferences-title" tabIndex={-1}>
+          <header className="you-section-heading">
+            <h2 id="you-preferences-title">Everyday preferences</h2>
+            <p>Choose how the app feels. Use Save settings to apply your changes.</p>
+          </header>
+        <SectionLabel>Feel</SectionLabel>
+        <SettingsCard>
+          <SettingsRow label="Sound" hint="Short cues when you log a meal">
+            <Toggle
+              checked={profile.soundEnabled !== false}
+              onChange={next => setProfile(p => ({ ...p, soundEnabled: next }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Haptics" hint="A light tap on press">
+            <Toggle
+              checked={profile.hapticsEnabled !== false}
+              onChange={next => setProfile(p => ({ ...p, hapticsEnabled: next }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Notifications" hint="At most two per day. Never about calories.">
+            <button type="button" className="settings-data-btn" onClick={() => void requestNotifyPermission()}>
+              Allow
+            </button>
+          </SettingsRow>
+        </SettingsCard>
+
+        <SectionLabel>Taking a break</SectionLabel>
+        <SettingsCard>
+          <SettingsRow
+            label="Pause tracking"
+            hint={profile.trackingPaused
+              ? 'Calorie, macro, and weight numbers are hidden and your streak is held.'
+              : 'Hide calorie, macro, and weight numbers and hold your streak where it is.'}
+          >
+            <Toggle
+              checked={Boolean(profile.trackingPaused)}
+              onChange={next => {
+                setProfile(p => ({ ...p, trackingPaused: next }))
+              }}
+            />
+          </SettingsRow>
+          <div className="settings-divider" />
+          {/* §2.8 keeps this an ordinary visible row, beside Pause rather than
+              buried under About. Two taps from Home: Settings, then here. */}
+          <Link to="/support" className="settings-data-btn settings-link-row">
+            <span>Support</span>
+            <IconChevronRight size={16} className="settings-link-chevron" />
+          </Link>
+          <div className="settings-divider" />
+          <Link to="/coach" className="settings-data-btn settings-link-row" aria-label="Chat with your coach">
+            <span>Coach</span>
+            <IconCoach size={16} className="settings-link-chevron" />
+          </Link>
+        </SettingsCard>
+        </section>
+
+        <section className="you-section" id="you-momo" aria-labelledby="you-momo-title" tabIndex={-1}>
+          <header className="you-section-heading">
+            <h2 id="you-momo-title">Your kitchen companion</h2>
+            <p>A little company, on your terms.</p>
+          </header>
         <SectionLabel>Streak</SectionLabel>
         <SettingsCard>
           <p className="page-sub" style={{ marginBottom: 8 }}>
@@ -240,11 +462,9 @@ export function SettingsPage() {
 
         <SectionLabel>Achievements</SectionLabel>
         <SettingsCard>
+          {unlockedBadges.length === 0 && <p className="page-sub">Your first badge starts with your first log. There’s no rush.</p>}
           <div className="wardrobe-grid">
-            {getAllBadges(
-              state.foodEntries,
-              getStreakWithFreezes(state.foodEntries, state.gamification.freezeUsedDates, state.gamification.pauseProtectedDates),
-            ).filter(b => b.unlocked).map(badge => (
+            {unlockedBadges.map(badge => (
               <div key={badge.id} className="wardrobe-item is-owned">
                 {badge.emoji} {badge.name}
               </div>
@@ -255,7 +475,7 @@ export function SettingsPage() {
         <SectionLabel>Mascot</SectionLabel>
         <SettingsCard>
           <p className="page-sub">A small kitchen companion. Never sad, never scoring your food.</p>
-          <SettingsRow label="Show Momo" hint="Keep your companion around the app">
+          <SettingsRow label="Show Momo" hint="Keep your companion around the app · saves immediately">
             <Toggle
               checked={mascotVisible}
               onChange={next => patchGamification(g => ({
@@ -266,14 +486,14 @@ export function SettingsPage() {
           </SettingsRow>
           {mascotVisible && (
             <>
-              <SettingsRow label="Lively" hint="More frequent antics">
+              <SettingsRow label="Lively" hint="More frequent antics · saves immediately">
                 <RadioDot
                   name="mascot-activity"
                   checked={state.gamification.mascotActivity === 'lively'}
                   onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'lively' }))}
                 />
               </SettingsRow>
-              <SettingsRow label="Calm" hint="Quieter, slower visits">
+              <SettingsRow label="Calm" hint="Quieter, slower visits · saves immediately">
                 <RadioDot
                   name="mascot-activity"
                   checked={state.gamification.mascotActivity === 'calm'}
@@ -282,13 +502,13 @@ export function SettingsPage() {
               </SettingsRow>
             </>
           )}
-          <SettingsRow label="Mute Momo" hint="Keep the antics, silence the speech bubbles">
+          <SettingsRow label="Mute Momo" hint="Silence speech bubbles · apply with Save settings">
             <Toggle
               checked={profile.mascotMuted === true}
               onChange={next => setProfile(p => ({ ...p, mascotMuted: next }))}
             />
           </SettingsRow>
-          <SettingsRow label="Reduce Momo motion" hint="Stop roaming and decorative gestures">
+          <SettingsRow label="Reduce Momo motion" hint="Stop roaming and gestures · apply with Save settings">
             <Toggle
               checked={profile.mascotReducedMotion === true}
               onChange={next => setProfile(p => ({ ...p, mascotReducedMotion: next }))}
@@ -296,9 +516,10 @@ export function SettingsPage() {
           </SettingsRow>
         </SettingsCard>
 
-        <SectionLabel>Wardrobe</SectionLabel>
+        <details className="you-disclosure">
+          <summary>Momo’s wardrobe <span>Outfits &amp; unlocks</span></summary>
         <SettingsCard>
-          <p className="page-sub">Cosmetics unlock directly as your logging streak grows.</p>
+          <p className="page-sub">Outfits unlock as your streak grows. Outfit changes save immediately.</p>
           <div className="wardrobe-preview" aria-label="Momo wardrobe preview">
             <Momo mood="proud" cosmeticId={state.gamification.equippedCosmeticId} />
           </div>
@@ -323,16 +544,122 @@ export function SettingsPage() {
             })}
           </div>
         </SettingsCard>
+        </details>
+        </section>
 
-        {saved && (
-          <div className="settings-saved-banner" role="status" aria-live="polite">
-            <IconCheck size={15} strokeWidth={2.6} /> Saved
-          </div>
-        )}
-
-        {/* Account */}
-        <SectionLabel>Account</SectionLabel>
+        <section className="you-section" id="you-ai" aria-labelledby="you-ai-title" tabIndex={-1}>
+          <header className="you-section-heading">
+            <h2 id="you-ai-title">AI setup</h2>
+            <p>Optional: connect your own key for AI meal estimates and fresh Momo dialogue.</p>
+          </header>
+        {/* AI */}
+        <details className="you-disclosure">
+          <summary>Connection &amp; AI preferences <span>{apiKey.trim() ? 'Key added · not verified' : 'No key added'}</span></summary>
         <SettingsCard>
+          <p className="settings-byok-note">
+            Your key stays in this browser only.{' '}
+            <a href={apiKeyHelpUrl(provider)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+              Get a key <IconArrowUpRight size={12} strokeWidth={2.2} />
+            </a>
+          </p>
+          <SettingsRow label="Provider">
+            <select className="settings-select" value={provider} onChange={e => handleProviderChange(e.target.value as AIProvider)}>
+              <option value="openrouter">OpenRouter</option>
+              <option value="gemini">Google Gemini</option>
+            </select>
+          </SettingsRow>
+          <SettingsRow label="API key">
+            <div className="settings-key-wrap">
+              <input
+                className="settings-input"
+                aria-label="API key"
+                type={showKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={e => setApiKey(e.target.value)}
+                placeholder={apiKeyPlaceholder(provider)}
+                autoComplete="off"
+              />
+              <button type="button" className="settings-key-toggle" aria-label={showKey ? 'Hide API key' : 'Show API key'} aria-pressed={showKey} onClick={() => setShowKey(v => !v)}>
+                {showKey ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </SettingsRow>
+          <SettingsRow label="Model">
+            <input
+              className="settings-input"
+              aria-label="Model"
+              list="model-presets"
+              value={model}
+              onChange={e => setModel(e.target.value)}
+              placeholder={provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash'}
+            />
+            <datalist id="model-presets">
+              {modelPresets.map(m => <option key={m} value={m} />)}
+            </datalist>
+          </SettingsRow>
+          {isLowAccuracyModel(model) && (
+            <div className="settings-accuracy-warning">
+              <p>
+                This model routes randomly to whatever free model is available (often a small,
+                less capable one) and gives noticeably less accurate nutrition estimates.
+              </p>
+              <button
+                type="button"
+                className="settings-accuracy-fix"
+                onClick={() => setModel(provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash')}
+              >
+                Switch to {provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash'} (cheap &amp; far more accurate)
+              </button>
+            </div>
+          )}
+          <label className="settings-field-block" htmlFor="custom-instructions">
+            <span className="settings-row-label">Custom instructions</span>
+            <textarea
+              id="custom-instructions"
+              className="settings-textarea"
+              value={instructions}
+              onChange={e => setInstructions(e.target.value)}
+              placeholder="e.g. I follow a vegetarian diet"
+              rows={3}
+            />
+          </label>
+          <SettingsRow
+            label="Momo live AI"
+            hint={apiKey.trim()
+              ? 'She writes fresh reactions in the background.'
+              : 'Add a key to unlock live dialogue; animation still works without one.'}
+          >
+            <Toggle checked={mascotEnabled} onChange={setMascotEnabled} />
+          </SettingsRow>
+          <SettingsRow label="Momo's personality" hint="Roasts only harmless app fumbles.">
+            <select
+              className="settings-select"
+              aria-label="Momo's personality"
+              value={mascotPersonality}
+              disabled={!mascotEnabled}
+              onChange={event => setMascotPersonality(event.target.value as MascotPersonality)}
+            >
+              <option value="warm">Warm</option>
+              <option value="witty">Witty</option>
+              <option value="sassy">Sassy</option>
+            </select>
+          </SettingsRow>
+          <p className="settings-byok-note">
+            Momo receives interaction labels such as “form fumble” or “milestone”—never meal names,
+            nutrition values, body data, or the text you type.
+          </p>
+        </SettingsCard>
+        </details>
+        </section>
+
+        <section className="you-section" id="you-account" aria-labelledby="you-account-title" tabIndex={-1}>
+          <header className="you-section-heading">
+            <h2 id="you-account-title">Account &amp; security</h2>
+            <p>Manage your sign-in and account access.</p>
+          </header>
+        {/* Account */}
+        <SettingsCard>
+          {passwordSaved && <p className="settings-byok-note" role="status">Password updated.</p>}
           {accountError && <div className="error-banner" role="alert">{accountError}</div>}
           {user && (
             <div className="settings-account-row">
@@ -448,280 +775,14 @@ export function SettingsPage() {
             </button>
           </div>
         )}
+        </section>
 
-        {/* Daily goals summary */}
-        <SectionLabel>Daily goals</SectionLabel>
-        {/* §2.1: never clamp silently — say which floor is holding the number. */}
-        {goalTargets.clamped && (
-          <p className="settings-clamp-note">{goalTargets.clamped}</p>
-        )}
-        <div className="settings-goals-grid">
-          <div className="settings-goal-card">
-            <span className="settings-goal-label">Calories</span>
-            <strong className="settings-goal-value">{goalTargets.calories}</strong>
-          </div>
-          <div className="settings-goal-card">
-            <span className="settings-goal-label">Protein</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--protein-text)' }}>{effectiveProtein(profile)}g</strong>
-          </div>
-          <div className="settings-goal-card">
-            <span className="settings-goal-label">Carbs</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--carbs-text)' }}>{effectiveCarbs(profile)}g</strong>
-          </div>
-          <div className="settings-goal-card">
-            <span className="settings-goal-label">Fat</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--fat-text)' }}>{effectiveFat(profile)}g</strong>
-          </div>
-        </div>
-
-        {/* Profile */}
-        <SectionLabel>Profile</SectionLabel>
-        {(profileError || currentProfileIssue) && (
-          <div className="error-banner" role="alert">{profileError ?? currentProfileIssue}</div>
-        )}
-        <SettingsCard>
-          <SettingsRow label="Name">
-            <input className="settings-input" value={profile.name ?? ''} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />
-          </SettingsRow>
-          <SettingsRow label="Gender">
-            <select className="settings-select" value={profile.gender} onChange={e => setProfile(p => ({ ...p, gender: e.target.value as Gender }))}>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </SettingsRow>
-          <SettingsRow label="Height" hint="cm">
-            <input className="settings-input" type="number" value={profile.heightCm} onChange={e => setProfile(p => ({ ...p, heightCm: Number(e.target.value) }))} />
-          </SettingsRow>
-          <SettingsRow label="Weight" hint="kg">
-            <input className="settings-input" type="number" value={profile.weightKg} onChange={e => setProfile(p => ({ ...p, weightKg: Number(e.target.value) }))} />
-          </SettingsRow>
-          <SettingsRow label="Activity">
-            <select className="settings-select" value={profile.activityLevel} onChange={e => setProfile(p => ({ ...p, activityLevel: e.target.value as ActivityLevel }))}>
-              {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map(k => (
-                <option key={k} value={k}>{ACTIVITY_LABELS[k]}</option>
-              ))}
-            </select>
-          </SettingsRow>
-          <SettingsRow label="Day-ring pace" hint="Controls logging steps only">
-            <select
-              className="settings-select"
-              value={profile.loggingCommitment ?? 'light'}
-              onChange={e => setProfile(p => ({ ...p, loggingCommitment: e.target.value as LoggingCommitment }))}
-            >
-              <option value="light">Light · one log</option>
-              <option value="regular">Regular · main meals</option>
-              <option value="detailed">Detailed · meals + detail</option>
-            </select>
-          </SettingsRow>
-          <SettingsRow label="Goal">
-            <select
-              className="settings-select"
-              value={profile.goal}
-              onChange={e => {
-                const goal = e.target.value as WeightGoal
-                setProfile(p => ({
-                  ...p,
-                  goal,
-                  goalWeightKg: goal === 'maintain' ? undefined : p.goalWeightKg,
-                }))
-              }}
-            >
-              {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(k => (
-                <option key={k} value={k}>{GOAL_LABELS[k]}</option>
-              ))}
-            </select>
-          </SettingsRow>
-          {profile.goal !== 'maintain' && (
-            <SettingsRow label="Weekly change" hint={`kg · max ${maxWeeklyChangeKg(profile)}`}>
-              <input
-                className="settings-input"
-                type="number"
-                min="0.1"
-                max={maxWeeklyChangeKg(profile)}
-                step="0.1"
-                value={profile.weeklyChangeKg ?? 0.5}
-                onChange={e => setProfile(p => ({ ...p, weeklyChangeKg: Number(e.target.value) }))}
-              />
-            </SettingsRow>
-          )}
-          {(profile.goal !== 'maintain' || profile.goalWeightKg != null) && (
-            <SettingsRow label="Goal weight" hint="kg · optional">
-              <input
-                className="settings-input"
-                type="number"
-                min="1"
-                step="0.1"
-                value={profile.goalWeightKg ?? ''}
-                onChange={e => {
-                  setProfileError(null)
-                  setProfile(p => ({
-                    ...p,
-                    goalWeightKg: e.target.value ? Number(e.target.value) : undefined,
-                  }))
-                }}
-              />
-            </SettingsRow>
-          )}
-        </SettingsCard>
-
-        {/* AI */}
-        <SectionLabel>AI access (BYOK)</SectionLabel>
-        <SettingsCard>
-          <p className="settings-byok-note">
-            Your key stays in this browser only.{' '}
-            <a href={apiKeyHelpUrl(provider)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-              Get a key <IconArrowUpRight size={12} strokeWidth={2.2} />
-            </a>
-          </p>
-          <SettingsRow label="Provider">
-            <select className="settings-select" value={provider} onChange={e => handleProviderChange(e.target.value as AIProvider)}>
-              <option value="openrouter">OpenRouter</option>
-              <option value="gemini">Google Gemini</option>
-            </select>
-          </SettingsRow>
-          <SettingsRow label="API key">
-            <div className="settings-key-wrap">
-              <input
-                className="settings-input"
-                aria-label="API key"
-                type={showKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder={apiKeyPlaceholder(provider)}
-                autoComplete="off"
-              />
-              <button type="button" className="settings-key-toggle" onClick={() => setShowKey(v => !v)}>
-                {showKey ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </SettingsRow>
-          <SettingsRow label="Model">
-            <input
-              className="settings-input"
-              aria-label="Model"
-              list="model-presets"
-              value={model}
-              onChange={e => setModel(e.target.value)}
-              placeholder={provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash'}
-            />
-            <datalist id="model-presets">
-              {modelPresets.map(m => <option key={m} value={m} />)}
-            </datalist>
-          </SettingsRow>
-          {isLowAccuracyModel(model) && (
-            <div className="settings-accuracy-warning">
-              <p>
-                This model routes randomly to whatever free model is available (often a small,
-                less capable one) and gives noticeably less accurate nutrition estimates.
-              </p>
-              <button
-                type="button"
-                className="settings-accuracy-fix"
-                onClick={() => setModel(provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash')}
-              >
-                Switch to {provider === 'openrouter' ? 'google/gemini-2.0-flash-001' : 'gemini-2.0-flash'} (cheap &amp; far more accurate)
-              </button>
-            </div>
-          )}
-          <label className="settings-field-block" htmlFor="custom-instructions">
-            <span className="settings-row-label">Custom instructions</span>
-            <textarea
-              id="custom-instructions"
-              className="settings-textarea"
-              value={instructions}
-              onChange={e => setInstructions(e.target.value)}
-              placeholder="e.g. I follow a vegetarian diet"
-              rows={3}
-            />
-          </label>
-          <SettingsRow
-            label="Momo live AI"
-            hint={apiKey.trim()
-              ? 'She writes fresh reactions in the background.'
-              : 'Add a key to unlock live dialogue; animation still works without one.'}
-          >
-            <Toggle checked={mascotEnabled} onChange={setMascotEnabled} />
-          </SettingsRow>
-          <SettingsRow label="Momo's personality" hint="Roasts only harmless app fumbles.">
-            <select
-              className="settings-select"
-              aria-label="Momo's personality"
-              value={mascotPersonality}
-              disabled={!mascotEnabled}
-              onChange={event => setMascotPersonality(event.target.value as MascotPersonality)}
-            >
-              <option value="warm">Warm</option>
-              <option value="witty">Witty</option>
-              <option value="sassy">Sassy</option>
-            </select>
-          </SettingsRow>
-          <p className="settings-byok-note">
-            Momo receives interaction labels such as “form fumble” or “milestone”—never meal names,
-            nutrition values, body data, or the text you type.
-          </p>
-        </SettingsCard>
-
-        <SectionLabel>Feel</SectionLabel>
-        <SettingsCard>
-          <SettingsRow label="Sound" hint="Short cues when you log a meal">
-            <Toggle
-              checked={profile.soundEnabled !== false}
-              onChange={next => setProfile(p => ({ ...p, soundEnabled: next }))}
-            />
-          </SettingsRow>
-          <SettingsRow label="Haptics" hint="A light tap on press">
-            <Toggle
-              checked={profile.hapticsEnabled !== false}
-              onChange={next => setProfile(p => ({ ...p, hapticsEnabled: next }))}
-            />
-          </SettingsRow>
-          <SettingsRow label="Notifications" hint="At most two per day. Never about calories.">
-            <button type="button" className="settings-data-btn" onClick={() => void requestNotifyPermission()}>
-              Allow
-            </button>
-          </SettingsRow>
-        </SettingsCard>
-
-        <SectionLabel>Taking a break</SectionLabel>
-        <SettingsCard>
-          <SettingsRow
-            label="Pause tracking"
-            hint={profile.trackingPaused
-              ? 'Calorie, macro, and weight numbers are hidden and your streak is held.'
-              : 'Hide calorie, macro, and weight numbers and hold your streak where it is.'}
-          >
-            <Toggle
-              checked={Boolean(profile.trackingPaused)}
-              onChange={next => {
-                setProfile(p => ({ ...p, trackingPaused: next }))
-              }}
-            />
-          </SettingsRow>
-          <div className="settings-divider" />
-          {/* §2.8 keeps this an ordinary visible row, beside Pause rather than
-              buried under About. Two taps from Home: Settings, then here. */}
-          <Link to="/support" className="settings-data-btn settings-link-row">
-            <span>Support</span>
-            <IconChevronRight size={16} className="settings-link-chevron" />
-          </Link>
-          <div className="settings-divider" />
-          <Link to="/coach" className="settings-data-btn settings-link-row" aria-label="Chat with your coach">
-            <span>Coach</span>
-            <IconCoach size={16} className="settings-link-chevron" />
-          </Link>
-        </SettingsCard>
-
-        <PressableButton
-          fullWidth
-          label="Save settings"
-          className="settings-coach-link"
-          onClick={saveProfile}
-          disabled={Boolean(currentProfileIssue)}
-        />
-
+        <section className="you-section" id="you-data" aria-labelledby="you-data-title" tabIndex={-1}>
+          <header className="you-section-heading">
+            <h2 id="you-data-title">Your data</h2>
+            <p>Keep a backup, restore your journal, or manage stored data.</p>
+          </header>
         {/* Data */}
-        <SectionLabel>Data</SectionLabel>
         <SettingsCard>
           <button type="button" className="settings-data-btn" onClick={handleExport}>
             Export backup
@@ -760,6 +821,7 @@ export function SettingsPage() {
             <IconChevronRight size={16} className="settings-link-chevron" />
           </Link>
         </SettingsCard>
+        </section>
 
         <p className="settings-footer">Fud AI · Local-first · BYOK AI · Privacy-first</p>
       </main>
