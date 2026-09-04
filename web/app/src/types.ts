@@ -26,6 +26,10 @@ export interface UserProfile {
   customCarbs?: number
   soundEnabled?: boolean
   hapticsEnabled?: boolean
+  /** Silence Momo's speech bubbles while keeping the companion available. */
+  mascotMuted?: boolean
+  /** Disable Momo's roaming and decorative gestures independently of OS settings. */
+  mascotReducedMotion?: boolean
   trackingPaused?: boolean
   loggingCommitment?: LoggingCommitment
 }

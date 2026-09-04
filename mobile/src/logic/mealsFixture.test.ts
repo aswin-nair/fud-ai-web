@@ -10,7 +10,7 @@ const fixtureUrl = new URL(
 );
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as {
   schemaVersion: number;
-  cases: Array<{ hour: number; slot: string }>;
+  cases: { hour: number; slot: string }[];
 };
 
 describe('shared meals.v1 mobile adapter', () => {

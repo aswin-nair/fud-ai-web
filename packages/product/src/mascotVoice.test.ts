@@ -149,11 +149,30 @@ describe('volunteer taunts', () => {
       expect(tauntAct(pose, 0, TAUNTS[pose]).line).toBeTruthy()
     }
   })
+
+  it('does not repeat the latest taunt after a gesture pool is exhausted', () => {
+    for (const pose of TAUNT_POSES) {
+      const first = tauntAct(pose, 0).line
+      const exhausted = [first, ...TAUNTS[pose].filter(line => line !== first)]
+
+      expect(tauntAct(pose, 0, exhausted).line).not.toBe(first)
+    }
+  })
 })
 
 describe('occasions', () => {
   it('ranks a return above every other moment', () => {
-    expect(occasionFor(ctx({ daysAway: 4, ringComplete: true, firstLogOfDay: true }))).toBe('returning')
+    expect(occasionFor(ctx({
+      daysAway: 4,
+      streakMilestone: 'legendary',
+      ringComplete: true,
+      firstLogOfDay: true,
+    }))).toBe('returning')
+  })
+
+  it('recognises a categorical consistency milestone without receiving its number', () => {
+    expect(occasionFor(ctx({ streakMilestone: 'steady', ringComplete: true }))).toBe('milestone')
+    expect(momoLine(ctx({ state: 'proud', streakMilestone: 'legendary' }))).toBeTruthy()
   })
 
   it('puts a closed arc above a first log', () => {
@@ -211,6 +230,13 @@ describe('not repeating itself', () => {
     const everything = allLines()
 
     expect(momoLine(ctx(), everything)).toBeTruthy()
+  })
+
+  it('does not repeat the latest line after its context pool is exhausted', () => {
+    const first = momoLine(ctx())
+    const exhausted = [first, ...AMBIENT.idle.filter(line => line !== first)]
+
+    expect(momoLine(ctx(), exhausted)).not.toBe(first)
   })
 
   it('never returns nothing, whatever the context', () => {

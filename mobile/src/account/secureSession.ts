@@ -5,6 +5,7 @@ import {
   SESSION_META_KEY,
   SESSION_REFRESH_KEY,
   createDeviceId,
+  loadBoundAccountIdFromStore,
   parseStoredBinding,
   type StoredBinding,
 } from './sessionPolicy'
@@ -85,4 +86,14 @@ export async function loadOrCreateDeviceId(store: SecureSessionStore = secureSes
 
 export function readBindingFromStore(value: unknown): StoredBinding | null {
   return parseStoredBinding(value)
+}
+
+/**
+ * Returns the account whose local product data owns this device, even after a
+ * local sign-out. It never treats raw or malformed SecureStore data as an ID.
+ */
+export async function loadBoundAccountId(
+  store: SecureSessionStore = secureSessionStore,
+): Promise<string | null> {
+  return loadBoundAccountIdFromStore(store)
 }

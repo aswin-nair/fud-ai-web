@@ -1,5 +1,4 @@
 import {
-  DELETE_STORE_IDS,
   deletionSucceeded,
   runLocalDeletion,
   type DeleteStoreAdapter,
@@ -16,6 +15,9 @@ import { useProfileStore } from '@/stores/profileStore'
 import { useQuestStore } from '@/stores/questStore'
 import { clearAccountBinding } from '@/account/adoptSession'
 import { secureSessionStore } from '@/account/secureSession'
+import { clearAllDurableAccounts, durableAccountIds } from '@/state/durable'
+import { guestUserId } from '@/state/guest'
+import { clearGuestClaim, clearSessionTokens, savePrivateAIKey } from '@/state/secrets'
 import { seedBuiltinFoods } from '@/db/seed'
 import { deleteSyncOutbox, deleteSyncState } from '@/db/queries/outbox'
 import {
@@ -77,10 +79,19 @@ export async function deleteAllLocalData(): Promise<{
     },
     account_session: async () => {
       await clearAccountBinding(secureSessionStore)
+      await clearSessionTokens()
     },
     sync_outbox: async () => {
       await deleteSyncOutbox()
       await deleteSyncState()
+    },
+    app_state_accounts: async () => {
+      const ids = new Set([...durableAccountIds(), await guestUserId()])
+      for (const id of ids) {
+        await savePrivateAIKey(id, '')
+        await clearGuestClaim(id)
+      }
+      clearAllDurableAccounts()
     },
     memory: async () => {
       useProfileStore.setState({ profile: null, loading: false })
@@ -114,10 +125,13 @@ export async function deleteAllLocalData(): Promise<{
 }
 
 async function shareJsonFile(json: string): Promise<ShareExportResult> {
+  // Loaded lazily so web exports never evaluate unsupported native modules.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const FileSystem = require('expo-file-system/legacy') as {
     cacheDirectory: string | null
     writeAsStringAsync: (uri: string, contents: string) => Promise<void>
   }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Sharing = require('expo-sharing') as {
     isAvailableAsync: () => Promise<boolean>
     shareAsync: (uri: string, options: { mimeType: string; dialogTitle: string }) => Promise<void>

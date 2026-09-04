@@ -306,6 +306,15 @@
   outline-offset: 5px;
 }
 
+/* Pointer, keyboard and scrolling activity temporarily freeze the performance.
+   The host transition is stopped in the controller; pausing every animated
+   art layer here keeps a gesture from continuing underneath the user's task. */
+.mascot-host.is-user-busy .mascot-pose,
+.mascot-host.is-user-busy .momo-art *,
+.mascot-host.is-user-busy .mascot-thinking-dots i {
+  animation-play-state: paused !important;
+}
+
 /* ── Momo's illustrated body ────────────────────────────────
    The outer pose moves the whole character. These targets animate the acting:
    eyes, arms, pleats, shadow and the little thought orbit. */

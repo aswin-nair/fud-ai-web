@@ -23,6 +23,8 @@ export interface UserProfile {
   customCarbs?: number
   soundEnabled?: boolean
   hapticsEnabled?: boolean
+  mascotMuted?: boolean
+  mascotReducedMotion?: boolean
   trackingPaused?: boolean
   loggingCommitment?: LoggingCommitment
 }

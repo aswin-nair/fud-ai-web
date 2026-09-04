@@ -1,4 +1,4 @@
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import { Card } from '@/components/primitives/Card';
 import { PressableButton } from '@/components/primitives/PressableButton';

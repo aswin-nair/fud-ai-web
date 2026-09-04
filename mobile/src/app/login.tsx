@@ -13,7 +13,7 @@ import { View } from 'react-native';
 
 export default function Login() {
   const theme = useTheme();
-  const { claimForAccount, finishClaim } = useApp();
+  const { activateAccount, claimForAccount, finishClaim } = useApp();
   const params = useLocalSearchParams<{ claim?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,10 +36,13 @@ export default function Login() {
       setBusy(false);
       return;
     }
-    await saveSessionTokens(session.token, session.refreshToken);
+    await saveSessionTokens(session.token, session.refreshToken, session.user.sub);
     if (params.claim === '1') {
       const staged = await claimForAccount(session.user.sub);
       if (staged) await finishClaim(session.user.sub);
+      else await activateAccount(session.user.sub);
+    } else {
+      await activateAccount(session.user.sub);
     }
     setBusy(false);
     router.replace('/');

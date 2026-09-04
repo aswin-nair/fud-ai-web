@@ -13,8 +13,9 @@ import { useTheme } from '@/theme/useTheme';
 
 export default function You() {
   const theme = useTheme();
-  const { state, setMascotActivity, setFeel, setPaused, replaceState } = useApp();
+  const { state, setMascotActivity, setFeel, setPaused, setProfile, replaceState } = useApp();
   const streak = loggingStreak(state.foodEntries, state.gamification);
+  const mascotVisible = state.gamification.mascotActivity !== 'off';
 
   return (
     <Screen>
@@ -27,16 +28,39 @@ export default function You() {
         <Card>
           <Text variant="subtitle">Momo</Text>
           <Text color="textSecondary">Never sad, never scoring your food.</Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-            {(['lively', 'calm', 'off'] as const).map(level => (
-              <PressableButton
-                key={level}
-                label={level}
-                onPress={() => setMascotActivity(level)}
-                variant={state.gamification.mascotActivity === level ? 'primary' : 'secondary'}
-              />
-            ))}
-          </View>
+          <SettingRow
+            detail="Keep your companion around the app"
+            kind="toggle"
+            label="Show Momo"
+            onValueChange={(value) => setMascotActivity(value ? 'lively' : 'off')}
+            value={mascotVisible}
+          />
+          {mascotVisible ? (
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+              {(['lively', 'calm'] as const).map(level => (
+                <PressableButton
+                  key={level}
+                  label={level}
+                  onPress={() => setMascotActivity(level)}
+                  variant={state.gamification.mascotActivity === level ? 'primary' : 'secondary'}
+                />
+              ))}
+            </View>
+          ) : null}
+          <SettingRow
+            detail="Keep the antics, silence the speech bubbles"
+            kind="toggle"
+            label="Mute Momo"
+            onValueChange={(mascotMuted) => setProfile({ mascotMuted })}
+            value={state.profile.mascotMuted === true}
+          />
+          <SettingRow
+            detail="Stop roaming and decorative gestures"
+            kind="toggle"
+            label="Reduce Momo motion"
+            onValueChange={(mascotReducedMotion) => setProfile({ mascotReducedMotion })}
+            value={state.profile.mascotReducedMotion === true}
+          />
         </Card>
         <Card>
           <Text variant="subtitle">Wardrobe</Text>

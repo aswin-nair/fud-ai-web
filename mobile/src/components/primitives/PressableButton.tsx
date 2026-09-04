@@ -76,6 +76,8 @@ export function PressableButton({
     // so calling expo-haptics directly here would make the setting look broken.
     tapLight();
 
+    // Reanimated SharedValues are designed to be assigned from input handlers.
+    // eslint-disable-next-line react-hooks/immutability
     press.value = reducedMotion
       ? DEPTH
       : withTiming(DEPTH, { duration: theme.motion.press });
@@ -83,6 +85,7 @@ export function PressableButton({
 
   function handlePressOut() {
     if (inert) return;
+    // eslint-disable-next-line react-hooks/immutability
     press.value = reducedMotion ? 0 : withSpring(0, { damping: 15, stiffness: 400 });
   }
 

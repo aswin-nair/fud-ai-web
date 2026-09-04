@@ -1,5 +1,5 @@
 import { canStageGuestClaim, guestUserIdFromDevice } from '@fud-ai/product'
-import { clearDurableAccount, loadDurableAccount, pendingCount, saveDurableSnapshot } from './durable'
+import { clearDurableAccount, enqueueMutation, loadDurableAccount, pendingCount } from './durable'
 import { clearGuestClaim, loadDeviceId, markGuestClaim, pendingGuestClaim } from './secrets'
 
 export async function guestUserId(): Promise<string> {
@@ -15,7 +15,9 @@ export async function stageGuestStateForAccount(accountId: string): Promise<bool
     accountPendingCount: pendingCount(accountId),
   }) || !guest) return false
 
-  saveDurableSnapshot(accountId, guest.state)
+  // The account copy is durable before the guest copy can be finalized, and
+  // the first snapshot is queued even when there are no later edits.
+  enqueueMutation(accountId, guest.state)
   await markGuestClaim(accountId, sourceId)
   return true
 }

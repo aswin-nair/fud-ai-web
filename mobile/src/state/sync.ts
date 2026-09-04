@@ -1,52 +1,85 @@
-import { readMobileAccountConfig } from '@/account/config'
+import { accountServicesAvailable, readMobileAccountConfig } from '@/account/config'
+import { postAccount } from '@/account/client'
 import { acknowledgeMutations, loadDurableAccount } from './durable'
-import { loadSessionTokens } from './secrets'
-import type { AppState } from './types'
+import { loadSessionTokens, saveSessionTokens } from './secrets'
+import {
+  drainAccountSnapshots,
+  type SnapshotDrainResult,
+  type SnapshotResponse,
+} from './snapshotDrain'
+import { runSnapshotDrainWithOneRefresh } from './snapshotAuthRetry'
+import { createSnapshotDrainCoordinator } from './snapshotCoordinator'
+import type { DurableMutation } from './types'
 
-export async function drainSnapshot(userId: string): Promise<{ ok: boolean; version?: number; remote?: AppState }> {
+export async function drainSnapshot(userId: string): Promise<SnapshotDrainResult> {
   const config = readMobileAccountConfig()
-  if (!config.mobileAuthEnabled || !config.apiBaseUrl) return { ok: false }
-  if (userId.startsWith('guest:')) return { ok: false }
+  const pending = loadDurableAccount(userId)?.outbox.length ?? 0
+  if (!accountServicesAvailable(config) || !config.entitySyncEnabled) {
+    return { ok: false, kind: 'disabled', pending }
+  }
+  if (userId.startsWith('guest:')) return { ok: false, kind: 'disabled', pending }
 
-  const tokens = await loadSessionTokens()
-  if (!tokens.token) return { ok: false }
-
-  const account = loadDurableAccount(userId)
-  if (!account?.outbox.length) {
-    const loaded = await getRemote(config.apiBaseUrl, tokens.token)
-    return loaded
+  let tokens: Awaited<ReturnType<typeof loadSessionTokens>>
+  try {
+    tokens = await loadSessionTokens()
+  } catch {
+    return { ok: false, kind: 'auth', pending }
+  }
+  if (!tokens.token) return { ok: false, kind: 'auth', pending }
+  if (tokens.accountId && tokens.accountId !== userId) {
+    return { ok: false, kind: 'auth', pending }
   }
 
-  for (const mutation of account.outbox) {
-    const response = await fetch(`${config.apiBaseUrl}/api/state`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tokens.token}`,
-      },
-      body: JSON.stringify({
-        state: mutation.state,
-        baseVersion: mutation.baseVersion,
-        mutationId: mutation.mutationId,
-        client: 'mobile',
-      }),
+  const runPass = (accessToken: string): Promise<SnapshotDrainResult> => {
+    // Reload on every pass: a failed pass may already have acknowledged part
+    // of the queue before its access token expires.
+    const account = loadDurableAccount(userId)
+    const request = (method: 'GET' | 'PUT', mutation?: DurableMutation): Promise<SnapshotResponse> => (
+      fetch(`${config.apiBaseUrl}/api/state`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        ...(mutation ? {
+          body: JSON.stringify({
+            state: mutation.state,
+            baseVersion: mutation.baseVersion,
+            mutationId: mutation.mutationId,
+            client: 'mobile',
+          }),
+        } : {}),
+      })
+    )
+
+    return drainAccountSnapshots(account, {
+      getState: () => request('GET'),
+      putState: mutation => request('PUT', mutation),
+    }, (mutationId, serverVersion) => {
+      acknowledgeMutations(userId, [mutationId], serverVersion)
     })
-    if (response.status === 409) {
-      const remote = await getRemote(config.apiBaseUrl, tokens.token)
-      return remote
-    }
-    if (!response.ok) return { ok: false }
-    const body = await response.json() as { version?: number }
-    acknowledgeMutations(userId, [mutation.mutationId], body.version ?? mutation.baseVersion + 1)
   }
-  return { ok: true, version: loadDurableAccount(userId)?.serverVersion }
+
+  return runSnapshotDrainWithOneRefresh({
+    userId,
+    accessToken: tokens.token,
+    refreshToken: tokens.refreshToken,
+    runPass,
+    refresh: async (refreshToken) => {
+      const refreshed = await postAccount('/api/auth/refresh', { refreshToken })
+      return refreshed.ok ? refreshed.value : null
+    },
+    persist: async session => {
+      const current = await loadSessionTokens()
+      // An in-flight refresh must not recreate a deleted or replaced session.
+      if (current.token !== tokens.token || current.refreshToken !== tokens.refreshToken
+        || current.accountId !== tokens.accountId) {
+        throw new Error('The active session changed during refresh.')
+      }
+      await saveSessionTokens(session.token, session.refreshToken, session.userId)
+    },
+  })
 }
 
-async function getRemote(baseUrl: string, token: string): Promise<{ ok: boolean; version?: number; remote?: AppState }> {
-  const response = await fetch(`${baseUrl}/api/state`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!response.ok) return { ok: false }
-  const body = await response.json() as { state?: AppState; version?: number }
-  return { ok: true, remote: body.state, version: body.version }
-}
+/** Use this from UI state writes so overlapping renders never upload in parallel. */
+export const requestSnapshotDrain = createSnapshotDrainCoordinator(drainSnapshot)

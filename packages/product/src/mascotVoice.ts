@@ -46,7 +46,13 @@ function hashSeed(value: string): number {
   return n
 }
 
-export type VoiceOccasion = 'returning' | 'ring_complete' | 'first_log' | 'late_night' | 'ambient'
+export type VoiceOccasion =
+  | 'returning'
+  | 'milestone'
+  | 'ring_complete'
+  | 'first_log'
+  | 'late_night'
+  | 'ambient'
 
 export interface VoiceContext {
   state: MascotState
@@ -60,6 +66,8 @@ export interface VoiceContext {
   firstLogOfDay?: boolean
   /** Calendar days since the previous logged day. 2 or more reads as a gap. */
   daysAway?: number
+  /** A categorical consistency milestone. Never pass the underlying count. */
+  streakMilestone?: 'building' | 'steady' | 'legendary'
   /** Every required arc of the day ring is closed. */
   ringComplete?: boolean
 }
@@ -75,6 +83,7 @@ const AWAY_DAYS = 2
 export function occasionFor(ctx: VoiceContext): VoiceOccasion {
   if (ctx.state === 'neutral') return 'ambient'
   if ((ctx.daysAway ?? 0) >= AWAY_DAYS) return 'returning'
+  if (ctx.streakMilestone) return 'milestone'
   if (ctx.ringComplete) return 'ring_complete'
   if (ctx.firstLogOfDay) return 'first_log'
   if (ctx.hour < LATE_NIGHT_UNTIL_HOUR) return 'late_night'
@@ -84,6 +93,7 @@ export function occasionFor(ctx: VoiceContext): VoiceOccasion {
 function poolFor(occasion: VoiceOccasion, state: MascotState): string[] {
   switch (occasion) {
     case 'returning': return RETURNING
+    case 'milestone': return AMBIENT.proud
     case 'ring_complete': return RING_COMPLETE
     case 'first_log': return FIRST_LOG
     case 'late_night': return LATE_NIGHT
@@ -106,22 +116,38 @@ export function daysSincePreviousLog(loggedDayKeys: readonly string[], todayKey:
 }
 
 /**
+ * Prefer unheard wording, but when a long session has exhausted a pool, only
+ * relax the older-history rule. `recent[0]` is the line shown most recently
+ * and remains excluded whenever the pool has another option.
+ */
+function availableLines(pool: readonly string[], recent: readonly string[]): readonly string[] {
+  const heard = new Set(recent)
+  const fresh = pool.filter(line => !heard.has(line))
+  if (fresh.length > 0) return fresh
+
+  const previous = recent[0]
+  const notImmediate = pool.filter(line => line !== previous)
+  return notImmediate.length > 0 ? notImmediate : pool
+}
+
+/**
  * The line for a moment.
  *
  * Pure and deterministic in `(ctx, recent)`, which matters: the web renders
  * this during a render pass, and a picker that varied per call would change
  * the sentence under the reader on any re-render.
  *
- * `recent` is the caller's short memory of what Momo just said. Those lines are
- * skipped so he does not repeat himself back-to-back; if the pool is entirely
- * recent, it falls back to the full pool rather than returning nothing.
+ * `recent` is the caller's newest-first memory of what Momo just said. Those
+ * lines are skipped while fresh wording remains; after the pool is exhausted,
+ * older wording may return but the immediately previous line stays excluded.
  */
 export function momoLine(ctx: VoiceContext, recent: readonly string[] = []): string {
   const occasion = occasionFor(ctx)
   const pool = poolFor(occasion, ctx.state)
-  const fresh = pool.filter(line => !recent.includes(line))
-  const options = fresh.length > 0 ? fresh : pool
-  const seed = hashSeed(`${ctx.dayKey}|${ctx.hour}|${ctx.entryCount}|${occasion}|${ctx.state}`)
+  const options = availableLines(pool, recent)
+  const seed = hashSeed(
+    `${ctx.dayKey}|${ctx.hour}|${ctx.entryCount}|${occasion}|${ctx.state}|${ctx.streakMilestone ?? 'none'}`,
+  )
   return options[seed % options.length]!
 }
 
@@ -228,8 +254,7 @@ export function tauntAct(
   recent: readonly string[] = [],
 ): TauntAct {
   const pool = TAUNTS[pose]
-  const fresh = pool.filter(line => !recent.includes(line))
-  const options = fresh.length > 0 ? fresh : pool
+  const options = availableLines(pool, recent)
   const variant = Number.isFinite(seed) ? Math.abs(Math.trunc(seed)) : 0
 
   return { pose, line: options[variant % options.length]! }

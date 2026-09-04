@@ -12,6 +12,8 @@ export function defaultProfile(): UserProfile {
     goal: 'maintain',
     soundEnabled: true,
     hapticsEnabled: true,
+    mascotMuted: false,
+    mascotReducedMotion: false,
     trackingPaused: false,
     loggingCommitment: 'light',
   }

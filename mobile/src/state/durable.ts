@@ -1,5 +1,9 @@
 import { sqlite } from '@/db/client'
-import { stateWithoutSecrets } from './secrets'
+import {
+  acknowledgeDurableMutation,
+  durableStateWithoutSecrets,
+  queueDurableMutation,
+} from './durablePolicy'
 import type { AppState, DurableAccount, DurableMutation } from './types'
 
 const TABLE = `
@@ -46,7 +50,7 @@ export function saveDurableSnapshot(userId: string, state: AppState, serverVersi
   const existing = loadDurableAccount(userId)
   const next: DurableAccount = {
     userId,
-    state: stateWithoutSecrets(state),
+    state: durableStateWithoutSecrets(state),
     serverVersion: serverVersion ?? existing?.serverVersion ?? 0,
     outbox: existing?.outbox ?? [],
     updatedAt: new Date().toISOString(),
@@ -65,39 +69,43 @@ export function saveDurableSnapshot(userId: string, state: AppState, serverVersi
 }
 
 export function enqueueMutation(userId: string, state: AppState): DurableAccount {
-  const existing = loadDurableAccount(userId) ?? saveDurableSnapshot(userId, state)
-  const mutation: DurableMutation = {
-    mutationId: crypto.randomUUID(),
-    userId,
-    baseVersion: existing.serverVersion,
-    state: stateWithoutSecrets(state),
-    createdAt: new Date().toISOString(),
-  }
-  existing.state = mutation.state
-  existing.outbox = [...existing.outbox, mutation]
-  existing.updatedAt = mutation.createdAt
+  const loaded = loadDurableAccount(userId)
+  const existing = loaded ?? saveDurableSnapshot(userId, state)
+  const next = queueDurableMutation(existing, state, { force: !loaded })
+  if (next === existing) return existing
   sqlite.runSync(
     `UPDATE app_state_accounts SET state_json = ?, outbox_json = ?, updated_at = ? WHERE user_id = ?`,
-    [JSON.stringify(existing.state), JSON.stringify(existing.outbox), existing.updatedAt, userId],
+    [JSON.stringify(next.state), JSON.stringify(next.outbox), next.updatedAt, userId],
   )
-  return existing
+  return next
 }
 
 export function acknowledgeMutations(userId: string, ids: string[], serverVersion: number): void {
   const existing = loadDurableAccount(userId)
-  if (!existing) return
-  existing.outbox = existing.outbox.filter(item => !ids.includes(item.mutationId))
-  existing.serverVersion = serverVersion
-  existing.updatedAt = new Date().toISOString()
+  if (!existing || ids.length === 0) return
+  if (ids.length !== 1) throw new Error('Snapshot mutations must be acknowledged in order.')
+  const next = acknowledgeDurableMutation(existing, ids[0], serverVersion)
+  if (next === existing) return
   sqlite.runSync(
     `UPDATE app_state_accounts SET server_version = ?, outbox_json = ?, updated_at = ? WHERE user_id = ?`,
-    [existing.serverVersion, JSON.stringify(existing.outbox), existing.updatedAt, userId],
+    [next.serverVersion, JSON.stringify(next.outbox), next.updatedAt, userId],
   )
 }
 
 export function clearDurableAccount(userId: string): void {
   ensureTable()
   sqlite.runSync('DELETE FROM app_state_accounts WHERE user_id = ?', [userId])
+}
+
+export function clearAllDurableAccounts(): void {
+  ensureTable()
+  sqlite.runSync('DELETE FROM app_state_accounts')
+}
+
+export function durableAccountIds(): string[] {
+  ensureTable()
+  return sqlite.getAllSync<{ user_id: string }>('SELECT user_id FROM app_state_accounts')
+    .map(row => row.user_id)
 }
 
 export function pendingCount(userId: string): number {

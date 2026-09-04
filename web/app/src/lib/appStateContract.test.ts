@@ -43,6 +43,20 @@ describe('shared AppState runtime contract', () => {
     })
   })
 
+  it('accepts Momo preference flags and rejects malformed values', () => {
+    const state = validState()
+    state.profile.mascotMuted = true
+    state.profile.mascotReducedMotion = true
+    expect(validateAppState(state, NOW)).toEqual({ ok: true })
+
+    const invalid: Record<string, unknown> = structuredClone(state)
+    ;(invalid.profile as Record<string, unknown>).mascotMuted = 'yes'
+    expect(validateAppState(invalid, NOW)).toEqual({
+      ok: false,
+      error: 'profile preference flag is invalid',
+    })
+  })
+
   it('rejects an onboarded user who is not yet 18', () => {
     const state = validState()
     state.onboarded = true

@@ -19,11 +19,11 @@ type ExpectedMobileTargets =
 
 type TargetFixture = {
   schemaVersion: number;
-  cases: Array<{
+  cases: {
     id: string;
     input: TargetInput & { weeklyChangeKg: number };
     mobile: ExpectedMobileTargets;
-  }>;
+  }[];
 };
 
 const fixtureUrl = new URL(

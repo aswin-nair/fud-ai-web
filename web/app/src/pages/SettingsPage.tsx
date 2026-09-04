@@ -79,6 +79,7 @@ export function SettingsPage() {
     state.gamification.freezeUsedDates,
     state.gamification.pauseProtectedDates,
   )
+  const mascotVisible = state.gamification.mascotActivity !== 'off'
 
   function handleProviderChange(next: AIProvider) {
     setProvider(next)
@@ -254,25 +255,43 @@ export function SettingsPage() {
         <SectionLabel>Mascot</SectionLabel>
         <SettingsCard>
           <p className="page-sub">A small kitchen companion. Never sad, never scoring your food.</p>
-          <SettingsRow label="Lively" hint="More frequent antics">
-            <RadioDot
-              name="mascot-activity"
-              checked={state.gamification.mascotActivity === 'lively'}
-              onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'lively' }))}
+          <SettingsRow label="Show Momo" hint="Keep your companion around the app">
+            <Toggle
+              checked={mascotVisible}
+              onChange={next => patchGamification(g => ({
+                ...g,
+                mascotActivity: next ? 'lively' : 'off',
+              }))}
             />
           </SettingsRow>
-          <SettingsRow label="Calm" hint="Quieter, slower visits">
-            <RadioDot
-              name="mascot-activity"
-              checked={state.gamification.mascotActivity === 'calm'}
-              onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'calm' }))}
+          {mascotVisible && (
+            <>
+              <SettingsRow label="Lively" hint="More frequent antics">
+                <RadioDot
+                  name="mascot-activity"
+                  checked={state.gamification.mascotActivity === 'lively'}
+                  onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'lively' }))}
+                />
+              </SettingsRow>
+              <SettingsRow label="Calm" hint="Quieter, slower visits">
+                <RadioDot
+                  name="mascot-activity"
+                  checked={state.gamification.mascotActivity === 'calm'}
+                  onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'calm' }))}
+                />
+              </SettingsRow>
+            </>
+          )}
+          <SettingsRow label="Mute Momo" hint="Keep the antics, silence the speech bubbles">
+            <Toggle
+              checked={profile.mascotMuted === true}
+              onChange={next => setProfile(p => ({ ...p, mascotMuted: next }))}
             />
           </SettingsRow>
-          <SettingsRow label="Off" hint="Hide the companion">
-            <RadioDot
-              name="mascot-activity"
-              checked={state.gamification.mascotActivity === 'off'}
-              onChange={() => patchGamification(g => ({ ...g, mascotActivity: 'off' }))}
+          <SettingsRow label="Reduce Momo motion" hint="Stop roaming and decorative gestures">
+            <Toggle
+              checked={profile.mascotReducedMotion === true}
+              onChange={next => setProfile(p => ({ ...p, mascotReducedMotion: next }))}
             />
           </SettingsRow>
         </SettingsCard>

@@ -10,7 +10,7 @@ const fixtureUrl = new URL(
 );
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as {
   schemaVersion: number;
-  cases: Array<{ id: string; instant: string; timeZone: string; date: string; hour: number }>;
+  cases: { id: string; instant: string; timeZone: string; date: string; hour: number }[];
 };
 
 describe('shared calendar.v1 mobile adapter', () => {

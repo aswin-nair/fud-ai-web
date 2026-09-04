@@ -104,7 +104,8 @@ export function PhotoLogPage() {
         <div className="no-key-banner" role="note">
           When you analyze, the selected image is sent directly to {providerLabel(state.aiSettings.provider)}
           {' '}to estimate nutrition. Fud AI does not store the image; that provider controls any retention
-          under its policy. <Link to="/log/manual">Log manually instead</Link> without uploading a photo.
+          under its policy.
+          {hasKey && <> <Link to="/log/manual">Log manually instead</Link> without uploading a photo.</>}
         </div>
 
         {error && <div className="error-banner" role="alert">{error}</div>}

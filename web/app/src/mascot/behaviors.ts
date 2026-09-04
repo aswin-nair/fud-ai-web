@@ -207,27 +207,24 @@ export const BEHAVIOR_BY_KEY = new Map(BEHAVIORS.map(b => [b.key, b]))
 
 export type ActivityLevel = 'lively' | 'calm' | 'off'
 
-const DECAY_BANDS: Array<{ maxAgeDays: number; minMs: number; maxMs: number }> = [
-  { maxAgeDays: 3, minMs: 8_000, maxMs: 14_000 },
-  { maxAgeDays: 14, minMs: 15_000, maxMs: 25_000 },
-  { maxAgeDays: 45, minMs: 25_000, maxMs: 45_000 },
-  { maxAgeDays: Infinity, minMs: 45_000, maxMs: 90_000 },
-]
-
-const ACTIVITY_MULTIPLIER: Record<Exclude<ActivityLevel, 'off'>, number> = {
-  lively: 0.6,
-  calm: 1.8,
+/* Every ambient beat lands inside the promised 20–45 second window. Calm mode
+   uses the quieter end of that same window rather than silently stretching to
+   several minutes, while `off` remains a true stop. */
+const AMBIENT_DELAYS: Record<Exclude<ActivityLevel, 'off'>, { minMs: number; maxMs: number }> = {
+  lively: { minMs: 20_000, maxMs: 36_000 },
+  calm: { minMs: 32_000, maxMs: 45_000 },
 }
 
 export function nextAmbientDelayMs(
-  accountAgeDays: number,
+  _accountAgeDays: number,
   activity: ActivityLevel,
   rng: () => number = Math.random,
 ): number {
   if (activity === 'off') return Infinity
-  const band = DECAY_BANDS.find(b => accountAgeDays <= b.maxAgeDays)!
-  const jittered = band.minMs + rng() * (band.maxMs - band.minMs)
-  return Math.round(jittered * ACTIVITY_MULTIPLIER[activity])
+  const band = AMBIENT_DELAYS[activity]
+  const rawRoll = rng()
+  const roll = Math.max(0, Math.min(1, Number.isFinite(rawRoll) ? rawRoll : 0.5))
+  return Math.round(band.minMs + roll * (band.maxMs - band.minMs))
 }
 
 export function deriveMood(ctx: Omit<BehaviorContext, 'hasAnchor'>): Mood {

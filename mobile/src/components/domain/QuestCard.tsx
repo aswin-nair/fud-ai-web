@@ -56,14 +56,18 @@ export function QuestCard({
 
     if (reducedMotion) return;
 
-    setBursting(true);
-    scale.value = withSequence(
-      withTiming(POP_SCALE, { duration: theme.motion.press }),
-      withTiming(1, { duration: theme.motion.press }),
-    );
-
-    const timer = setTimeout(() => setBursting(false), theme.motion.celebrate);
-    return () => clearTimeout(timer);
+    const startTimer = setTimeout(() => {
+      setBursting(true);
+      scale.value = withSequence(
+        withTiming(POP_SCALE, { duration: theme.motion.press }),
+        withTiming(1, { duration: theme.motion.press }),
+      );
+    }, 0);
+    const endTimer = setTimeout(() => setBursting(false), theme.motion.celebrate);
+    return () => {
+      clearTimeout(startTimer);
+      clearTimeout(endTimer);
+    };
   }, [complete, reducedMotion, scale, theme.motion.celebrate, theme.motion.press]);
 
   const pop = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));

@@ -40,6 +40,8 @@ const PROFILE_FIELDS = new Set([
   'customFat',
   'soundEnabled',
   'hapticsEnabled',
+  'mascotMuted',
+  'mascotReducedMotion',
   'trackingPaused',
   'loggingCommitment',
 ])
@@ -205,7 +207,13 @@ function validProfile(value: unknown, onboarded: boolean, now: Date): string | n
   if (!optionalNumber(value.customProtein, 0, 10_000)) return 'profile.customProtein is invalid'
   if (!optionalNumber(value.customCarbs, 0, 10_000)) return 'profile.customCarbs is invalid'
   if (!optionalNumber(value.customFat, 0, 10_000)) return 'profile.customFat is invalid'
-  if (!optionalBoolean(value.soundEnabled) || !optionalBoolean(value.hapticsEnabled) || !optionalBoolean(value.trackingPaused)) {
+  if (
+    !optionalBoolean(value.soundEnabled)
+    || !optionalBoolean(value.hapticsEnabled)
+    || !optionalBoolean(value.mascotMuted)
+    || !optionalBoolean(value.mascotReducedMotion)
+    || !optionalBoolean(value.trackingPaused)
+  ) {
     return 'profile preference flag is invalid'
   }
   if (value.loggingCommitment !== undefined && !oneOf(value.loggingCommitment, ['light', 'regular', 'detailed'])) {

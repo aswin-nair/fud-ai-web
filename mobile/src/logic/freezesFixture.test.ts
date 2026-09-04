@@ -10,7 +10,7 @@ const fixtureUrl = new URL(
 );
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as {
   schemaVersion: number;
-  cases: Array<{
+  cases: {
     id: string;
     loggedDates: string[];
     freezeDates: string[];
@@ -18,7 +18,7 @@ const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as {
     available: number;
     cover: string[];
     protectedStreak: number;
-  }>;
+  }[];
 };
 
 describe('shared freezes.v1 mobile adapter', () => {

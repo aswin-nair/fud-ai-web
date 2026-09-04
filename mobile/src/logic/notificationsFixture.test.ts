@@ -12,11 +12,11 @@ const fixtureUrl = new URL(
 );
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as {
   schemaVersion: number;
-  cases: Array<{
+  cases: {
     id: string;
     input: NotificationEligibilityInput;
     kinds: string[];
-  }>;
+  }[];
 };
 
 describe('shared notifications.v1 mobile characterization', () => {

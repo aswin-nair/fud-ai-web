@@ -17,6 +17,8 @@ export async function excludeNutritionDatabaseFromBackup(): Promise<void> {
   if (Platform.OS !== 'ios') return
 
   try {
+    // Loaded lazily so non-iOS bundles do not evaluate this native adapter.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const FileSystem = require('expo-file-system/legacy') as FileSystemModule
     const candidates = iosDatabaseCandidates(FileSystem.documentDirectory, DATABASE_NAME)
 
@@ -24,13 +26,9 @@ export async function excludeNutritionDatabaseFromBackup(): Promise<void> {
       const info = await FileSystem.getInfoAsync(uri)
       if (!info.exists) continue
 
-      const ExpoFileSystem = require('expo-file-system/legacy') as FileSystemModule & {
-        makeDirectoryAsync?: (uri: string) => Promise<void>
-      }
       // The current JS API cannot set NSURLIsExcludedFromBackupKey. Locating
       // the file keeps the policy testable; EAS/native exclusion can attach
       // here without changing callers.
-      void ExpoFileSystem
       return
     }
   } catch {

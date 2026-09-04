@@ -32,10 +32,12 @@ export default function LogSearch() {
 
   const input = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Food[]>([]);
+  const [searchResult, setSearchResult] = useState<{ query: string; rows: Food[] } | null>(null);
   const [recents, setRecents] = useState<Food[]>([]);
-  const [loading, setLoading] = useState(true);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+
+  const results = searchResult?.query === query ? searchResult.rows : [];
+  const loading = searchResult?.query !== query;
 
   useEffect(() => {
     void getRecentsAndFavorites()
@@ -45,15 +47,13 @@ export default function LogSearch() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
 
     void searchFoods(query)
       .then((rows) => {
-        if (!cancelled) setResults(rows);
+        if (!cancelled) setSearchResult({ query, rows });
       })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch(() => {
+        if (!cancelled) setSearchResult({ query, rows: [] });
       });
 
     return () => {

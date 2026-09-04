@@ -6,6 +6,7 @@ const CLAIM_PREFIX = 'fud-ai-guest-claim-'
 const AI_KEY_PREFIX = 'fud-ai-private-ai-key-'
 const TOKEN_KEY = 'fud-ai-access-token'
 const REFRESH_KEY = 'fud-ai-refresh-token'
+const ACCOUNT_ID_KEY = 'fud-ai-account-id'
 
 export function stateWithoutSecrets(state: AppState): AppState {
   return { ...state, aiSettings: { ...state.aiSettings, apiKey: '' } }
@@ -42,19 +43,26 @@ export async function loadPrivateAIKey(userId: string): Promise<string> {
   return (await SecureStore.getItemAsync(`${AI_KEY_PREFIX}${userId}`)) ?? ''
 }
 
-export async function saveSessionTokens(token: string, refreshToken: string): Promise<void> {
+export async function saveSessionTokens(token: string, refreshToken: string, accountId?: string): Promise<void> {
   await SecureStore.setItemAsync(TOKEN_KEY, token)
   await SecureStore.setItemAsync(REFRESH_KEY, refreshToken)
+  if (accountId) await SecureStore.setItemAsync(ACCOUNT_ID_KEY, accountId)
 }
 
-export async function loadSessionTokens(): Promise<{ token: string | null; refreshToken: string | null }> {
+export async function loadSessionTokens(): Promise<{
+  token: string | null
+  refreshToken: string | null
+  accountId: string | null
+}> {
   return {
     token: await SecureStore.getItemAsync(TOKEN_KEY),
     refreshToken: await SecureStore.getItemAsync(REFRESH_KEY),
+    accountId: await SecureStore.getItemAsync(ACCOUNT_ID_KEY),
   }
 }
 
 export async function clearSessionTokens(): Promise<void> {
   await SecureStore.deleteItemAsync(TOKEN_KEY)
   await SecureStore.deleteItemAsync(REFRESH_KEY)
+  await SecureStore.deleteItemAsync(ACCOUNT_ID_KEY)
 }

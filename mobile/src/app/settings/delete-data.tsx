@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import { Card } from '@/components/primitives/Card';
 import { PressableButton } from '@/components/primitives/PressableButton';
@@ -9,10 +9,12 @@ import { Text } from '@/components/primitives/Text';
 import { TextField } from '@/components/primitives/TextField';
 import { DELETE_CONFIRMATION_TEXT, confirmationMatches } from '@/privacy/deletePlan';
 import { deleteAllLocalData } from '@/privacy/localData';
+import { useApp } from '@/state/AppProvider';
 import { useTheme } from '@/theme/useTheme';
 
 export default function DeleteAllData() {
   const theme = useTheme();
+  const { resetLocalState } = useApp();
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export default function DeleteAllData() {
       return;
     }
 
+    await resetLocalState();
     router.replace('/(onboarding)');
   }
 

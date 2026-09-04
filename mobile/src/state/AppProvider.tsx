@@ -1,13 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { AppState as NativeAppState } from 'react-native'
 import { awardFreeze, awardLog, awardNote, awardWater, stampEntry } from './awards'
 import { defaultProfile, freshState } from './defaults'
 import { enqueueMutation, loadDurableAccount, saveDurableSnapshot } from './durable'
+import { canInstallRemoteSnapshot } from './durablePolicy'
 import { finalizeGuestClaim, guestUserId, stageGuestStateForAccount } from './guest'
 import { LEGACY_IMPORT_NOTICE, importLegacySqlite } from './importer'
 import { loggingStreak } from './journey'
-import { loadPrivateAIKey, savePrivateAIKey } from './secrets'
-import { drainSnapshot } from './sync'
-import type { AppState, FoodEntry, SavedMeal, UserProfile, WeightEntry } from './types'
+import { loadPrivateAIKey, loadSessionTokens, savePrivateAIKey } from './secrets'
+import { requestSnapshotDrain } from './sync'
+import type { AppState, FoodEntry, SavedMeal, UserProfile } from './types'
 
 type AppContextValue = {
   userId: string
@@ -29,9 +31,11 @@ type AppContextValue = {
   setFeel: (soundEnabled: boolean, hapticsEnabled: boolean) => void
   setPaused: (paused: boolean) => void
   setAIKey: (apiKey: string) => void
+  activateAccount: (accountId: string) => Promise<void>
   claimForAccount: (accountId: string) => Promise<boolean>
   finishClaim: (accountId: string) => Promise<void>
   replaceState: (next: AppState) => void
+  resetLocalState: () => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -44,13 +48,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void (async () => {
-      const id = await guestUserId()
+      const accountId = await loadSessionTokens()
+        .then(session => session.accountId)
+        .catch(() => null)
+      const id = accountId ?? await guestUserId()
       setUserId(id)
       const existing = loadDurableAccount(id)
       if (existing) {
         const key = await loadPrivateAIKey(id)
         setState({ ...existing.state, aiSettings: { ...existing.state.aiSettings, apiKey: key } })
-      } else {
+      } else if (id.startsWith('guest:')) {
         const imported = await importLegacySqlite()
         if (imported) {
           saveDurableSnapshot(id, imported)
@@ -59,6 +66,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           saveDurableSnapshot(id, freshState())
         }
+      } else {
+        const next = freshState()
+        saveDurableSnapshot(id, next)
+        setState(next)
       }
       setReady(true)
     })()
@@ -67,7 +78,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const persist = useCallback((next: AppState, id = userId) => {
     setState(next)
     if (id.startsWith('guest:')) saveDurableSnapshot(id, next)
-    else enqueueMutation(id, next)
+    else {
+      enqueueMutation(id, next)
+      void requestSnapshotDrain(id)
+    }
   }, [userId])
 
   const value = useMemo<AppContextValue>(() => ({
@@ -137,6 +151,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       void savePrivateAIKey(userId, apiKey)
       persist({ ...state, aiSettings: { ...state.aiSettings, apiKey } })
     },
+    activateAccount: async (accountId) => {
+      const account = loadDurableAccount(accountId)
+      const next = account?.state ?? freshState()
+      if (!account) saveDurableSnapshot(accountId, next)
+      const key = await loadPrivateAIKey(accountId)
+      setUserId(accountId)
+      setState({ ...next, aiSettings: { ...next.aiSettings, apiKey: key } })
+    },
     claimForAccount: async (accountId) => {
       const staged = await stageGuestStateForAccount(accountId)
       if (staged) {
@@ -150,16 +172,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await finalizeGuestClaim(accountId)
     },
     replaceState: (next) => persist(next),
+    resetLocalState: async () => {
+      const id = await guestUserId()
+      const next = freshState()
+      setUserId(id)
+      saveDurableSnapshot(id, next)
+      setState(next)
+    },
   }), [importNotice, persist, ready, state, userId])
 
   useEffect(() => {
     if (!ready || userId.startsWith('guest:')) return
-    void drainSnapshot(userId).then(result => {
-      if (result.remote) {
-        saveDurableSnapshot(userId, result.remote, result.version)
-        setState(result.remote)
+    let cancelled = false
+    const refresh = () => requestSnapshotDrain(userId).then(result => {
+      const remote = result.remote
+      if (!cancelled && remote && result.version !== undefined
+        && canInstallRemoteSnapshot(loadDurableAccount(userId), result.version)) {
+        saveDurableSnapshot(userId, remote, result.version)
+        setState(current => ({
+          ...remote,
+          aiSettings: { ...remote.aiSettings, apiKey: current.aiSettings.apiKey },
+        }))
       }
     })
+    void refresh()
+    const subscription = NativeAppState.addEventListener('change', next => {
+      if (next === 'active') void refresh()
+    })
+    return () => {
+      cancelled = true
+      subscription.remove()
+    }
   }, [ready, userId])
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

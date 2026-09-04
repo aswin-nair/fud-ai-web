@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { adoptMobileSession, signOutLocally, type SecureSessionStore } from './adoptSession'
 import { clearMemorySession, getAccessToken, getActiveUserId } from './sessionMemory'
-import type { StoredBinding } from './sessionPolicy'
+import { loadBoundAccountIdFromStore, type StoredBinding } from './sessionPolicy'
 
 const USER = '00000000-0000-4000-8000-000000000001'
 const OTHER = '00000000-0000-4000-8000-000000000002'
@@ -100,5 +100,12 @@ describe('adopt mobile session', () => {
     expect(getAccessToken()).toBeNull()
     expect(await store.readRefresh()).toBeNull()
     expect((await store.readBinding() as StoredBinding).boundUserId).toBe(USER)
+    expect(await loadBoundAccountIdFromStore(store)).toBe(USER)
+  })
+
+  it('does not restore an account id from malformed local metadata', async () => {
+    const store = memoryStore()
+    store.readBinding = async () => ({ boundUserId: 'not-an-account', deviceId: DEVICE })
+    expect(await loadBoundAccountIdFromStore(store)).toBeNull()
   })
 })

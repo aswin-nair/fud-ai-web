@@ -319,6 +319,8 @@ export function defaultProfile(): UserProfile {
     weeklyChangeKg: 0.5,
     soundEnabled: true,
     hapticsEnabled: true,
+    mascotMuted: false,
+    mascotReducedMotion: false,
     trackingPaused: false,
     loggingCommitment: 'light',
   }

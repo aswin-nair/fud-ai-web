@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   authPosition,
+  isSafeMascotPosition,
   restPosition,
   roamPosition,
+  scheduleDelay,
   shouldVolunteerTaunt,
   targetFromRect,
   travelDurationMs,
@@ -55,7 +57,7 @@ describe('resting place', () => {
     const rest = restPosition(SIZE, VIEW)
 
     expect(rest.x).toBe(VIEW.width - SIZE - 16)
-    expect(rest.y).toBe(VIEW.height - SIZE - 108)
+    expect(rest.y).toBe(VIEW.height - SIZE - 112)
     expect(rest.y + SIZE).toBeLessThan(VIEW.height)
   })
 
@@ -132,6 +134,36 @@ describe('walking around the viewport', () => {
     expect(right.x).toBeGreaterThanOrEqual(VIEW.width - SIZE - 48)
   })
 
+  it('stays in its current edge lane instead of crossing active controls', () => {
+    const current = { x: VIEW.width - SIZE - 12, y: 210 }
+    const spot = roamPosition(SIZE, VIEW, current, () => 0)
+
+    expect(spot.x).toBeGreaterThanOrEqual(VIEW.width - SIZE - 48)
+    expect(spot.y).not.toBe(current.y)
+  })
+
+  it('rejects destinations occupied by visible controls', () => {
+    const blockedLeftLane = [{ left: 0, top: 90, right: 142, bottom: 800 }]
+    const spot = roamPosition(SIZE, VIEW, undefined, () => 0, blockedLeftLane)
+
+    expect(spot.x).toBeGreaterThanOrEqual(VIEW.width - SIZE - 48)
+    expect(isSafeMascotPosition(spot, SIZE, VIEW, blockedLeftLane)).toBe(true)
+  })
+
+  it('finds a clear side of an anchor when the preferred side is occupied', () => {
+    const anchorRect = { left: 160, top: 450, right: 260, bottom: 500 }
+    const blockedAbove = { left: 150, top: 330, right: 270, bottom: 445 }
+    const spot = targetFromRect(
+      { x: 210, y: 475, width: 100, height: 50 },
+      SIZE,
+      VIEW,
+      [anchorRect, blockedAbove],
+    )
+
+    expect(isSafeMascotPosition(spot, SIZE, VIEW, [anchorRect, blockedAbove])).toBe(true)
+    expect(spot.y).toBeGreaterThanOrEqual(anchorRect.bottom)
+  })
+
   it('scales walking time with distance and honours reduced motion', () => {
     const near = travelDurationMs({ x: 10, y: 10 }, { x: 60, y: 10 })
     const far = travelDurationMs({ x: 10, y: 10 }, { x: 350, y: 700 })
@@ -140,6 +172,19 @@ describe('walking around the viewport', () => {
     expect(far).toBeGreaterThan(near)
     expect(far).toBeLessThanOrEqual(2200)
     expect(travelDurationMs({ x: 10, y: 10 }, { x: 350, y: 700 }, true)).toBe(0)
+  })
+})
+
+describe('ambient gesture cadence', () => {
+  it('randomizes every enabled gesture between 20 and 45 seconds', () => {
+    expect(scheduleDelay(0, 'lively', () => 0)).toBe(20_000)
+    expect(scheduleDelay(500, 'lively', () => 1)).toBe(36_000)
+    expect(scheduleDelay(0, 'calm', () => 0)).toBe(32_000)
+    expect(scheduleDelay(500, 'calm', () => 1)).toBe(45_000)
+  })
+
+  it('keeps the mascot off when ambient activity is disabled', () => {
+    expect(scheduleDelay(0, 'off', () => 0.5)).toBe(Infinity)
   })
 })
 

@@ -93,6 +93,12 @@ export function clamp(n: number, min: number, max: number): number {
 
 export interface Viewport { width: number; height: number }
 export interface Point { x: number; y: number }
+export interface AvoidRect {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
 
 /**
  * The viewport, as a value. Passing it in keeps the placement maths pure and
@@ -106,6 +112,9 @@ function viewportOr(given?: Viewport): Viewport {
 
 const APP_STAGE_MAX_WIDTH = 480
 const AUTH_CARD_MAX_WIDTH = 420
+const SAFE_TOP = 104
+const SAFE_BOTTOM = 112
+const CONTROL_CLEARANCE = 10
 
 function horizontalBounds(width: number, size: number, inset: number): { min: number; max: number } {
   const stageWidth = Math.min(width, APP_STAGE_MAX_WIDTH)
@@ -116,13 +125,83 @@ function horizontalBounds(width: number, size: number, inset: number): { min: nu
   return { min, max }
 }
 
-export function restPosition(size = 88, viewport?: Viewport): { x: number; y: number } {
+function verticalBounds(height: number, size: number): { min: number; max: number } {
+  const viewportMax = Math.max(0, height - size)
+  const min = Math.min(SAFE_TOP, viewportMax)
+  const max = Math.max(min, Math.min(viewportMax, height - size - SAFE_BOTTOM))
+  return { min, max }
+}
+
+function overlapsAvoidRect(
+  point: Point,
+  size: number,
+  rect: AvoidRect,
+  clearance = CONTROL_CLEARANCE,
+): boolean {
+  return point.x < rect.right + clearance
+    && point.x + size > rect.left - clearance
+    && point.y < rect.bottom + clearance
+    && point.y + size > rect.top - clearance
+}
+
+/** Whether a full mascot-sized destination clears every protected control. */
+export function isSafeMascotPosition(
+  point: Point,
+  size: number,
+  viewport: Viewport,
+  avoidRects: readonly AvoidRect[] = [],
+): boolean {
+  const horizontal = horizontalBounds(viewport.width, size, 8)
+  const vertical = verticalBounds(viewport.height, size)
+  return point.x >= horizontal.min
+    && point.x <= horizontal.max
+    && point.y >= vertical.min
+    && point.y <= vertical.max
+    && avoidRects.every(rect => !overlapsAvoidRect(point, size, rect))
+}
+
+function overlapArea(point: Point, size: number, rect: AvoidRect): number {
+  const width = Math.max(0, Math.min(point.x + size, rect.right) - Math.max(point.x, rect.left))
+  const height = Math.max(0, Math.min(point.y + size, rect.bottom) - Math.max(point.y, rect.top))
+  return width * height
+}
+
+function safestCandidate(
+  candidates: readonly Point[],
+  size: number,
+  viewport: Viewport,
+  avoidRects: readonly AvoidRect[],
+): Point {
+  const safe = candidates.find(point => isSafeMascotPosition(point, size, viewport, avoidRects))
+  if (safe) return safe
+
+  // Extremely dense/small layouts may have no fully clear 88px square. In
+  // that case choose the least-overlapping edge position rather than escaping
+  // the viewport or falling back to the centre of the primary task.
+  return [...candidates].sort((a, b) => {
+    const aOverlap = avoidRects.reduce((sum, rect) => sum + overlapArea(a, size, rect), 0)
+    const bOverlap = avoidRects.reduce((sum, rect) => sum + overlapArea(b, size, rect), 0)
+    return aOverlap - bOverlap
+  })[0] ?? { x: 0, y: 0 }
+}
+
+export function restPosition(
+  size = 88,
+  viewport?: Viewport,
+  avoidRects: readonly AvoidRect[] = [],
+): { x: number; y: number } {
   const { width, height } = viewportOr(viewport)
   const horizontal = horizontalBounds(width, size, 16)
-  return {
-    x: horizontal.max,
-    y: height - size - 108,
-  }
+  const vertical = verticalBounds(height, size)
+  const candidates = [
+    { x: horizontal.max, y: vertical.max },
+    { x: horizontal.min, y: vertical.max },
+    { x: horizontal.max, y: Math.round((vertical.min + vertical.max) / 2) },
+    { x: horizontal.min, y: Math.round((vertical.min + vertical.max) / 2) },
+    { x: horizontal.max, y: vertical.min },
+    { x: horizontal.min, y: vertical.min },
+  ]
+  return safestCandidate(candidates, size, { width, height }, avoidRects)
 }
 
 /**
@@ -158,42 +237,65 @@ export function roamPosition(
   viewport?: Viewport,
   current?: Point,
   rng: () => number = Math.random,
+  avoidRects: readonly AvoidRect[] = [],
 ): Point {
   const { width, height } = viewportOr(viewport)
-  const viewportMaxY = Math.max(0, height - size)
   const horizontal = horizontalBounds(width, size, 12)
   const minX = horizontal.min
   const maxX = horizontal.max
-  const minY = Math.min(104, viewportMaxY)
-  const maxY = Math.max(minY, Math.min(viewportMaxY, height - size - 112))
+  const { min: minY, max: maxY } = verticalBounds(height, size)
   const unit = () => {
     const value = rng()
     return clamp(Number.isFinite(value) ? value : 0.5, 0, 1)
   }
 
-  // Roam along the two edge lanes. Crossing the centre is great while walking;
-  // stopping on top of the screen's primary action is not.
+  // Roam along the two edge lanes. Once Momo is in a lane she stays on that
+  // side, so a long ambient walk does not cut across the screen's primary
+  // controls. If that lane is blocked, the candidate list may use the other.
   const laneDepth = Math.min(36, Math.max(0, (maxX - minX) * 0.14))
-  const onLeft = unit() < 0.5
+  const stageMiddle = (minX + maxX) / 2
+  const sideRoll = unit()
+  const onLeft = current && Math.abs(current.x + size / 2 - stageMiddle) > size * 0.2
+    ? current.x + size / 2 < stageMiddle
+    : sideRoll < 0.5
   const edgeOffset = unit() * laneDepth
-  let next = {
-    x: Math.round(onLeft ? minX + edgeOffset : maxX - edgeOffset),
-    y: Math.round(minY + unit() * (maxY - minY)),
-  }
-
-  if (current) {
-    const stageWidth = maxX - minX
-    const stageHeight = maxY - minY
-    const minimumTravel = Math.min(140, Math.max(48, Math.max(stageWidth, stageHeight) * 0.3))
-    if (Math.hypot(next.x - current.x, next.y - current.y) < minimumTravel) {
-      next = {
-        x: current.x <= (minX + maxX) / 2 ? maxX : minX,
-        y: current.y <= (minY + maxY) / 2 ? maxY : minY,
-      }
+  const randomY = minY + unit() * (maxY - minY)
+  const xFor = (left: boolean, offset = edgeOffset) => Math.round(left ? minX + offset : maxX - offset)
+  const yFractions = [
+    (randomY - minY) / Math.max(1, maxY - minY),
+    current && current.y <= (minY + maxY) / 2 ? 0.92 : 0.08,
+    0.28,
+    0.52,
+    0.74,
+  ]
+  const candidates: Point[] = []
+  for (const left of [onLeft, !onLeft]) {
+    for (const fraction of yFractions) {
+      candidates.push({
+        x: xFor(left),
+        y: Math.round(minY + clamp(fraction, 0, 1) * (maxY - minY)),
+      })
     }
   }
 
-  return next
+  const stageWidth = maxX - minX
+  const stageHeight = maxY - minY
+  const minimumTravel = Math.min(140, Math.max(48, Math.max(stageWidth, stageHeight) * 0.3))
+  const safeCandidates = candidates.filter(point => isSafeMascotPosition(
+    point,
+    size,
+    { width, height },
+    avoidRects,
+  ))
+  if (current) {
+    const travelled = safeCandidates.find(point => (
+      Math.hypot(point.x - current.x, point.y - current.y) >= minimumTravel
+    ))
+    if (travelled) return travelled
+    if (isSafeMascotPosition(current, size, { width, height }, avoidRects)) return current
+  }
+
+  return safeCandidates[0] ?? safestCandidate(candidates, size, { width, height }, avoidRects)
 }
 
 /** Distance-scaled travel keeps a short sidestep quick and a cross-screen walk legible. */
@@ -213,21 +315,33 @@ export function travelDurationMs(from: Point, to: Point, reducedMotion = false):
  * anchor's top edge, and drop below it when there is no room up there.
  */
 export function targetFromRect(
-  rect: { x: number; y: number; height?: number },
+  rect: { x: number; y: number; width?: number; height?: number },
   size: number,
   viewport?: Viewport,
+  avoidRects: readonly AvoidRect[] = [],
 ): { x: number; y: number } {
   const { width, height } = viewportOr(viewport)
   const gap = 10
-  const half = (rect.height ?? 0) / 2
-  const maxY = height - size - 8
-  const above = rect.y - half - size - gap
-  const below = rect.y + half + gap
+  const halfHeight = (rect.height ?? 0) / 2
+  const halfWidth = (rect.width ?? 0) / 2
+  const horizontal = horizontalBounds(width, size, 8)
+  const vertical = verticalBounds(height, size)
+  const anchorLeft = rect.x - halfWidth
+  const anchorRight = rect.x + halfWidth
+  const anchorTop = rect.y - halfHeight
+  const anchorBottom = rect.y + halfHeight
+  const fit = (point: Point): Point => ({
+    x: clamp(point.x, horizontal.min, horizontal.max),
+    y: clamp(point.y, vertical.min, vertical.max),
+  })
+  const candidates = [
+    fit({ x: rect.x - size / 2, y: anchorTop - size - gap }),
+    fit({ x: rect.x - size / 2, y: anchorBottom + gap }),
+    fit({ x: anchorLeft - size - gap, y: rect.y - size / 2 }),
+    fit({ x: anchorRight + gap, y: rect.y - size / 2 }),
+  ]
 
-  return {
-    x: clamp(rect.x - size / 2, 8, width - size - 8),
-    y: clamp(above >= 8 ? above : Math.min(below, maxY), 8, maxY),
-  }
+  return safestCandidate(candidates, size, { width, height }, avoidRects)
 }
 
 export function hasVisibleAnchor(

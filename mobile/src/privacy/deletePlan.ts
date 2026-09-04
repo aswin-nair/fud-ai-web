@@ -12,6 +12,7 @@ export const DELETE_STORE_IDS = [
   'app_lock',
   'account_session',
   'sync_outbox',
+  'app_state_accounts',
   'memory',
   'builtin_foods_reseed',
 ] as const

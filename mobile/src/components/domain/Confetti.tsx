@@ -39,6 +39,11 @@ type Seed = {
   delay: number;
 };
 
+function seededUnit(value: number): number {
+  const wave = Math.sin(value * 12.9898) * 43758.5453;
+  return wave - Math.floor(wave);
+}
+
 /**
  * A burst of tokenised specks. Deliberately not a dependency: the celebration
  * has to obey reduced-motion and the palette, and a stock cannon does neither.
@@ -55,10 +60,10 @@ export function Confetti({ fire, pieces = DEFAULT_PIECES }: ConfettiProps) {
         const angle = Math.PI + (Math.PI * (i + 0.5)) / pieces;
         return {
           angle,
-          distance: SPREAD * (0.55 + Math.random() * 0.45),
-          spin: (Math.random() - 0.5) * 4,
+          distance: SPREAD * (0.55 + seededUnit(i * 3 + pieces) * 0.45),
+          spin: (seededUnit(i * 3 + pieces + 1) - 0.5) * 4,
           color: CONFETTI_COLORS[i % CONFETTI_COLORS.length] as ColorToken,
-          delay: Math.random() * 0.15,
+          delay: seededUnit(i * 3 + pieces + 2) * 0.15,
         };
       }),
     [pieces],

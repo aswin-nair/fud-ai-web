@@ -2,6 +2,11 @@ const USER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const DEVICE_ID = /^[A-Za-z0-9._:-]{8,128}$/
 const SECRET_KEYS = ['refreshToken', 'token', 'accessToken', 'password', 'apiKey', 'refresh_token']
 
+type BindingReader = {
+  available: () => Promise<boolean>
+  readBinding: () => Promise<unknown>
+}
+
 export const SESSION_REFRESH_KEY = 'fud.session.refresh.v1'
 export const SESSION_META_KEY = 'fud.session.meta.v1'
 export const DEVICE_ID_KEY = 'fud.device-id.v1'
@@ -73,6 +78,11 @@ export function parseStoredBinding(value: unknown): StoredBinding | null {
     email: value.email,
     name: value.name,
   }
+}
+
+export async function loadBoundAccountIdFromStore(store: BindingReader): Promise<string | null> {
+  if (!(await store.available())) return null
+  return parseStoredBinding(await store.readBinding())?.boundUserId ?? null
 }
 
 export function decideAccountBinding(input: {
