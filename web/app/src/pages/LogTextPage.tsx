@@ -9,6 +9,9 @@ import { clearLogDraft, hydrateLogDrafts, loadLogDrafts, saveTextLogDraft } from
 import { useAuth } from '../store/AuthContext'
 import { PressableButton } from '../components/PressableButton'
 import { mascotEvent } from '../mascot/MascotOverlay'
+import { AiSetupNotice, AnalysisStatus, FlowFeedback, LogFlowHeader } from '../components/LogFlowUI'
+import { IconArrowRight, IconEdit, IconSparkles } from '../components/icons'
+import { Surface } from '../components/Surface'
 
 const EXAMPLES = [
   '2 scrambled eggs, toast with butter',
@@ -25,12 +28,14 @@ export function LogTextPage() {
   const [text, setText] = useState(() => loadLogDrafts(userId).text?.text ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const requestRef = useRef<AbortController | null>(null)
+  const edited = useRef(false)
 
   useEffect(() => {
     let cancelled = false
     void hydrateLogDrafts(userId).then(drafts => {
-      if (!cancelled && drafts.text?.text) setText(current => current || drafts.text!.text)
+      if (!cancelled && !edited.current && drafts.text?.text) setText(current => current || drafts.text!.text)
     })
     return () => {
       cancelled = true
@@ -41,19 +46,23 @@ export function LogTextPage() {
     saveTextLogDraft(userId, text)
   }, [text, userId])
 
-  useEffect(() => () => requestRef.current?.abort(), [])
+  useEffect(() => () => {
+    requestRef.current?.abort()
+    requestRef.current = null
+  }, [])
 
   async function handleAnalyze() {
     const trimmed = text.trim()
-    if (!trimmed) return
-    requestRef.current?.abort()
+    if (!trimmed || !state.aiSettings.apiKey || requestRef.current) return
     const controller = new AbortController()
     requestRef.current = controller
     setLoading(true)
     setError(null)
+    setNotice(null)
     track({ name: 'ai_analysis_started', method: 'text_ai' })
     try {
       const analysis = await analyzeTextFood(trimmed, state.aiSettings, controller.signal)
+      if (controller.signal.aborted || requestRef.current !== controller) return
       track({ name: 'ai_analysis_completed', method: 'text_ai' })
       setPendingSource('textInput')
       setPendingAnalysis(analysis)
@@ -61,78 +70,81 @@ export function LogTextPage() {
       clearLogDraft(userId, 'text')
       navigate('/review')
     } catch (e) {
+      if (controller.signal.aborted || requestRef.current !== controller) return
       track({ name: 'ai_analysis_failed', method: 'text_ai' })
       setError(e instanceof Error ? e.message : 'Analysis failed')
       if (!(e instanceof Error) || !/cancelled/i.test(e.message)) mascotEvent('ai_fumble')
     } finally {
-      if (requestRef.current === controller) requestRef.current = null
-      setLoading(false)
+      if (requestRef.current === controller) {
+        requestRef.current = null
+        setLoading(false)
+      }
     }
   }
 
-  if (loading) {
-    return (
-      <div className="app-shell">
-        <main className="app-main analyzing-overlay">
-          <div className="analyzing-ring">
-            <div className="loading-spinner" style={{ width: 48, height: 48, borderWidth: 4 }} />
-          </div>
-          <p className="analyzing-title">Estimating nutrition…</p>
-          <p className="analyzing-sub">AI is reading your description</p>
-          <PressableButton variant="secondary" label="Cancel analysis" onClick={() => requestRef.current?.abort()} />
-        </main>
-      </div>
-    )
+  function cancelAnalysis() {
+    requestRef.current?.abort()
+    requestRef.current = null
+    setLoading(false)
+    setNotice('Analysis stopped. Your description is still here.')
   }
 
   const hasKey = !!state.aiSettings.apiKey
 
   return (
-    <div className="app-shell">
+    <div className="app-shell meal-flow">
       <main className="app-main motion-stagger">
         <BackLink to="/log" />
-        <h1 className="page-title" style={{ marginTop: 12 }}>Describe your meal</h1>
-        <p className="page-sub">Type what you ate — AI estimates the macros.</p>
+        <LogFlowHeader step={1} title="What’s on the menu?" description="Describe your meal in your own words. We’ll turn it into an estimate you can edit." />
 
-        {error && <div className="error-banner" role="alert">{error}</div>}
+        {error && <FlowFeedback message={error} error><Link to="/log/manual">Keep going with manual entry</Link></FlowFeedback>}
+        {notice && <FlowFeedback message={notice} />}
 
-        {!hasKey && (
-          <div className="no-key-banner">
-            Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings to use AI logging,
-            or <Link to="/log/manual">log manually</Link> without AI.
-          </div>
-        )}
+        {!hasKey && <AiSetupNotice provider={providerLabel(state.aiSettings.provider)} />}
 
-        <div className="text-log-area">
+        <form className="flow-compose" onSubmit={event => { event.preventDefault(); void handleAnalyze() }}>
+        <Surface className="flow-description-card">
+          <label className="flow-composer-label" htmlFor="meal-description"><IconEdit size={22} /> Your meal, your words</label>
+          <p id="description-hint" className="flow-field-hint">Include quantities, drinks and extras when you know them.</p>
           <textarea
+            id="meal-description"
             className="text-log-input"
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={e => { edited.current = true; setText(e.target.value); setError(null); setNotice(null) }}
             placeholder="e.g. 2 eggs, toast with butter, black coffee"
-            autoFocus
-            rows={4}
+            aria-describedby="description-hint description-limit"
+            disabled={loading}
+            maxLength={5000}
+            required
+            rows={5}
           />
+          <div className="flow-composer-meta"><span>Review before logging</span><span id="description-limit">{text.length.toLocaleString()} / 5,000</span></div>
           {!text && (
             <div className="text-log-examples">
               <p className="text-log-examples-label">Try an example</p>
               <div className="example-chips">
                 {EXAMPLES.map(ex => (
-                  <button key={ex} type="button" className="example-chip" onClick={() => setText(ex)}>
-                    {ex}
+                  <button key={ex} type="button" className="example-chip" disabled={loading} onClick={() => { edited.current = true; setText(ex); setError(null); setNotice(null) }}>
+                    <IconArrowRight size={18} />{ex}
                   </button>
                 ))}
               </div>
             </div>
           )}
-        </div>
+        </Surface>
 
+        {loading ? <AnalysisStatus method="text" onCancel={cancelAnalysis} /> : <div className="flow-submit">
+        <p><IconSparkles size={18} /> Next: check the portion and nutrition.</p>
         <PressableButton
           fullWidth
+          type="submit"
           disabled={!text.trim() || !hasKey}
-          onClick={handleAnalyze}
         >
-          Analyze with AI
+          Estimate my meal <IconArrowRight size={20} />
         </PressableButton>
+        <Link to="/log/manual">Enter the numbers myself</Link>
+        </div>}
+        </form>
       </main>
     </div>
   )

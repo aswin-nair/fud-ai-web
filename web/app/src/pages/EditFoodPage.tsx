@@ -3,167 +3,103 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useApp, isFavorite } from '../store/AppContext'
 import { useToast } from '../components/Toast'
 import { BackLink } from '../components/BackLink'
-import { IconChevronLeft, IconStar } from '../components/icons'
+import { IconCheck, IconStar, IconTrash } from '../components/icons'
 import type { MealType } from '../types'
-import { MEAL_LABELS } from '../types'
 import { PressableButton } from '../components/PressableButton'
-
-const MEAL_ICONS: Record<MealType, string> = {
-  breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎', other: '🍽️',
-}
-
-const MACROS = [
-  { key: 'protein', label: 'Protein', color: '#6B9FFF', bg: 'rgba(107,159,255,0.12)' },
-  { key: 'carbs',   label: 'Carbs',   color: '#FFB347', bg: 'rgba(255,179,71,0.12)'  },
-  { key: 'fat',     label: 'Fat',     color: '#FF6B9D', bg: 'rgba(255,107,157,0.12)' },
-] as const
+import { FlowFeedback, LogFlowHeader } from '../components/LogFlowUI'
+import { MealNameField, MealTotals, MealTypePicker, NutritionFields } from '../components/MealEntryFields'
+import { Surface } from '../components/Surface'
+import { validateManualFood } from '../lib/foodEntryValidation'
 
 export function EditFoodPage() {
   const { id } = useParams<{ id: string }>()
-  const { state, updateEntry, deleteEntry, toggleFavorite } = useApp()
+  const { state, updateEntry, deleteEntry, restoreEntry, toggleFavorite } = useApp()
   const { toast } = useToast()
   const navigate = useNavigate()
-  const entry = state.foodEntries.find(e => e.id === id)
-
+  const entry = state.foodEntries.find(item => item.id === id)
   const [name, setName] = useState(entry?.name ?? '')
-  const [calories, setCalories] = useState(String(entry?.calories ?? ''))
-  const [protein, setProtein] = useState(String(entry?.protein ?? ''))
-  const [carbs, setCarbs] = useState(String(entry?.carbs ?? ''))
-  const [fat, setFat] = useState(String(entry?.fat ?? ''))
+  const [nutrition, setNutrition] = useState({
+    calories: String(entry?.calories ?? ''), protein: String(entry?.protein ?? ''),
+    carbs: String(entry?.carbs ?? ''), fat: String(entry?.fat ?? ''),
+  })
   const [mealType, setMealType] = useState<MealType>(entry?.mealType ?? 'other')
+  const [error, setError] = useState<string | null>(null)
 
-  if (!entry) {
-    return (
-      <div className="app-shell">
-        <main className="app-main">
-          <p style={{ color: 'var(--ink-soft)' }}>Entry not found.</p>
-          <PressableButton variant="ghost" onClick={() => navigate('/')}>
-            <IconChevronLeft size={16} strokeWidth={2.4} /> Home
-          </PressableButton>
-        </main>
-      </div>
-    )
-  }
+  if (!entry) return <div className="app-shell meal-flow"><main className="app-main">
+    <BackLink to="/" label="Today" />
+    <LogFlowHeader title="This entry isn’t here." description="It may have been removed. Your other meals are waiting on Today." />
+    <PressableButton to="/" label="Back to Today" />
+  </main></div>
 
   const fav = isFavorite(state, entry)
-
-  const macroValues: Record<(typeof MACROS)[number]['key'], string> = { protein, carbs, fat }
-  const macroSetters: Record<(typeof MACROS)[number]['key'], (v: string) => void> = {
-    protein: setProtein, carbs: setCarbs, fat: setFat,
-  }
+  const result = validateManualFood({ name, ...nutrition, servings: 1 })
+  const changed = name !== entry.name || mealType !== (entry.mealType ?? 'other')
+    || Object.entries(nutrition).some(([key, value]) => value !== String(entry[key as keyof typeof nutrition]))
 
   function save() {
     if (!entry) return
+    if (!result.ok) { setError(result.error); return }
     updateEntry({
       ...entry,
-      name: name.trim(),
-      calories: Math.round(Number(calories)),
-      protein: Number(protein) || 0,
-      carbs: Number(carbs) || 0,
-      fat: Number(fat) || 0,
+      ...result.value,
       mealType,
       detailAdded: true,
-      // A manual full edit supersedes the AI's estimate — drop the now-stale breakdown
-      // so FoodList doesn't show ingredient numbers that no longer add up.
+      // A manual edit supersedes the ingredient estimate.
       ingredients: undefined,
     })
-    toast('Changes saved')
+    toast('Changes saved', { type: 'success' })
     navigate('/')
   }
 
   function remove() {
     if (!entry) return
-    if (!confirm('Delete this entry?')) return
     deleteEntry(entry.id)
-    toast(`Deleted ${entry.name}`, { type: 'info' })
+    toast(`Deleted ${entry.name}`, { type: 'info', action: { label: 'Undo', fn: () => restoreEntry(entry) } })
+    navigate('/')
+  }
+
+  function leave() {
+    if (changed && !window.confirm('Leave without saving your changes?')) return
     navigate('/')
   }
 
   return (
-    <div className="app-shell">
-      <main className="app-main review-page motion-stagger">
-        <div className="edit-topbar">
-          <BackLink onClick={() => navigate('/')} />
-          <button
-            type="button"
-            className={`fav-btn${fav ? ' active' : ''}`}
-            onClick={() => toggleFavorite(entry)}
-            aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <IconStar active={fav} size={19} />
+    <div className="app-shell meal-flow meal-flow-wide">
+      <main className="app-main motion-stagger">
+        <div className="flow-edit-topbar">
+          <BackLink onClick={leave} label="Today" />
+          <button type="button" className="flow-favourite" onClick={() => toggleFavorite(entry)}
+            aria-pressed={fav} aria-label={fav ? 'Remove saved entry from favourites' : 'Add saved entry to favourites'}>
+            <IconStar active={fav} size={20} /> {fav ? 'Favourited' : 'Favourite'}
           </button>
         </div>
-
-        {/* Food identity row */}
-        <div className="review-hero">
-          <div className="review-hero-emoji">{entry.emoji ?? '🍽️'}</div>
-          <div className="review-hero-info">
-            <input
-              className="review-name-input"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              aria-label="Food name"
-            />
-            <span className="review-hero-hint">Tap to edit name</span>
+        <LogFlowHeader title="A little fine-tuning." description="Change the details below. Your original entry stays as it is until you save." />
+        {error && <FlowFeedback message={error} error />}
+        <form className="flow-review-layout" noValidate onSubmit={event => { event.preventDefault(); save() }}>
+          <Surface className="flow-review-editor">
+            <MealNameField name={name} emoji={entry.emoji} onChange={value => { setName(value); setError(null) }} />
+            <NutritionFields values={nutrition} optionalMacros onChange={(field, value) => { setNutrition(current => ({ ...current, [field]: value })); setError(null) }} />
+            <MealTypePicker value={mealType} onChange={value => { setMealType(value); setError(null) }} />
+          </Surface>
+          <div className="flow-review-side">
+            <Surface className="flow-review-summary">
+              {result.ok ? <MealTotals name={result.value.name} calories={result.value.calories} mealType={mealType} />
+                : <p className="flow-summary-hint">Check the meal details to see your updated total here.</p>}
+              <PressableButton fullWidth type="submit" disabled={!changed}><IconCheck size={20} /> Save changes</PressableButton>
+              <p className="flow-save-hint">{changed ? 'Updates this entry only, keeping its original date.' : 'Everything is up to date. Change a field to save.'}</p>
+              <button type="button" className="flow-text-action" onClick={leave}>Cancel edits</button>
+            </Surface>
+            <details className="flow-delete">
+              <summary><IconTrash size={18} /> Delete this entry</summary>
+              <p>Remove “{entry.name}” from your log? You’ll have a short Undo window after deleting.</p>
+              <button type="button" className="flow-text-action" onClick={event => {
+                const details = event.currentTarget.closest('details')
+                if (details) { details.open = false; details.querySelector('summary')?.focus() }
+              }}>Keep entry</button>
+              <PressableButton fullWidth variant="destructive" label="Yes, delete entry" onClick={remove} />
+            </details>
           </div>
-        </div>
-
-        {/* Calorie hero */}
-        <div className="review-section-label" style={{ marginTop: 20 }}>Calories</div>
-        <div className="review-cal-hero">
-          <input
-            className="review-cal-hero-input"
-            type="number"
-            value={calories}
-            onChange={e => setCalories(e.target.value)}
-            aria-label="Calories"
-          />
-          <span className="review-cal-hero-unit">kcal</span>
-        </div>
-
-        {/* Macros */}
-        <div className="review-section-label" style={{ marginTop: 20 }}>Macronutrients</div>
-        <div className="review-macro-row">
-          {MACROS.map(m => (
-            <label
-              key={m.key}
-              className="review-macro-card"
-              style={{ '--mc': m.color, '--mc-bg': m.bg } as React.CSSProperties}
-            >
-              <span className="review-macro-label">{m.label}</span>
-              <div className="review-macro-input-wrap">
-                <input
-                  className="review-macro-input"
-                  type="number"
-                  step="0.1"
-                  value={macroValues[m.key]}
-                  onChange={e => macroSetters[m.key](e.target.value)}
-                  aria-label={m.label}
-                />
-                <span className="review-macro-unit">g</span>
-              </div>
-            </label>
-          ))}
-        </div>
-
-        {/* Meal type */}
-        <div className="review-section-label" style={{ marginTop: 20 }}>Meal</div>
-        <div className="meal-type-row">
-          {(Object.keys(MEAL_LABELS) as MealType[]).map(m => (
-            <button
-              key={m}
-              type="button"
-              className={`meal-type-btn${mealType === m ? ' active' : ''}`}
-              onClick={() => setMealType(m)}
-            >
-              <span className="meal-type-icon">{MEAL_ICONS[m]}</span>
-              <span className="meal-type-label">{MEAL_LABELS[m]}</span>
-            </button>
-          ))}
-        </div>
-
-        <PressableButton fullWidth label="Save changes" onClick={save} />
-        <PressableButton fullWidth variant="destructive" label="Delete entry" onClick={remove} />
+        </form>
       </main>
     </div>
   )

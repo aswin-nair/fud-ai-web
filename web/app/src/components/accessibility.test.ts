@@ -19,10 +19,12 @@ import { ClayInput } from './ClayInput'
 import { Surface } from './Surface'
 import { SettingsRow } from './SettingsRow'
 import { WeekStrip } from './WeekStrip'
+import { freshState } from '../lib/storage'
+import { AnalysisStatus, FlowFeedback } from './LogFlowUI'
 
 vi.mock('../store/AppContext', () => ({
   useApp: () => ({
-    state: { aiSettings: { apiKey: 'test-key', provider: 'gemini' } },
+    state: { ...freshState(), aiSettings: { apiKey: 'test-key', provider: 'gemini' } },
     setPendingAnalysis: () => undefined,
     setPendingSource: () => undefined,
   }),
@@ -228,8 +230,11 @@ describe('primary component accessibility contracts', () => {
     expect(readFileSync(`${pagesDir}SettingsPage.tsx`, 'utf8')).toMatch(
       /className="settings-saved-banner"[^>]*role="status"[^>]*aria-live="polite"/,
     )
-    expect(readFileSync(`${pagesDir}PhotoLogPage.tsx`, 'utf8')).toMatch(
-      /className="analyzing-overlay"[^>]*role="status"[^>]*aria-live="polite"/,
-    )
+    const progress = renderToStaticMarkup(createElement(AnalysisStatus, { method: 'photo', onCancel: vi.fn() }))
+    expect(progress).toContain('role="status" aria-live="polite"')
+    expect(progress).toContain('Cancel analysis')
+    const error = renderToStaticMarkup(createElement(FlowFeedback, { message: 'Try again', error: true }))
+    expect(error).toContain('role="alert"')
+    expect(error).toContain('tabindex="-1"')
   })
 })
