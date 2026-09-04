@@ -8,6 +8,7 @@ import { getStreakWithFreezes, getAllBadges, getBreakfastComparison, getMonthCon
 import { IconChevronRight, IconMenuLines } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
 import { Surface } from '../components/Surface'
+import { WeightLogSheet } from '../components/WeightLogSheet'
 
 const RANGES = [
   { id: '1W', label: 'Week', days: 7 },
@@ -56,7 +57,6 @@ export function ProgressPage() {
   const consistency = getMonthConsistency(state.foodEntries)
   const breakfastComparison = getBreakfastComparison(state.foodEntries)
   const [showLog, setShowLog] = useState(false)
-  const [weight, setWeight] = useState(String(state.profile.weightKg ?? ''))
   const [showHistory, setShowHistory] = useState(false)
 
   const days = RANGES.find(r => r.id === range)!.days
@@ -114,16 +114,14 @@ export function ProgressPage() {
     value: w.weightKg,
   }))
 
-  function logWeight() {
-    const v = Number(weight)
-    if (!v || v <= 0) return
-    addWeightEntry(v)
+  function logWeight(value: number) {
+    addWeightEntry(value)
     setShowLog(false)
   }
 
   if (state.profile.trackingPaused) {
     return (
-      <div className="app-shell progress-shell">
+      <div className="app-shell progress-shell insights-refresh">
         <main className="app-main progress-main motion-stagger">
           <div className="progress-page-header">
             <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
@@ -142,25 +140,14 @@ export function ProgressPage() {
   }
 
   return (
-    <div className="app-shell progress-shell">
+    <div className="app-shell progress-shell insights-refresh">
       <main className="app-main progress-main motion-stagger">
 
         <div className="progress-page-header">
           <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
+          <p className="insights-intro">See your routine over time, one logged day at a time.</p>
         </div>
 
-        <div className="range-chips">
-          {RANGES.map(r => (
-            <button
-              key={r.id}
-              type="button"
-              className={`range-chip${range === r.id ? ' active' : ''}`}
-              onClick={() => setRange(r.id)}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
 
         {/* §9.3: consistency leads. Calories and weight are downstream of the
             habit, so the habit is what the page opens with. */}
@@ -200,11 +187,21 @@ export function ProgressPage() {
               </li>
             ))}
           </ol>
+          <div className="insights-legend" aria-hidden="true"><span><i className="is-logged" />Logged</span><span><i />Not logged</span><span><i className="is-future" />Upcoming</span></div>
           <div className="own-past-callout">
             <strong>You logged breakfast {breakfastComparison.recent} of the last 7 days.</strong>
             <span>Your best seven-day stretch is {breakfastComparison.best}.</span>
           </div>
         </div>
+
+        <section className="insights-range-control" aria-label="Weight and calorie chart range">
+          <h2>Weight &amp; calories</h2>
+          <div className="range-chips" role="group" aria-label="Chart time range">
+            {RANGES.map(r => <button key={r.id} type="button" className={`range-chip${range === r.id ? ' active' : ''}`}
+              aria-pressed={range === r.id} onClick={() => setRange(r.id)}>{r.label}</button>)}
+          </div>
+          <p>Last {days} days · Applies to the two charts below.</p>
+        </section>
 
         {/* Weight card */}
         <div className="progress-card">
@@ -216,23 +213,24 @@ export function ProgressPage() {
           </div>
 
           <div className="progress-stat-grid">
-            <StatCard label="Current" value={`${currentWeight.toFixed(1)} kg`} accent />
+            <StatCard label={filteredWeights.length ? 'Latest in range' : 'Profile weight'} value={`${currentWeight.toFixed(1)} kg`} sub={filteredWeights.length ? undefined : 'No weigh-ins in this range'} accent />
             <StatCard
               label="Goal"
               value={goalWeight != null ? `${goalWeight.toFixed(1)} kg` : '—'}
             />
             <StatCard
               label="Net change"
-              value={`${netChange >= 0 ? '+' : ''}${netChange.toFixed(1)} kg`}
+              value={filteredWeights.length > 1 ? `${netChange >= 0 ? '+' : ''}${netChange.toFixed(1)} kg` : '—'}
+              sub={filteredWeights.length > 1 ? 'First to latest in range' : 'Needs two weigh-ins'}
             />
-            <StatCard label="Average" value={`${avgWeight.toFixed(1)} kg`} />
+            <StatCard label="Average" value={filteredWeights.length ? `${avgWeight.toFixed(1)} kg` : '—'} sub={`${filteredWeights.length} ${filteredWeights.length === 1 ? 'weigh-in' : 'weigh-ins'} in range`} />
           </div>
 
-          <ProgressLineChart points={weightPoints} goal={goalWeight ?? undefined} unit=" kg" />
+          {weightPoints.length ? <ProgressLineChart points={weightPoints} goal={goalWeight ?? undefined} unit=" kg" /> : <p className="insights-empty">No weight entries in this range. Use Log weight if you’d like to track this.</p>}
         </div>
 
         {sortedWeights.length > 0 && (
-          <button type="button" className="history-link-card" onClick={() => setShowHistory(v => !v)}>
+          <button type="button" className="history-link-card" aria-expanded={showHistory} aria-controls="weight-history" onClick={() => setShowHistory(v => !v)}>
             <span className="history-link-icon"><IconMenuLines size={17} /></span>
             <div className="history-link-text">
               <strong>Weight history</strong>
@@ -242,13 +240,13 @@ export function ProgressPage() {
           </button>
         )}
 
-        {showHistory && (
-          <div className="progress-card" style={{ marginBottom: 12 }}>
+        {sortedWeights.length > 0 && (
+          <div id="weight-history" hidden={!showHistory} className="progress-card" style={{ marginBottom: 12 }}>
             {[...sortedWeights].reverse().map(w => (
               <div key={w.id} className="history-row">
                 <span className="history-date">{new Date(w.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 <strong className="history-weight">{w.weightKg.toFixed(1)} kg</strong>
-                <button type="button" className="btn-delete" onClick={() => deleteWeightEntry(w.id)}>Delete</button>
+                <button type="button" className="btn-delete" aria-label={`Delete ${w.weightKg.toFixed(1)} kg entry from ${new Date(w.date).toLocaleDateString()}`} onClick={() => deleteWeightEntry(w.id)}>Delete</button>
               </div>
             ))}
           </div>
@@ -259,7 +257,7 @@ export function ProgressPage() {
           <div className="progress-card-header">
             <h2 className="progress-card-title">Calories</h2>
             <div className="progress-avg-pill">
-              Avg {avgCalories.toLocaleString()} kcal
+              {calorieDays.length ? `Avg ${avgCalories.toLocaleString()} kcal` : 'No logged days'}
             </div>
           </div>
 
@@ -272,12 +270,12 @@ export function ProgressPage() {
             />
           </div>
 
-          <ProgressBarChart bars={calorieBars} goal={goal} />
+          {calorieDays.length ? <><ProgressBarChart bars={calorieBars} goal={goal} /><p className="insights-chart-note">Average uses logged days only. An empty day doesn’t mean you ate nothing.</p></> : <p className="insights-empty">No meals logged in this range. Your calorie chart will appear as you log.</p>}
         </div>
 
         <div className="progress-card">
           <h2 className="progress-card-title">Most logged</h2>
-          <p className="page-sub">Foods you reach for often.</p>
+          <p className="page-sub">Foods you reach for often · All time</p>
           {mostLogged.length === 0 ? (
             <p className="page-sub">Nothing logged yet.</p>
           ) : (
@@ -291,7 +289,8 @@ export function ProgressPage() {
 
         <div className="progress-card">
           <h2 className="progress-card-title">Ticket archive</h2>
-          <p className="page-sub">Past days you showed up.</p>
+          <p className="page-sub">Your eight most recent logged days · All time</p>
+          {archiveDays.length === 0 && <p className="insights-empty">Your logged days will appear here.</p>}
           <div className="torn-archive">
             {archiveDays.map(day => (
               <div key={day} className="torn-stub">{day}</div>
@@ -333,26 +332,7 @@ export function ProgressPage() {
 
       </main>
 
-      {showLog && (
-        <div className="modal-backdrop" onClick={() => setShowLog(false)}>
-          <div className="modal-sheet" onClick={e => e.stopPropagation()}>
-            <h3>Log weight</h3>
-            <div className="field">
-              <label htmlFor="log-weight">Weight (kg)</label>
-              <input
-                id="log-weight"
-                type="number"
-                step="0.1"
-                value={weight}
-                onChange={e => setWeight(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <PressableButton fullWidth label="Save" onClick={logWeight} />
-            <PressableButton fullWidth variant="ghost" label="Cancel" onClick={() => setShowLog(false)} />
-          </div>
-        </div>
-      )}
+      {showLog && <WeightLogSheet initialWeight={sortedWeights.at(-1)?.weightKg ?? state.profile.weightKg} onSave={logWeight} onClose={() => setShowLog(false)} />}
 
       <BottomNav />
     </div>

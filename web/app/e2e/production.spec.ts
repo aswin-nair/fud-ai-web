@@ -8,7 +8,7 @@ test.describe('Production build', () => {
   test('app loads at /app/ and starts first-time guests in onboarding', async ({ page }) => {
     await page.goto('/app/')
     await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 })
-    await expect(page.getByRole('heading', { name: 'Log a meal in seconds' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: 'Food tracking, at your pace.' })).toBeVisible({ timeout: 15_000 })
   })
 
   test('client router works under /app/', async ({ page }) => {

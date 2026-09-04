@@ -13,6 +13,10 @@ test.describe('Swipe-to-edit meal rows', () => {
     // The list renders after the reveal delay; without this the counts below
     // measure an empty page and the assertions are vacuous.
     await page.locator('.swipe-row').first().waitFor({ state: 'visible' })
+    // Pointer coordinates need the row in the viewport, not merely rendered
+    // below Today's summary. Keep both gesture tests independent of its height.
+    await page.locator('.swipe-row').first().scrollIntoViewIfNeeded()
+    await expect(page.locator('.swipe-row').first()).toBeInViewport()
   })
 
   test('a horizontal drag reveals the actions', async ({ page }) => {

@@ -78,13 +78,13 @@ test.describe('Navigation', () => {
     await clearAppStorage(page)
     await page.goto('/')
     await expect(page).toHaveURL(/\/onboarding/)
-    await expect(page.getByRole('heading', { name: 'Log a meal in seconds' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Food tracking, at your pace.' })).toBeVisible()
   })
 
   test('onboarding always offers a way back to an existing account', async ({ page }) => {
     await clearAppStorage(page)
     await page.goto('/onboarding')
-    await page.getByRole('link', { name: 'I already have an account' }).first().click()
+    await page.getByRole('link', { name: 'Already have an account? Sign in' }).click()
     await expect(page).toHaveURL(/\/login/)
   })
 })

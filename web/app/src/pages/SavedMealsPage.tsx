@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { BackLink } from '../components/BackLink'
 import { IconMinus, IconPlus, IconSearch, IconStar } from '../components/icons'
 import { useApp, isFavorite } from '../store/AppContext'
 import { recentMeals, mealKey } from '../lib/meals'
+import { filterMealLibrary } from '../lib/mealLibrary'
 import { MEAL_LABELS } from '../types'
 import type { SavedMeal } from '../types'
 import type { FoodEntry } from '../types'
@@ -41,21 +42,24 @@ function DiscoverCard({
   }
 
   return (
-    <div className="discover-card">
+    <article className="discover-card" aria-label={name}>
       <div className="discover-card-top">
         <span className="discover-card-emoji">{emoji ?? '🍽️'}</span>
         <button
           type="button"
           className={`star-btn${starred ? ' active' : ''}`}
           onClick={onStar}
-          aria-label={starred ? 'Unfavorite' : 'Favorite'}
+          aria-label={`${starred ? 'Unfavorite' : 'Favorite'} ${name}`}
+          aria-pressed={starred}
         >
           <IconStar active={starred} size={17} />
         </button>
       </div>
 
-      <strong className="discover-card-name">{name}</strong>
+      <h3 className="discover-card-name">{name}</h3>
       <span className="discover-card-cals">{Math.round(calories * servings)} kcal</span>
+      <p className="saved-portion-note">Total for {servings}× portion</p>
+      <p className="saved-macro-summary">Protein {Math.round(protein * servings * 10) / 10}g · Carbs {Math.round(carbs * servings * 10) / 10}g · Fat {Math.round(fat * servings * 10) / 10}g</p>
 
       <div className="discover-macro-bar" aria-hidden>
         <span style={{ width: `${ratio.p}%`, background: '#6B9FFF' }} />
@@ -65,13 +69,13 @@ function DiscoverCard({
 
       <div className="discover-card-footer">
         <div className="serving-stepper-compact">
-          <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25} aria-label="Decrease servings"><IconMinus size={12} strokeWidth={2.6} /></button>
+          <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25} aria-label={`Decrease servings for ${name}`}><IconMinus size={12} strokeWidth={2.6} /></button>
           <span className="ssc-val">{servings}×</span>
-          <button type="button" className="ssc-btn" onClick={() => changeServings(servings + 0.25)} aria-label="Increase servings"><IconPlus size={12} strokeWidth={2.6} /></button>
+          <button type="button" className="ssc-btn" onClick={() => changeServings(servings + 0.25)} aria-label={`Increase servings for ${name}`}><IconPlus size={12} strokeWidth={2.6} /></button>
         </div>
-        <button type="button" className="log-pill-btn" onClick={() => onLog(servings)}>Log</button>
+        <button type="button" className="log-pill-btn" aria-label={`Log ${name}, ${servings} times portion`} onClick={() => onLog(servings)}>Log meal</button>
       </div>
-    </div>
+    </article>
   )
 }
 
@@ -90,22 +94,23 @@ function MealRow({
   }
 
   return (
-    <div className="saved-meal-row">
+    <article className="saved-meal-row" aria-label={name}>
       <span className="saved-meal-emoji">{emoji ?? '🍽️'}</span>
       <div className="saved-meal-info">
-        <span className="saved-meal-name">{name}</span>
+        <h3 className="saved-meal-name">{name}</h3>
         <div className="saved-meal-meta">
           <span className="saved-meal-cals">{Math.round(calories * servings)} kcal</span>
           <span className="saved-meal-dot">·</span>
           <span className="saved-meal-macros">
-            <span style={{ color: '#6B9FFF' }}>P {Math.round(protein * servings)}g</span>
+            <span>Protein {Math.round(protein * servings * 10) / 10}g</span>
             {' · '}
-            <span style={{ color: '#FFB347' }}>C {Math.round(carbs * servings)}g</span>
+            <span>Carbs {Math.round(carbs * servings * 10) / 10}g</span>
             {' · '}
-            <span style={{ color: '#FF6B9D' }}>F {Math.round(fat * servings)}g</span>
+            <span>Fat {Math.round(fat * servings * 10) / 10}g</span>
           </span>
         </div>
         <span className="saved-meal-type">{MEAL_LABELS[mealType as keyof typeof MEAL_LABELS] ?? mealType}</span>
+        <p className="saved-portion-note">Total for {servings}× portion</p>
       </div>
       <div className="saved-meal-actions">
         {onStar && (
@@ -113,19 +118,20 @@ function MealRow({
             type="button"
             className={`star-btn${starred ? ' active' : ''}`}
             onClick={onStar}
-            aria-label={starred ? 'Unfavorite' : 'Favorite'}
+            aria-label={`${starred ? 'Unfavorite' : 'Favorite'} ${name}`}
+            aria-pressed={Boolean(starred)}
           >
             <IconStar active={starred} size={17} />
           </button>
         )}
         <div className="serving-stepper-compact">
-          <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25} aria-label="Decrease servings"><IconMinus size={13} strokeWidth={2.6} /></button>
+          <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25} aria-label={`Decrease servings for ${name}`}><IconMinus size={13} strokeWidth={2.6} /></button>
           <span className="ssc-val">{servings}×</span>
-          <button type="button" className="ssc-btn" onClick={() => changeServings(servings + 0.25)} aria-label="Increase servings"><IconPlus size={13} strokeWidth={2.6} /></button>
+          <button type="button" className="ssc-btn" onClick={() => changeServings(servings + 0.25)} aria-label={`Increase servings for ${name}`}><IconPlus size={13} strokeWidth={2.6} /></button>
         </div>
-        <button type="button" className="log-pill-btn" onClick={() => onLog(servings)}>Log</button>
+        <button type="button" className="log-pill-btn" aria-label={`Log ${name}, ${servings} times portion`} onClick={() => onLog(servings)}>Log meal</button>
       </div>
-    </div>
+    </article>
   )
 }
 
@@ -141,14 +147,11 @@ export function SavedMealsPage() {
   // the latter is a sub-page that needs a way back.
   const isSubRoute = location.pathname === '/log/saved'
 
-  const filteredFavorites = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return state.favoriteMeals.filter(meal => {
-      const matchesQuery = !q || meal.name.toLowerCase().includes(q)
-      const matchesFilter = filter === 'all' || meal.mealType === filter
-      return matchesQuery && matchesFilter
-    })
-  }, [state.favoriteMeals, query, filter])
+  const filteredFavorites = useMemo(() => filterMealLibrary(state.favoriteMeals, query, filter), [state.favoriteMeals, query, filter])
+  const filteredRecents = filterMealLibrary(recents, query, filter)
+  const hasFilters = Boolean(query.trim()) || filter !== 'all'
+
+  function resetFilters() { setQuery(''); setFilter('all') }
 
   function logEntry(entry: FoodEntry, servings: number) {
     const cals = Math.round(entry.calories * servings)
@@ -179,19 +182,21 @@ export function SavedMealsPage() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell saved-refresh">
       <main className="app-main motion-stagger">
         {isSubRoute && <BackLink to="/log" />}
         <h1 className="page-title discover-title" style={isSubRoute ? { marginTop: 12 } : undefined}>Saved</h1>
-        <p className="page-sub">Your saved meals, ready to re-log in a tap.</p>
+        <p className="page-sub">Your familiar meals, ready for another day. Adjust the portion, then log.</p>
 
+        <label className="saved-search-label" htmlFor="saved-meal-search">Find a saved or recent meal</label>
         <div className="discover-search">
           <IconSearch size={16} />
           <input
+            id="saved-meal-search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search your saved meals"
-            aria-label="Search saved meals"
+            placeholder="Try a meal name"
+            type="search"
           />
         </div>
 
@@ -208,16 +213,17 @@ export function SavedMealsPage() {
             </button>
           ))}
         </div>
+        {hasFilters && <button type="button" className="saved-reset" onClick={resetFilters}>Clear search and filters</button>}
 
         <div className="discover-section-header">
-          <span className="discover-section-title">Your saved meals</span>
+          <h2 className="discover-section-title">Your saved meals</h2>
           <span className="discover-count-badge">{filteredFavorites.length}</span>
         </div>
 
         {state.favoriteMeals.length === 0 ? (
-          <div className="saved-empty">Star a meal from your food log to save it here.</div>
+          <div className="saved-empty"><strong>Keep your favourites here</strong><p>Star a recent meal below, or log something new to start your collection.</p><Link className="saved-reset" to="/log">Log a meal</Link></div>
         ) : filteredFavorites.length === 0 ? (
-          <div className="saved-empty">No saved meals match "{query || FILTER_LABELS[filter]}".</div>
+          <div className="saved-empty">No saved meals match these filters. Try another name or clear the filters above.</div>
         ) : (
           <div className="discover-grid motion-list">
             {filteredFavorites.map(meal => (
@@ -240,13 +246,14 @@ export function SavedMealsPage() {
         <div className="saved-section" style={{ marginTop: 24 }}>
           <div className="saved-section-header">
             <span className="saved-section-icon">🕐</span>
-            <span className="saved-section-title">Recents</span>
+            <h2 className="saved-section-title">Recents</h2>
+            <span className="discover-count-badge">{filteredRecents.length}</span>
           </div>
-          {recents.length === 0 ? (
-            <div className="saved-empty">No meals logged yet.</div>
+          {filteredRecents.length === 0 ? (
+            <div className="saved-empty">{recents.length ? 'No recent meals match these filters.' : 'Your logged meals will appear here for easy reuse.'}</div>
           ) : (
             <div className="saved-card">
-              {recents.map((entry, i) => (
+              {filteredRecents.map((entry, i) => (
                 <div key={entry.id}>
                   <MealRow
                     emoji={entry.emoji}
@@ -260,7 +267,7 @@ export function SavedMealsPage() {
                     onStar={() => toggleFavorite(entry)}
                     starred={isFavorite(state, entry)}
                   />
-                  {i < recents.length - 1 && <div className="saved-divider" />}
+                  {i < filteredRecents.length - 1 && <div className="saved-divider" />}
                 </div>
               ))}
             </div>
