@@ -36,6 +36,9 @@ describe('daily UI contracts', () => {
     expect(html).toContain('aria-describedby="log-search-hint"')
     expect(html.toLowerCase()).not.toContain('autofocus')
     expect(html).toContain('Review an AI estimate')
+    expect(html).toContain('class="page-heading log-page-heading"')
+    expect(html).toContain('data-method="text_ai"')
+    expect(html).toContain('data-method="photo_ai"')
   })
 
   it('gives recent and Saved meals a separate, named portion button', () => {

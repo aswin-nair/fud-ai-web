@@ -35,6 +35,7 @@ describe('Saved UI', () => {
   it('labels search and gives an empty library a useful action', () => {
     const html = savedHtml()
     expect(html).toContain('for="saved-meal-search"')
+    expect(html).toContain('<header class="page-heading">')
     expect(html).toContain('Find a saved or recent meal')
     expect(html).toContain('href="/log"')
     expect(html).toContain('role="group" aria-label="Filter saved meals by type"')
@@ -65,6 +66,7 @@ describe('Insights UI', () => {
     expect(html).toContain('aria-pressed="true">Week</button>')
     expect(html).toContain('Last 7 days · Applies to the two charts below.')
     expect(html).toContain('All time')
+    expect(html).toContain('class="progress-card consistency-card"')
   })
   it('does not present profile defaults as observed averages or changes', () => {
     const html = insightsHtml()

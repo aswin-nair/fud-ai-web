@@ -62,9 +62,9 @@ function DiscoverCard({
       <p className="saved-macro-summary">Protein {Math.round(protein * servings * 10) / 10}g · Carbs {Math.round(carbs * servings * 10) / 10}g · Fat {Math.round(fat * servings * 10) / 10}g</p>
 
       <div className="discover-macro-bar" aria-hidden>
-        <span style={{ width: `${ratio.p}%`, background: '#6B9FFF' }} />
-        <span style={{ width: `${ratio.c}%`, background: '#FFB347' }} />
-        <span style={{ width: `${ratio.f}%`, background: '#FF6B9D' }} />
+        <span style={{ width: `${ratio.p}%`, background: 'var(--protein)' }} />
+        <span style={{ width: `${ratio.c}%`, background: 'var(--carbs)' }} />
+        <span style={{ width: `${ratio.f}%`, background: 'var(--fat)' }} />
       </div>
 
       <div className="discover-card-footer">
@@ -185,8 +185,10 @@ export function SavedMealsPage() {
     <div className="app-shell saved-refresh">
       <main className="app-main motion-stagger">
         {isSubRoute && <BackLink to="/log" />}
-        <h1 className="page-title discover-title" style={isSubRoute ? { marginTop: 12 } : undefined}>Saved</h1>
-        <p className="page-sub">Your familiar meals, ready for another day. Adjust the portion, then log.</p>
+        <header className="page-heading" style={isSubRoute ? { marginTop: 12 } : undefined}>
+          <h1 className="page-title discover-title">Saved</h1>
+          <p className="page-sub">Your familiar meals, ready for another day. Adjust the portion, then log.</p>
+        </header>
 
         <label className="saved-search-label" htmlFor="saved-meal-search">Find a saved or recent meal</label>
         <div className="discover-search">

@@ -143,15 +143,15 @@ export function ProgressPage() {
     <div className="app-shell progress-shell insights-refresh">
       <main className="app-main progress-main motion-stagger">
 
-        <div className="progress-page-header">
+        <header className="progress-page-header page-heading">
           <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
           <p className="insights-intro">See your routine over time, one logged day at a time.</p>
-        </div>
+        </header>
 
 
         {/* §9.3: consistency leads. Calories and weight are downstream of the
             habit, so the habit is what the page opens with. */}
-        <div className="progress-card">
+        <div className="progress-card consistency-card">
           <div className="progress-card-header">
             <h2 className="progress-card-title">Consistency</h2>
             <span className="consistency-streak">{streak}-day streak</span>

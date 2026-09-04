@@ -232,16 +232,13 @@ export function SettingsPage() {
       <main className="app-main">
         <header className="you-header">
           <div>
-            <p className="you-eyebrow">Your space</p>
+            <p className="you-eyebrow">Your profile</p>
             <h1 className="page-title">You</h1>
-            <p className="page-sub">Make Fud AI feel like you.</p>
+            <p className="page-sub">{profile.name || user?.name || 'Your food journal'}</p>
           </div>
           <div className="you-avatar" aria-hidden="true">{userInitials(profile.name || user?.name || 'You')}</div>
         </header>
-        <div className="you-identity">
-          <strong>{profile.name || user?.name || 'Your food journal'}</strong>
-          <span>{profile.trackingPaused ? 'A little breathing room. Tracking paused.' : 'Your routine. Your pace.'}</span>
-        </div>
+        <p className="you-status">{profile.trackingPaused ? 'Tracking paused · your streak is held' : 'Your routine · your pace'}</p>
         <nav className="you-shortcuts" aria-label="You page sections">
           <a href="#you-profile">Profile &amp; goals</a>
           <a href="#you-preferences">Preferences</a>

@@ -1,0 +1,163 @@
+/* Shared visual finish. Page styles own layout; this layer owns materials,
+   typography and interaction states. Accessibility overrides remain last. */
+.app-shell { background: var(--paper); }
+.app-shell .app-main { padding-inline: 20px; }
+.app-shell :is(.page-title, .screen-title), .today-refresh .today-heading h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2rem, 7vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.055em;
+}
+.app-shell :is(.page-sub, .log-intro, .insights-intro) { color: var(--ink-soft); }
+.app-shell .page-heading {
+  position: relative;
+  margin-bottom: 24px;
+  padding: 4px 0 18px 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.app-shell .page-heading::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--coral-hue);
+}
+.app-shell .page-heading :is(.page-sub, .log-intro, .insights-intro) { margin: 8px 0 0; }
+.app-shell :is(.card, .surface, .progress-card, .settings-card, .discover-card) {
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-card);
+  border-radius: 22px;
+}
+.app-shell .pressable-face {
+  border-radius: 16px;
+  font-family: var(--sans);
+  letter-spacing: -0.015em;
+  box-shadow: none;
+}
+.app-shell .pressable-primary .pressable-face {
+  background: var(--coral-hue);
+  color: var(--on-brand);
+  box-shadow: 0 4px 0 var(--coral-deep);
+}
+.app-shell .pressable-secondary .pressable-face {
+  background: var(--paper-card);
+  border: 1px solid var(--rule-strong);
+  box-shadow: none;
+}
+.app-shell .pressable-primary.is-pressed .pressable-face { box-shadow: 0 1px 0 var(--coral-deep); }
+.app-shell .pressable:disabled .pressable-face { box-shadow: none; }
+.app-shell .field :is(input, select, textarea) {
+  background: var(--paper-card);
+  border: 1px solid var(--rule-strong);
+  box-shadow: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  min-height: 48px;
+}
+.app-shell .field :is(input, select, textarea):focus { border-color: var(--coral-text); box-shadow: 0 0 0 3px var(--coral-soft); }
+.app-shell .bottom-nav-wrap { padding-inline: 12px; }
+.app-shell .bottom-nav {
+  border-radius: 24px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  box-shadow: 0 8px 32px rgba(36, 26, 46, 0.12);
+  gap: 4px;
+  padding: 8px 6px;
+}
+.app-shell .nav-item-inner { font-size: 0.875rem; min-height: 52px; border-radius: 16px; gap: 4px; }
+.app-shell .nav-item { color: var(--ink-soft); }
+.app-shell .nav-item.active { color: var(--coral-text); }
+.app-shell .nav-item.active .nav-item-inner { background: var(--coral-soft); }
+.app-shell .nav-fab {
+  flex-basis: 52px;
+  width: 52px;
+  height: 52px;
+  margin: 0 2px;
+  border-radius: 18px;
+  background: var(--coral-hue);
+  color: var(--on-brand);
+  box-shadow: 0 3px 0 var(--coral-deep);
+}
+.app-shell .nav-fab.active { outline: 2px solid var(--coral-text); outline-offset: 3px; }
+.app-shell .nav-fab:active { box-shadow: 0 1px 0 var(--coral-deep); }
+.app-shell :is(button, a, summary):focus-visible { outline: 3px solid var(--coral-text); outline-offset: 3px; }
+.mascot-say { font-family: var(--mascot-display); }
+.today-refresh .home-counter-chips { padding: 20px 20px 12px; border-bottom: 1px solid var(--rule); }
+.today-refresh .today-heading h1 { margin-top: 2px; }
+.today-refresh .home-chip { background: var(--paper-card); border: 1px solid var(--rule); border-radius: 14px; }
+.today-refresh .home-ring-hero { border-top: 4px solid var(--coral-hue); padding-top: 24px; }
+.today-refresh .calorie-ring-centre { background: var(--paper-card); box-shadow: none; }
+.today-refresh .home-log-cta { background: var(--coral-hue); color: var(--on-brand); border-radius: 14px; box-shadow: 0 4px 0 var(--coral-deep); }
+.today-refresh .home-macro-chip { border-radius: 16px; background: var(--paper-card); }
+.today-refresh .home-macro-chip.tone-protein { border-top: 3px solid var(--protein); }
+.today-refresh .home-macro-chip.tone-carbs { border-top: 3px solid var(--carbs); }
+.today-refresh .home-macro-chip.tone-fat { border-top: 3px solid var(--fat); }
+.today-refresh .home-today-row { background: var(--paper-card); border: 1px solid var(--rule); border-radius: 16px; }
+.today-refresh .home-today-empty { border: 1px dashed var(--rule-strong); border-radius: 16px; background: var(--paper-card); }
+.log-refresh .log-page-heading { margin-top: 8px; }
+.log-refresh .log-method-card { border-radius: 18px; box-shadow: none; transition: transform .18s ease, border-color .18s ease; }
+.log-refresh .log-method-card[data-method="text_ai"] { background: var(--product-dark); color: var(--product-on-dark); border-color: var(--product-dark); }
+.log-refresh .log-method-card[data-method="text_ai"] > span:last-child { color: var(--product-dark-muted); }
+.log-refresh .log-method-card[data-method="text_ai"] .icon-tile { background: var(--coral-hue); color: var(--on-brand); }
+.log-refresh .log-search-input, .saved-refresh .discover-search { border-radius: 14px; background: var(--paper-card); }
+.saved-refresh .discover-card { border-top: 3px solid var(--coral-hue); }
+.saved-refresh .discover-card-emoji, .saved-refresh .saved-meal-emoji { background: var(--paper-deep); border-radius: 12px; }
+.saved-refresh .log-pill-btn { background: var(--product-dark); color: var(--product-on-dark); border-radius: 12px; }
+.saved-refresh .discover-chip.active, .insights-range-control .range-chip.active {
+  background: var(--product-dark);
+  color: var(--product-on-dark);
+  border: 1px solid var(--product-dark);
+}
+.saved-refresh .saved-empty { background: var(--paper-card); border: 1px dashed var(--rule-strong); border-radius: 18px; padding: 20px; font-size: 1rem; line-height: 1.6; }
+.saved-refresh .saved-empty strong { display: block; color: var(--ink); margin-bottom: 6px; }
+.saved-refresh .saved-meal-row { background: var(--paper-card); border: 1px solid var(--rule); border-radius: 18px; margin-block: 10px; }
+.insights-refresh .consistency-card {
+  --ink: var(--product-on-dark);
+  --ink-soft: var(--product-dark-muted);
+  --ink-mute: var(--product-dark-muted);
+  --paper-deep: var(--product-dark-surface);
+  --coral-text: var(--product-dark-accent);
+  --rule: rgba(255, 255, 255, .13);
+  background: var(--product-dark);
+  color: var(--product-on-dark);
+  border-color: var(--product-dark);
+}
+.insights-refresh .consistency-card .consistency-streak { background: var(--product-dark-surface); color: var(--product-on-dark); padding: 6px 10px; border-radius: 10px; }
+.insights-refresh .consistency-card .consistency-number { font-size: 3.5rem; letter-spacing: -.05em; font-weight: 800; }
+.insights-refresh .consistency-card .insights-heat-cell { background: var(--product-dark-surface); }
+.insights-refresh .consistency-card .insights-heat-cell.is-logged { background: var(--product-dark-accent); }
+.insights-refresh .consistency-card .insights-legend i { background: var(--product-dark-surface); }
+.insights-refresh .consistency-card .insights-legend .is-logged { background: var(--product-dark-accent); }
+.insights-refresh .consistency-card :is(.insights-heat-cell.is-future, .insights-legend .is-future) { background: transparent; border-color: var(--product-dark-muted); }
+.insights-refresh .consistency-card .own-past-callout { box-shadow: none; background: var(--product-dark-surface); border: 1px solid var(--rule); }
+.insights-refresh .progress-card:not(.consistency-card) { box-shadow: var(--shadow-card); }
+.you-refresh .you-header > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.you-refresh .you-section-heading h2 { font-size: 1.25rem; font-weight: 750; letter-spacing: -.035em; }
+.you-refresh .you-section-heading p { font-size: .875rem; }
+.you-refresh .settings-section-label { color: var(--ink-soft); font-size: .875rem; }
+.you-refresh .settings-goal-card:first-child { background: var(--coral-soft); border-color: transparent; }
+.you-refresh .settings-goal-value { font-weight: 750; letter-spacing: -.04em; }
+.you-refresh .you-shortcuts a { border-radius: 12px; font-weight: 500; }
+.you-refresh .you-save-bar { padding: 10px 0; }
+.you-refresh .you-disclosure { border-radius: 18px; box-shadow: var(--shadow-sm); }
+.you-refresh .settings-input, .you-refresh .settings-select, .you-refresh .settings-textarea { border-radius: 10px; background: var(--paper); }
+.setup-refresh .onboarding-title, .welcome-refresh .welcome-title { font-weight: 800; letter-spacing: -.045em; }
+.setup-refresh .onboarding-chip.active, .setup-refresh .activity-option.active { background: var(--coral-soft); border-color: var(--coral-text); }
+@media (hover: hover) {
+  .app-shell .pressable-primary:hover:not(:disabled) .pressable-face { background: var(--coral-start); }
+  .app-shell .nav-item:hover .nav-item-inner { background: var(--paper-deep); }
+}
+@media (min-width: 768px) {
+  .app-shell:not(.welcome-shell):not(.setup-refresh) { border-inline: 1px solid var(--rule); }
+}
+@media (max-width: 350px) {
+  .app-shell .app-main { padding-inline: 16px; }
+  .app-shell .bottom-nav-wrap { padding-inline: 8px; }
+  .app-shell .bottom-nav { gap: 0; padding-inline: 4px; }
+  .app-shell .nav-fab { flex-basis: 48px; width: 48px; height: 48px; margin-inline: 0; }
+}

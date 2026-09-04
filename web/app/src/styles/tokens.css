@@ -13,8 +13,8 @@
      palette instead of being repainted one by one. */
   --cobalt: var(--coral-hue);
 
-  --paper: var(--enamel);
-  --paper-deep: #FFEFE0;
+  --paper: #F7F8FA;
+  --paper-deep: #F0F1F4;
   --paper-warm: #FFFFFF;
   --paper-card: #FFFFFF;
   --ink-soft: #6D5C66;
@@ -46,15 +46,21 @@
   --gradient-calorie: linear-gradient(160deg, #FF9070, #F0663C);
   --green-goal: var(--herb);
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --mascot-display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
   --serif: var(--display);
   --mono: 'Plus Jakarta Sans', ui-monospace, monospace;
   --radius: 16px;
   --radius-sm: 12px;
   --nav-h: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --shadow-card: 0 14px 28px rgba(36, 26, 46, 0.11);
-  --shadow-sm: 0 3px 10px rgba(36, 26, 46, 0.07);
+  --shadow-card: 0 6px 24px rgba(36, 26, 46, 0.045);
+  --shadow-sm: 0 2px 8px rgba(36, 26, 46, 0.04);
+  --product-dark: #241A2E;
+  --product-on-dark: #FFFFFF;
+  --product-dark-muted: #D4CBD9;
+  --product-dark-surface: #403449;
+  --product-dark-accent: #FFB49E;
   --shadow-pill: 0 10px 22px rgba(255, 107, 74, 0.30);
   --skeleton-base: var(--chalk);
   --skeleton-shine: rgba(255, 255, 255, 0.85);
@@ -97,9 +103,9 @@
   --text-display: 2rem;
   --text-title: 1.25rem;
   --text-subtitle: 1.06rem;
-  --text-body: 0.94rem;
-  --text-label: 0.82rem;
-  --text-caption: 0.7rem;
+  --text-body: 1rem;
+  --text-label: 0.875rem;
+  --text-caption: 0.75rem;
 
   --motion-press: 100ms;
   --motion-fill: 600ms;

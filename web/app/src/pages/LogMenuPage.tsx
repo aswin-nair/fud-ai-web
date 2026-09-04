@@ -145,12 +145,14 @@ export function LogMenuPage() {
       )}
       <main className="app-main motion-stagger">
         <BackLink to="/" />
-        <h1 className="page-title" style={{ marginTop: 12 }}>Log a meal</h1>
-        <p className="log-intro">Something new, or a familiar favourite?</p>
+        <header className="page-heading log-page-heading">
+          <h1 className="page-title">Log a meal</h1>
+          <p className="log-intro">Something new, or a familiar favourite?</p>
+        </header>
 
         <nav className="log-method-grid" aria-label="Ways to log a meal">
           {OTHER_WAYS.map(opt => (
-            <Link key={opt.to} to={opt.to} className="log-method-card"
+            <Link key={opt.to} to={opt.to} className="log-method-card" data-method={opt.method}
               onClick={() => selectLogMethod(opt.method)}>
               <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={22} /></span>
               <strong>{opt.title}</strong>
