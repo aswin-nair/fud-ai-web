@@ -154,7 +154,7 @@ export function LogMenuPage() {
           {OTHER_WAYS.map(opt => (
             <Link key={opt.to} to={opt.to} className="log-method-card" data-method={opt.method}
               onClick={() => selectLogMethod(opt.method)}>
-              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={22} /></span>
+              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={28} /></span>
               <strong>{opt.title}</strong>
               <span>{opt.desc}</span>
             </Link>

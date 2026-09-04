@@ -17,6 +17,12 @@ const renderPage = () => renderToStaticMarkup(createElement(MemoryRouter, { init
 beforeEach(() => { state = freshState() })
 
 describe('You page UI', () => {
+  it('respects Hide Momo for the decorative profile sticker', () => {
+    expect(renderPage()).toContain('class="momo-sticker" aria-hidden="true"')
+    state.gamification.mascotActivity = 'off'
+    expect(renderPage()).not.toContain('class="momo-sticker"')
+  })
+
   it('puts profile and preferences before Momo and account actions', () => {
     const html = renderPage()
     const sections = ['you-profile', 'you-preferences', 'you-momo', 'you-ai', 'you-account', 'you-data']

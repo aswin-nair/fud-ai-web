@@ -13,8 +13,8 @@
      palette instead of being repainted one by one. */
   --cobalt: var(--coral-hue);
 
-  --paper: #F7F8FA;
-  --paper-deep: #F0F1F4;
+  --paper: #FFF7E9;
+  --paper-deep: #FCECD3;
   --paper-warm: #FFFFFF;
   --paper-card: #FFFFFF;
   --ink-soft: #6D5C66;
@@ -46,7 +46,7 @@
   --gradient-calorie: linear-gradient(160deg, #FF9070, #F0663C);
   --green-goal: var(--herb);
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
   --mascot-display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
   --serif: var(--display);
   --mono: 'Plus Jakarta Sans', ui-monospace, monospace;
@@ -54,8 +54,14 @@
   --radius-sm: 12px;
   --nav-h: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --shadow-card: 0 6px 24px rgba(36, 26, 46, 0.045);
-  --shadow-sm: 0 2px 8px rgba(36, 26, 46, 0.04);
+  --shadow-card: 5px 5px 0 #241A2E;
+  --shadow-sm: 3px 3px 0 #241A2E;
+  --fun-yellow: #FFDF5D;
+  --fun-green: #BDEE69;
+  --fun-blue: #B9DAFF;
+  --fun-pink: #FFC4E3;
+  --fun-lilac: #CFB7FF;
+  --fun-outline: 2px solid #241A2E;
   --product-dark: #241A2E;
   --product-on-dark: #FFFFFF;
   --product-dark-muted: #D4CBD9;

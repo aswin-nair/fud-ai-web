@@ -190,7 +190,8 @@ export function MascotOverlay() {
   const muted = state.profile.mascotMuted === true
   mutedRef.current = muted
   const reduced = motionReduced || state.profile.mascotReducedMotion === true || activity === 'off'
-  const quiet = location.pathname.startsWith('/support')
+  // Login owns an inline guide; a second floating Momo would compete with it.
+  const quiet = location.pathname.startsWith('/support') || authScreen
     || location.pathname.startsWith('/onboarding')
     || location.pathname.startsWith('/settings')
     || location.pathname.startsWith('/coach')

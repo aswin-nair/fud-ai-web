@@ -1,10 +1,7 @@
 import { useId } from 'react'
 
 import type { Mood } from '../mascot/behaviors'
-
-// Temporary preview asset: replacing this file with the licensed export keeps
-// every Momo usage and behaviour wired without another component change.
-const MASCOTVIBE_PREVIEW = `${import.meta.env.BASE_URL}mascots/momo-mascotvibe-preview-watermarked.png`
+import { momoExpression } from '../mascot/expressions'
 
 /**
  * Momo is a hand-drawn dumpling with a recognisable pleated silhouette. Her
@@ -20,11 +17,14 @@ export function Momo({
   const rawId = useId().replace(/:/g, '')
   const doughId = `momo-dough-${rawId}`
   const cheekId = `momo-cheek-${rawId}`
-  const blush = mood === 'excited' || mood === 'proud' || mood === 'cozy'
-  const blinking = pose === 'idle_blink'
-  const celebrating = pose === 'celebrate_small' || pose === 'celebrate_big' || mood === 'proud'
-  const startled = pose === 'poke_hop' || pose === 'poke_squish' || pose === 'poke_tip'
-  const sleepy = mood === 'sleepy'
+  const expression = momoExpression(mood, pose, thinking)
+  const blush = expression === 'happy' || expression === 'wink' || mood === 'cozy'
+  const blinking = expression === 'blink'
+  const celebrating = expression === 'happy'
+  const startled = expression === 'surprised'
+  const sleepy = expression === 'sleepy'
+  const winking = expression === 'wink'
+  const thoughtful = expression === 'thinking'
   const waving = pose === 'wave_at_user'
   const lookingAround = pose === 'look_around'
   const stretching = pose === 'stretch'
@@ -40,7 +40,8 @@ export function Momo({
       viewBox="0 0 100 108"
       width="100%"
       height="100%"
-      className={`momo-art mascotvibe-momo mood-${mood} pose-${pose}${thinking ? ' is-thinking' : ''}`}
+      className={`momo-art expression-momo mood-${mood} pose-${pose}${thinking ? ' is-thinking' : ''}`}
+      data-expression={expression}
       aria-hidden
     >
       <defs>
@@ -55,19 +56,8 @@ export function Momo({
         </radialGradient>
       </defs>
 
-      <image
-        className="momo-mascotvibe-image"
-        href={MASCOTVIBE_PREVIEW}
-        x="-60"
-        y="-12"
-        width="220"
-        height="120"
-        preserveAspectRatio="xMidYMid meet"
-      />
-
-      {/* The preview is one flat raster, so its hidden vector arms cannot
-          articulate. These small, visible motion marks combine with the
-          image-level tilt/ stretch to make the hand-led poses read honestly. */}
+      {/* Reuse the editable character beneath the old bitmap preview so the
+          eyes, mouth, eyebrows and arms can genuinely change with reactions. */}
       {waving && (
         <g className="momo-raster-gesture-cues momo-raster-wave-cues">
           <path d="M11 61Q5 57 4 50M16 57Q14 50 17 45" />
@@ -154,35 +144,40 @@ export function Momo({
             </g>
           ) : blinking ? (
             <g className="momo-blink-eyes"><path d="M32 61h12M56 61h12" /></g>
+          ) : celebrating ? (
+            <g className="momo-happy-eyes"><path d="M32 62q6-8 12 0M56 62q6-8 12 0" /></g>
           ) : (
             <g className="momo-open-eyes">
               <ellipse cx="38" cy="60" rx={startled ? 6 : 5.4} ry={startled ? 7 : 6.2} />
-              <ellipse cx="62" cy="60" rx={startled ? 6 : 5.4} ry={startled ? 7 : 6.2} />
+              {!winking && <ellipse cx="62" cy="60" rx={startled ? 6 : 5.4} ry={startled ? 7 : 6.2} />}
               <g className="momo-pupils">
                 <circle cx="38" cy="61" r="3.1" />
-                <circle cx="62" cy="61" r="3.1" />
+                {!winking && <circle cx="62" cy="61" r="3.1" />}
                 <circle cx="36.8" cy="59.4" r="1.25" className="momo-eye-glint" />
-                <circle cx="60.8" cy="59.4" r="1.25" className="momo-eye-glint" />
+                {!winking && <circle cx="60.8" cy="59.4" r="1.25" className="momo-eye-glint" />}
               </g>
-              <path className="momo-lash" d="M32 55l-2-2M68 55l2-2" />
+              <path className="momo-lash" d={winking ? 'M32 55l-2-2' : 'M32 55l-2-2M68 55l2-2'} />
+              {winking && <path className="momo-wink-eye" d="M56 60q6 6 12 0" />}
             </g>
           )}
 
-          <path className="momo-brow momo-brow-left" d={startled ? 'M32 49q6-3 12 0' : 'M32 51q6-2 12 0'} />
+          <path className="momo-brow momo-brow-left" d={startled || thoughtful ? 'M32 49q6-3 12 0' : 'M32 51q6-2 12 0'} />
           <path className="momo-brow momo-brow-right" d={startled ? 'M56 49q6-3 12 0' : 'M56 51q6-2 12 0'} />
           {blush && <ellipse cx="28" cy="71" rx="8" ry="5" fill={`url(#${cheekId})`} />}
           {blush && <ellipse cx="72" cy="71" rx="8" ry="5" fill={`url(#${cheekId})`} />}
 
           {startled ? (
             <ellipse className="momo-mouth-fill" cx="50" cy="74" rx="4.2" ry="5.2" />
+          ) : celebrating ? (
+            <path className="momo-happy-mouth" d="M41 72q9 12 18 0Z" />
           ) : (
             <path
               className="momo-mouth"
               d={sleepy
-                ? 'M45 75q5-3 10 0'
-                : celebrating
-                  ? 'M41 72q9 12 18 0'
-                  : mood === 'curious'
+                ? 'M45 74q5 3 10 0'
+                : winking
+                  ? 'M43 74q10 5 16-4'
+                  : thoughtful
                     ? 'M44 74q6 4 12 0'
                     : 'M43 72q7 8 14 0'}
             />
@@ -194,14 +189,6 @@ export function Momo({
         <ellipse cx="34" cy="92" rx="9" ry="5" />
         <ellipse cx="66" cy="92" rx="9" ry="5" />
       </g>
-
-      {(sleepy || blinking) && (
-        <g className="momo-mascotvibe-eyes">
-          <ellipse className="momo-mascotvibe-eye-cover" cx="36" cy="48" rx="6" ry="5.5" />
-          <ellipse className="momo-mascotvibe-eye-cover" cx="64" cy="48" rx="6" ry="5.5" />
-          <path d={sleepy ? 'M31 48q5 5 10 0M59 48q5 5 10 0' : 'M31 48h10M59 48h10'} />
-        </g>
-      )}
 
       {celebrating && (
         <g className="momo-celebration-sparks">

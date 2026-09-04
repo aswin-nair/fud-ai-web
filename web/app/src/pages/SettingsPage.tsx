@@ -39,6 +39,7 @@ import { clearAccountSeen } from '../lib/guestMode'
 import { COSMETICS, equipCosmetic } from '../lib/enamelEconomy'
 import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/journey'
 import { Momo } from '../components/Momo'
+import { MomoSticker } from '../components/MomoSticker'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="settings-section-label">{children}</h3>
@@ -236,7 +237,7 @@ export function SettingsPage() {
             <h1 className="page-title">You</h1>
             <p className="page-sub">{profile.name || user?.name || 'Your food journal'}</p>
           </div>
-          <div className="you-avatar" aria-hidden="true">{userInitials(profile.name || user?.name || 'You')}</div>
+          <MomoSticker />
         </header>
         <p className="you-status">{profile.trackingPaused ? 'Tracking paused · your streak is held' : 'Your routine · your pace'}</p>
         <nav className="you-shortcuts" aria-label="You page sections">
@@ -274,15 +275,15 @@ export function SettingsPage() {
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Protein</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--protein-text)' }}>{effectiveProtein(profile)}g</strong>
+            <strong className="settings-goal-value">{effectiveProtein(profile)}g</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Carbs</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--carbs-text)' }}>{effectiveCarbs(profile)}g</strong>
+            <strong className="settings-goal-value">{effectiveCarbs(profile)}g</strong>
           </div>
           <div className="settings-goal-card">
             <span className="settings-goal-label">Fat</span>
-            <strong className="settings-goal-value" style={{ color: 'var(--fat-text)' }}>{effectiveFat(profile)}g</strong>
+            <strong className="settings-goal-value">{effectiveFat(profile)}g</strong>
           </div>
         </div>
 

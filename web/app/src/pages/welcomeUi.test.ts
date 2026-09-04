@@ -34,6 +34,8 @@ describe('welcome page UX', () => {
     expect(html).toContain('href="/login"')
     expect(html).toContain('<strong>Sign in</strong>')
     expect(html).not.toContain('onboarding-birthday')
+    expect(html).toContain('class="welcome-collage"')
+    expect(html).toContain('class="momo-sticker" aria-hidden="true"')
   })
 
   it.each([0, 1, 2])('keeps the intro optional on slide %i', index => {

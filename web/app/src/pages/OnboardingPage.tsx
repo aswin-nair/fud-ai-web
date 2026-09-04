@@ -9,6 +9,7 @@ import type { ActivityLevel, Gender, LoggingCommitment, MealType, UserProfile, W
 import { ACTIVITY_LABELS, GOAL_LABELS, MEAL_LABELS } from '../types'
 import { IconChevronLeft, IconChevronRight } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
+import { MomoSticker } from '../components/MomoSticker'
 import {
   computeTargets,
   effectiveProtein,
@@ -33,6 +34,16 @@ import { guestUserId } from '../lib/guestMode'
 
 const STEPS = ['Age', 'About you', 'Body', 'Goal', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
+const MOMO_SETUP_LINES = [
+  'First, let’s check that this app is right for you.',
+  'Tell me a little about you.',
+  'These details help set your starting targets.',
+  'Choose the direction that feels right for you.',
+  'Think about an ordinary week.',
+  'Pick a routine that fits your day.',
+  'Your starting plan is ready. You can change it later.',
+  'One meal, and your journal is off the ground!',
+]
 const GOAL_DESCRIPTIONS: Record<WeightGoal, string> = {
   lose: 'Set a gradual weight-loss target.',
   maintain: 'Keep your current weight as the starting point.',
@@ -297,8 +308,12 @@ export function OnboardingPage() {
           <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
           <span className="welcome-intro-label">Welcome</span>
         </header>
+        <div className="welcome-collage">
         <div className="welcome-image-frame">
           <img key={draft.welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
+        </div>
+          <span className="welcome-food-sticker" aria-hidden="true">🍜</span>
+          <MomoSticker />
         </div>
 
         <section className="welcome-content" aria-labelledby="welcome-heading">
@@ -374,6 +389,10 @@ export function OnboardingPage() {
           </div>
         </div>
 
+        {state.gamification.mascotActivity !== 'off' && <div className="setup-momo-guide">
+          <MomoSticker mood={validationError ? 'curious' : step >= 6 ? 'proud' : 'cozy'} pose="still" />
+          {!state.profile.mascotMuted && <p>{validationError ? 'Let’s check that detail together.' : MOMO_SETUP_LINES[step]}</p>}
+        </div>}
         <form className="setup-form" noValidate onSubmit={event => {
           event.preventDefault()
           if (step === FIRST_MEAL_STEP) finishWithFirstMeal()

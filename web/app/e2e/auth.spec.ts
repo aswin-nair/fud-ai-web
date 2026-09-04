@@ -15,7 +15,7 @@ test.describe('Authentication', () => {
 
   test('shows login page', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByRole('heading', { name: 'Fud AI' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible()
     await expect(page.locator('.auth-tabs').getByRole('button', { name: 'Sign in', exact: true })).toBeVisible()
     await expect(page.locator('.auth-tabs').getByRole('button', { name: 'Sign up' })).toBeVisible()
   })
@@ -30,6 +30,17 @@ test.describe('Authentication', () => {
 
     await page.getByRole('button', { name: 'Get started' }).click()
     await expect(page.getByRole('heading', { name: 'What is your date of birth?' })).toBeVisible()
+  })
+
+  test('Momo closes its eyes for passwords and visibility can be toggled', async ({ page }) => {
+    await page.goto('/login')
+    const password = page.getByLabel('Password', { exact: true })
+    await password.focus()
+    await expect(page.locator('.auth-momo-greeting [data-expression="sleepy"]')).toBeVisible()
+    await page.getByRole('button', { name: 'Show password', exact: true }).click()
+    await expect(password).toHaveAttribute('type', 'text')
+    await page.getByRole('button', { name: 'Hide password', exact: true }).click()
+    await expect(password).toHaveAttribute('type', 'password')
   })
 
   test('rejects mismatched passwords on sign up', async ({ page }) => {

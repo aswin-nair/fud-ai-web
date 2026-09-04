@@ -26,13 +26,10 @@ function contrast(text: string, background: string) {
 }
 
 describe('shared visual theme', () => {
-  it('keeps dark-panel text and coral actions readable', () => {
-    for (const text of ['--product-on-dark', '--product-dark-muted', '--product-dark-accent']) {
-      for (const background of ['--product-dark', '--product-dark-surface']) {
-        expect(contrast(text, background), `${text} on ${background}`).toBeGreaterThanOrEqual(4.5)
-      }
+  it('keeps ink readable on every colourful sticker and action surface', () => {
+    for (const background of ['--fun-yellow', '--fun-green', '--fun-blue', '--fun-pink', '--fun-lilac', '--coral-hue']) {
+      expect(contrast('--ink', background), `Ink on ${background}`).toBeGreaterThanOrEqual(4.5)
     }
-    expect(contrast('--ink', '--coral-hue')).toBeGreaterThanOrEqual(4.5)
   })
 
   it('keeps regular labels readable against both neutral light surfaces', () => {
@@ -43,11 +40,16 @@ describe('shared visual theme', () => {
     }
   })
 
-  it('leaves accessibility rules last and pairs the dark heatmap with its legend', () => {
+  it('leaves accessibility rules last and pairs the colourful heatmap with its legend', () => {
     expect(imports.trim().endsWith("@import './styles/a11y.css';")).toBe(true)
     expect(imports.indexOf('product-ui.css')).toBeGreaterThan(imports.indexOf('you-ui.css'))
-    expect(styles).toContain('.insights-refresh .consistency-card .insights-heat-cell.is-logged { background: var(--product-dark-accent); }')
-    expect(styles).toContain('.insights-refresh .consistency-card .insights-legend .is-logged { background: var(--product-dark-accent); }')
+    expect(styles).toContain('.insights-refresh .consistency-card .insights-heat-cell.is-logged, .insights-refresh .consistency-card .insights-legend .is-logged { background: var(--ink); }')
     expect(styles).toContain('.insights-heat-cell.is-future, .insights-legend .is-future')
+  })
+
+  it('keeps decorative Momo stickers stationary and styles the welcome route too', () => {
+    expect(styles).toContain('.momo-sticker .momo-art, .momo-sticker .momo-art * { animation: none !important; transition: none !important; }')
+    expect(styles).toContain('.welcome-refresh .welcome-content')
+    expect(styles).toContain('.setup-refresh .setup-form')
   })
 })
