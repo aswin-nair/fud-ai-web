@@ -25,7 +25,7 @@ const OTHER_WAYS = [
     Icon: IconEdit,
     accent: 'neutral',
     title: 'Describe your meal',
-    desc: 'Type anything — AI estimates your macros',
+    desc: 'Estimate from a description',
     method: 'text_ai',
   },
   {
@@ -33,7 +33,7 @@ const OTHER_WAYS = [
     Icon: IconCamera,
     accent: 'neutral',
     title: 'Snap a photo',
-    desc: 'AI reads the nutrition',
+    desc: 'Review an AI estimate',
     method: 'photo_ai',
   },
   {
@@ -41,7 +41,7 @@ const OTHER_WAYS = [
     Icon: IconStar,
     accent: 'neutral',
     title: 'Saved meals',
-    desc: 'Everything you have kept',
+    desc: 'Choose a familiar meal',
     method: 'saved',
   },
   {
@@ -49,7 +49,7 @@ const OTHER_WAYS = [
     Icon: IconClipboard,
     accent: 'neutral',
     title: 'Manual entry',
-    desc: 'Enter known macros',
+    desc: 'Use a label or known values',
     method: 'manual',
   },
 ] as const
@@ -58,9 +58,8 @@ const OTHER_WAYS = [
 const RECENT_LIMIT = 12
 
 /**
- * Step one of the log flow, per §9.1: search focused on mount, recents above
- * the results, and never a blank screen. Most people eat the same twenty
- * things, so the fast path is picking one of them rather than searching.
+ * Show logging methods before recents without opening the mobile keyboard.
+ * Familiar meals keep their one-tap path, with a visible portion alternative.
  *
  * Typing a bare number turns the same field into Quick add.
  */
@@ -131,7 +130,7 @@ export function LogMenuPage() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell log-refresh">
       {portionFor && (
         <PortionSheet
           name={portionFor.item.name}
@@ -147,17 +146,33 @@ export function LogMenuPage() {
       <main className="app-main motion-stagger">
         <BackLink to="/" />
         <h1 className="page-title" style={{ marginTop: 12 }}>Log a meal</h1>
+        <p className="log-intro">Something new, or a familiar favourite?</p>
+
+        <nav className="log-method-grid" aria-label="Ways to log a meal">
+          {OTHER_WAYS.map(opt => (
+            <Link key={opt.to} to={opt.to} className="log-method-card"
+              onClick={() => selectLogMethod(opt.method)}>
+              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={22} /></span>
+              <strong>{opt.title}</strong>
+              <span>{opt.desc}</span>
+            </Link>
+          ))}
+        </nav>
 
         <div className="log-search-wrap log-hero-target">
+          <label className="log-search-label" htmlFor="log-meal-search">Find a previous meal</label>
           <input
+            id="log-meal-search"
             className="log-search-input"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search your foods, or type calories"
             aria-label="Search your foods, or type calories"
             inputMode="text"
-            autoFocus
+            aria-describedby="log-search-hint"
           />
+          {query && <button type="button" className="log-clear-search" onClick={() => setQuery('')}>Clear search</button>}
+          <p id="log-search-hint" className="log-search-hint">Search recent and Saved meals. A number alone adds calories.</p>
         </div>
 
         {/* A bare number in the search box is a quick add waiting to happen. */}
@@ -179,7 +194,8 @@ export function LogMenuPage() {
           <>
             {recents.length > 0 && (
               <>
-                <p className="eyebrow">Log again</p>
+                <h2 className="eyebrow">Log again</h2>
+                <p className="log-list-hint">Tap a meal to log it, or choose Portion to adjust.</p>
                 <div className="log-pick-list motion-list">
                   {recents.map(entry => (
                     <PickRow
@@ -197,7 +213,7 @@ export function LogMenuPage() {
 
             {favourites.length > 0 && (
               <>
-                <p className="eyebrow">Favourites</p>
+                <h2 className="eyebrow">Favourites</h2>
                 <div className="log-pick-list motion-list">
                   {favourites.map(meal => (
                     <PickRow
@@ -240,39 +256,20 @@ export function LogMenuPage() {
                     emoji={item.emoji}
                     calories={item.calories}
                     onPick={() => logAgain(item, 'search')}
+                    onHold={() => setPortionFor({ item, source: 'search' })}
                   />
                 ))}
               </div>
             ) : (
               <div className="log-empty">
                 <p className="log-empty-sub">
-                  Nothing saved by that name yet. Describe it below and AI will
-                  work out the macros.
+                  No recent or Saved meals match “{query.trim()}”. Choose a logging method above to add something new.
                 </p>
               </div>
             )}
           </>
         )}
 
-        <p className="eyebrow" style={{ marginTop: 24 }}>Other ways to log</p>
-        <div>
-          {OTHER_WAYS.map(opt => (
-            <Link
-              key={opt.to}
-              to={opt.to}
-              className="log-way-row"
-              onClick={() => selectLogMethod(opt.method)}
-            >
-              <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}>
-                <opt.Icon size={18} />
-              </span>
-              <span>
-                <strong>{opt.title}</strong>
-                <span className="page-sub" style={{ margin: 0 }}>{opt.desc}</span>
-              </span>
-            </Link>
-          ))}
-        </div>
       </main>
       <BottomNav />
     </div>
@@ -294,6 +291,7 @@ function PickRow({
 }) {
   const hold = useLongPress(() => onHold?.())
   return (
+    <div className="log-pick-item">
     <button
       type="button"
       className="log-pick-row press-spring"
@@ -304,5 +302,7 @@ function PickRow({
       <span className="log-pick-name">{name}</span>
       <span className="log-pick-kcal">{Math.round(calories)} kcal</span>
     </button>
+    {onHold && <button type="button" className="log-portion-button" onClick={onHold} aria-label={`Adjust portion for ${name}`}>Portion</button>}
+    </div>
   )
 }

@@ -37,7 +37,7 @@ export function DayRing({ progress }: { progress: DayRingProgress }) {
       </div>
       <div className="day-ring-copy">
         <p className="home-today-kicker">YOUR DAY</p>
-        <h1>{progress.complete ? 'You showed up.' : 'Build the day gently.'}</h1>
+        <h2>{progress.complete ? 'You showed up.' : 'Build the day gently.'}</h2>
         <ul className="day-ring-legend">
           {progress.arcs.map((arc, index) => (
             <li key={arc.id} className={arc.value >= 1 ? 'done' : ''}>

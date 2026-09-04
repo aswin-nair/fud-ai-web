@@ -148,7 +148,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   const pendingLevelUp = state.gamification.pendingLevelUp
 
   return (
-    <div className="app-shell home-shell">
+    <div className="app-shell home-shell today-refresh">
       {!paused && pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
       {!paused && celebration && !pendingLevelUp && (
         <LogCelebration
@@ -167,6 +167,10 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       {/* Streak and level are durable context. The day's actual action lives
           in the Day ring below instead of a second points target. */}
       <header className="home-counter-chips">
+        <div className="today-heading">
+          <p className="today-date">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+          <h1>{selectedDayLabel}</h1>
+        </div>
         <button
           type="button"
           className="home-chip"
@@ -175,7 +179,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
           aria-label={`${streak} day streak. Choose date.`}
         >
           <span className="home-chip-icon" aria-hidden>🔥</span>
-          <span className="tabular">{streak}</span>
+          <span className="tabular">{streak}<span className="today-streak-label"> day streak</span></span>
         </button>
         <div className="home-chip" aria-label={`Level ${state.gamification.level}, ${state.gamification.xp} total XP`}>
           <span className="home-chip-icon" aria-hidden>⭐</span>
@@ -229,7 +233,6 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                 only. The nutrition readout remains available just below it. */}
             <div ref={ringAnchor} className="home-ring-anchor">
               <Surface className="home-ring-hero">
-                <DayRing progress={dayProgress} />
                 <div className="home-factual-readout">
                   <CalorieRing
                     consumed={totals.calories}
@@ -241,10 +244,18 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                   <div className="home-factual-copy">
                     <p className="home-ring-say">{snapshotLabel}</p>
                     <p className="home-ring-sub tabular">
-                      {Math.round(totals.calories).toLocaleString()} of {Math.round(calorieTarget).toLocaleString()} {totalDateLabel}
+                      {Math.round(totals.calories).toLocaleString()} of {Math.round(calorieTarget).toLocaleString()} kcal {totalDateLabel}
                     </p>
                   </div>
                 </div>
+                {!guest && <button
+                  type="button"
+                  className="home-log-cta"
+                  onClick={() => { feel('press'); navigate('/log') }}
+                >
+                  <span aria-hidden>＋</span> {selectedDayIsToday ? 'Log a meal' : 'Log a meal today'}
+                </button>}
+                <DayRing progress={dayProgress} />
               </Surface>
             </div>
 
@@ -256,9 +267,10 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               ].map(m => (
                 <div key={m.k} className={`home-macro-chip tone-${m.k}`}>
                   <div className="home-macro-top">
-                    <span className="home-macro-label">{m.label}</span>
+                    <span className="home-macro-label">{m.name}</span>
                     <span className="home-macro-value tabular">{Math.round(m.have)}g</span>
                   </div>
+                  <span className="today-macro-goal">of {Math.round(m.goal)}g</span>
                   <div
                     className="home-macro-track"
                     role="progressbar"
@@ -278,10 +290,10 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
 
             <div className="home-today-list">
               <div className="home-today-head">
-                <h2 className="home-today-kicker">{selectedDayLabel.toUpperCase()}</h2>
+                <h2 className="home-today-kicker">Your meals</h2>
                 <span className="home-today-count">
                   {dayEntries.length === 0
-                    ? 'nothing yet'
+                    ? 'No meals yet'
                     : `${dayEntries.length} ${dayEntries.length === 1 ? 'meal' : 'meals'} · ${Math.round(totals.calories).toLocaleString()} kcal`}
                 </span>
               </div>
@@ -338,13 +350,6 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               variant="extras"
             />
 
-            {!guest && <button
-              type="button"
-              className="home-log-cta"
-              onClick={() => { feel('press'); navigate('/log') }}
-            >
-              <span aria-hidden>＋</span> {selectedDayIsToday ? 'LOG A MEAL' : 'LOG A MEAL TODAY'}
-            </button>}
           </>
         )}
         <div className="home-scroll-pad" />

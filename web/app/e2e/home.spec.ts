@@ -87,9 +87,9 @@ test.describe('Home & food logging', () => {
     await page.getByRole('button', { name: yesterdayLabel }).click()
     await expect(page.getByText('Oatmeal')).toHaveCount(0)
     await expect(page.getByText('Yesterday’s snapshot')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'YESTERDAY' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Yesterday', exact: true })).toBeVisible()
     await expect(page.getByText('Nothing was logged yesterday.')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'LOG A MEAL TODAY' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Log a meal today', exact: true })).toBeVisible()
 
     await page.getByRole('button', { name: 'Choose date' }).click()
     await page.getByRole('button', { name: 'Jump to today' }).click()
