@@ -26,6 +26,12 @@ function contrast(text: string, background: string) {
 }
 
 describe('shared visual theme', () => {
+  it('owns button and field recipes in their component files, after page styles', () => {
+    expect(imports.indexOf('components/buttons.css')).toBeGreaterThan(imports.indexOf('meal-flow.css'))
+    expect(imports.indexOf('components/forms.css')).toBeGreaterThan(imports.indexOf('product-ui.css'))
+    expect(styles).not.toContain('.pressable-face')
+    expect(contrast('--ink-soft', '--disabled-fill')).toBeGreaterThanOrEqual(4.5)
+  })
   it('resolves every stylesheet import from the source folder', () => {
     for (const [, relativePath] of imports.matchAll(/@import ['"]([^'"]+)['"]/g)) {
       expect(existsSync(new URL(`../${relativePath}`, import.meta.url)), relativePath).toBe(true)

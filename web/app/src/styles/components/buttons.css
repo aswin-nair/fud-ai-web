@@ -1,96 +1,28 @@
-/* Clay PressableButton. One inflated face. Press inverts the inner light. */
+/* Shared tactile button: one recipe for account, onboarding and app screens. */
 .pressable {
-  position: relative;
-  display: inline-block;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  font-family: inherit;
+  position: relative; display: inline-block; max-width: 100%; min-width: 0;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  font-family: inherit; -webkit-tap-highlight-color: transparent;
 }
-
 .pressable.is-full { display: block; width: 100%; }
-
-.pressable-shadow {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--clay-radius-lg);
-  pointer-events: none;
-  opacity: 0;
-}
-
+.pressable-shadow { display: none; }
 .pressable-face {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  min-height: 54px;
-  padding: 0 var(--space-xl);
-  border-radius: var(--clay-radius-lg);
-  font-size: var(--text-body);
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  border: none;
-  transform: translateY(0);
-  transition:
-    transform var(--squish-out) var(--squish-ease),
-    box-shadow var(--squish-out) var(--squish-ease);
+  display: flex; align-items: center; justify-content: center; gap: var(--space-sm);
+  min-height: var(--action-height); padding: .75rem var(--button-padding-inline, 1.25rem);
+  border: var(--fun-outline); border-radius: var(--action-radius);
+  font: 600 var(--button-font-size, 1.125rem)/1.3 var(--display);
+  letter-spacing: 0; text-align: center; overflow-wrap: anywhere;
+  transition: transform var(--motion-press) ease, box-shadow var(--motion-press) ease;
 }
-
-.pressable-primary .pressable-face {
-  background: linear-gradient(160deg, var(--clay-coral-lift), var(--clay-coral-base));
-  color: var(--on-brand);
-  box-shadow: var(--clay-coral-raised);
-}
-
-.pressable-secondary .pressable-face {
-  background: linear-gradient(160deg, var(--clay-lift), var(--clay-base));
-  color: var(--ink);
-  box-shadow: var(--clay-e2);
-}
-
-.pressable-destructive .pressable-face {
-  background: var(--danger);
-  color: var(--on-danger);
-  box-shadow:
-    inset 0 6px 10px rgba(255, 255, 255, 0.22),
-    inset 0 -8px 14px var(--danger-deep),
-    0 16px 28px rgba(193, 52, 56, 0.22),
-    0 2px 4px var(--clay-contact);
-}
-
-.pressable-ghost .pressable-face {
-  background: transparent;
-  color: var(--ink-soft);
-  box-shadow: none;
-}
-
-.pressable.is-pressed .pressable-face {
-  transform: scale(0.97) translateY(2px);
-  transition-duration: var(--squish-in);
-}
-
-.pressable-primary.is-pressed .pressable-face { box-shadow: var(--clay-coral-squish); }
-.pressable-secondary.is-pressed .pressable-face { box-shadow: var(--clay-squish); }
-.pressable-destructive.is-pressed .pressable-face {
-  box-shadow:
-    inset 0 8px 14px var(--danger-deep),
-    inset 0 -3px 6px rgba(255, 255, 255, 0.16),
-    0 4px 8px rgba(193, 52, 56, 0.18);
-}
-.pressable-ghost.is-pressed .pressable-face {
-  transform: scale(0.98);
-  box-shadow: none;
-}
-
-.pressable:disabled { opacity: 0.5; cursor: default; }
-.pressable:disabled .pressable-face {
-  box-shadow: none;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pressable-face { transition: none; }
-}
+.pressable-primary .pressable-face { background: var(--coral-hue); color: var(--ink); box-shadow: 0 5px 0 var(--ink); }
+.pressable-secondary .pressable-face { background: var(--fun-yellow); color: var(--ink); box-shadow: 0 4px 0 var(--ink); }
+.pressable-ghost .pressable-face { background: var(--paper-card); color: var(--ink); box-shadow: none; }
+.pressable-destructive .pressable-face { background: var(--danger); color: var(--on-danger); box-shadow: 0 4px 0 var(--ink); }
+.pressable:not(:disabled):not([aria-disabled="true"]):is(.is-pressed, :active) .pressable-face { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.pressable-ghost:not(:disabled):not([aria-disabled="true"]):active .pressable-face { box-shadow: none; }
+.pressable:focus-visible { outline: none; }
+.pressable:focus-visible .pressable-face { outline: var(--focus-ring); outline-offset: 4px; }
+.pressable:is(:disabled, [aria-disabled="true"]) { opacity: 1; cursor: not-allowed; }
+.pressable:is(:disabled, [aria-disabled="true"]) .pressable-face { background: var(--disabled-fill); color: var(--ink-soft); border-color: var(--ink-soft); box-shadow: none; transform: none; }
+.pressable:hover { text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { .pressable-face { transition: none; } }

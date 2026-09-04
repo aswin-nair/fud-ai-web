@@ -53,14 +53,12 @@
 }
 
 .clay-coral.clay-squish:active,
-.clay-coral.clay-squish.is-pressed,
-.pressable-primary.is-pressed .pressable-face {
+.clay-coral.clay-squish.is-pressed {
   box-shadow: var(--clay-coral-squish);
 }
 
 .clay-surface:focus-visible,
 .clay-squish:focus-visible,
-.pressable:focus-visible .pressable-face,
 .path-node:focus-visible .path-node-face,
 .nav-item:focus-visible .nav-item-inner {
   outline: 3px solid var(--cobalt);
@@ -122,9 +120,6 @@
   color: var(--on-brand);
 }
 
-.field input,
-.field select,
-.field textarea,
 .log-search-input,
 .chat-input,
 .clay-input {
@@ -134,9 +129,6 @@
   box-shadow: var(--clay-inset);
 }
 
-.field input:focus,
-.field select:focus,
-.field textarea:focus,
 .log-search-input:focus,
 .chat-input:focus,
 .clay-input:focus {

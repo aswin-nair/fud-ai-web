@@ -70,7 +70,7 @@
   font-size: 0.875rem;
   text-align: left;
 }
-.you-refresh .you-save-bar .pressable-face { padding: 12px 16px; font-size: 0.875rem; }
+.you-refresh .you-save-bar { --button-padding-inline: 1rem; --button-font-size: 1rem; }
 .you-refresh .you-save-error { flex-basis: 100%; min-height: 44px; display: flex; align-items: center; }
 .you-refresh .you-section { scroll-margin-top: 155px; padding-top: 24px; }
 .you-refresh .you-section + .you-section { margin-top: 20px; border-top: 1px solid var(--rule-strong); }
@@ -130,5 +130,5 @@
 }
 @media (max-width: 350px) {
   .you-refresh .you-save-bar { gap: 6px; }
-  .you-refresh .you-save-bar .pressable-face { padding-inline: 10px; }
+  .you-refresh .you-save-bar { --button-padding-inline: .625rem; }
 }

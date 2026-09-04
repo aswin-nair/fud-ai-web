@@ -38,7 +38,7 @@ function ScrollToTop() {
     document.title = `${routeTitle(pathname)} · Fud AI`
 
     const frame = window.requestAnimationFrame(() => {
-      const heading = document.querySelector<HTMLElement>('main h1')
+      const heading = document.querySelector<HTMLElement>('main h1, .app-shell > header h1')
       if (!heading) return
       heading.tabIndex = -1
       heading.focus({ preventScroll: true })

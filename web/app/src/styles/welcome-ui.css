@@ -29,7 +29,6 @@
 .welcome-slide-arrows button:disabled { opacity: .4; cursor: default; }
 .welcome-slide-nav button:focus-visible, .welcome-refresh .welcome-signin-link:focus-visible { outline: 3px solid var(--coral-text); outline-offset: 3px; }
 .welcome-actions { border-top: 1px solid var(--rule); padding-top: 1.25rem; }
-.welcome-refresh .pressable-face { min-height: 52px; font-size: 1rem; }
 .welcome-setup-note { margin: .75rem 0 .25rem; font-size: .875rem; line-height: 1.5; text-align: center; color: var(--ink-soft); }
 .welcome-refresh .welcome-signin-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25rem; min-height: 44px; margin: 0; font-size: .875rem; color: var(--ink-soft); text-decoration: none; }
 .welcome-refresh .welcome-signin-link strong { color: var(--coral-text); text-decoration: underline; text-underline-offset: .2em; }

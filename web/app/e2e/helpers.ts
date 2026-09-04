@@ -4,6 +4,19 @@ export function uniqueEmail(): string {
   return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@fud-ai.test`
 }
 
+/** Measure the resting layout, not an intermediate entrance scale/translation. */
+export async function settlePageLayout(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    const entrances = document.getAnimations().filter(animation => {
+      const effect = animation.effect
+      return effect instanceof KeyframeEffect && effect.target instanceof Element
+        && effect.target.closest('.app-shell') && Number.isFinite(effect.getComputedTiming().endTime)
+    })
+    await Promise.all(entrances.map(animation => animation.finished.catch(() => undefined)))
+  })
+}
+
 export function birthdayYearsAgo(years: number, from = new Date()): string {
   const year = from.getFullYear() - years
   const month = String(from.getMonth() + 1).padStart(2, '0')

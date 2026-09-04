@@ -2,7 +2,8 @@
    Screens relate to each other instead of replacing each other: going deeper
    enters from the right, coming back enters from the left. Only the arriving
    screen animates — a true cross-fade would need both mounted at once, and the
-   direction alone carries almost all of the perceived continuity. */
+   direction alone carries almost all of the perceived continuity. Animate the
+   content, not the shell: transforming the shell displaces fixed navigation. */
 
 .nav-dir { display: contents; }
 
@@ -21,15 +22,15 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-.app-shell {
+.app-shell > .app-main {
   animation: page-enter 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-dir-forward .app-shell {
+.nav-dir-forward .app-shell > .app-main {
   animation: page-enter-forward 0.26s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.nav-dir-back .app-shell {
+.nav-dir-back .app-shell > .app-main {
   animation: page-enter-back 0.26s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
@@ -355,7 +356,8 @@
   .path-node.is-popping .path-node-face,
   .meal-path-mascot,
   .meal-path-progress,
-  .app-shell {
+  .app-shell,
+  .app-shell > .app-main {
     animation: none !important;
     transition: none !important;
   }

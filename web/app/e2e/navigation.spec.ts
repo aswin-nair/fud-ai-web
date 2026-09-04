@@ -9,7 +9,7 @@ test.describe('Navigation', () => {
   test('bottom nav visits all tabs', async ({ page }) => {
     await nav(page).getByRole('link', { name: 'Saved' }).click()
     await expect(page).toHaveURL('/discover')
-    await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Saved', exact: true })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Insights' }).click()
     await expect(page).toHaveURL('/progress')
@@ -31,7 +31,7 @@ test.describe('Navigation', () => {
   test('discover tab and you coach reach their full pages', async ({ page }) => {
     await nav(page).getByRole('link', { name: 'Saved' }).click()
     await expect(page).toHaveURL('/discover')
-    await expect(page.getByRole('heading', { name: 'Saved' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Saved', exact: true })).toBeVisible()
 
     await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
@@ -57,7 +57,7 @@ test.describe('Navigation', () => {
     await page.getByRole('link', { name: /Snap a photo/i }).click()
 
     await expect(page).toHaveURL('/log/photo')
-    await expect(page.getByRole('heading', { name: 'Photo analysis needs setup' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'A little setup for AI' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Set up AI' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Log manually' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Tap to choose a photo' })).toHaveCount(0)
@@ -74,11 +74,13 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('a device that has never held an account still starts at onboarding', async ({ page }) => {
-    await clearAppStorage(page)
+  test('a device that has never held an account still starts at onboarding', async ({ browser }) => {
+    const context = await browser.newContext()
+    const page = await context.newPage()
     await page.goto('/')
     await expect(page).toHaveURL(/\/onboarding/)
     await expect(page.getByRole('heading', { name: 'Food tracking, at your pace.' })).toBeVisible()
+    await context.close()
   })
 
   test('onboarding always offers a way back to an existing account', async ({ page }) => {

@@ -1,7 +1,6 @@
 /* Phase 0 split. Tokens first; motion last. */
 @import './styles/tokens.css';
 @import './styles/base.css';
-@import './styles/components/buttons.css';
 @import './styles/components/nav.css';
 @import './styles/components/toggle.css';
 @import './styles/components/swipe.css';
@@ -29,5 +28,7 @@
 @import './styles/you-ui.css';
 @import './styles/product-ui.css';
 @import './styles/meal-flow.css';
+@import './styles/components/buttons.css';
+@import './styles/components/forms.css';
 @import './styles/icon-motion.css';
 @import './styles/a11y.css';

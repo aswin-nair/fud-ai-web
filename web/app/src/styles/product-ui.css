@@ -1,15 +1,15 @@
 /* Lunchbox maximalism: bright paper, ink edges, sticker geometry.
    Existing page files own the flows; accessibility rules are imported last. */
 .app-shell { background: var(--paper); }
-.app-shell .app-main { padding-inline: 20px; }
+.app-shell .app-main { padding-inline: var(--page-gutter); }
 .app-shell :is(.page-title, .screen-title), .today-refresh .today-heading h1 {
-  font: 700 clamp(2.5rem, 9vw, 3.25rem)/1.06 var(--display);
+  font: 600 var(--page-heading-size)/1.1 var(--display);
   letter-spacing: -.025em;
 }
 .app-shell :is(.page-sub, .log-intro, .insights-intro) { color: var(--ink-soft); }
 .app-shell .page-heading {
-  margin-bottom: 28px;
-  padding: 20px;
+  margin-bottom: var(--section-gap);
+  padding: var(--page-gutter);
   border: var(--fun-outline);
   border-radius: 24px 24px 24px 6px;
   background: var(--fun-yellow);
@@ -20,38 +20,8 @@
   background: var(--paper-card);
   border: var(--fun-outline);
   box-shadow: var(--shadow-card);
-  border-radius: 22px;
+  border-radius: var(--card-radius);
 }
-.app-shell .pressable-face, .welcome-refresh .pressable-face {
-  border: var(--fun-outline);
-  border-radius: 16px;
-  font: 600 1.125rem/1.2 var(--display);
-  letter-spacing: .01em;
-  min-height: 54px;
-}
-.app-shell .pressable-primary .pressable-face, .welcome-refresh .pressable-primary .pressable-face {
-  background: var(--coral-hue);
-  color: var(--ink);
-  box-shadow: 0 5px 0 var(--ink);
-}
-.app-shell .pressable-secondary .pressable-face {
-  background: var(--fun-yellow);
-  color: var(--ink);
-  box-shadow: 0 4px 0 var(--ink);
-}
-.app-shell .pressable-ghost .pressable-face { background: var(--paper-card); box-shadow: none; }
-.app-shell .pressable-destructive .pressable-face { background: var(--danger); color: var(--on-danger); box-shadow: 0 4px 0 var(--ink); }
-.app-shell .pressable.is-pressed .pressable-face, .welcome-refresh .pressable.is-pressed .pressable-face { box-shadow: 0 1px 0 var(--ink); }
-.app-shell .pressable:disabled .pressable-face, .welcome-refresh .pressable:disabled .pressable-face { box-shadow: none; }
-.app-shell .field :is(input, select, textarea) {
-  background: var(--paper-card);
-  border: var(--fun-outline);
-  box-shadow: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  min-height: 48px;
-}
-.app-shell .field :is(input, select, textarea):focus { box-shadow: 0 0 0 4px var(--fun-yellow); }
 .app-shell .bottom-nav-wrap { padding-inline: 12px; }
 .app-shell .bottom-nav {
   border-radius: 24px;
@@ -77,7 +47,7 @@
 }
 .app-shell .nav-fab.active { background: var(--fun-pink); }
 .app-shell .nav-fab:active { box-shadow: 0 1px 0 var(--ink); }
-.app-shell :is(button, a, summary):focus-visible, .welcome-refresh :is(button, a):focus-visible {
+.app-shell :is(button, a, summary):not(.pressable):focus-visible, .welcome-refresh :is(button, a):not(.pressable):focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 4px;
 }
@@ -164,7 +134,7 @@
 .setup-refresh .onboarding-progress { height: 14px; border: var(--fun-outline); background: var(--paper-card); border-radius: 8px; }
 .setup-refresh .onboarding-progress-fill { background: var(--coral-hue); border-right: 2px solid var(--ink); }
 .setup-refresh .setup-form { --ink-soft: var(--ink); --ink-mute: var(--ink); padding: 20px; background: var(--fun-yellow); border: var(--fun-outline); border-radius: 24px; box-shadow: var(--shadow-card); }
-.setup-refresh .onboarding-title { font: 700 clamp(1.875rem, 7vw, 2.5rem)/1.1 var(--display); letter-spacing: -.02em; }
+.setup-refresh .onboarding-title { font: 600 var(--page-heading-size)/1.1 var(--display); letter-spacing: -.02em; }
 .setup-refresh .onboarding-sub { color: var(--ink); }
 .setup-refresh .onboarding-chip, .setup-refresh .activity-option { border: var(--fun-outline); box-shadow: 3px 3px 0 var(--ink); background: var(--paper-card); }
 .setup-refresh .onboarding-chip.active, .setup-refresh .activity-option.active { background: var(--fun-green); padding: 1rem; box-shadow: 1px 1px 0 var(--ink); }
@@ -191,7 +161,7 @@
 .today-refresh .home-ring-hero { --ink-soft: var(--ink); --ink-mute: var(--ink); background: var(--fun-pink); border-radius: 28px 28px 28px 8px; padding: 20px; }
 .today-refresh .home-factual-copy .home-ring-say { font: 600 1.5rem/1.15 var(--display); color: var(--ink); }
 .today-refresh .home-ring-sub { color: var(--ink); }
-.today-refresh .calorie-ring-centre { background: var(--paper-card); box-shadow: none; }
+.today-refresh .calorie-ring-centre { background: transparent; box-shadow: none; }
 .today-refresh .home-log-cta { border: var(--fun-outline); background: var(--fun-yellow); color: var(--ink); box-shadow: 0 4px 0 var(--ink); border-radius: 14px; font: 600 1.25rem/1.2 var(--display); }
 .today-refresh .day-ring { border-color: var(--ink); }
 .today-refresh .day-ring-copy h2 { color: var(--ink); }
@@ -409,7 +379,7 @@
 .auth-momo-greeting { display: flex; gap: 16px; align-items: center; margin: 0 0 20px; }
 .auth-momo-greeting .momo-sticker { width: 88px; height: 94px; flex-basis: 88px; transform: none; background: var(--fun-yellow); border-radius: 24px; }
 .auth-momo-greeting p { flex: 1; min-width: 0; margin: 0; padding: 14px; text-align: left; border: var(--fun-outline); border-radius: 18px 18px 18px 3px; background: var(--fun-blue); color: var(--ink); font: 500 1.125rem/1.3 var(--display); }
-.auth-refresh .login-title { font: 600 clamp(1.875rem, 7vw, 2.5rem)/1.1 var(--display); letter-spacing: -.02em; margin: 0 0 8px; }
+.auth-refresh .login-title { font: 600 var(--page-heading-size)/1.1 var(--display); letter-spacing: -.02em; margin: 0 0 8px; }
 .auth-refresh .login-sub { font-size: 1rem; line-height: 1.5; margin-bottom: 22px; }
 .auth-refresh .auth-tabs { border: var(--fun-outline); background: var(--paper); padding: 5px; gap: 6px; border-radius: 14px; }
 .auth-refresh .auth-tab { min-height: 44px; border: 2px solid transparent; border-radius: 10px; color: var(--ink); font-size: 1rem; }
@@ -417,18 +387,13 @@
 .auth-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
 .auth-refresh .auth-form .field { margin-bottom: 16px; }
 .auth-refresh .field label { display: block; margin-bottom: 7px; font-size: .875rem; font-weight: 700; }
-.auth-refresh .field input { width: 100%; min-height: 52px; border: var(--fun-outline); border-radius: 12px; box-shadow: none; background: var(--paper); padding: 12px 14px; font-size: 1rem; }
-.auth-refresh .field input:focus { border-color: var(--coral-text); box-shadow: 0 0 0 3px var(--coral-soft); outline: none; }
 .auth-password-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; font-size: .875rem; color: var(--ink-soft); }
 .auth-show-password { margin-left: auto; min-height: 44px; color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-.auth-refresh .pressable-face { border: var(--fun-outline); background: var(--coral-hue); color: var(--ink); min-height: 54px; border-radius: 14px; box-shadow: 0 5px 0 var(--ink); font: 600 1.25rem/1.2 var(--display); }
-.auth-refresh .pressable.is-pressed .pressable-face { box-shadow: 0 1px 0 var(--ink); }
-.auth-refresh .pressable:disabled .pressable-face { box-shadow: none; }
 .auth-refresh .login-hint { font-size: .875rem; margin: 18px 0 0; }
 .auth-refresh .login-hint a { display: inline-flex; align-items: center; min-height: 44px; color: var(--coral-text); font-weight: 600; }
 .auth-refresh .login-foot { margin-top: 24px; font-size: .875rem; color: var(--ink-soft); }
 .auth-refresh .error-banner { text-align: left; font-size: 1rem; border: var(--fun-outline); border-radius: 12px; }
-.auth-refresh :is(button, a):focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
+.auth-refresh :is(button, a):not(.pressable):focus-visible { outline: var(--focus-ring); outline-offset: 4px; }
 @media (min-width: 768px) { .auth-refresh { padding-top: 48px; } }
 @media (max-width: 350px) { .auth-refresh .login-card { padding: 18px; } .auth-brand-note { font-size: .875rem; } }
 @media (hover: hover) {

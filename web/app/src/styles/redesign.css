@@ -1,4 +1,3 @@
-.field label,
 .eyebrow {
   display: block;
   font-size: var(--text-caption);
@@ -36,13 +35,6 @@
   border-bottom-width: var(--edge-width);
 }
 
-.pressable-ghost .pressable-face {
-  background: transparent;
-  color: var(--ink-soft);
-  border: none;
-}
-
-.pressable-ghost .pressable-shadow { background: transparent; }
 
 .counter {
   display: flex;
@@ -307,12 +299,6 @@
   margin-bottom: 12px;
 }
 
-.home-log-dock .pressable-face {
-  font-family: var(--display);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
 
 .home-skeleton-chips {
   display: flex;

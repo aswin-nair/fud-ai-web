@@ -442,7 +442,9 @@ function validAISettings(value: unknown, allowApiKey: boolean): string | null {
 }
 
 function collection(value: unknown, check: (item: unknown) => boolean): boolean {
-  return Array.isArray(value) && value.length <= MAX_COLLECTION && value.every(check)
+  // Array.every also passes the index. Do not leak it into validators whose
+  // second parameter is an optional schema (for example validMealBase).
+  return Array.isArray(value) && value.length <= MAX_COLLECTION && value.every(item => check(item))
 }
 
 export function validateAppState(

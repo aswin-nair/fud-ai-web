@@ -2,23 +2,11 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { logManualMeal, nav, signUpAndOnboard } from './helpers'
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
 async function openMealEditor(page: Page, name: string): Promise<void> {
-  const meal = page.getByRole('button', {
-    name: new RegExp(escapeRegExp(name), 'i'),
-  })
+  await expect(page).toHaveURL('/')
+  const meal = page.locator('.home-today-row').filter({ hasText: name })
   await expect(meal).toBeVisible()
   await meal.click()
-  const destination = await Promise.race([
-    page.waitForURL(/\/edit\//).then(() => 'editor' as const),
-    page.getByRole('button', { name: /Edit all/i }).waitFor({ state: 'visible' }).then(() => 'expanded' as const),
-  ])
-  if (destination === 'expanded') {
-    await page.getByRole('button', { name: /Edit all/i }).click()
-  }
   await expect(page).toHaveURL(/\/edit\//)
 }
 
@@ -40,20 +28,31 @@ async function completeReleaseFlow(page: Page, mealName: string): Promise<void> 
   await expect(page).toHaveURL('/')
 
   await openMealEditor(page, editedName)
-  await page.getByRole('button', { name: 'Add to favorites' }).click()
-  await expect(page.getByRole('button', { name: 'Remove from favorites' })).toBeVisible()
-  await page.getByRole('button', { name: 'Save changes' }).click()
+  await page.getByRole('button', { name: 'Add saved entry to favourites' }).click()
+  await expect(page.getByRole('button', { name: 'Remove saved entry from favourites' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Today', exact: true }).click()
 
   await nav(page).getByRole('link', { name: 'Saved' }).click()
   await expect(page).toHaveURL('/discover')
   await expect(page.getByText(editedName, { exact: true }).first()).toBeVisible()
+  await page.reload()
+  await expect(page.getByText(editedName, { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('allowed.has is not a function')).toHaveCount(0)
 
   await nav(page).getByRole('link', { name: 'Today' }).click()
   await openMealEditor(page, editedName)
-  page.once('dialog', dialog => dialog.accept())
-  await page.getByRole('button', { name: 'Delete entry' }).click()
+  await page.locator('.flow-delete > summary').click()
+  await page.getByRole('button', { name: 'Yes, delete entry' }).click()
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('button', { name: new RegExp(`^${escapeRegExp(editedName)}\\s`) })).toHaveCount(0)
+  await expect(page.locator('.home-today-row').filter({ hasText: editedName })).toHaveCount(0)
+
+  await page.locator('.toast').filter({ hasText: `Deleted ${editedName}` }).getByRole('button', { name: 'Undo', exact: true }).click()
+  await openMealEditor(page, editedName)
+  await expect(page.getByLabel('Food name')).toHaveValue(editedName)
+  await page.locator('.flow-delete > summary').click()
+  await page.getByRole('button', { name: 'Yes, delete entry' }).click()
+  await expect(page).toHaveURL('/')
 
   await nav(page).getByRole('link', { name: 'Saved' }).click()
   await expect(page.getByText(editedName, { exact: true }).first()).toBeVisible()
@@ -63,6 +62,7 @@ test.describe('Release journey', () => {
   for (const setup of [
     { name: 'desktop', viewport: { width: 1280, height: 800 } },
     { name: 'mobile', viewport: { width: 390, height: 844 } },
+    { name: 'tablet', viewport: { width: 768, height: 1024 } },
   ] as const) {
     test(`${setup.name}: signup through edit, delete, and Saved`, async ({ page }) => {
       await page.setViewportSize(setup.viewport)

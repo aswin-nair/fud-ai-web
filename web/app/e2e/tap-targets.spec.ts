@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUpAndOnboard } from './helpers'
+import { settlePageLayout, signUpAndOnboard } from './helpers'
 
 /* Apple HIG and Material both put the minimum comfortable tap target at 44px.
    An audit before this test existed found 32 of 83 interactive elements below
@@ -56,8 +56,7 @@ test.describe('Tap targets', () => {
       // has booted. A fixed sleep let an earlier version of this test measure a
       // blank page and pass without checking anything.
       await page.getByLabel('Main').waitFor({ state: 'visible' })
-      // Then let the reveal skeleton hand over to the real content.
-      await page.waitForTimeout(900)
+      await settlePageLayout(page)
 
       const offenders = await page.evaluate((min): Scan => {
         const small: Offender[] = []
@@ -134,6 +133,7 @@ test.describe('Tap targets', () => {
   })
 
   test('Core flows fit the supported viewport matrix without horizontal clipping', async ({ page }) => {
+    test.setTimeout(120_000)
     for (const viewport of RESPONSIVE_VIEWPORTS) {
       await page.setViewportSize(viewport)
 

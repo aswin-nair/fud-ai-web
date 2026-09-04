@@ -31,6 +31,8 @@ a:hover { text-decoration: underline; }
 
 .app-shell {
   min-height: 100dvh;
+  /* Keep entering content inside the screen without making a scroll container. */
+  overflow-x: clip;
   display: flex;
   flex-direction: column;
   max-width: 480px;

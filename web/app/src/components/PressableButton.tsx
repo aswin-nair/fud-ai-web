@@ -61,13 +61,16 @@ export function PressableButton({
         to={disabled ? '#' : to}
         aria-disabled={disabled || undefined}
         onClick={event => {
-          if (disabled) event.preventDefault()
+          if (disabled) { event.preventDefault(); return }
           onClick?.()
         }}
         onPointerDown={press}
         onPointerUp={release}
         onPointerLeave={release}
         onPointerCancel={release}
+        onKeyDown={event => { if (!event.repeat && event.key === 'Enter') press() }}
+        onKeyUp={release}
+        onBlur={release}
         className={classNames}
         {...rest}
       >
@@ -85,6 +88,9 @@ export function PressableButton({
       onPointerUp={release}
       onPointerLeave={release}
       onPointerCancel={release}
+      onKeyDown={event => { if (!event.repeat && (event.key === 'Enter' || event.key === ' ')) press() }}
+      onKeyUp={release}
+      onBlur={release}
       className={classNames}
       {...rest}
     >

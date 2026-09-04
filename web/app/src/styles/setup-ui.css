@@ -56,7 +56,6 @@
 .setup-meal-review small { flex-basis: 100%; font-size: .875rem; color: var(--ink-soft); }
 .setup-refresh .onboarding-actions { align-items: stretch; padding-top: 1.5rem; gap: .75rem; }
 .setup-refresh .onboarding-actions > .is-full { flex: 1; width: auto; }
-.setup-refresh .onboarding-actions .pressable-face { min-height: 52px; font-size: 1rem; }
 .setup-next-hint { font-size: .875rem; color: var(--ink-soft); text-align: right; margin: .75rem 0 0; }
 .setup-refresh button:focus-visible, .setup-refresh summary:focus-visible, .setup-refresh a:focus-visible { outline: 3px solid var(--coral-text); outline-offset: 3px; }
 @media (min-width: 768px) {

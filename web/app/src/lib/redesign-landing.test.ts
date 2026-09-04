@@ -31,7 +31,8 @@ describe('redesign landing audit', () => {
     expect(pathNode).toMatch(/min-height:\s*44px/)
     expect(counter).toMatch(/min-height:\s*44px/)
     expect(navInner).toMatch(/min-height:\s*44px/)
-    expect(pressable).toMatch(/min-height:\s*5[4-9]px/)
+    expect(pressable).toContain('min-height: var(--action-height)')
+    expect(css).toContain('--action-height: 3.375rem;')
   })
 
   it('keeps over-budget copy on the ink-soft token', () => {

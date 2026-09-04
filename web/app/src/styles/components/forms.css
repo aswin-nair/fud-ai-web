@@ -1,0 +1,32 @@
+/* Field appearance has one owner. Page files retain layout, not focus recipes. */
+:is(.app-shell, .login-page) :is(.field input, .field select, .field textarea, .settings-input, .settings-select, .settings-textarea, .log-search-input, .text-log-input, .chat-input, .clay-input) {
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-height);
+  padding: .75rem .875rem;
+  background: var(--paper-card);
+  color: var(--ink);
+  border: var(--fun-outline);
+  border-radius: var(--control-radius);
+  box-shadow: none;
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+:is(.app-shell, .login-page) .field label {
+  display: block;
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: var(--space-sm);
+}
+:is(.app-shell, .login-page) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):focus {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+:is(.app-shell, .login-page) :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--danger-text); }
+:is(.app-shell, .login-page) :is(input, select, textarea):disabled { background: var(--disabled-fill); color: var(--ink-soft); cursor: not-allowed; }
+.flow-number-wrap input { appearance: textfield; }
+.flow-number-wrap input::-webkit-inner-spin-button, .flow-number-wrap input::-webkit-outer-spin-button { appearance: none; margin: 0; }

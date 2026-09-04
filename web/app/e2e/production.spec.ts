@@ -14,6 +14,9 @@ test.describe('Production build', () => {
   test('client router works under /app/', async ({ page }) => {
     await page.goto('/app/login')
     await expect(page).toHaveURL(/\/app\/login/)
-    await expect(page.getByRole('heading', { name: 'Fud AI' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: 'Welcome back!', exact: true })).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('link', { name: 'Try Fud AI first', exact: true }).click()
+    await expect(page).toHaveURL(/\/app\/onboarding/)
+    await expect(page.getByRole('heading', { name: 'Food tracking, at your pace.' })).toBeVisible()
   })
 })

@@ -3,9 +3,11 @@ import { Counter } from '../components/Counter'
 import { PathNode } from '../components/PathNode'
 import { PressableButton } from '../components/PressableButton'
 import { Surface } from '../components/Surface'
+import { useState } from 'react'
 
 /** Dev-only primitive mount. Not a production route. */
 export function ComponentSheetPage() {
+  const [activations, setActivations] = useState(0)
   return (
     <div className="app-shell">
       <main className="app-main motion-stagger">
@@ -18,10 +20,13 @@ export function ComponentSheetPage() {
         <Surface interactive><p>Pressable clay</p></Surface>
 
         <p className="eyebrow">Buttons</p>
-        <PressableButton label="Primary" />
+        <PressableButton label="Primary" onClick={() => setActivations(value => value + 1)} />
         <PressableButton variant="secondary" label="Secondary" />
         <PressableButton variant="ghost" label="Ghost" />
         <PressableButton variant="destructive" label="Delete" />
+        <PressableButton disabled label="Disabled action" />
+        <PressableButton to="/" disabled label="Disabled link" onClick={() => setActivations(value => value + 1)} />
+        <p role="status">Button activations: {activations}</p>
 
         <p className="eyebrow">Inset field</p>
         <ClayInput aria-label="Clay field" placeholder="Type in clay" />

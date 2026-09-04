@@ -17,6 +17,18 @@ function validState() {
 }
 
 describe('shared AppState runtime contract', () => {
+  it('validates populated favourites without treating array indexes as field schemas', () => {
+    const state = validState()
+    state.favoriteMeals = ['Toast', 'Soup'].map((name, index) => ({
+      id: `saved-${index}`, name, calories: 200, protein: 5, carbs: 30, fat: 7, mealType: 'lunch',
+    }))
+    expect(validateAppState(state, NOW)).toEqual({ ok: true })
+    expect(validateAppState(state, NOW, { allowApiKey: false })).toEqual({ ok: true })
+    const invalid = structuredClone(state) as unknown as Record<string, unknown>
+    ;(invalid.favoriteMeals as Record<string, unknown>[])[1].unexpected = true
+    expect(validateAppState(invalid, NOW)).toEqual({ ok: false, error: 'favoriteMeals is invalid' })
+  })
+
   it('accepts a fresh state with every required nested collection', () => {
     expect(validateAppState(validState(), NOW)).toEqual({ ok: true })
   })
