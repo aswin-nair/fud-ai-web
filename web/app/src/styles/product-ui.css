@@ -152,12 +152,15 @@
 .setup-momo-guide .momo-sticker { width: 70px; height: 76px; flex-basis: 70px; transform: none; border: 0; background: none; box-shadow: none; }
 .setup-momo-guide p { flex: 1; padding: 12px 16px; background: var(--paper-card); border: var(--fun-outline); border-radius: 16px 16px 16px 3px; color: var(--ink); font: 500 1.125rem/1.3 var(--display); }
 /* Today is the open lunchbox: one big readout, three coloured macro tabs. */
-.today-refresh .home-counter-chips { padding: 24px 20px 18px; gap: 10px; background: var(--fun-yellow); border-bottom: var(--fun-outline); }
+.today-refresh .home-counter-chips { padding: 16px 20px; gap: 16px; flex-wrap: nowrap; background: var(--fun-yellow); border-bottom: var(--fun-outline); }
+.today-refresh .today-heading { flex: 1; min-width: 0; }
+.today-badges { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.today-badges .home-chip { padding: 8px 12px; }
 .today-refresh .today-heading h1 { margin: 4px 0 8px; }
 .today-refresh .today-date { color: var(--ink); font-weight: 600; }
 .today-refresh .home-chip { border: var(--fun-outline); border-radius: 12px; background: var(--paper-card); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
 .today-refresh .home-chip:last-child { background: var(--fun-lilac); transform: rotate(2deg); }
-.today-refresh .home-main { padding-top: 20px; }
+.today-refresh .home-main { padding-top: 16px; }
 .today-refresh .home-ring-hero { --ink-soft: var(--ink); --ink-mute: var(--ink); background: var(--fun-pink); border-radius: 28px 28px 28px 8px; padding: 20px; }
 .today-refresh .home-factual-copy .home-ring-say { font: 600 1.5rem/1.15 var(--display); color: var(--ink); }
 .today-refresh .home-ring-sub { color: var(--ink); }
@@ -178,29 +181,30 @@
 .today-refresh .ticket { border: var(--fun-outline); box-shadow: var(--shadow-card); }
 
 /* Today: nutrition first, one primary action, then meals and optional habits. */
-.today-refresh .home-main { display: flex; flex-direction: column; gap: 22px; }
+.today-refresh .home-main { display: flex; flex-direction: column; gap: 18px; }
 .today-refresh .home-main > * { min-width: 0; }
 .today-refresh .home-ring-anchor { margin: 0; }
-.today-refresh .today-nutrition-card { background: var(--fun-yellow); padding: 20px; text-align: left; align-items: stretch; gap: 0; }
+.today-refresh .today-nutrition-card { background: var(--paper-card); padding: 16px; text-align: left; align-items: stretch; gap: 0; }
 .today-summary-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.today-summary-heading h2 { font: 600 1.5rem/1.2 var(--display); }
+.today-summary-heading h2 { font: 600 1.25rem/1.2 var(--display); }
 .today-date-button { width: 44px; height: 44px; border: var(--fun-outline); border-radius: 12px; background: var(--paper-card); flex-shrink: 0; }
-.today-refresh .home-factual-readout { display: flex; align-items: center; justify-content: center; gap: 22px; margin: 20px 0; }
+.today-refresh .home-factual-readout { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 12px 0 16px; }
+.today-refresh .calorie-ring { background: var(--fun-yellow); border-radius: 50%; }
 .today-refresh .home-factual-copy { min-width: 0; }
 .today-energy-value { font: 700 clamp(2.25rem, 8vw, 3rem)/1 var(--display); overflow-wrap: anywhere; }
 .today-energy-value span { display: block; font: 500 1rem/1.5 var(--sans); margin-top: 6px; }
-.today-refresh .home-ring-sub { margin-top: 12px; color: var(--ink); font-size: .875rem; }
+.today-refresh .home-ring-sub { margin-top: 8px; color: var(--ink-soft); font-size: .875rem; }
 .today-refresh .home-log-cta { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; width: 100%; margin: 0; background: var(--coral-hue); font: 600 1.25rem/1.2 var(--display); }
 .today-refresh .home-log-cta > :last-child { margin-left: auto; }
-.today-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.today-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .today-shortcut { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; min-height: 48px; border: var(--fun-outline); border-radius: 12px; color: var(--ink); background: var(--paper-card); font-size: .875rem; font-weight: 600; text-align: center; }
-.today-guide-note { margin: 16px 0 0; text-align: center; font-size: .875rem; }
+.today-guide-note { margin: 12px 0 0; text-align: center; font-size: .875rem; }
 .today-refresh .home-macro-chips { margin: 0; gap: 12px; }
-.today-refresh .home-macro-chip { padding: 14px 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.today-refresh .home-macro-chip { min-width: 0; padding: 12px 10px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
 .today-refresh .home-macro-top { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.today-refresh .home-macro-value { font: 600 1.75rem/1.1 var(--display); overflow-wrap: anywhere; }
+.today-refresh .home-macro-value { font: 600 1.5rem/1.1 var(--display); overflow-wrap: anywhere; }
 .today-refresh .home-macro-track { width: 100%; }
-.today-refresh .home-macro-label { overflow-wrap: anywhere; }
+.today-refresh .home-macro-label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; overflow-wrap: anywhere; letter-spacing: 0; }
 .today-refresh .today-macro-goal { margin: 0; }
 .today-momo-note { display: flex; align-items: center; gap: 18px; padding: 16px; border: var(--fun-outline); border-radius: 22px 22px 22px 6px; background: var(--fun-lilac); }
 .today-momo-note .momo-sticker { width: 70px; height: 78px; flex-basis: 70px; background: var(--paper-card); transform: rotate(-5deg); }
@@ -240,7 +244,7 @@
   .today-refresh .app-main { padding-inline: 12px; }
   .today-refresh .home-factual-readout { gap: 12px; }
   .today-refresh .today-nutrition-card { padding: 14px; }
-  .today-shortcut { flex-direction: column; }
+  .today-shortcut { gap: 5px; padding-inline: 6px; }
   .today-momo-note { padding: 12px; gap: 12px; }
   .habit-milestones { padding: 14px; }
 }
@@ -249,8 +253,8 @@
   .today-refresh .home-main { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-content: start; align-items: start; }
   .today-refresh .home-ring-anchor { grid-column: 1; grid-row: 1 / span 2; }
   .today-refresh .home-macro-chips { grid-column: 2; grid-row: 1; }
-  .today-refresh .today-momo-note { grid-column: 2; grid-row: 2; }
-  .today-refresh .home-today-list { grid-column: 1; }
+  .today-refresh .today-momo-note { grid-column: 1; }
+  .today-refresh .home-today-list { grid-column: 2; grid-row: 2; }
   .today-refresh .habit-milestones { grid-column: 1 / -1; }
   .today-refresh .guest-save-card { grid-column: 1 / -1; grid-row: 1; }
   .today-refresh:has(.guest-save-card) .home-ring-anchor, .today-refresh:has(.guest-save-card) .home-macro-chips, .today-refresh:has(.guest-save-card) .today-momo-note { grid-row: auto; }
@@ -293,6 +297,7 @@
 .toast.toast-error { background: var(--fun-pink); }
 .toast.toast-info { background: var(--fun-blue); }
 .toast-msg { font-size: 1rem; overflow-wrap: anywhere; }
+.toast:not(.toast-error) .toast-msg { font-size: .875rem; }
 .toast-action-btn, .toast-x { min-width: 44px; min-height: 44px; color: var(--ink); flex-shrink: 0; }
 .toast-action-btn { background: var(--paper-card); border: var(--fun-outline); border-radius: 10px; padding: 8px 12px; font-weight: 700; }
 .toast :is(button):focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
@@ -338,7 +343,8 @@
 .insights-range-control .range-chips { padding-bottom: 4px; }
 
 /* You gets a Momo sticker and tabbed-paper section headings. */
-.you-refresh .you-header { background: var(--fun-lilac); color: var(--ink); border: var(--fun-outline); box-shadow: var(--shadow-card); border-radius: 24px 24px 8px 24px; padding: 20px; }
+.you-refresh .you-header { background: var(--fun-lilac); color: var(--ink); border: var(--fun-outline); box-shadow: var(--shadow-card); border-radius: 24px 24px 8px 24px; padding: 16px 20px; }
+.you-refresh .you-header .momo-sticker { width: 84px; height: 88px; flex-basis: 84px; }
 .you-refresh .you-header > div:first-child { min-width: 0; overflow-wrap: anywhere; }
 .you-refresh .you-header :is(.page-title, .page-sub, .you-eyebrow) { color: var(--ink); }
 .you-refresh .you-eyebrow { font-weight: 700; }
@@ -348,19 +354,20 @@
 .you-refresh #you-ai .you-section-heading h2 { background: var(--fun-green); }
 .you-refresh .you-section-heading p { margin-top: 12px; }
 .you-refresh .settings-section-label { font: 500 1.125rem/1.2 var(--display); color: var(--ink); }
-.you-refresh .you-shortcuts { gap: 10px; }
+.you-refresh .you-shortcuts { gap: 8px; }
 .you-refresh .you-shortcuts a { border: var(--fun-outline); box-shadow: 2px 2px 0 var(--ink); border-radius: 10px; color: var(--ink); }
 .you-refresh .you-shortcuts a:nth-child(3n + 1) { background: var(--fun-yellow); }
 .you-refresh .you-shortcuts a:nth-child(3n + 2) { background: var(--fun-blue); }
 .you-refresh .you-shortcuts a:nth-child(3n) { background: var(--fun-pink); }
-.you-refresh .you-save-bar { padding: 12px 0; border-bottom: var(--fun-outline); }
-.you-refresh .settings-goals-grid { gap: 12px; }
-.you-refresh .settings-goal-card { border: var(--fun-outline); box-shadow: 3px 3px 0 var(--ink); background: var(--fun-yellow); }
+.you-refresh .you-shortcuts a[aria-current="location"], .you-refresh .you-shortcuts a[aria-current="location"]:hover { background: var(--ink); color: var(--paper-card); box-shadow: none; }
+.you-refresh .you-save-bar { padding: 8px 0; border-bottom: 0; }
+.you-refresh .settings-goals-grid { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.5rem), 1fr)); }
+.you-refresh .settings-goal-card { min-width: 0; padding: 12px 8px; border: var(--fun-outline); box-shadow: 3px 3px 0 var(--ink); background: var(--fun-yellow); }
 .you-refresh .settings-goal-card:nth-child(2) { background: var(--fun-blue); }
 .you-refresh .settings-goal-card:nth-child(3) { background: var(--fun-pink); }
 .you-refresh .settings-goal-card:nth-child(4) { background: var(--fun-green); }
 .you-refresh .settings-goal-label { color: var(--ink); }
-.you-refresh .settings-goal-value { font: 600 2rem/1.15 var(--display); }
+.you-refresh .settings-goal-value { font: 600 clamp(1.25rem, 5vw, 1.5rem)/1.3 var(--display); overflow-wrap: anywhere; }
 .you-refresh .you-disclosure { border: var(--fun-outline); box-shadow: var(--shadow-sm); background: var(--fun-green); }
 .you-refresh .you-disclosure > summary { color: var(--ink); }
 .you-refresh .you-disclosure > summary span { color: var(--ink); }

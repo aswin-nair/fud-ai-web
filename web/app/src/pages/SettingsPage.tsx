@@ -28,8 +28,7 @@ import { clearUserState, exportData, importData } from '../lib/storage'
 import { clearAnalytics, track } from '../lib/analytics'
 import { clearNotificationHistory, requestNotifyPermission } from '../lib/notifications'
 import { userInitials } from '../lib/auth'
-import { IconArrowUpRight, IconCheck, IconChevronRight, IconCoach, IconTrophy } from '../components/icons'
-import { PressableButton } from '../components/PressableButton'
+import { IconArrowUpRight, IconChevronRight, IconCoach, IconTrophy } from '../components/icons'
 import { apiChangePassword, apiDeleteAccount, apiLogoutAll, loadAuthToken, saveAuthToken } from '../lib/apiClient'
 import { isCloudBackend } from '../lib/dataBackend'
 import { deleteLocalAccount } from '../lib/localAuth'
@@ -41,6 +40,7 @@ import { getStreakWithFreezes, getAllBadges, getMonthConsistency } from '../lib/
 import { Momo } from '../components/Momo'
 import { MomoSticker } from '../components/MomoSticker'
 import { RoastPreview } from '../components/RoastPreview'
+import { SettingsNavigation } from '../components/SettingsNavigation'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="settings-section-label">{children}</h3>
@@ -241,21 +241,7 @@ export function SettingsPage() {
           <MomoSticker />
         </header>
         <p className="you-status">{profile.trackingPaused ? 'Tracking paused · your streak is held' : 'Your routine · your pace'}</p>
-        <nav className="you-shortcuts" aria-label="You page sections">
-          <a href="#you-profile">Profile &amp; goals</a>
-          <a href="#you-preferences">Preferences</a>
-          <a href="#you-momo">Momo</a>
-          <a href="#you-ai">AI setup</a>
-          <a href="#you-account">Account</a>
-          <a href="#you-data">Your data</a>
-        </nav>
-        <div className="you-save-bar">
-          <div className="settings-saved-banner" role="status" aria-live="polite">
-            {hasChanges ? 'Unsaved changes' : saved ? <><IconCheck size={16} /> Settings saved</> : 'Settings up to date'}
-          </div>
-          <PressableButton label="Save settings" onClick={saveProfile} disabled={!hasChanges || Boolean(currentProfileIssue)} />
-          {currentProfileIssue && <a className="you-save-error" href="#you-profile">Check your profile to save</a>}
-        </div>
+        <SettingsNavigation hasChanges={hasChanges} saved={saved} invalid={Boolean(currentProfileIssue)} onSave={saveProfile} />
 
         <section className="you-section" id="you-profile" aria-labelledby="you-profile-title" tabIndex={-1}>
           <header className="you-section-heading">

@@ -51,7 +51,8 @@ describe('You page UI', () => {
   it('offers one save action with a persistent live status before the settings', () => {
     const html = renderPage()
     expect(html.match(/>Save settings</g)).toHaveLength(1)
-    expect(html).toContain('role="status" aria-live="polite">Settings up to date')
+    expect(html).toMatch(/role="status" aria-live="polite">[\s\S]*?All saved<\/div>/)
+    expect(html).toContain('aria-current="location">Profile &amp; goals</a>')
     expect(html.indexOf('>Save settings<')).toBeLessThan(html.indexOf('id="you-profile"'))
     expect(html).toMatch(/<button type="button" disabled="" class="pressable/)
   })

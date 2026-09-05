@@ -227,7 +227,7 @@ describe('primary component accessibility contracts', () => {
       }
     }
 
-    expect(readFileSync(`${pagesDir}SettingsPage.tsx`, 'utf8')).toMatch(
+    expect(readFileSync(new URL('./SettingsNavigation.tsx', import.meta.url), 'utf8')).toMatch(
       /className="settings-saved-banner"[^>]*role="status"[^>]*aria-live="polite"/,
     )
     const progress = renderToStaticMarkup(createElement(AnalysisStatus, { method: 'photo', onCancel: vi.fn() }))

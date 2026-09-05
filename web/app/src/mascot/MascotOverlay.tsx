@@ -15,6 +15,7 @@ import {
 import {
   authPosition,
   behaviorByKey,
+  isSafeMascotPosition,
   pickAmbient,
   restPosition,
   roamPosition,
@@ -57,6 +58,7 @@ const BLOCKING_SURFACE_SELECTOR = [
   '.activity-sheet-backdrop',
   '.celebrate-overlay',
   '.levelup-overlay',
+  '.toast',
 ].join(',')
 
 const AVOID_SELECTOR = [
@@ -194,11 +196,14 @@ export function MascotOverlay() {
   const roastEnabled = state.profile.mascotRoasts === true
   mutedRef.current = muted
   const reduced = motionReduced || state.profile.mascotReducedMotion === true || activity === 'off'
-  // Login owns an inline guide; a second floating Momo would compete with it.
+  // Focused flows own their inline guide. Floating speech must not cover fields.
   const quiet = Boolean(state.profile.trackingPaused) || location.pathname.startsWith('/support') || authScreen
     || location.pathname.startsWith('/onboarding')
     || location.pathname.startsWith('/settings')
     || location.pathname.startsWith('/coach')
+    || location.pathname.startsWith('/edit/')
+    || location.pathname === '/review'
+    || location.pathname.startsWith('/log/')
   const aiEnabled = Boolean(
     !muted
     && !roastEnabled
@@ -218,7 +223,7 @@ export function MascotOverlay() {
     aiControllers.current.clear()
     aiRequests.current.clear()
     aiPools.current.clear()
-  }, [roastEnabled, muted, quiet, activity])
+  }, [roastEnabled, muted, quiet, activity, paused])
 
   const place = useCallback((x: number, y: number, ms = MOVE_MS) => {
     const host = hostRef.current
@@ -477,6 +482,7 @@ export function MascotOverlay() {
   }, [activity, contextFor, interactionPaused, muted, paused, play, quiet, reduced, roastEnabled, say, screen, speechCooldownMs])
 
   const respond = useCallback((event: MascotAIEvent) => {
+    if (quiet || paused || activity === 'off' || hasBlockingSurface()) return
     if (event === 'poke' && roastEnabled) { roast(); return }
     const reaction: Partial<Record<MascotAIEvent, BehaviorKey>> = {
       log_success: 'celebrate_small',
@@ -494,7 +500,7 @@ export function MascotOverlay() {
       lastSpokeAt.current = Date.now()
       void deliver(event)
     }
-  }, [deliver, muted, react, roast, roastEnabled])
+  }, [activity, deliver, muted, paused, quiet, react, roast, roastEnabled])
 
   useEffect(() => {
     handle = { react, event: respond }
@@ -632,18 +638,37 @@ export function MascotOverlay() {
   }, [])
 
   useEffect(() => {
+    let frame = 0
     const check = () => {
+      frame = 0
       const keyboard = window.visualViewport
         ? window.innerHeight - window.visualViewport.height > 120
         : false
-      const blocked = keyboard || hasBlockingSurface() || document.visibilityState === 'hidden'
+      let blocked = quiet || activity === 'off' || keyboard || hasBlockingSurface() || document.visibilityState === 'hidden'
+      if (!blocked && !authScreen) {
+        const viewport = { width: window.innerWidth, height: window.innerHeight }
+        const avoid = collectAvoidRects()
+        const rest = restPosition(SIZE, viewport, avoid)
+        // The placement fallback can overlap on dense phones. Step aside until
+        // a clear resting spot opens up; inline Momo remains part of the page.
+        blocked = !isSafeMascotPosition(rest, SIZE, viewport, avoid)
+        if (!blocked && !isSafeMascotPosition(positionRef.current, SIZE, viewport, avoid)) {
+          stopWalk()
+          setBubbleSide(rest.x + SIZE / 2 < viewport.width / 2 ? 'left' : 'right')
+          setBubblePlacement(rest.y < 150 ? 'below' : 'above')
+          place(rest.x, rest.y, 0)
+        }
+      }
       setPaused(blocked)
       if (blocked) stopWalk()
     }
+    const schedule = () => { if (!frame) frame = window.requestAnimationFrame(check) }
     check()
-    window.visualViewport?.addEventListener('resize', check)
-    document.addEventListener('visibilitychange', check)
-    const obs = new MutationObserver(check)
+    window.addEventListener('resize', schedule)
+    window.addEventListener('scroll', schedule, { passive: true, capture: true })
+    window.visualViewport?.addEventListener('resize', schedule)
+    document.addEventListener('visibilitychange', schedule)
+    const obs = new MutationObserver(schedule)
     obs.observe(document.body, {
       childList: true,
       subtree: true,
@@ -651,11 +676,14 @@ export function MascotOverlay() {
       attributeFilter: ['aria-modal', 'class', 'hidden', 'open'],
     })
     return () => {
-      window.visualViewport?.removeEventListener('resize', check)
-      document.removeEventListener('visibilitychange', check)
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('resize', schedule)
+      window.removeEventListener('scroll', schedule, { capture: true })
+      window.visualViewport?.removeEventListener('resize', schedule)
+      document.removeEventListener('visibilitychange', schedule)
       obs.disconnect()
     }
-  }, [stopWalk])
+  }, [activity, authScreen, place, quiet, stopWalk])
 
   useEffect(() => {
     if (reduced || paused || interactionPaused) stopWalk()

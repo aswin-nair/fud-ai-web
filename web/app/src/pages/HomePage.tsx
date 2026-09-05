@@ -170,24 +170,26 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       )}
 
       {/* Streak and level remain context; meal logging is the primary action. */}
-      <header className="home-counter-chips">
+      <header className="home-counter-chips" data-mascot-avoid>
         <div className="today-heading">
           <p className="today-date">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
           <h1>{selectedDayLabel}</h1>
         </div>
-        <button
-          type="button"
-          className="home-chip"
-          ref={streakAnchor}
-          onClick={() => { feel('open'); setShowDatePicker(true) }}
-          aria-label={`${streak} day streak. Choose date.`}
-        >
-          <IconFlame size={22} />
-          <span className="tabular">{streak}<span className="today-streak-label"> day streak</span></span>
-        </button>
-        <div className="home-chip" aria-label={`Level ${state.gamification.level}, ${state.gamification.xp} total XP`}>
-          <IconStar size={22} />
-          <span className="tabular">Level {state.gamification.level}</span>
+        <div className="today-badges">
+          <button
+            type="button"
+            className="home-chip"
+            ref={streakAnchor}
+            onClick={() => { feel('open'); setShowDatePicker(true) }}
+            aria-label={`${streak} day streak. Choose date.`}
+          >
+            <IconFlame size={22} />
+            <span className="tabular">{streak}<span className="today-streak-label"> day streak</span></span>
+          </button>
+          <div className="home-chip" aria-label={`Level ${state.gamification.level}, ${state.gamification.xp} total XP`}>
+            <IconStar size={22} />
+            <span className="tabular">Level {state.gamification.level}</span>
+          </div>
         </div>
       </header>
 
@@ -233,7 +235,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               </Surface>
             )}
             {/* Nutrition stays factual; optional habit progress is separate below. */}
-            <div ref={ringAnchor} className="home-ring-anchor">
+            <div ref={ringAnchor} className="home-ring-anchor" data-mascot-avoid>
               <Surface className="home-ring-hero today-nutrition-card">
                 <div className="today-summary-heading">
                   <h2>{snapshotLabel}</h2>
@@ -267,16 +269,15 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               </Surface>
             </div>
 
-            <div className="home-macro-chips">
+            <div className="home-macro-chips" data-mascot-avoid>
               {[
                 { k: 'protein', Icon: IconProtein, name: 'Protein', have: totals.protein, goal: effectiveProtein(profile) },
                 { k: 'carbs', Icon: IconCarbs, name: 'Carbs', have: totals.carbs, goal: effectiveCarbs(profile) },
                 { k: 'fat', Icon: IconWater, name: 'Fat', have: totals.fat, goal: effectiveFat(profile) },
               ].map(m => (
                 <div key={m.k} className={`home-macro-chip tone-${m.k}`}>
-                  <m.Icon size={24} />
                   <div className="home-macro-top">
-                    <span className="home-macro-label">{m.name}</span>
+                    <span className="home-macro-label"><m.Icon size={16} />{m.name}</span>
                     <span className="home-macro-value tabular">{Math.round(m.have)}g</span>
                   </div>
                   <span className="today-macro-goal">of {Math.round(m.goal)}g</span>
@@ -296,15 +297,6 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                 </div>
               ))}
             </div>
-
-            {state.gamification.mascotActivity !== 'off' && !profile.mascotMuted && <aside className="today-momo-note">
-              <MomoSticker mood={dayEntries.length > 0 ? 'proud' : 'cozy'} />
-              <div><strong>Momo’s little reminder</strong><p>{selectedDayIsToday
-                ? dayEntries.length > 0 ? 'You showed up. That’s the part worth celebrating.' : 'Fancy breakfast, leftover pizza—it all belongs here.'
-                : 'A page from your food story. No grades attached.'}</p>
-                {profile.mascotRoasts && <button type="button" className="today-roast-button" onClick={() => mascotEvent('poke')}>Roast me <IconFlame size={18} /></button>}
-              </div>
-            </aside>}
 
             <div className="home-today-list">
               <div className="home-today-head">
@@ -348,6 +340,15 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                 </div>
               )}
             </div>
+
+            {state.gamification.mascotActivity !== 'off' && !profile.mascotMuted && <aside className="today-momo-note">
+              <MomoSticker mood={dayEntries.length > 0 ? 'proud' : 'cozy'} />
+              <div><strong>Momo’s little reminder</strong><p>{selectedDayIsToday
+                ? dayEntries.length > 0 ? 'You showed up. That’s the part worth celebrating.' : 'Fancy breakfast, leftover pizza—it all belongs here.'
+                : 'A page from your food story. No grades attached.'}</p>
+                {profile.mascotRoasts && <button type="button" className="today-roast-button" onClick={() => mascotEvent('poke')}>Roast me <IconFlame size={18} /></button>}
+              </div>
+            </aside>}
 
             <Ticket
             date={selectedDate}
