@@ -60,7 +60,7 @@ describe('shared visual theme', () => {
 
   it('keeps decorative Momo stickers stationary and styles the welcome route too', () => {
     expect(styles).toContain('.momo-sticker .momo-art, .momo-sticker .momo-art * { animation: none !important; transition: none !important; }')
-    expect(styles).toContain('.welcome-refresh .welcome-content')
-    expect(styles).toContain('.setup-refresh .setup-form')
+    expect(readFileSync(new URL('../styles/welcome-ui.css', import.meta.url), 'utf8')).toContain('.welcome-refresh .welcome-content')
+    expect(readFileSync(new URL('../styles/setup-ui.css', import.meta.url), 'utf8')).toContain('.setup-refresh .setup-form')
   })
 })

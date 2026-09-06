@@ -6,6 +6,7 @@ import { freshState } from '../lib/storage'
 import { createOnboardingDraft } from '../lib/onboarding'
 import { computeTargets } from '../lib/profile'
 import { OnboardingPage } from './OnboardingPage'
+import { OnboardingWelcome } from '../components/OnboardingWelcome'
 
 vi.mock('@assets/welcome-1.webp', () => ({ default: '/welcome-1.webp' }))
 vi.mock('@assets/welcome-2.webp', () => ({ default: '/welcome-2.webp' }))
@@ -26,23 +27,29 @@ const render = () => renderToStaticMarkup(createElement(MemoryRouter, null, crea
 beforeEach(() => { draft = createOnboardingDraft(state.profile) })
 
 describe('welcome page UX', () => {
-  it('offers one primary start action and a returning-user route', () => {
+  it('offers one primary start action for an account already signed in', () => {
     const html = render()
-    expect(html).toContain('<main class="welcome-shell welcome-refresh"')
-    expect(html).toContain('Food tracking, at your pace.')
-    expect(html.match(/>Get started</g)).toHaveLength(1)
+    expect(html).toContain('<main class="welcome-shell welcome-refresh welcome-theme-')
+    expect(html).toContain('Big flavour.')
+    expect(html.match(/>Get started\s*</g)).toHaveLength(1)
+    expect(html).not.toContain('href="/login"')
+    expect(html).not.toContain('onboarding-birthday')
+    expect(html).toContain('class="welcome-scene"')
+    expect(html).toContain('class="momo-sticker" aria-hidden="true"')
+  })
+
+  it('keeps a returning-user route for guests', () => {
+    const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(OnboardingWelcome, {
+      index: 0, signedIn: false, onSlideChange: vi.fn(), onStart: vi.fn(),
+    })))
     expect(html).toContain('href="/login"')
     expect(html).toContain('<strong>Sign in</strong>')
-    expect(html).not.toContain('onboarding-birthday')
-    expect(html).toContain('class="welcome-collage"')
-    expect(html).toContain('class="momo-sticker" aria-hidden="true"')
   })
 
   it.each([0, 1, 2])('keeps the intro optional on slide %i', index => {
     draft.welcomeIndex = index
     const html = render()
-    expect(html).toContain('>Get started<')
-    expect(html).toContain('Intro slides are optional')
+    expect(html).toMatch(/>Get started\s*</)
     expect(html).toContain(`aria-label="Go to slide ${index + 1}:`)
     expect(html.match(/aria-current="step"/g)).toHaveLength(1)
     expect(html).toContain('aria-live="polite" aria-atomic="true"')
@@ -79,7 +86,7 @@ describe('profile setup pages', () => {
     expect(html.match(/<form\b/g)).toHaveLength(1)
     expect(html).toContain('type="submit"')
     expect(html).toContain('Back')
-    expect(html).toContain('href="/login"')
+    expect(html).toContain('Your account is ready')
     expect(html).toContain(`aria-valuenow="${step + 1}"`)
     expect(html.toLowerCase()).not.toContain('autofocus')
   })

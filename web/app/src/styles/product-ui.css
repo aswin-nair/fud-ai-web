@@ -70,87 +70,7 @@
 .momo-sticker .momo-art { filter: none; }
 .momo-sticker .momo-art, .momo-sticker .momo-art * { animation: none !important; transition: none !important; }
 
-/* The cover is a food-photo collage, not a generic dashboard hero. */
-.welcome-refresh {
-  background-color: var(--fun-yellow);
-  background-image: radial-gradient(var(--coral-hue) 1px, transparent 1px);
-  background-size: 18px 18px;
-  border-color: var(--ink);
-}
-.welcome-brand { font: 700 1.875rem/1.1 var(--display); }
-.welcome-refresh .welcome-brand, .setup-refresh .welcome-brand {
-  background: var(--paper-card);
-  padding: 8px 12px;
-  border: var(--fun-outline);
-  border-radius: 12px;
-  box-shadow: 3px 3px 0 var(--ink);
-  transform: rotate(-3deg);
-}
-.welcome-intro-label {
-  background: var(--fun-pink);
-  color: var(--ink);
-  border: var(--fun-outline);
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-weight: 700;
-  transform: rotate(4deg);
-}
-.welcome-collage { position: relative; margin: 20px 6px 24px; }
-.welcome-refresh .welcome-image-frame {
-  height: clamp(160px, 24dvh, 220px);
-  border: 3px solid var(--ink);
-  border-radius: 20px;
-  box-shadow: 5px 6px 0 var(--ink);
-  transform: rotate(-2deg);
-}
-.welcome-collage .momo-sticker { position: absolute; bottom: -18px; right: 6px; background: var(--fun-lilac); }
-.welcome-food-sticker {
-  position: absolute;
-  left: -4px;
-  bottom: -14px;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  font-size: 2.25rem;
-  background: var(--fun-green);
-  border: var(--fun-outline);
-  border-radius: 20px;
-  box-shadow: 3px 3px 0 var(--ink);
-  transform: rotate(8deg);
-}
-.welcome-refresh .welcome-content { padding: 20px; background: var(--paper); border: var(--fun-outline); border-radius: 24px; box-shadow: var(--shadow-card); }
-.welcome-refresh .welcome-kicker { color: var(--ink); font-weight: 700; font-size: .875rem; }
-.welcome-refresh .welcome-title { font: 700 clamp(2.25rem, 9vw, 3rem)/1.04 var(--display); letter-spacing: -.025em; }
-.welcome-refresh .welcome-title, .welcome-refresh .welcome-sub { max-width: none; }
-.welcome-refresh .welcome-slide-arrows button { background: var(--fun-blue); border: var(--fun-outline); box-shadow: 2px 2px 0 var(--ink); border-radius: 12px; }
-.welcome-refresh .welcome-dot > span { border: 1px solid var(--ink); background: var(--paper-card); width: 10px; height: 10px; }
-.welcome-refresh .welcome-dot.active > span { width: 28px; background: var(--coral-hue); }
-.welcome-refresh .welcome-actions { border-top: 2px dashed var(--ink); }
-.setup-refresh { background: var(--paper); }
-.setup-refresh .onboarding-header { padding-block: 24px; }
-.setup-refresh .onboarding-step-label { color: var(--ink); font-weight: 700; }
-.setup-refresh .setup-section-label { padding: 5px 10px; border: var(--fun-outline); border-radius: 9px; background: var(--fun-lilac); color: var(--ink); }
-.setup-refresh .onboarding-progress { height: 14px; border: var(--fun-outline); background: var(--paper-card); border-radius: 8px; }
-.setup-refresh .onboarding-progress-fill { background: var(--coral-hue); border-right: 2px solid var(--ink); }
-.setup-refresh .setup-form { --ink-soft: var(--ink); --ink-mute: var(--ink); padding: 20px; background: var(--fun-yellow); border: var(--fun-outline); border-radius: 24px; box-shadow: var(--shadow-card); }
-.setup-refresh .onboarding-title { font: 600 var(--page-heading-size)/1.1 var(--display); letter-spacing: -.02em; }
-.setup-refresh .onboarding-sub { color: var(--ink); }
-.setup-refresh .onboarding-chip, .setup-refresh .activity-option { border: var(--fun-outline); box-shadow: 3px 3px 0 var(--ink); background: var(--paper-card); }
-.setup-refresh .onboarding-chip.active, .setup-refresh .activity-option.active { background: var(--fun-green); padding: 1rem; box-shadow: 1px 1px 0 var(--ink); }
-.setup-refresh .setup-selected { color: var(--ink); }
-.setup-refresh .setup-note, .setup-refresh .setup-optional { background: var(--paper-card); border: var(--fun-outline); border-radius: 14px; }
-.setup-refresh .onboarding-goal-card, .setup-refresh .setup-meal-review { border: var(--fun-outline); box-shadow: 3px 3px 0 var(--ink); }
-.setup-refresh .onboarding-goal-card:first-child { background: var(--fun-pink); }
-.setup-refresh .onboarding-goal-card:first-child .onboarding-goal-value { color: var(--ink); }
-.setup-refresh .onboarding-goal-card:nth-child(2) { background: var(--fun-blue); }
-.setup-refresh .onboarding-goal-card:nth-child(3) { background: var(--fun-yellow); }
-.setup-refresh .onboarding-goal-card:nth-child(4) { background: var(--fun-green); }
-.setup-refresh .onboarding-goal-label, .setup-refresh .onboarding-goal-unit { color: var(--ink); }
-.setup-refresh .setup-profile-review { background: var(--paper-card); border: var(--fun-outline); }
-.setup-momo-guide { display: flex; align-items: center; gap: 14px; margin: 0 0 20px; }
-.setup-momo-guide .momo-sticker { width: 70px; height: 76px; flex-basis: 70px; transform: none; border: 0; background: none; box-shadow: none; }
-.setup-momo-guide p { flex: 1; padding: 12px 16px; background: var(--paper-card); border: var(--fun-outline); border-radius: 16px 16px 16px 3px; color: var(--ink); font: 500 1.125rem/1.3 var(--display); }
+/* Onboarding appearance is owned by welcome-ui.css and setup-ui.css. */
 /* Today is the open lunchbox: one big readout, three coloured macro tabs. */
 .today-refresh .home-counter-chips { padding: 16px 20px; gap: 16px; flex-wrap: nowrap; background: var(--fun-yellow); border-bottom: var(--fun-outline); }
 .today-refresh .today-heading { flex: 1; min-width: 0; }
@@ -412,9 +332,7 @@
   .app-shell .bottom-nav-wrap { padding-inline: 8px; }
   .app-shell .bottom-nav { gap: 0; padding-inline: 4px; }
   .app-shell .nav-fab { flex-basis: 48px; width: 48px; height: 48px; margin-inline: 0; }
-  .welcome-refresh .welcome-content, .setup-refresh .setup-form { padding: 16px; }
 }
 @media (min-width: 768px) {
   .app-shell:not(.setup-refresh) { border-inline: var(--fun-outline); }
-  .welcome-refresh, .setup-refresh { border: var(--fun-outline); box-shadow: 8px 8px 0 var(--ink); }
 }

@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import welcome1 from '@assets/welcome-1.webp'
-import welcome2 from '@assets/welcome-2.webp'
-import welcome3 from '@assets/welcome-3.webp'
 import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
 import type { ActivityLevel, Gender, LoggingCommitment, MealType, UserProfile, WeightGoal } from '../types'
 import { ACTIVITY_LABELS, GOAL_LABELS, MEAL_LABELS } from '../types'
-import { FoodIcon, IconChevronLeft, IconChevronRight, IconMeal, IconSparkles, IconSprout, IconRest, IconWalk, IconWorkout, IconEnergy, IconFlame } from '../components/icons'
+import { IconCheck, IconShield, IconChevronLeft, IconChevronRight, IconMeal, IconSparkles, IconSprout, IconRest, IconWalk, IconWorkout, IconEnergy, IconFlame } from '../components/icons'
 import { PressableButton } from '../components/PressableButton'
-import { MomoSticker } from '../components/MomoSticker'
+import { OnboardingCompanion, OnboardingStepBadge } from '../components/OnboardingCompanion'
+import { OnboardingWelcome, WELCOME_SLIDE_COUNT } from '../components/OnboardingWelcome'
 import {
   computeTargets,
   effectiveProtein,
@@ -34,16 +32,6 @@ import { guestUserId } from '../lib/guestMode'
 
 const STEPS = ['Age', 'About you', 'Body', 'Goal', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
-const MOMO_SETUP_LINES = [
-  'First, let’s check that this app is right for you.',
-  'Tell me a little about you.',
-  'These details help set your starting targets.',
-  'Choose the direction that feels right for you.',
-  'Think about an ordinary week.',
-  'Pick a routine that fits your day.',
-  'Your starting plan is ready. You can change it later.',
-  'One meal, and your journal is off the ground!',
-]
 const GOAL_DESCRIPTIONS: Record<WeightGoal, string> = {
   lose: 'Set a gradual weight-loss target.',
   maintain: 'Keep your current weight as the starting point.',
@@ -55,24 +43,6 @@ const COMMITMENTS: Array<{ id: LoggingCommitment; Icon: typeof IconMeal; title: 
   { id: 'regular', Icon: IconMeal, title: 'Regular', description: 'Aim for breakfast, lunch, and dinner.' },
   { id: 'detailed', Icon: IconSparkles, title: 'Detailed', description: 'Main meals plus a photo, note, or correction.' },
 ]
-
-const WELCOME_SLIDES = [
-  {
-    image: welcome1,
-    title: 'Food tracking, at your pace.',
-    sub: 'Track meals, calories, and macros. Start with your profile, then log your first meal.',
-  },
-  {
-    image: welcome2,
-    title: 'A calmer view of progress',
-    sub: 'See logging consistency, streaks, and milestones without judging what you ate.',
-  },
-  {
-    image: welcome3,
-    title: 'Built around your pace',
-    sub: 'Your starting estimate adapts to your profile and stays inside clear safety limits.',
-  },
-] as const
 
 const ACTIVITY_ICONS: Record<ActivityLevel, typeof IconMeal> = {
   sedentary: IconRest,
@@ -132,7 +102,7 @@ export function OnboardingPage() {
   })
 
   const { profile, firstMeal, step } = draft
-  const showingWelcome = draft.welcomeIndex < WELCOME_SLIDES.length
+  const showingWelcome = draft.welcomeIndex < WELCOME_SLIDE_COUNT
   const birthdayStatus = birthdayEligibility(draft.birthdayInput)
   const targets = birthdayStatus === 'eligible' ? computeTargets(profile) : null
   const firstMealCalories = positiveNumber(firstMeal.calories)
@@ -182,15 +152,8 @@ export function OnboardingPage() {
     updateDraft(current => ({ ...current, profile: update(current.profile) }))
   }
 
-  function nextWelcome() {
-    updateDraft(current => ({
-      ...current,
-      welcomeIndex: Math.min(current.welcomeIndex + 1, WELCOME_SLIDES.length),
-    }))
-  }
-
   function skipWelcome() {
-    updateDraft(current => ({ ...current, welcomeIndex: WELCOME_SLIDES.length }))
+    updateDraft(current => ({ ...current, welcomeIndex: WELCOME_SLIDE_COUNT }))
   }
 
   function next() {
@@ -299,75 +262,19 @@ export function OnboardingPage() {
   }
 
   if (showingWelcome) {
-    const slide = WELCOME_SLIDES[draft.welcomeIndex]
-    const isLast = draft.welcomeIndex === WELCOME_SLIDES.length - 1
-
-    return (
-      <main className="welcome-shell welcome-refresh" aria-label="Welcome to Fud AI">
-        <header className="welcome-brand-row">
-          <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
-          <span className="welcome-intro-label">Welcome</span>
-        </header>
-        <div className="welcome-collage">
-        <div className="welcome-image-frame">
-          <img key={draft.welcomeIndex} src={slide.image} alt="" className="welcome-photo" />
-        </div>
-          <span className="welcome-food-sticker" aria-hidden="true"><FoodIcon emoji="🍜" size={32} /></span>
-          <MomoSticker />
-        </div>
-
-        <section className="welcome-content" aria-labelledby="welcome-heading">
-          <div className="welcome-copy" aria-live="polite" aria-atomic="true">
-            <p className="welcome-kicker">{['Your everyday food journal', 'Progress, without pressure', 'A starting point, not a rulebook'][draft.welcomeIndex]}</p>
-            <h1 className="welcome-title" id="welcome-heading">{slide.title}</h1>
-            <p className="welcome-sub">{slide.sub}</p>
-          </div>
-          <nav className="welcome-slide-nav" aria-label="Introduction slides">
-          <div className="welcome-dots">
-            {WELCOME_SLIDES.map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                className={`welcome-dot${index === draft.welcomeIndex ? ' active' : ''}`}
-                aria-label={`Go to slide ${index + 1}: ${WELCOME_SLIDES[index].title}`}
-                aria-current={index === draft.welcomeIndex ? 'step' : undefined}
-                onClick={() => updateDraft(current => ({ ...current, welcomeIndex: index }))}
-              ><span aria-hidden="true" /></button>
-            ))}
-          </div>
-          <span className="welcome-slide-count" aria-hidden="true">{draft.welcomeIndex + 1} / {WELCOME_SLIDES.length}</span>
-          <div className="welcome-slide-arrows">
-            <button type="button" aria-label="Previous introduction" disabled={draft.welcomeIndex === 0}
-              onClick={() => updateDraft(current => ({ ...current, welcomeIndex: Math.max(0, current.welcomeIndex - 1) }))}>
-              <IconChevronLeft size={18} />
-            </button>
-            <button type="button" aria-label="Next introduction" disabled={isLast} onClick={nextWelcome}>
-              <IconChevronRight size={18} />
-            </button>
-          </div>
-          </nav>
-          <div className="welcome-actions">
-          <PressableButton fullWidth onClick={skipWelcome}>
-            Get started
-            <IconChevronRight size={16} strokeWidth={2.4} />
-          </PressableButton>
-          <p className="welcome-setup-note">Set up your profile · Intro slides are optional</p>
-          <Link to="/login" className="onboarding-signin-link welcome-signin-link">
-            Already have an account? <strong>Sign in</strong>
-          </Link>
-          </div>
-        </section>
-      </main>
-    )
+    return <OnboardingWelcome index={draft.welcomeIndex} signedIn={Boolean(user)} onStart={skipWelcome}
+      onSlideChange={index => updateDraft(current => ({ ...current, welcomeIndex: index }))} />
   }
 
   return (
-    <div className="app-shell setup-refresh">
+    <div className="app-shell setup-refresh" data-chapter={step < 3 ? 'profile' : step < 6 ? 'routine' : 'ready'}>
       <main ref={setupMain} className="app-main onboarding-main">
         <div className="setup-brand-row">
           <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
-          <Link to="/login" className="onboarding-signin-link">Already have an account? Sign in</Link>
+          {user ? <span className="setup-account-note"><IconCheck size={16} /> Your account is ready</span>
+            : <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
         </div>
+        <div className="setup-workspace">
         <div className="onboarding-header">
           <div className="setup-step-row">
             <span className="onboarding-step-label">Step {step + 1} of {STEPS.length}: {STEPS[step]}</span>
@@ -386,24 +293,23 @@ export function OnboardingPage() {
               className="onboarding-progress-fill"
               style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
             />
+            <span className="setup-progress-stops" aria-hidden="true">{STEPS.map(label => <i key={label} />)}</span>
           </div>
         </div>
 
-        {state.gamification.mascotActivity !== 'off' && <div className="setup-momo-guide">
-          <MomoSticker mood={validationError ? 'curious' : step >= 6 ? 'proud' : 'cozy'} pose="still" />
-          {!state.profile.mascotMuted && <p>{validationError ? 'Let’s check that detail together.' : MOMO_SETUP_LINES[step]}</p>}
-        </div>}
+        <OnboardingCompanion step={step} error={Boolean(validationError)} />
         <form className="setup-form" noValidate onSubmit={event => {
           event.preventDefault()
           if (step === FIRST_MEAL_STEP) finishWithFirstMeal()
           else next()
         }}>
+        <OnboardingStepBadge step={step} />
         {validationError && <div ref={errorMessage} className="error-banner" role="alert" tabIndex={-1}>{validationError}</div>}
 
         {step === 0 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">What is your date of birth?</h1>
-            <p className="onboarding-sub" id="birthday-purpose">Fud AI is for adults aged 18 and over. Your date of birth also helps calculate your starting targets.</p>
+            <p className="onboarding-sub" id="birthday-purpose">Fud AI is for adults aged 18 and over. Your age helps us tailor your starting targets.</p>
             <div className="field">
               <label htmlFor="onboarding-birthday">Date of birth</label>
               <input
@@ -418,7 +324,7 @@ export function OnboardingPage() {
                 required
               />
             </div>
-            <p className="setup-note" id="birthday-control">You can edit or delete your profile later in You.</p>
+            <p className="setup-note" id="birthday-control"><IconShield size={18} /> You can edit or delete these details later in You.</p>
           </div>
         )}
 
@@ -449,7 +355,7 @@ export function OnboardingPage() {
                     onClick={() => updateDraftProfile(current => ({ ...current, gender }))}
                   >
                     {gender === 'female' ? 'Female equation' : 'Male equation'}
-                    {profile.gender === gender && <span className="setup-selected" aria-hidden="true">✓</span>}
+                    <span className="setup-selected" aria-hidden="true">{profile.gender === gender && <IconCheck size={17} />}</span>
                   </button>
                 ))}
               </div>
@@ -461,6 +367,7 @@ export function OnboardingPage() {
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">Your body</h1>
             <p className="onboarding-sub" id="body-values-hint">Check these starting values and replace them with your measurements. We use them to estimate your daily targets.</p>
+            <div className="setup-measurements">
             <div className="field">
               <label htmlFor="onboarding-height">Height (cm)</label>
               <input
@@ -511,6 +418,7 @@ export function OnboardingPage() {
               />
             </div>
             </details>
+            </div>
           </div>
         )}
 
@@ -531,7 +439,7 @@ export function OnboardingPage() {
                 >
                   <span className="activity-option-icon" aria-hidden="true"><ActivityIcon size={28} /></span>
                   <span className="setup-option-copy"><strong className="activity-option-label">{ACTIVITY_LABELS[level]}</strong><small>{ACTIVITY_DESCRIPTIONS[level]}</small></span>
-                  {profile.activityLevel === level && <span className="setup-selected" aria-hidden="true">✓</span>}
+                  <span className="setup-selected" aria-hidden="true">{profile.activityLevel === level && <IconCheck size={17} />}</span>
                 </button>
               )})}
             </div>
@@ -558,7 +466,7 @@ export function OnboardingPage() {
                     <strong>{commitment.title}</strong>
                     <small>{commitment.description}</small>
                   </span>
-                  {(profile.loggingCommitment ?? 'light') === commitment.id && <span className="setup-selected" aria-hidden="true">✓</span>}
+                  <span className="setup-selected" aria-hidden="true">{(profile.loggingCommitment ?? 'light') === commitment.id && <IconCheck size={17} />}</span>
                 </button>
               ))}
             </div>
@@ -582,8 +490,9 @@ export function OnboardingPage() {
                     goalWeightKg: goal === 'maintain' ? undefined : current.goalWeightKg,
                   }))}
                 >
+                  <span className="activity-option-icon" aria-hidden="true">{goal === 'lose' ? <IconSprout size={26} /> : goal === 'maintain' ? <IconShield size={26} /> : <IconEnergy size={26} />}</span>
                   <span className="setup-option-copy"><strong>{GOAL_LABELS[goal]}</strong><small>{GOAL_DESCRIPTIONS[goal]}</small></span>
-                  {profile.goal === goal && <span className="setup-selected" aria-hidden="true">✓</span>}
+                  <span className="setup-selected" aria-hidden="true">{profile.goal === goal && <IconCheck size={17} />}</span>
                 </button>
               ))}
             </div>
@@ -740,7 +649,7 @@ export function OnboardingPage() {
           </div>
         )}
 
-        <div className="onboarding-actions">
+        <div className="setup-footer"><div className="onboarding-actions">
             <PressableButton variant="ghost" onClick={back}>
               <IconChevronLeft size={15} strokeWidth={2.4} /> Back
             </PressableButton>
@@ -757,7 +666,9 @@ export function OnboardingPage() {
           </PressableButton>
         </div>
         <p className="setup-next-hint">{step < FIRST_MEAL_STEP ? `Next: ${STEPS[step + 1]}` : 'Your meal will be saved to Today.'}</p>
+        </div>
         </form>
+        </div>
       </main>
     </div>
   )
