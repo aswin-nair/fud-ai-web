@@ -189,6 +189,24 @@ export function OnboardingPage() {
     else updateDraft(current => ({ ...current, welcomeIndex: 0 }))
   }
 
+  function revisitAgeGate() {
+    updateDraft(current => ({
+      ...current,
+      blocked: false,
+      step: 0,
+      welcomeIndex: WELCOME_SLIDE_COUNT,
+    }))
+  }
+
+  function restartOnboarding() {
+    updateDraft(current => ({
+      ...current,
+      blocked: false,
+      step: 0,
+      welcomeIndex: 0,
+    }))
+  }
+
   function handleBirthdayChange(value: string) {
     const birthday = birthdayToIso(value) ?? ''
     updateDraft(current => ({
@@ -250,11 +268,22 @@ export function OnboardingPage() {
     return (
       <div className="app-shell setup-refresh">
         <main ref={setupMain} className="app-main onboarding-main">
+          <div className="setup-brand-row">
+            <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
+            {!user && <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
+          </div>
+          <div className="onboarding-blocked-card">
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">This one is built for adults</h1>
             <p className="onboarding-sub">
               Fud AI is only available to adults. A doctor, dietitian, parent, or guardian is the right place to start.
             </p>
+          </div>
+          <p className="onboarding-recovery-note">Entered the date by mistake? You can go back and check it again.</p>
+          <div className="onboarding-recovery-actions">
+            <PressableButton fullWidth onClick={revisitAgeGate}>Change date of birth</PressableButton>
+            <PressableButton fullWidth variant="secondary" onClick={restartOnboarding}>Back to welcome</PressableButton>
+          </div>
           </div>
         </main>
       </div>

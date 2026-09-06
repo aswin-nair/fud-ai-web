@@ -46,6 +46,9 @@
 .setup-refresh .onboarding-title { margin: 0; font: 600 clamp(1.75rem, 5vw, 2.125rem)/1.1 var(--display); letter-spacing: -.025em; }
 .setup-refresh .onboarding-title:focus { outline: none; }
 .setup-refresh .onboarding-sub { margin: 0 0 8px; font-size: .9375rem; line-height: 1.6; color: var(--ink-soft); }
+.onboarding-blocked-card { max-width: 680px; margin: clamp(48px, 12vh, 120px) auto 0; padding: clamp(24px, 5vw, 44px); border: var(--fun-outline); border-radius: 28px 28px 12px 28px; background: var(--paper-card); box-shadow: 6px 6px 0 var(--ink); }
+.onboarding-recovery-note { margin: 18px 0 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
+.onboarding-recovery-actions { display: grid; gap: 12px; max-width: 360px; margin-top: 22px; }
 .setup-refresh .field { min-width: 0; margin: 0 0 12px; }
 .setup-measurements { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: 0 14px; }
 .setup-measurements .setup-optional { grid-column: 1 / -1; }

@@ -70,3 +70,22 @@ test('small screens, enlarged text and keyboard navigation keep setup readable',
   await fits()
   await page.screenshot({ path: testInfo.outputPath('goal-large-text.png'), animations: 'disabled', fullPage: true })
 })
+
+test('underage age gate offers a safe way to correct the date', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/onboarding')
+  await page.getByRole('button', { name: 'Get started', exact: true }).click()
+  await page.getByLabel('Date of birth').fill(birthdayYearsAgo(17))
+  await page.getByRole('button', { name: 'Continue', exact: true }).click()
+
+  await expect(page.getByRole('heading', { name: 'This one is built for adults' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Change date of birth', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Back to welcome', exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Change date of birth', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'What is your date of birth?' })).toBeVisible()
+  await expect(page.getByLabel('Date of birth')).toHaveValue(birthdayYearsAgo(17))
+  await page.getByLabel('Date of birth').fill(birthdayYearsAgo(25))
+  await page.getByRole('button', { name: 'Continue', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible()
+})

@@ -99,12 +99,14 @@ describe('profile setup pages', () => {
     expect(html).toContain('18 and over')
   })
 
-  it('keeps the adult block free of ways to advance', () => {
+  it('keeps the adult block safe while offering a recovery path', () => {
     draft.blocked = true
     const html = render()
     expect(html).toContain('This one is built for adults')
     expect(html).not.toContain('<form')
     expect(html).not.toContain('type="submit"')
+    expect(html).toContain('Change date of birth')
+    expect(html).toContain('Back to welcome')
   })
 
   it('offers optional body fat separately and decimal measurement inputs', () => {
