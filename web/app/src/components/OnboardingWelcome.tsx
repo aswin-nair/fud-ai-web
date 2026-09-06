@@ -5,6 +5,7 @@ import { IconChevronLeft, IconChevronRight } from './icons'
 import { MomoSticker } from './MomoSticker'
 import { PressableButton } from './PressableButton'
 import { useApp } from '../store/AppContext'
+import { AppearanceControl } from './AppearanceControl'
 
 const WELCOME_SLIDES = [
   {
@@ -64,7 +65,10 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
     <main className={`welcome-shell welcome-refresh welcome-theme-${slide.theme}`} aria-label="Welcome to Fud AI">
       <header className="welcome-brand-row">
         <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
-        <span className="welcome-club-label"><ChefHat size={19} aria-hidden="true" /> The food club</span>
+        <div className="appearance-header-actions">
+          <span className="welcome-club-label"><ChefHat size={19} aria-hidden="true" /> The food club</span>
+          <AppearanceControl compact />
+        </div>
       </header>
 
       <div className="welcome-cover">

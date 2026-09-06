@@ -21,28 +21,28 @@
 .welcome-club-label { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border: var(--fun-outline); border-radius: 999px; background: var(--paper-card); font-size: .8125rem; font-weight: 700; white-space: nowrap; }
 .welcome-club-label svg { flex-shrink: 0; }
 .welcome-cover { display: grid; gap: 16px; min-width: 0; }
-.welcome-scene { position: relative; min-width: 0; height: clamp(212px, 28dvh, 242px); overflow: hidden; isolation: isolate; background: var(--welcome-scene); border: var(--fun-outline); border-radius: 26px; box-shadow: 4px 4px 0 var(--ink); }
-.welcome-scene-grain { position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(var(--ink) .7px, transparent .7px); background-size: 16px 16px; opacity: .15; }
+.welcome-scene { position: relative; min-width: 0; height: clamp(212px, 28dvh, 242px); overflow: hidden; isolation: isolate; background: var(--welcome-scene); border: var(--fun-outline); border-radius: 26px; box-shadow: 4px 4px 0 var(--shadow-ink); }
+.welcome-scene-grain { position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(var(--ink) .7px, transparent .7px); background-size: 20px 20px; opacity: .08; }
 .welcome-refresh .welcome-momo-speech { position: absolute; z-index: 3; top: 11px; left: 50%; width: max-content; max-width: calc(100% - 36px); margin: 0; padding: 8px 14px; border: var(--fun-outline); border-radius: 16px 16px 16px 3px; background: var(--paper-card); color: var(--ink); font: 500 .9375rem/1.25 var(--display); text-align: center; transform: translateX(-50%) rotate(-3deg); }
 .welcome-mascot-wrap { position: absolute; bottom: 20px; left: 50%; display: grid; place-items: center; width: 200px; height: 200px; transform: translateX(-50%); }
 .welcome-mascot-halo { position: absolute; width: 170px; height: 170px; bottom: 0; border: 2px solid var(--ink); border-radius: 50%; background: var(--paper); box-shadow: 0 8px 0 rgb(36 26 46 / 12%); }
 .welcome-refresh .welcome-mascot-wrap .momo-sticker { position: relative; z-index: 1; display: block; width: 204px; height: 220px; flex: none; border: 0; border-radius: 0; background: none; box-shadow: none; transform: rotate(-5deg); }
 .welcome-mascot-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink); }
 .welcome-mascot-wrap:has(.momo-sticker) .welcome-mascot-fallback { display: none; }
-.welcome-scene-food { position: absolute; display: grid; place-items: center; width: 55px; height: 55px; border: var(--fun-outline); border-radius: 17px; background: var(--paper-card); box-shadow: 3px 3px 0 var(--ink); }
-.welcome-food-pizza { top: 63px; left: 16px; transform: rotate(-12deg); background: var(--coral-hue); }
+.welcome-scene-food { position: absolute; display: grid; place-items: center; width: 55px; height: 55px; border: var(--fun-outline); border-radius: 17px; background: var(--paper-card); box-shadow: 3px 3px 0 var(--shadow-ink); }
+.welcome-food-pizza { top: 63px; left: 16px; transform: rotate(-12deg); background: var(--coral-hue); color: var(--on-brand); }
 .welcome-food-sprout { top: 65px; right: 16px; transform: rotate(11deg); background: var(--welcome-sticker); }
 .welcome-scene-spark { position: absolute; display: block; }
 .welcome-spark-one { left: 35px; top: 136px; transform: rotate(-12deg); }
 .welcome-spark-two { right: 37px; top: 135px; transform: rotate(14deg); }
 .welcome-scene-spark svg { width: 23px; height: 23px; stroke-width: 1.8; }
-.welcome-scene-ticket { position: absolute; z-index: 2; left: 12px; bottom: 15px; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 24px); padding: 8px 10px; border: var(--fun-outline); border-radius: 12px; background: var(--paper-card); box-shadow: 2px 3px 0 var(--ink); transform: rotate(-4deg); }
+.welcome-scene-ticket { position: absolute; z-index: 2; left: 12px; bottom: 15px; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 24px); padding: 8px 10px; border: var(--fun-outline); border-radius: 12px; background: var(--paper-card); box-shadow: 2px 3px 0 var(--shadow-ink); transform: rotate(-4deg); }
 .welcome-ticket-icon { display: grid; place-items: center; flex: 0 0 35px; width: 35px; height: 35px; border: 1.5px solid var(--ink); border-radius: 9px; background: var(--welcome-scene); }
 .welcome-scene-ticket strong { display: block; font: 600 .9375rem/1.2 var(--display); }
 .welcome-scene-ticket small { display: block; margin-top: 3px; font-size: .625rem; line-height: 1.3; }
 .welcome-ticket-check { display: grid; place-items: center; width: 25px; height: 25px; border: 1.5px solid var(--ink); border-radius: 50%; background: var(--fun-green); }
 .welcome-scene-sticker { position: absolute; right: 9px; bottom: 67px; z-index: 3; max-width: 105px; padding: 7px 9px; border: var(--fun-outline); border-radius: 999px; background: var(--welcome-sticker); font: 600 .8125rem/1.15 var(--display); text-align: center; transform: rotate(8deg); }
-.welcome-refresh .welcome-content { position: static; display: flex; flex-direction: column; gap: 0; min-width: 0; padding: 20px 18px 12px; border: var(--fun-outline); border-radius: 26px; background: var(--paper-card); box-shadow: 4px 4px 0 var(--ink); }
+.welcome-refresh .welcome-content { position: static; display: flex; flex-direction: column; gap: 0; min-width: 0; padding: 20px 18px 12px; border: var(--fun-outline); border-radius: 26px; background: var(--paper-card); box-shadow: 4px 4px 0 var(--shadow-ink); }
 .welcome-refresh .welcome-kicker { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--ink); font-size: .75rem; font-weight: 700; line-height: 1.4; }
 .welcome-kicker > span { display: grid; place-items: center; flex: 0 0 25px; height: 25px; border: 1.5px solid var(--ink); border-radius: 7px; background: var(--welcome-scene); font: 600 .875rem/1 var(--display); }
 .welcome-refresh .welcome-title { margin: 0; max-width: none; color: var(--ink); font: 600 clamp(2.25rem, 9vw, 3.25rem)/1.02 var(--display); letter-spacing: -.04em; animation: none; }
@@ -53,9 +53,9 @@
 .welcome-refresh .welcome-dots { display: flex; gap: 4px; margin: 0; }
 .welcome-refresh .welcome-dot, .welcome-refresh .welcome-dot.active { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: var(--ink); cursor: pointer; transition: none; }
 .welcome-refresh .welcome-dot > span { display: grid; place-items: center; width: 29px; height: 29px; border: 1.5px solid var(--ink); border-radius: 50%; background: var(--paper); font: 500 .9375rem/1 var(--display); }
-.welcome-refresh .welcome-dot.active > span { background: var(--ink); color: var(--paper-card); box-shadow: 0 0 0 3px var(--welcome-scene); }
+.welcome-refresh .welcome-dot.active > span { background: var(--selection); color: var(--on-selection); border-color: var(--selection); box-shadow: 0 0 0 3px var(--selection-soft); }
 .welcome-slide-arrows { display: flex; gap: 6px; }
-.welcome-refresh .welcome-slide-arrows button { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: var(--fun-outline); border-radius: 12px; background: var(--welcome-scene); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+.welcome-refresh .welcome-slide-arrows button { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: var(--fun-outline); border-radius: 12px; background: var(--welcome-scene); color: var(--ink); box-shadow: 2px 2px 0 var(--shadow-ink); cursor: pointer; }
 .welcome-refresh .welcome-slide-arrows button:disabled { background: var(--paper); box-shadow: none; opacity: .4; cursor: default; }
 .welcome-refresh .welcome-slide-nav button:focus-visible, .welcome-refresh .welcome-signin-link:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
 .welcome-refresh .welcome-actions { padding-top: 14px; border-top: 2px dashed var(--rule-strong); }
@@ -68,8 +68,8 @@
   .welcome-refresh .welcome-brand { font-size: 2.5rem; }
   .welcome-club-label { font-size: .875rem; padding: 10px 16px; }
   .welcome-cover { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: stretch; gap: 24px; }
-  .welcome-scene { height: auto; min-height: 580px; border-radius: 36px 36px 12px 36px; box-shadow: 6px 6px 0 var(--ink); }
-  .welcome-refresh .welcome-content { padding: 34px 28px 24px; justify-content: center; border-radius: 36px; box-shadow: 6px 6px 0 var(--ink); }
+  .welcome-scene { height: auto; min-height: 580px; border-radius: 36px 36px 12px 36px; box-shadow: 6px 6px 0 var(--shadow-ink); }
+  .welcome-refresh .welcome-content { padding: 34px 28px 24px; justify-content: center; border-radius: 36px; box-shadow: 6px 6px 0 var(--shadow-ink); }
   .welcome-refresh .welcome-kicker { font-size: .8125rem; margin-bottom: 20px; }
   .welcome-refresh .welcome-title { font-size: clamp(2.75rem, 4.5vw, 4rem); }
   .welcome-refresh .welcome-sub { margin-top: 20px; font-size: 1rem; line-height: 1.7; }

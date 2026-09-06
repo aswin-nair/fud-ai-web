@@ -8,6 +8,7 @@ import { IconCheck, IconShield, IconChevronLeft, IconChevronRight, IconMeal, Ico
 import { PressableButton } from '../components/PressableButton'
 import { OnboardingCompanion, OnboardingStepBadge } from '../components/OnboardingCompanion'
 import { OnboardingWelcome, WELCOME_SLIDE_COUNT } from '../components/OnboardingWelcome'
+import { AppearanceControl } from '../components/AppearanceControl'
 import {
   computeTargets,
   effectiveProtein,
@@ -270,7 +271,10 @@ export function OnboardingPage() {
         <main ref={setupMain} className="app-main onboarding-main">
           <div className="setup-brand-row">
             <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
-            {!user && <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
+            <div className="appearance-header-actions">
+              {!user && <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
+              <AppearanceControl compact />
+            </div>
           </div>
           <div className="onboarding-blocked-card">
           <div className="onboarding-step-content">
@@ -300,8 +304,11 @@ export function OnboardingPage() {
       <main ref={setupMain} className="app-main onboarding-main">
         <div className="setup-brand-row">
           <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
-          {user ? <span className="setup-account-note"><IconCheck size={16} /> Your account is ready</span>
-            : <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
+          <div className="appearance-header-actions">
+            {user ? <span className="setup-account-note"><IconCheck size={16} /> Your account is ready</span>
+              : <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
+            <AppearanceControl compact />
+          </div>
         </div>
         <div className="setup-workspace">
         <div className="onboarding-header">
