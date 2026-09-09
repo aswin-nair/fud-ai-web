@@ -106,7 +106,6 @@ describe('enamel contrast and paint budgets', () => {
   it('never paints ticket totals with danger', () => {
     const ticket = css.match(/\.ticket[\s\S]{0,4000}/)?.[0] ?? ''
     expect(ticket).not.toMatch(/--danger/)
-    expect(css).toContain('--ink: #252940')
-    expect(css).toContain('--enamel: #FFF6EC')
+    expect(contrast(cssHexToken('--ink'), cssHexToken('--enamel'))).toBeGreaterThanOrEqual(7)
   })
 })

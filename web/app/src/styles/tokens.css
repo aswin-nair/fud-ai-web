@@ -1,49 +1,49 @@
 :root {
-  /* Warm/cool colour harmony: indigo guides, apricot invites action.
-     Neutral surfaces dominate; nutrition and Momo use smaller accent areas. */
+  /* Tangerine + ocean: complementary accents with a clear job for each hue.
+     White reading surfaces, blue selection, orange action, lemon celebration. */
   color-scheme: light;
-  --ink: #252940;
-  --coral-hue: #FF9675;
-  --enamel: #FFF6EC;
-  --apricot: #F7C948;
-  --herb: #54CFA0;
-  --chalk: #E4E5EE;
-  --dough: #FFE4C2;
+  --ink: #202D38;
+  --coral-hue: #FF873D;
+  --enamel: #F3F8FB;
+  --apricot: #FFD84D;
+  --herb: #32BF88;
+  --chalk: #DCE7ED;
+  --dough: #FFE3B5;
 
   /* Compatibility alias: --cobalt is the old enamel primary and is still read
      in 16 places. It now resolves to coral so those call sites move with the
      palette instead of being repainted one by one. */
   --cobalt: var(--coral-hue);
 
-  --paper: #FAF9F6;
-  --paper-deep: #EFEEF4;
-  --paper-warm: #F4F2F8;
+  --paper: #F5F9FC;
+  --paper-deep: #E8F0F5;
+  --paper-warm: #EDF4F8;
   --paper-card: #FFFFFF;
   --paper-raised: #FFFFFF;
   --paper-float: #FFFFFF;
-  --ink-soft: #555B72;
-  --ink-mute: #656B80;
+  --ink-soft: #4B5D6B;
+  --ink-mute: #596D7C;
   --ink-muted: var(--ink-mute);
-  --rule: rgba(37, 41, 64, 0.10);
-  --rule-strong: rgba(37, 41, 64, 0.20);
+  --rule: rgba(32, 45, 56, 0.12);
+  --rule-strong: rgba(32, 45, 56, 0.24);
 
   --coral: var(--coral-hue);
-  --coral-start: #FFB18F;
+  --coral-start: #FFA65A;
   --coral-end: var(--coral-hue);
-  --coral-deep: #BE513A;
+  --coral-deep: #A94710;
   /* Text variants are separately tuned for contrast on reading surfaces. */
-  --coral-text: #9C402B;
+  --coral-text: #A23D0B;
 
   /* Text-only variants of the nutrition and status hues. The fills keep the
      original colours — a macro bar is a shape, and shapes are not held to the
      4.5:1 text rule — but the same hue carrying a number has to be readable.
      Each is the original taken down to 4.5:1 on the deepest card ground. */
-  --protein-text: #255DA3;
-  --carbs-text: #865300;
-  --fat-text: #206A51;
+  --protein-text: #075D96;
+  --carbs-text: #785200;
+  --fat-text: #176446;
   --danger-text: #B52F40;
-  --coral-soft: #FFF0E9;
-  --gradient-calorie: linear-gradient(160deg, #FFB18F, #F17C59);
+  --coral-soft: #FFF0DF;
+  --gradient-calorie: linear-gradient(160deg, #FFA65A, #FF873D);
   --green-goal: var(--herb);
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -54,36 +54,36 @@
   --radius-sm: 12px;
   --nav-h: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --shadow-ink: #DEDDE8;
-  --edge-ink: #C9CBDC;
-  --control-border: #85899C;
-  --shadow-card: 0 3px 0 var(--shadow-ink), 0 8px 24px rgb(37 41 64 / 4%);
+  --shadow-ink: #D0E0E9;
+  --edge-ink: #ADC6D6;
+  --control-border: #718897;
+  --shadow-card: 0 3px 0 var(--shadow-ink), 0 8px 24px rgb(32 45 56 / 4%);
   --shadow-sm: 0 2px 0 var(--shadow-ink);
-  --fun-yellow: #FFE7AA;
-  --fun-green: #DDF1E7;
-  --fun-blue: #E0EDFF;
-  --fun-pink: #FFE2D8;
-  --fun-lilac: #E6E8FF;
+  --fun-yellow: #FFE073;
+  --fun-green: #BCEFD6;
+  --fun-blue: #BFE8FF;
+  --fun-pink: #FFD0AE;
+  --fun-lilac: #D0E3FF;
   --fun-outline: 1.5px solid var(--edge-ink);
-  --selection: #4D56B3;
-  --selection-soft: #E6E8FF;
-  --selection-hover: #DADDF9;
+  --selection: #0063A2;
+  --selection-soft: #D8EEFC;
+  --selection-hover: #C2E5FA;
   --on-selection: #FFFFFF;
-  --success-soft: #E3F2EA;
-  --info-soft: #E8F0FF;
-  --warning-soft: #FFF0CD;
-  --danger-soft: #FFE7ED;
-  --scene: #4855A0;
-  --scene-lift: #6572BB;
+  --success-soft: #DCF5E9;
+  --info-soft: #E0F2FF;
+  --warning-soft: #FFF1BC;
+  --danger-soft: #FFE4E9;
+  --scene: #075789;
+  --scene-lift: #096CA8;
   --scene-ink: #FFFFFF;
-  --scene-edge: #8893D5;
-  --scrim: rgb(18 23 43 / 48%);
-  --product-dark: #353E76;
+  --scene-edge: #3688B8;
+  --scrim: rgb(10 27 40 / 52%);
+  --product-dark: #104D72;
   --product-on-dark: #FFFFFF;
-  --product-dark-muted: #DDE1FF;
-  --product-dark-surface: #49548F;
-  --product-dark-accent: #FFCAA8;
-  --shadow-pill: 0 10px 22px rgba(255, 118, 94, 0.30);
+  --product-dark-muted: #D3EBFA;
+  --product-dark-surface: #1D618A;
+  --product-dark-accent: #FFE073;
+  --shadow-pill: 0 10px 22px rgba(255, 135, 61, 0.24);
   --skeleton-base: var(--chalk);
   --skeleton-shine: rgba(255, 255, 255, 0.85);
   --surface: var(--paper-card);
@@ -92,13 +92,13 @@
   --bg: var(--paper-deep);
 
   --on-track: var(--coral-hue);
-  --on-track-deep: #BE513A;
+  --on-track-deep: #A94710;
   /* A lighter tint of the same coral for over-target. Not a warning — §2.4. */
-  --on-track-soft: #FFC0A8;
+  --on-track-soft: #FFBD89;
   --streak: var(--coral-hue);
-  --protein: #4A86FF;
-  --carbs: #F7C948;
-  --fat: #54CFA0;
+  --protein: #218CDC;
+  --carbs: #E9B51E;
+  --fat: #32BF88;
 
   --danger: #E5484D;
   --danger-deep: #C13438;
@@ -120,7 +120,7 @@
   --card-radius: 1.375rem;
   --focus-ring: 3px solid var(--selection);
   --page-heading-size: clamp(2rem, 6vw, 2.75rem);
-  --disabled-fill: #E9EAF1;
+  --disabled-fill: #E2EAF0;
 
   --radius-md: 20px;
   --radius-lg: 26px;
@@ -151,19 +151,19 @@
   --squish-out: 260ms;
   --squish-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
 
-  --clay-base: #F4F2F8;
+  --clay-base: #EDF4F8;
   --clay-lift: #FFFFFF;
   --clay-inner-light: rgba(255, 255, 255, 0.95);
-  --clay-inner-dark: rgba(37, 41, 64, 0.09);
-  --clay-cast: rgba(37, 41, 64, 0.13);
-  --clay-contact: rgba(37, 41, 64, 0.06);
+  --clay-inner-dark: rgba(32, 45, 56, 0.09);
+  --clay-cast: rgba(32, 45, 56, 0.13);
+  --clay-contact: rgba(32, 45, 56, 0.06);
   --clay-inset-light: rgba(255, 255, 255, 0.85);
-  --clay-inset-dark: rgba(37, 41, 64, 0.16);
-  --clay-coral-base: #FF9675;
-  --clay-coral-lift: #FFB18F;
+  --clay-inset-dark: rgba(32, 45, 56, 0.16);
+  --clay-coral-base: #FF873D;
+  --clay-coral-lift: #FFA65A;
   --clay-coral-inner-light: rgba(255, 255, 255, 0.42);
-  --clay-coral-inner-dark: rgba(157, 55, 32, 0.34);
-  --clay-coral-cast: rgba(255, 150, 117, 0.38);
+  --clay-coral-inner-dark: rgba(169, 71, 16, 0.34);
+  --clay-coral-cast: rgba(255, 135, 61, 0.28);
   /* Deliberately the cheap one: list rows use it, so it stays a single cast
      shadow. See clay-contrast.test.ts — this is a paint budget, not a style. */
   --clay-e1:
@@ -196,7 +196,7 @@
 
   --on-accent: #FFFFFF;
   /* Action fills are intentionally bright and friendly. Dark role colours keep
-     their labels readable without muting the Fud AI coral palette. */
+     their labels readable without muting the Fud AI tangerine palette. */
   --on-brand: var(--ink);
   --on-danger: #1A1416;
   --ink-press: #000000;
@@ -206,11 +206,11 @@
   --edge-neutral: var(--chalk);
   --edge-danger: var(--danger-deep);
   /* Was #B8650C — 3.77:1 on the amber card it sits on, below AA. */
-  --amber-ink: #8A4B00;
+  --amber-ink: #785200;
   --amber-deep: var(--apricot);
-  --protein-ink: #1749A8;
-  --protein-soft: #DCE6F8;
-  --success-ink: #216B52;
+  --protein-ink: #075D96;
+  --protein-soft: #D8EEFC;
+  --success-ink: #176446;
   --star: var(--apricot);
   --welcome-ink: var(--ink);
   --toast-ok-bg: #1C3A22;
@@ -219,9 +219,9 @@
   --toast-info-fg: #93C5FD;
   --toast-err-bg: #3A1A1A;
   --toast-err-fg: #FCA5A5;
-  --lilac: #A78BFA;
+  --lilac: #67B8EB;
   --mint: var(--herb);
-  --icon-teal: #216B52;
+  --icon-teal: #176446;
   --danger-ink: #C22B3A;
   --surface-legacy: var(--enamel);
 }
@@ -230,66 +230,66 @@
    readable text. Brand fills keep their own dark label, independent of --ink. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #141827;
-  --paper-deep: #191E30;
-  --paper-warm: #262D43;
-  --paper-card: #1D2335;
-  --paper-raised: #242B40;
-  --paper-float: #2E3650;
-  --ink: #F5F5FC;
-  --ink-soft: #CACFE0;
-  --ink-mute: #B0B8CF;
+  --paper: #111C25;
+  --paper-deep: #15232E;
+  --paper-warm: #213441;
+  --paper-card: #1B2B38;
+  --paper-raised: #233744;
+  --paper-float: #2B4352;
+  --ink: #F2F8FC;
+  --ink-soft: #C6DCE9;
+  --ink-mute: #A8C3D4;
   --ink-press: #FFFFFF;
-  --rule: rgb(202 207 224 / 12%);
-  --rule-strong: rgb(202 207 224 / 26%);
-  --edge-ink: #424B68;
-  --control-border: #8993B1;
-  --edge-hover: #7A85B1;
-  --shadow-ink: #0C1020;
+  --rule: rgb(198 220 233 / 14%);
+  --rule-strong: rgb(198 220 233 / 28%);
+  --edge-ink: #426176;
+  --control-border: #7C9EAF;
+  --edge-hover: #70ACD2;
+  --shadow-ink: #09131C;
   --shadow-card: 0 3px 0 var(--shadow-ink), 0 8px 24px rgb(0 0 0 / 12%);
-  --enamel: #262D43;
-  --chalk: #3C445D;
-  --dough: #433B2F;
-  --coral-hue: #FFA483;
-  --coral-start: #FFBE9F;
-  --coral-text: #FFBEA5;
-  --coral-soft: #3D3037;
-  --coral-deep: #CA694F;
-  --on-brand: #252940;
-  --on-danger: #252940;
-  --on-accent: #252940;
-  --fun-yellow: #4B3A31;
-  --fun-green: #203C44;
-  --fun-blue: #263651;
-  --fun-pink: #452F39;
-  --fun-lilac: #30385B;
-  --selection: #B4BCFF;
-  --selection-soft: #30385B;
-  --selection-hover: #3A446C;
-  --on-selection: #202749;
-  --success-soft: #213C38;
-  --success-ink: #99DEBE;
-  --icon-teal: #99DEBE;
-  --info-soft: #263651;
-  --warning-soft: #4B3A31;
-  --danger-soft: #422F3D;
-  --scene: #303B75;
-  --scene-lift: #475595;
-  --scene-edge: #6271B0;
-  --scrim: rgb(5 8 20 / 72%);
+  --enamel: #213441;
+  --chalk: #395365;
+  --dough: #44391E;
+  --coral-hue: #FF9B54;
+  --coral-start: #FFB879;
+  --coral-text: #FFB879;
+  --coral-soft: #492F20;
+  --coral-deep: #AF5419;
+  --on-brand: #202D38;
+  --on-danger: #202D38;
+  --on-accent: #202D38;
+  --fun-yellow: #493C16;
+  --fun-green: #164332;
+  --fun-blue: #153F5B;
+  --fun-pink: #4D3022;
+  --fun-lilac: #23405C;
+  --selection: #7ACBFF;
+  --selection-soft: #153D57;
+  --selection-hover: #1C4C6A;
+  --on-selection: #102D42;
+  --success-soft: #164332;
+  --success-ink: #82E0B2;
+  --icon-teal: #82E0B2;
+  --info-soft: #153F5B;
+  --warning-soft: #493C16;
+  --danger-soft: #482733;
+  --scene: #0A4267;
+  --scene-lift: #0D5A86;
+  --scene-edge: #3984B2;
+  --scrim: rgb(4 13 21 / 72%);
   --danger: #F88A96;
   --danger-text: #FFA7B1;
   --danger-ink: #FFA7B1;
   --danger-deep: #DB6577;
-  --protein-text: #9CCAFF;
-  --carbs-text: #E8C26A;
-  --fat-text: #8DCEAC;
-  --protein-ink: #9CCAFF;
-  --protein-soft: #263651;
-  --amber-ink: #E8C26A;
-  --disabled-fill: #343D56;
-  --clay-base: #242B40;
-  --clay-lift: #2E3650;
+  --protein-text: #85D0FF;
+  --carbs-text: #F6D76D;
+  --fat-text: #82E0B2;
+  --protein-ink: #85D0FF;
+  --protein-soft: #153F5B;
+  --amber-ink: #F6D76D;
+  --disabled-fill: #334B5B;
+  --clay-base: #233744;
+  --clay-lift: #2B4352;
   --clay-inner-light: rgb(255 255 255 / 4%);
   --clay-inner-dark: rgb(0 0 0 / 12%);
   --clay-cast: rgb(0 0 0 / 16%);

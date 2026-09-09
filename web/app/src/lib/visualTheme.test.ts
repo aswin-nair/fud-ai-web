@@ -6,10 +6,15 @@ const styles = readFileSync(new URL('../styles/product-ui.css', import.meta.url)
 const darkStyles = readFileSync(new URL('../styles/dark-mode.css', import.meta.url), 'utf8')
 const imports = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
 
-function color(name: string) {
-  const value = tokens.match(new RegExp(`${name}:\\s*#([0-9a-f]{6});`, 'i'))?.[1]
-  if (!value) throw new Error(`Missing explicit theme color: ${name}`)
-  return value
+type Theme = 'light' | 'dark'
+const [lightTokens, darkTokens] = tokens.split(':root[data-theme="dark"]')
+
+function color(name: string, theme: Theme = 'light'): string {
+  const pattern = new RegExp(`${name}:\\s*(#[0-9a-f]{6}|var\\(--[a-z-]+\\));`, 'i')
+  const value = (theme === 'dark' ? darkTokens.match(pattern)?.[1] : undefined)
+    ?? lightTokens.match(pattern)?.[1]
+  if (!value) throw new Error(`Missing ${theme} theme color: ${name}`)
+  return value.startsWith('var(') ? color(value.slice(4, -1), theme) : value.slice(1)
 }
 
 function luminance(hex: string) {
@@ -20,9 +25,9 @@ function luminance(hex: string) {
   return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722
 }
 
-function contrast(text: string, background: string) {
-  const a = luminance(color(text))
-  const b = luminance(color(background))
+function contrast(text: string, background: string, theme: Theme = 'light') {
+  const a = luminance(color(text, theme))
+  const b = luminance(color(background, theme))
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05)
 }
 
@@ -67,11 +72,57 @@ describe('shared visual theme', () => {
 
   it('gives dark mode a deliberate raised and floating surface hierarchy', () => {
     expect(tokens).toContain(':root[data-theme="dark"]')
-    expect(tokens).toContain('--paper-raised: #242B40')
-    expect(tokens).toContain('--paper-float: #2E3650')
+    const levels = ['--paper', '--paper-card', '--paper-raised', '--paper-float']
+      .map(name => luminance(color(name, 'dark')))
+    for (let index = 1; index < levels.length; index += 1) {
+      expect(levels[index]).toBeGreaterThan(levels[index - 1])
+    }
     expect(darkStyles).toContain('.you-refresh .you-header')
     expect(darkStyles).toContain('.app-shell .bottom-nav')
     expect(imports.indexOf('dark-mode.css')).toBeGreaterThan(imports.indexOf('appearance.css'))
+  })
+
+  for (const theme of ['light', 'dark'] as const) {
+    it(`keeps ${theme} reading, sticker, and selected surfaces readable`, () => {
+      for (const text of ['--ink', '--ink-soft', '--ink-mute']) {
+        for (const background of ['--paper', '--paper-card', '--paper-raised', '--paper-float']) {
+          expect(contrast(text, background, theme), `${text} on ${background}`).toBeGreaterThanOrEqual(4.5)
+        }
+      }
+      for (const background of ['--fun-yellow', '--fun-blue', '--fun-green', '--fun-pink', '--fun-lilac']) {
+        expect(contrast('--ink', background, theme), `Ink on ${background}`).toBeGreaterThanOrEqual(4.5)
+      }
+      for (const background of ['--selection-soft', '--selection-hover']) {
+        expect(contrast('--selection', background, theme), `Selection on ${background}`).toBeGreaterThanOrEqual(4.5)
+      }
+      expect(contrast('--on-selection', '--selection', theme)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast('--ink-soft', '--disabled-fill', theme)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast('--control-border', '--paper-card', theme)).toBeGreaterThanOrEqual(3)
+    })
+
+    it(`keeps ${theme} brand and Momo scene labels readable`, () => {
+      for (const background of ['--coral-hue', '--coral-start', '--clay-coral-base', '--clay-coral-lift']) {
+        expect(contrast('--on-brand', background, theme), `Brand label on ${background}`).toBeGreaterThanOrEqual(4.5)
+      }
+      for (const background of ['--scene', '--scene-lift']) {
+        expect(contrast('--scene-ink', background, theme), `Scene label on ${background}`).toBeGreaterThanOrEqual(4.5)
+      }
+      for (const [text, background] of [['--protein-text', '--fun-blue'], ['--carbs-text', '--fun-yellow'], ['--fat-text', '--fun-green'], ['--danger-text', '--danger-soft']]) {
+        expect(contrast(text, background, theme), `${text} on ${background}`).toBeGreaterThanOrEqual(4.5)
+      }
+    })
+  }
+
+  it('keeps the first paint and browser chrome aligned with the page palette', () => {
+    const bootstrap = readFileSync(new URL('../../public/appearance-init.js', import.meta.url), 'utf8')
+    const appearance = readFileSync(new URL('./appearance.ts', import.meta.url), 'utf8')
+    const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8')
+    for (const theme of ['light', 'dark'] as const) {
+      const background = `#${color('--paper', theme)}`
+      expect(bootstrap).toContain(background)
+      expect(appearance).toContain(background)
+    }
+    expect(html).toContain(`<meta name="theme-color" content="#${color('--paper')}" />`)
   })
 
   it('leaves accessibility rules last and pairs the colourful heatmap with its legend', () => {

@@ -36,7 +36,7 @@
 
 /* Warm surfaces stay recognisable, but are deepened so they don't compete with text. */
 :root[data-theme="dark"] .today-refresh .home-ring-hero {
-  background: linear-gradient(145deg, var(--fun-pink), var(--fun-lilac));
+  background: var(--coral-soft);
   border: 1px solid color-mix(in srgb, var(--coral-text) 35%, var(--edge-ink));
 }
 
@@ -62,7 +62,7 @@
   border-color: color-mix(in srgb, var(--coral-start) 40%, var(--edge-ink));
 }
 
-/* A teal header makes the You page feel related to the app shell in dark mode. */
+/* The same ocean-blue scene anchors You, welcome, and onboarding. */
 :root[data-theme="dark"] .you-refresh .you-header {
   background: linear-gradient(135deg, var(--scene), var(--scene-lift));
   border-color: var(--scene-edge);
