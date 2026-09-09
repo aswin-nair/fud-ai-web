@@ -1,49 +1,49 @@
 :root {
-  /* Warm dumpling-kitchen language. Six named hues, then role aliases. */
-  --ink: #241A2E;
-  --coral-hue: #FF6B4A;
+  /* Warm/cool colour harmony: indigo guides, apricot invites action.
+     Neutral surfaces dominate; nutrition and Momo use smaller accent areas. */
+  color-scheme: light;
+  --ink: #252940;
+  --coral-hue: #FF9675;
   --enamel: #FFF6EC;
-  --apricot: #FFB43D;
-  --herb: #57D9A3;
-  --chalk: #F6E3D0;
-  --dough: #FFE9C9;
+  --apricot: #F7C948;
+  --herb: #54CFA0;
+  --chalk: #E4E5EE;
+  --dough: #FFE4C2;
 
   /* Compatibility alias: --cobalt is the old enamel primary and is still read
      in 16 places. It now resolves to coral so those call sites move with the
      palette instead of being repainted one by one. */
   --cobalt: var(--coral-hue);
 
-  --paper: #FFF7E9;
-  --paper-deep: #FCECD3;
-  --paper-warm: #FFFFFF;
+  --paper: #FAF9F6;
+  --paper-deep: #EFEEF4;
+  --paper-warm: #F4F2F8;
   --paper-card: #FFFFFF;
-  --ink-soft: #6D5C66;
-  /* Darkened from #A2919A, which sat at 2.79:1 on the warm ground — below AA
-     for the 99 places this token carries secondary text. */
-  --ink-mute: #7D6974;
+  --paper-raised: #FFFFFF;
+  --paper-float: #FFFFFF;
+  --ink-soft: #555B72;
+  --ink-mute: #656B80;
   --ink-muted: var(--ink-mute);
-  --rule: rgba(36, 26, 46, 0.09);
-  --rule-strong: rgba(36, 26, 46, 0.17);
+  --rule: rgba(37, 41, 64, 0.10);
+  --rule-strong: rgba(37, 41, 64, 0.20);
 
   --coral: var(--coral-hue);
-  --coral-start: #FF9070;
+  --coral-start: #FFB18F;
   --coral-end: var(--coral-hue);
-  --coral-deep: #DE4526;
-  /* Coral as TEXT, not as a fill. The brand coral is deliberately unchanged —
-     it is the identity — but at 2.64:1 it cannot carry a label. This is the
-     same hue taken down to 4.5:1 so small coral text passes AA. */
-  --coral-text: #C72400;
+  --coral-deep: #BE513A;
+  /* Text variants are separately tuned for contrast on reading surfaces. */
+  --coral-text: #9C402B;
 
   /* Text-only variants of the nutrition and status hues. The fills keep the
      original colours — a macro bar is a shape, and shapes are not held to the
      4.5:1 text rule — but the same hue carrying a number has to be readable.
      Each is the original taken down to 4.5:1 on the deepest card ground. */
-  --protein-text: #1260FF;
-  --carbs-text: #9D6000;
-  --fat-text: #1C7D55;
-  --danger-text: #D81F25;
-  --coral-soft: rgba(255, 107, 74, 0.14);
-  --gradient-calorie: linear-gradient(160deg, #FF9070, #F0663C);
+  --protein-text: #255DA3;
+  --carbs-text: #865300;
+  --fat-text: #206A51;
+  --danger-text: #B52F40;
+  --coral-soft: #FFF0E9;
+  --gradient-calorie: linear-gradient(160deg, #FFB18F, #F17C59);
   --green-goal: var(--herb);
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -54,20 +54,36 @@
   --radius-sm: 12px;
   --nav-h: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --shadow-card: 5px 5px 0 #241A2E;
-  --shadow-sm: 3px 3px 0 #241A2E;
-  --fun-yellow: #FFDF5D;
-  --fun-green: #BDEE69;
-  --fun-blue: #B9DAFF;
-  --fun-pink: #FFC4E3;
-  --fun-lilac: #CFB7FF;
-  --fun-outline: 2px solid #241A2E;
-  --product-dark: #241A2E;
+  --shadow-ink: #DEDDE8;
+  --edge-ink: #C9CBDC;
+  --control-border: #85899C;
+  --shadow-card: 0 3px 0 var(--shadow-ink), 0 8px 24px rgb(37 41 64 / 4%);
+  --shadow-sm: 0 2px 0 var(--shadow-ink);
+  --fun-yellow: #FFE7AA;
+  --fun-green: #DDF1E7;
+  --fun-blue: #E0EDFF;
+  --fun-pink: #FFE2D8;
+  --fun-lilac: #E6E8FF;
+  --fun-outline: 1.5px solid var(--edge-ink);
+  --selection: #4D56B3;
+  --selection-soft: #E6E8FF;
+  --selection-hover: #DADDF9;
+  --on-selection: #FFFFFF;
+  --success-soft: #E3F2EA;
+  --info-soft: #E8F0FF;
+  --warning-soft: #FFF0CD;
+  --danger-soft: #FFE7ED;
+  --scene: #4855A0;
+  --scene-lift: #6572BB;
+  --scene-ink: #FFFFFF;
+  --scene-edge: #8893D5;
+  --scrim: rgb(18 23 43 / 48%);
+  --product-dark: #353E76;
   --product-on-dark: #FFFFFF;
-  --product-dark-muted: #D4CBD9;
-  --product-dark-surface: #403449;
-  --product-dark-accent: #FFB49E;
-  --shadow-pill: 0 10px 22px rgba(255, 107, 74, 0.30);
+  --product-dark-muted: #DDE1FF;
+  --product-dark-surface: #49548F;
+  --product-dark-accent: #FFCAA8;
+  --shadow-pill: 0 10px 22px rgba(255, 118, 94, 0.30);
   --skeleton-base: var(--chalk);
   --skeleton-shine: rgba(255, 255, 255, 0.85);
   --surface: var(--paper-card);
@@ -76,13 +92,13 @@
   --bg: var(--paper-deep);
 
   --on-track: var(--coral-hue);
-  --on-track-deep: #DE4526;
+  --on-track-deep: #BE513A;
   /* A lighter tint of the same coral for over-target. Not a warning — §2.4. */
   --on-track-soft: #FFC0A8;
   --streak: var(--coral-hue);
   --protein: #4A86FF;
-  --carbs: #FFB43D;
-  --fat: #57D9A3;
+  --carbs: #F7C948;
+  --fat: #54CFA0;
 
   --danger: #E5484D;
   --danger-deep: #C13438;
@@ -102,9 +118,9 @@
   --control-radius: .75rem;
   --action-radius: 1rem;
   --card-radius: 1.375rem;
-  --focus-ring: 3px solid var(--ink);
+  --focus-ring: 3px solid var(--selection);
   --page-heading-size: clamp(2rem, 6vw, 2.75rem);
-  --disabled-fill: #E9E2D8;
+  --disabled-fill: #E9EAF1;
 
   --radius-md: 20px;
   --radius-lg: 26px;
@@ -135,19 +151,19 @@
   --squish-out: 260ms;
   --squish-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
 
-  --clay-base: #FFEFE0;
+  --clay-base: #F4F2F8;
   --clay-lift: #FFFFFF;
   --clay-inner-light: rgba(255, 255, 255, 0.95);
-  --clay-inner-dark: rgba(36, 26, 46, 0.09);
-  --clay-cast: rgba(36, 26, 46, 0.13);
-  --clay-contact: rgba(36, 26, 46, 0.06);
+  --clay-inner-dark: rgba(37, 41, 64, 0.09);
+  --clay-cast: rgba(37, 41, 64, 0.13);
+  --clay-contact: rgba(37, 41, 64, 0.06);
   --clay-inset-light: rgba(255, 255, 255, 0.85);
-  --clay-inset-dark: rgba(36, 26, 46, 0.16);
-  --clay-coral-base: #F0663C;
-  --clay-coral-lift: #FF9070;
+  --clay-inset-dark: rgba(37, 41, 64, 0.16);
+  --clay-coral-base: #FF9675;
+  --clay-coral-lift: #FFB18F;
   --clay-coral-inner-light: rgba(255, 255, 255, 0.42);
-  --clay-coral-inner-dark: rgba(150, 45, 20, 0.34);
-  --clay-coral-cast: rgba(255, 107, 74, 0.38);
+  --clay-coral-inner-dark: rgba(157, 55, 32, 0.34);
+  --clay-coral-cast: rgba(255, 150, 117, 0.38);
   /* Deliberately the cheap one: list rows use it, so it stays a single cast
      shadow. See clay-contrast.test.ts — this is a paint budget, not a style. */
   --clay-e1:
@@ -186,7 +202,7 @@
   --ink-press: #000000;
   --edge-width: 2px;
   --edge-depth: 5px;
-  --edge-coral: #1749A8;
+  --edge-coral: var(--selection);
   --edge-neutral: var(--chalk);
   --edge-danger: var(--danger-deep);
   /* Was #B8650C — 3.77:1 on the amber card it sits on, below AA. */
@@ -194,7 +210,7 @@
   --amber-deep: var(--apricot);
   --protein-ink: #1749A8;
   --protein-soft: #DCE6F8;
-  --success-ink: var(--herb);
+  --success-ink: #216B52;
   --star: var(--apricot);
   --welcome-ink: var(--ink);
   --toast-ok-bg: #1C3A22;
@@ -205,7 +221,80 @@
   --toast-err-fg: #FCA5A5;
   --lilac: #A78BFA;
   --mint: var(--herb);
-  --icon-teal: var(--herb);
+  --icon-teal: #216B52;
   --danger-ink: #C22B3A;
   --surface-legacy: var(--enamel);
+}
+
+/* Dark surfaces retain the hue relationships, with luminance reversed for
+   readable text. Brand fills keep their own dark label, independent of --ink. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #141827;
+  --paper-deep: #191E30;
+  --paper-warm: #262D43;
+  --paper-card: #1D2335;
+  --paper-raised: #242B40;
+  --paper-float: #2E3650;
+  --ink: #F5F5FC;
+  --ink-soft: #CACFE0;
+  --ink-mute: #B0B8CF;
+  --ink-press: #FFFFFF;
+  --rule: rgb(202 207 224 / 12%);
+  --rule-strong: rgb(202 207 224 / 26%);
+  --edge-ink: #424B68;
+  --control-border: #8993B1;
+  --edge-hover: #7A85B1;
+  --shadow-ink: #0C1020;
+  --shadow-card: 0 3px 0 var(--shadow-ink), 0 8px 24px rgb(0 0 0 / 12%);
+  --enamel: #262D43;
+  --chalk: #3C445D;
+  --dough: #433B2F;
+  --coral-hue: #FFA483;
+  --coral-start: #FFBE9F;
+  --coral-text: #FFBEA5;
+  --coral-soft: #3D3037;
+  --coral-deep: #CA694F;
+  --on-brand: #252940;
+  --on-danger: #252940;
+  --on-accent: #252940;
+  --fun-yellow: #4B3A31;
+  --fun-green: #203C44;
+  --fun-blue: #263651;
+  --fun-pink: #452F39;
+  --fun-lilac: #30385B;
+  --selection: #B4BCFF;
+  --selection-soft: #30385B;
+  --selection-hover: #3A446C;
+  --on-selection: #202749;
+  --success-soft: #213C38;
+  --success-ink: #99DEBE;
+  --icon-teal: #99DEBE;
+  --info-soft: #263651;
+  --warning-soft: #4B3A31;
+  --danger-soft: #422F3D;
+  --scene: #303B75;
+  --scene-lift: #475595;
+  --scene-edge: #6271B0;
+  --scrim: rgb(5 8 20 / 72%);
+  --danger: #F88A96;
+  --danger-text: #FFA7B1;
+  --danger-ink: #FFA7B1;
+  --danger-deep: #DB6577;
+  --protein-text: #9CCAFF;
+  --carbs-text: #E8C26A;
+  --fat-text: #8DCEAC;
+  --protein-ink: #9CCAFF;
+  --protein-soft: #263651;
+  --amber-ink: #E8C26A;
+  --disabled-fill: #343D56;
+  --clay-base: #242B40;
+  --clay-lift: #2E3650;
+  --clay-inner-light: rgb(255 255 255 / 4%);
+  --clay-inner-dark: rgb(0 0 0 / 12%);
+  --clay-cast: rgb(0 0 0 / 16%);
+  --clay-contact: rgb(0 0 0 / 12%);
+  --clay-inset-light: rgb(255 255 255 / 3%);
+  --clay-inset-dark: rgb(0 0 0 / 18%);
+  --skeleton-shine: rgb(255 255 255 / 6%);
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 const tokens = readFileSync(new URL('../styles/tokens.css', import.meta.url), 'utf8')
 const styles = readFileSync(new URL('../styles/product-ui.css', import.meta.url), 'utf8')
+const darkStyles = readFileSync(new URL('../styles/dark-mode.css', import.meta.url), 'utf8')
 const imports = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
 
 function color(name: string) {
@@ -37,6 +38,19 @@ describe('shared visual theme', () => {
       expect(existsSync(new URL(`../${relativePath}`, import.meta.url)), relativePath).toBe(true)
     }
   })
+  it('serves the first-paint appearance script before the production app fallback', () => {
+    const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8')
+    const config = JSON.parse(readFileSync(new URL('../../../vercel.json', import.meta.url), 'utf8')) as {
+      rewrites: { source: string; destination: string }[]
+    }
+    expect(html).toContain('<script src="%BASE_URL%appearance-init.js"></script>')
+    expect(existsSync(new URL('../../public/appearance-init.js', import.meta.url))).toBe(true)
+    const scriptRoute = config.rewrites.findIndex(route => route.source === '/app/appearance-init.js')
+    const fallbackRoute = config.rewrites.findIndex(route => route.source === '/app/(.*)')
+    expect(scriptRoute).toBeGreaterThanOrEqual(0)
+    expect(fallbackRoute).toBeGreaterThan(scriptRoute)
+    expect(config.rewrites[scriptRoute].destination).toBe('/appearance-init.js')
+  })
   it('keeps ink readable on every colourful sticker and action surface', () => {
     for (const background of ['--fun-yellow', '--fun-green', '--fun-blue', '--fun-pink', '--fun-lilac', '--coral-hue']) {
       expect(contrast('--ink', background), `Ink on ${background}`).toBeGreaterThanOrEqual(4.5)
@@ -49,6 +63,15 @@ describe('shared visual theme', () => {
         expect(contrast(text, background), `${text} on ${background}`).toBeGreaterThanOrEqual(4.5)
       }
     }
+  })
+
+  it('gives dark mode a deliberate raised and floating surface hierarchy', () => {
+    expect(tokens).toContain(':root[data-theme="dark"]')
+    expect(tokens).toContain('--paper-raised: #242B40')
+    expect(tokens).toContain('--paper-float: #2E3650')
+    expect(darkStyles).toContain('.you-refresh .you-header')
+    expect(darkStyles).toContain('.app-shell .bottom-nav')
+    expect(imports.indexOf('dark-mode.css')).toBeGreaterThan(imports.indexOf('appearance.css'))
   })
 
   it('leaves accessibility rules last and pairs the colourful heatmap with its legend', () => {

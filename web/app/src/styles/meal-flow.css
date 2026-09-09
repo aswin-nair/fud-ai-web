@@ -5,7 +5,7 @@
 .flow-steps li { display: flex; gap: 7px; align-items: center; font-size: .875rem; color: var(--ink-soft); }
 .flow-steps li > span { width: 26px; height: 26px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 9px; background: var(--paper-card); color: var(--ink); }
 .flow-steps li[aria-current="step"] { color: var(--ink); font-weight: 700; }
-.flow-steps li[aria-current="step"] > span { background: var(--fun-yellow); box-shadow: 2px 2px 0 var(--ink); }
+.flow-steps li[aria-current="step"] > span { background: var(--fun-yellow); box-shadow: 2px 2px 0 var(--shadow-ink); }
 .flow-steps li.is-complete > span { background: var(--fun-green); }
 .flow-heading-content { display: flex; gap: 14px; align-items: center; }
 .flow-heading-content > div { flex: 1; min-width: 0; }
@@ -84,7 +84,7 @@
 .flow-macro-label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .875rem; font-weight: 700; margin-bottom: 8px; }
 .flow-meal-options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .flow-meal-options button { display: flex; align-items: center; gap: 8px; min-height: 46px; border: var(--fun-outline); border-radius: 12px; padding: 10px 12px; background: var(--paper); font-size: .875rem; }
-.flow-meal-options button[aria-pressed="true"] { background: var(--fun-green); box-shadow: 2px 2px 0 var(--ink); font-weight: 700; }
+.flow-meal-options button[aria-pressed="true"] { background: var(--fun-green); box-shadow: 2px 2px 0 var(--shadow-ink); font-weight: 700; }
 .flow-portion-controls { display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 8px; border: var(--fun-outline); border-radius: 16px; background: var(--paper); }
 .flow-portion-controls button { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; background: var(--paper-card); border: var(--fun-outline); border-radius: 12px; }
 .flow-portion-controls label { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; font-size: .875rem; gap: 4px; min-width: 0; }

@@ -6,12 +6,14 @@
   padding: .75rem .875rem;
   background: var(--paper-card);
   color: var(--ink);
-  border: var(--fun-outline);
+  border: 1.5px solid var(--control-border);
   border-radius: var(--control-radius);
   box-shadow: none;
   font-size: var(--text-body);
   line-height: 1.5;
+  transition: background-color 160ms ease, border-color 160ms ease;
 }
+:is(.app-shell, .login-page) :is(input, textarea)::placeholder { color: var(--ink-mute); opacity: 1; }
 :is(.app-shell, .login-page) .field label {
   display: block;
   color: var(--ink);

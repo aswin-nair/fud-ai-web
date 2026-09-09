@@ -198,10 +198,10 @@
   color: var(--ink-soft);
 }
 
-.nav-item.active { color: var(--coral-text); }
+.nav-item.active { color: var(--selection); }
 
 .nav-item.active .nav-item-inner {
-  background: var(--paper-deep);
+  background: var(--selection-soft);
   box-shadow: var(--clay-inset);
 }
 

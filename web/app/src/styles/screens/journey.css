@@ -69,8 +69,8 @@
 }
 
 .journey-badge.unlocked {
-  border-color: rgba(107,159,255,0.4);
-  background: rgba(107,159,255,0.06);
+  border-color: var(--selection);
+  background: var(--selection-soft);
 }
 
 .journey-badge.locked {

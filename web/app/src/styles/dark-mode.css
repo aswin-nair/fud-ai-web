@@ -1,0 +1,169 @@
+/* Dark mode is a designed palette, not a filter over the light theme.
+   Keep three quiet surface levels so cards remain legible without glowing. */
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 12% -8%, color-mix(in srgb, var(--scene-lift) 20%, transparent), transparent 34rem),
+    var(--paper);
+}
+
+:root[data-theme="dark"] .app-shell {
+  background: var(--paper);
+}
+
+:root[data-theme="dark"] .app-shell :is(.page-heading, .card, .surface, .progress-card, .settings-card, .discover-card) {
+  border-color: var(--edge-ink);
+  box-shadow: 0 3px 0 var(--shadow-ink), 0 12px 28px rgb(0 0 0 / 12%);
+}
+
+:root[data-theme="dark"] .app-shell .bottom-nav {
+  background: linear-gradient(160deg, var(--paper-float), var(--paper-card));
+  border-color: var(--edge-ink);
+  box-shadow: 0 4px 0 var(--shadow-ink), 0 14px 26px rgb(0 0 0 / 20%);
+}
+
+:root[data-theme="dark"] .app-shell .nav-item.active .nav-item-inner,
+:root[data-theme="dark"] .app-shell .bottom-nav .nav-item.active {
+  background: color-mix(in srgb, var(--selection) 22%, var(--paper-card));
+  border-color: var(--selection);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .app-shell .nav-fab {
+  background: linear-gradient(160deg, var(--coral-start), var(--coral-hue));
+  border-color: var(--coral-deep);
+  box-shadow: 0 4px 0 var(--shadow-ink), 0 10px 20px rgb(0 0 0 / 22%);
+}
+
+/* Warm surfaces stay recognisable, but are deepened so they don't compete with text. */
+:root[data-theme="dark"] .today-refresh .home-ring-hero {
+  background: linear-gradient(145deg, var(--fun-pink), var(--fun-lilac));
+  border: 1px solid color-mix(in srgb, var(--coral-text) 35%, var(--edge-ink));
+}
+
+:root[data-theme="dark"] .today-refresh .calorie-ring {
+  background: var(--fun-yellow);
+  border: 1px solid color-mix(in srgb, var(--coral-start) 42%, var(--edge-ink));
+}
+
+:root[data-theme="dark"] .today-refresh .home-today-empty,
+:root[data-theme="dark"] .today-refresh .today-momo-note,
+:root[data-theme="dark"] .habit-milestones {
+  box-shadow: 0 3px 0 var(--shadow-ink), 0 10px 22px rgb(0 0 0 / 10%);
+}
+
+:root[data-theme="dark"] .today-refresh .home-today-empty {
+  background: var(--fun-blue);
+  border-color: var(--scene-edge);
+}
+
+:root[data-theme="dark"] .today-refresh .today-momo-note,
+:root[data-theme="dark"] .roast-preview {
+  background: var(--fun-yellow);
+  border-color: color-mix(in srgb, var(--coral-start) 40%, var(--edge-ink));
+}
+
+/* A teal header makes the You page feel related to the app shell in dark mode. */
+:root[data-theme="dark"] .you-refresh .you-header {
+  background: linear-gradient(135deg, var(--scene), var(--scene-lift));
+  border-color: var(--scene-edge);
+  box-shadow: 0 3px 0 var(--shadow-ink), 0 14px 28px rgb(0 0 0 / 15%);
+}
+
+:root[data-theme="dark"] .you-refresh .you-header :is(.page-title, .page-sub, .you-eyebrow) {
+  color: var(--scene-ink);
+}
+
+:root[data-theme="dark"] .you-refresh .you-header .you-eyebrow {
+  color: var(--coral-start);
+}
+
+:root[data-theme="dark"] .you-refresh .you-avatar {
+  background: color-mix(in srgb, var(--scene-lift) 70%, var(--paper-card));
+  border-color: var(--scene-edge);
+}
+
+:root[data-theme="dark"] .you-refresh .you-toolbar,
+:root[data-theme="dark"] .you-refresh .you-save-bar {
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+:root[data-theme="dark"] .you-refresh .you-section + .you-section {
+  border-color: var(--rule-strong);
+}
+
+:root[data-theme="dark"] .you-refresh .settings-card,
+:root[data-theme="dark"] .you-refresh .you-disclosure {
+  background: var(--paper-raised);
+}
+
+:root[data-theme="dark"] .you-refresh .settings-input,
+:root[data-theme="dark"] .you-refresh .settings-select,
+:root[data-theme="dark"] .you-refresh .settings-textarea {
+  background: var(--paper-card);
+  border-color: var(--control-border);
+}
+
+:root[data-theme="dark"] .log-refresh .log-page-heading,
+:root[data-theme="dark"] .saved-refresh .page-heading {
+  background: var(--selection-soft);
+  border-color: var(--selection);
+}
+
+:root[data-theme="dark"] .insights-refresh .page-heading {
+  background: var(--selection-soft);
+  border-color: var(--selection);
+}
+
+:root[data-theme="dark"] .insights-refresh .consistency-card {
+  background: color-mix(in srgb, var(--selection-soft) 70%, var(--paper-card));
+  border-color: var(--selection);
+}
+
+:root[data-theme="dark"] .auth-refresh .login-card,
+:root[data-theme="dark"] .setup-refresh .setup-form,
+:root[data-theme="dark"] .welcome-refresh .welcome-content {
+  background: var(--paper-raised);
+  border-color: var(--edge-ink);
+  box-shadow: 0 4px 0 var(--shadow-ink), 0 16px 32px rgb(0 0 0 / 18%);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-tabs {
+  background: var(--paper-card);
+  border-color: var(--edge-ink);
+}
+
+/* The native-looking controls should still read as controls on charcoal surfaces. */
+:root[data-theme="dark"] :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]) {
+  color-scheme: dark;
+  caret-color: var(--coral-hue);
+}
+
+:root[data-theme="dark"] .date-modal,
+:root[data-theme="dark"] .modal-sheet,
+:root[data-theme="dark"] .portion-sheet,
+:root[data-theme="dark"] .activity-sheet,
+:root[data-theme="dark"] .levelup-card {
+  background: var(--paper-float);
+  border-color: var(--edge-ink);
+  box-shadow: 0 4px 0 var(--shadow-ink), 0 22px 50px rgb(0 0 0 / 30%);
+}
+
+:root[data-theme="dark"] .date-modal-today-btn:hover {
+  background: color-mix(in srgb, var(--coral-hue) 22%, transparent);
+}
+
+:root[data-theme="dark"] .toast-action-btn,
+:root[data-theme="dark"] .toast-x {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+:root[data-theme="dark"] .toast-action-btn:hover,
+:root[data-theme="dark"] .toast-x:hover {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="dark"] body { background: var(--paper); }
+}

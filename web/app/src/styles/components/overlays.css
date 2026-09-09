@@ -417,8 +417,8 @@
 .toast-action-btn {
   font-size: 0.8rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
   border-radius: 6px;
   padding: 4px 10px;
   color: inherit;
@@ -427,13 +427,13 @@
   transition: background 0.15s;
 }
 
-.toast-action-btn:hover { background: rgba(255, 255, 255, 0.25); }
+.toast-action-btn:hover { background: color-mix(in srgb, currentColor 22%, transparent); }
 
 .toast-x {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: inherit;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -442,4 +442,4 @@
   transition: color 0.15s;
 }
 
-.toast-x:hover { color: rgba(255, 255, 255, 0.7); }
+.toast-x:hover { background: color-mix(in srgb, currentColor 12%, transparent); }

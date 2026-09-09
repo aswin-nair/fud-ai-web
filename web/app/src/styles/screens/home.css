@@ -117,7 +117,7 @@
 .date-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26, 20, 14, 0.45);
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
   backdrop-filter: blur(4px);
   z-index: 1000;
   display: flex;
@@ -264,7 +264,7 @@
   transition: background 0.15s;
 }
 
-.date-modal-today-btn:hover { background: rgba(255, 122, 80, 0.2); }
+.date-modal-today-btn:hover { background: color-mix(in srgb, var(--coral-hue) 20%, transparent); }
 
 .nav-log-wrap {
   position: relative;
@@ -623,7 +623,7 @@
 
 .food-empty-text {
   padding: 4px 2px 12px;
-  color: rgba(142, 142, 147, 0.75);
+  color: var(--ink-mute);
   font-size: 0.95rem;
 }
 
@@ -638,7 +638,7 @@
 }
 
 .food-card-row:hover {
-  background: rgba(26, 20, 14, 0.03);
+  background: var(--paper-deep);
   text-decoration: none;
 }
 
@@ -734,7 +734,7 @@
 }
 
 .error-banner {
-  background: rgba(230, 57, 70, 0.1);
+  background: var(--danger-soft);
   border: 1px solid rgba(230, 57, 70, 0.3);
   color: var(--danger-ink);
   padding: 12px 14px;
@@ -1245,11 +1245,11 @@
   border-radius: 10px;
 }
 
-.icon-tile-coral { background: rgba(255, 122, 80, 0.14); color: var(--coral-text); }
-.icon-tile-blue { background: rgba(107, 159, 255, 0.14); color: var(--protein-text); }
-.icon-tile-gold { background: rgba(255, 179, 71, 0.14); color: var(--carbs-text); }
-.icon-tile-teal { background: rgba(61, 214, 173, 0.14); color: var(--icon-teal); }
-.icon-tile-pink { background: rgba(255, 107, 157, 0.14); color: var(--fat-text); }
+.icon-tile-coral { background: var(--coral-soft); color: var(--coral-text); }
+.icon-tile-blue { background: var(--info-soft); color: var(--protein-text); }
+.icon-tile-gold { background: var(--warning-soft); color: var(--carbs-text); }
+.icon-tile-teal { background: var(--success-soft); color: var(--icon-teal); }
+.icon-tile-pink { background: var(--danger-soft); color: var(--fat-text); }
 
 .log-ai-badge {
   font-size: 0.6rem;
@@ -1429,7 +1429,7 @@
   display: flex;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(246, 241, 234, 0.95);
+  background: color-mix(in srgb, var(--paper) 95%, transparent);
   border-top: 1px solid var(--rule);
 }
 

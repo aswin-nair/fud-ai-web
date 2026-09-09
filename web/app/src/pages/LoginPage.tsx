@@ -9,6 +9,7 @@ import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
 import { MomoSticker } from '../components/MomoSticker'
 import { useApp } from '../store/AppContext'
+import { AppearanceControl } from '../components/AppearanceControl'
 
 type AuthMode = 'signin' | 'signup'
 
@@ -74,7 +75,10 @@ export function LoginPage() {
       <div className="login-card login-card-wide">
         <div className="auth-brand-row">
           <Link to="/onboarding" className="welcome-brand" aria-label="Fud AI welcome">Fud AI<span aria-hidden="true">.</span></Link>
-          <span className="auth-brand-note">Your food buddy</span>
+          <div className="appearance-header-actions">
+            <span className="auth-brand-note">Your food buddy</span>
+            <AppearanceControl compact />
+          </div>
         </div>
         {momoVisible && <div className="auth-momo-greeting">
           <MomoSticker mood={privateFocus ? 'sleepy' : loading || error ? 'curious' : 'excited'} pose={loading ? 'ponder' : 'still'} />

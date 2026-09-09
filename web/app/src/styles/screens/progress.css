@@ -33,7 +33,7 @@
 .range-chip.active {
   background: var(--coral-soft);
   color: var(--coral-text);
-  border-color: rgba(255, 122, 80, 0.35);
+  border-color: color-mix(in srgb, var(--coral-hue) 35%, transparent);
 }
 
 .progress-card {
@@ -136,7 +136,7 @@
 }
 
 .btn-delete:hover {
-  background: rgba(230, 57, 70, 0.1);
+  background: var(--danger-soft);
 }
 
 .history-link-card {

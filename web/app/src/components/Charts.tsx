@@ -185,7 +185,7 @@ export function ProgressLineChart({
           const y = padT + chartH - ((tick - min) / range) * chartH
           return (
             <g key={tick}>
-              <line x1={padL} y1={y} x2={w - padR} y2={y} stroke="rgba(26,20,14,0.08)" strokeWidth="1" />
+              <line x1={padL} y1={y} x2={w - padR} y2={y} stroke="var(--rule)" strokeWidth="1" />
               <text x={padL - 6} y={y + 4} textAnchor="end" fill="var(--ink-mute)" fontSize="10">{tick}</text>
             </g>
           )
@@ -264,7 +264,7 @@ export function ProgressBarChart({
           const y = padT + chartH - (tick / yMax) * chartH
           return (
             <g key={tick}>
-              <line x1={padL} y1={y} x2={w - padR} y2={y} stroke="rgba(26,20,14,0.08)" strokeWidth="1" />
+              <line x1={padL} y1={y} x2={w - padR} y2={y} stroke="var(--rule)" strokeWidth="1" />
               <text x={padL - 6} y={y + 4} textAnchor="end" fill="var(--ink-mute)" fontSize="9">
                 {tick >= 1000 ? `${tick / 1000}k` : tick}
               </text>
@@ -291,7 +291,7 @@ export function ProgressBarChart({
             <g key={b.label}>
               <rect
                 x={x} y={padT} width={barW} height={trackH}
-                rx="4" fill="rgba(26,20,14,0.05)"
+                rx="4" fill="var(--paper-deep)"
               />
               {b.value > 0 && (
                 <rect

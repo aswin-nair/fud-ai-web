@@ -29,7 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ink-mute);
   text-decoration: none;
   min-width: 0;
 }
@@ -71,7 +71,7 @@
 }
 
 .nav-item.active {
-  color: var(--coral-text);
+  color: var(--selection);
 }
 
 .nav-item.active svg {
@@ -79,7 +79,7 @@
 }
 
 .nav-item.active .nav-item-inner {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--selection-soft);
 }
 
 .fab {
@@ -112,8 +112,8 @@
 }
 
 .bottom-nav .nav-item.active {
-  color: var(--coral-text);
-  background: var(--paper-deep);
+  color: var(--selection);
+  background: var(--selection-soft);
   box-shadow: var(--clay-inset);
 }
 

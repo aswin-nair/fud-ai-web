@@ -12,17 +12,21 @@
   border: var(--fun-outline); border-radius: var(--action-radius);
   font: 600 var(--button-font-size, 1.125rem)/1.3 var(--display);
   letter-spacing: 0; text-align: center; overflow-wrap: anywhere;
-  transition: transform var(--motion-press) ease, box-shadow var(--motion-press) ease;
+  transition: transform var(--motion-press) ease, box-shadow var(--motion-press) ease, background-color 160ms ease;
 }
-.pressable-primary .pressable-face { background: var(--coral-hue); color: var(--ink); box-shadow: 0 5px 0 var(--ink); }
-.pressable-secondary .pressable-face { background: var(--fun-yellow); color: var(--ink); box-shadow: 0 4px 0 var(--ink); }
+.pressable-primary .pressable-face { background: var(--coral-hue); color: var(--on-brand); border-color: var(--coral-deep); box-shadow: 0 4px 0 var(--coral-deep); }
+.pressable-secondary .pressable-face { background: var(--paper-card); color: var(--ink); border-color: var(--control-border); box-shadow: 0 3px 0 var(--shadow-ink); }
 .pressable-ghost .pressable-face { background: var(--paper-card); color: var(--ink); box-shadow: none; }
-.pressable-destructive .pressable-face { background: var(--danger); color: var(--on-danger); box-shadow: 0 4px 0 var(--ink); }
-.pressable:not(:disabled):not([aria-disabled="true"]):is(.is-pressed, :active) .pressable-face { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.pressable-destructive .pressable-face { background: var(--danger); color: var(--on-danger); box-shadow: 0 4px 0 var(--danger-deep); }
+.pressable:not(:disabled):not([aria-disabled="true"]):is(.is-pressed, :active) .pressable-face { transform: translateY(3px); box-shadow: 0 1px 0 var(--shadow-ink); }
 .pressable-ghost:not(:disabled):not([aria-disabled="true"]):active .pressable-face { box-shadow: none; }
 .pressable:focus-visible { outline: none; }
 .pressable:focus-visible .pressable-face { outline: var(--focus-ring); outline-offset: 4px; }
 .pressable:is(:disabled, [aria-disabled="true"]) { opacity: 1; cursor: not-allowed; }
 .pressable:is(:disabled, [aria-disabled="true"]) .pressable-face { background: var(--disabled-fill); color: var(--ink-soft); border-color: var(--ink-soft); box-shadow: none; transform: none; }
 .pressable:hover { text-decoration: none; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .pressable:not(:disabled):not([aria-disabled="true"]):hover .pressable-face { transform: translateY(-1px); }
+  .pressable:not(:disabled):not([aria-disabled="true"]):active .pressable-face { transform: translateY(3px); }
+}
 @media (prefers-reduced-motion: reduce) { .pressable-face { transition: none; } }

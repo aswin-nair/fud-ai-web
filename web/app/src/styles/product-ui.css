@@ -33,7 +33,7 @@
 }
 .app-shell .nav-item-inner { font-size: .875rem; min-height: 52px; border-radius: 14px; gap: 4px; border: 2px solid transparent; }
 .app-shell .nav-item { color: var(--ink-soft); }
-.app-shell .nav-item.active .nav-item-inner { background: var(--selection-soft); color: var(--ink); border-color: var(--selection); box-shadow: none; }
+.app-shell .nav-item.active .nav-item-inner { background: var(--selection-soft); color: var(--selection); border-color: var(--selection); box-shadow: none; }
 .app-shell .nav-fab {
   flex-basis: 52px;
   width: 52px;
@@ -181,7 +181,7 @@
 }
 
 /* Log methods behave like colourful cards, never like tiny menu links. */
-.log-refresh .log-page-heading { background: var(--fun-lilac); margin-top: 8px; }
+.log-refresh .log-page-heading { background: var(--selection-soft); margin-top: 8px; }
 .log-refresh .log-method-grid { gap: 16px; }
 .log-refresh .log-method-card { border: var(--fun-outline); box-shadow: 4px 4px 0 var(--shadow-ink); border-radius: 20px 20px 6px 20px; padding: 18px 14px; }
 .log-refresh .log-method-card { background: var(--paper-card); }
@@ -198,7 +198,7 @@
 .log-refresh .log-empty-sub { color: var(--ink); }
 .log-shelf-tabs { display: flex; gap: 10px; padding: 6px; background: var(--paper-deep); border: var(--fun-outline); border-radius: 16px; }
 .log-shelf-tabs button { display: flex; flex: 1; gap: 8px; align-items: center; justify-content: center; padding: 10px; min-height: 48px; font-size: 1rem; border: 2px solid transparent; border-radius: 10px; }
-.log-shelf-tabs button[aria-pressed="true"] { background: var(--fun-yellow); border-color: var(--ink); box-shadow: 0 2px 0 var(--shadow-ink); font-weight: 700; }
+.log-shelf-tabs button[aria-pressed="true"] { background: var(--selection); color: var(--on-selection); border-color: var(--selection); box-shadow: 0 2px 0 var(--shadow-ink); font-weight: 700; }
 .log-shelf-tabs button:disabled { opacity: .55; }
 .log-new-meal { margin-top: 28px; }
 .log-new-meal h2 { font: 600 1.5rem/1.3 var(--display); margin-bottom: 16px; }
@@ -208,7 +208,7 @@
 .log-refresh .log-pick-list { border: 0; background: transparent; box-shadow: none; }
 .portion-sheet { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 .portion-option { min-height: 82px; border: var(--fun-outline); background: var(--paper-card); border-radius: 16px; }
-.portion-option.is-default { background: var(--fun-yellow); box-shadow: 0 3px 0 var(--shadow-ink); }
+.portion-option.is-default { background: var(--selection-soft); border-color: var(--selection); box-shadow: 0 3px 0 var(--shadow-ink); }
 .portion-kcal { font-size: .875rem; }
 .portion-close { min-width: 44px; min-height: 44px; }
 .cloud-sync-banner { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: var(--fun-blue); color: var(--ink); border-bottom: var(--fun-outline); font-size: .875rem; }
@@ -226,9 +226,9 @@
 .saved-refresh .discover-card-footer { flex-wrap: wrap; gap: 10px; }
 .saved-refresh .ssc-btn { min-width: 44px; min-height: 44px; }
 @media (max-width: 360px) { .portion-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.saved-refresh .page-heading { background: var(--fun-green); }
+.saved-refresh .page-heading { background: var(--selection-soft); }
 .saved-refresh .discover-chip { border: var(--fun-outline); color: var(--ink); }
-.saved-refresh .discover-chip.active, .insights-range-control .range-chip.active { background: var(--fun-yellow); color: var(--ink); border: var(--fun-outline); box-shadow: 3px 3px 0 var(--shadow-ink); }
+.saved-refresh .discover-chip.active, .insights-range-control .range-chip.active { background: var(--selection-soft); color: var(--selection); border: var(--fun-outline); border-color: var(--selection); box-shadow: 0 2px 0 var(--shadow-ink); }
 .saved-refresh .discover-grid { gap: 18px; }
 .saved-refresh .discover-card { background: var(--paper-card); }
 .saved-refresh .discover-card:nth-child(3n + 1) .discover-card-emoji { background: var(--fun-blue); }
@@ -246,7 +246,7 @@
 .saved-refresh .saved-meal-row { border: var(--fun-outline); background: var(--paper-card); border-radius: 18px; margin-block: 12px; }
 
 /* Consistency is celebratory without making calories a score. */
-.insights-refresh .page-heading { background: var(--fun-pink); }
+.insights-refresh .page-heading { background: var(--selection-soft); }
 .insights-refresh .consistency-card { background: var(--fun-lilac); color: var(--ink); }
 .insights-refresh .consistency-card :is(.page-sub, .consistency-sub, .consistency-unit, .insights-legend) { color: var(--ink); }
 .insights-refresh .consistency-card .consistency-streak { border: var(--fun-outline); border-radius: 10px; background: var(--fun-yellow); color: var(--ink); padding: 6px 10px; transform: rotate(3deg); }
@@ -264,7 +264,7 @@
 .insights-range-control .range-chips { padding-bottom: 4px; }
 
 /* You gets a Momo sticker and tabbed-paper section headings. */
-.you-refresh .you-header { background: var(--fun-lilac); color: var(--ink); border: var(--fun-outline); box-shadow: var(--shadow-card); border-radius: 24px 24px 8px 24px; padding: 16px 20px; }
+.you-refresh .you-header { background: var(--selection-soft); color: var(--ink); border: var(--fun-outline); box-shadow: var(--shadow-card); border-radius: 24px 24px 8px 24px; padding: 16px 20px; }
 .you-refresh .you-header .momo-sticker { width: 84px; height: 88px; flex-basis: 84px; }
 .you-refresh .you-header > div:first-child { min-width: 0; overflow-wrap: anywhere; }
 .you-refresh .you-header :is(.page-title, .page-sub, .you-eyebrow) { color: var(--ink); }
@@ -276,16 +276,14 @@
 .you-refresh .you-section-heading p { margin-top: 12px; }
 .you-refresh .settings-section-label { font: 500 1.125rem/1.2 var(--display); color: var(--ink); }
 .you-refresh .you-shortcuts { gap: 8px; }
-.you-refresh .you-shortcuts a { border: var(--fun-outline); box-shadow: 2px 2px 0 var(--shadow-ink); border-radius: 10px; color: var(--ink); }
-.you-refresh .you-shortcuts a:nth-child(3n + 1) { background: var(--fun-yellow); }
-.you-refresh .you-shortcuts a:nth-child(3n + 2) { background: var(--fun-blue); }
-.you-refresh .you-shortcuts a:nth-child(3n) { background: var(--fun-pink); }
-.you-refresh .you-shortcuts a[aria-current="location"], .you-refresh .you-shortcuts a[aria-current="location"]:hover { background: var(--ink); color: var(--paper-card); box-shadow: none; }
+.you-refresh .you-shortcuts a { border: var(--fun-outline); background: var(--paper-card); box-shadow: 2px 2px 0 var(--shadow-ink); border-radius: 10px; color: var(--ink); }
+.you-refresh .you-shortcuts a:hover { background: var(--selection-soft); border-color: var(--selection); }
+.you-refresh .you-shortcuts a[aria-current="location"], .you-refresh .you-shortcuts a[aria-current="location"]:hover { background: var(--selection); color: var(--on-selection); border-color: var(--selection); box-shadow: none; }
 .you-refresh .you-save-bar { padding: 8px 0; border-bottom: 0; }
 .you-refresh .settings-goals-grid { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.5rem), 1fr)); }
-.you-refresh .settings-goal-card { min-width: 0; padding: 12px 8px; border: var(--fun-outline); box-shadow: 3px 3px 0 var(--shadow-ink); background: var(--fun-yellow); }
+.you-refresh .settings-goal-card { min-width: 0; padding: 12px 8px; border: var(--fun-outline); box-shadow: 3px 3px 0 var(--shadow-ink); background: var(--fun-pink); }
 .you-refresh .settings-goal-card:nth-child(2) { background: var(--fun-blue); }
-.you-refresh .settings-goal-card:nth-child(3) { background: var(--fun-pink); }
+.you-refresh .settings-goal-card:nth-child(3) { background: var(--fun-yellow); }
 .you-refresh .settings-goal-card:nth-child(4) { background: var(--fun-green); }
 .you-refresh .settings-goal-label { color: var(--ink); }
 .you-refresh .settings-goal-value { font: 600 clamp(1.25rem, 5vw, 1.5rem)/1.3 var(--display); overflow-wrap: anywhere; }
@@ -294,8 +292,8 @@
 .you-refresh .you-disclosure > summary span { color: var(--ink); }
 .you-refresh .you-disclosure > .settings-card { border: 0; box-shadow: none; border-radius: 0 0 16px 16px; }
 .you-refresh .settings-input, .you-refresh .settings-select, .you-refresh .settings-textarea { border: var(--fun-outline); background: var(--paper); border-radius: 10px; }
-.you-refresh .wardrobe-item.is-owned { outline: none; border: var(--fun-outline); background: var(--fun-yellow); }
-.you-refresh .wardrobe-item[aria-pressed="true"] { background: var(--fun-green); box-shadow: 3px 3px 0 var(--shadow-ink); }
+.you-refresh .wardrobe-item.is-owned { outline: none; border: var(--fun-outline); background: var(--paper-card); }
+.you-refresh .wardrobe-item[aria-pressed="true"] { background: var(--selection-soft); border-color: var(--selection); box-shadow: 0 0 0 1px var(--selection); }
 .manual-refresh .manual-summary { background: var(--fun-green); border: var(--fun-outline); box-shadow: var(--shadow-card); }
 /* Character-led account entry: one task, a helpful buddy, clear feedback. */
 .auth-refresh { background: var(--paper); padding: 24px 16px; align-items: flex-start; }
@@ -311,7 +309,7 @@
 .auth-refresh .login-sub { font-size: 1rem; line-height: 1.5; margin-bottom: 22px; }
 .auth-refresh .auth-tabs { border: var(--fun-outline); background: var(--paper); padding: 5px; gap: 6px; border-radius: 14px; }
 .auth-refresh .auth-tab { min-height: 44px; border: 2px solid transparent; border-radius: 10px; color: var(--ink); font-size: 1rem; }
-.auth-refresh .auth-tab.active { background: var(--fun-yellow); border-color: var(--ink); box-shadow: 0 2px 0 var(--shadow-ink); }
+.auth-refresh .auth-tab.active { background: var(--selection); color: var(--on-selection); border-color: var(--selection); box-shadow: 0 2px 0 var(--shadow-ink); }
 .auth-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
 .auth-refresh .auth-form .field { margin-bottom: 16px; }
 .auth-refresh .field label { display: block; margin-bottom: 7px; font-size: .875rem; font-weight: 700; }
@@ -326,7 +324,7 @@
 @media (max-width: 350px) { .auth-refresh .login-card { padding: 18px; } .auth-brand-note { font-size: .875rem; } }
 @media (hover: hover) {
   .log-refresh .log-method-card:hover { box-shadow: 2px 2px 0 var(--shadow-ink); transform: translate(2px, 2px); }
-  .app-shell .nav-item:hover .nav-item-inner { background: var(--paper-card); }
+  .app-shell .nav-item:not(.active):hover .nav-item-inner { background: var(--selection-soft); color: var(--selection); }
 }
 @media (max-width: 350px) {
   .app-shell .app-main { padding-inline: 14px; }

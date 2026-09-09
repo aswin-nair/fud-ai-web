@@ -15,6 +15,7 @@
     { "source": "/api/auth/:action", "destination": "/api/auth?action=:action" },
     { "source": "/app/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/app/mascots/(.*)", "destination": "/mascots/$1" },
+    { "source": "/app/appearance-init.js", "destination": "/appearance-init.js" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
   ],

@@ -212,8 +212,8 @@
 }
 
 .nav-item { color: var(--ink-mute); }
-.nav-item.active { color: var(--coral-text); }
-.nav-item.active .nav-item-inner { background: var(--coral-soft); }
+.nav-item.active { color: var(--selection); }
+.nav-item.active .nav-item-inner { background: var(--selection-soft); }
 .nav-item-inner {
   min-height: 44px;
   transition: transform var(--motion-press);

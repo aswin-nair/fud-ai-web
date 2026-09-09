@@ -25,7 +25,7 @@
 .welcome-scene-grain { position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(var(--ink) .7px, transparent .7px); background-size: 20px 20px; opacity: .08; }
 .welcome-refresh .welcome-momo-speech { position: absolute; z-index: 3; top: 11px; left: 50%; width: max-content; max-width: calc(100% - 36px); margin: 0; padding: 8px 14px; border: var(--fun-outline); border-radius: 16px 16px 16px 3px; background: var(--paper-card); color: var(--ink); font: 500 .9375rem/1.25 var(--display); text-align: center; transform: translateX(-50%) rotate(-3deg); }
 .welcome-mascot-wrap { position: absolute; bottom: 20px; left: 50%; display: grid; place-items: center; width: 200px; height: 200px; transform: translateX(-50%); }
-.welcome-mascot-halo { position: absolute; width: 170px; height: 170px; bottom: 0; border: 2px solid var(--ink); border-radius: 50%; background: var(--paper); box-shadow: 0 8px 0 rgb(36 26 46 / 12%); }
+.welcome-mascot-halo { position: absolute; width: 170px; height: 170px; bottom: 0; border: 2px solid var(--ink); border-radius: 50%; background: var(--paper); box-shadow: 0 8px 0 var(--shadow-ink); }
 .welcome-refresh .welcome-mascot-wrap .momo-sticker { position: relative; z-index: 1; display: block; width: 204px; height: 220px; flex: none; border: 0; border-radius: 0; background: none; box-shadow: none; transform: rotate(-5deg); }
 .welcome-mascot-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink); }
 .welcome-mascot-wrap:has(.momo-sticker) .welcome-mascot-fallback { display: none; }

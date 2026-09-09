@@ -122,8 +122,8 @@
   transition: background 0.12s;
 }
 
-.review-serving-btn:hover:not(:disabled) { background: rgba(26,20,14,0.04); }
-.review-serving-btn:active:not(:disabled) { background: rgba(26,20,14,0.08); }
+.review-serving-btn:hover:not(:disabled) { background: var(--paper-deep); }
+.review-serving-btn:active:not(:disabled) { background: var(--rule); }
 .review-serving-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
 .review-serving-center {
@@ -209,7 +209,7 @@
 }
 
 .review-macro-card {
-  background: var(--mc-bg, rgba(26,20,14,0.03));
+  background: var(--mc-bg, var(--paper-deep));
   border: 1.5px solid color-mix(in srgb, var(--mc, var(--ink-press)) 28%, transparent);
   border-radius: var(--radius);
   padding: 14px 10px 12px;

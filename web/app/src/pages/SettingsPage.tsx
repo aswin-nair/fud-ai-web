@@ -41,6 +41,7 @@ import { Momo } from '../components/Momo'
 import { MomoSticker } from '../components/MomoSticker'
 import { RoastPreview } from '../components/RoastPreview'
 import { SettingsNavigation } from '../components/SettingsNavigation'
+import { AppearanceControl } from '../components/AppearanceControl'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="settings-section-label">{children}</h3>
@@ -241,6 +242,13 @@ export function SettingsPage() {
           <MomoSticker />
         </header>
         <p className="you-status">{profile.trackingPaused ? 'Tracking paused · your streak is held' : 'Your routine · your pace'}</p>
+        <section className="appearance-settings" aria-labelledby="appearance-settings-title">
+          <div className="appearance-settings-copy">
+            <h2 id="appearance-settings-title">Make yourself at home</h2>
+            <p>Choose your colours. Saves instantly on this device. System follows your device setting.</p>
+          </div>
+          <AppearanceControl />
+        </section>
         <SettingsNavigation hasChanges={hasChanges} saved={saved} invalid={Boolean(currentProfileIssue)} onSave={saveProfile} />
 
         <section className="you-section" id="you-profile" aria-labelledby="you-profile-title" tabIndex={-1}>

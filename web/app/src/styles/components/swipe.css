@@ -51,7 +51,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgb(36 26 46 / 0.34);
+  background: color-mix(in srgb, var(--ink) 34%, transparent);
   padding: 16px;
 }
 

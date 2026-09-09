@@ -9,6 +9,7 @@ import {
   dataBackend,
 } from './lib/dataBackend'
 import { installCrashReporting } from './lib/crash'
+import { initializeAppearance } from './lib/appearance'
 
 function ConfigurationError({ message }: { message: string }) {
   return (
@@ -22,6 +23,7 @@ function ConfigurationError({ message }: { message: string }) {
 }
 
 function boot() {
+  initializeAppearance()
   installCrashReporting()
   const root = createRoot(document.getElementById('root')!)
   try {

@@ -34,8 +34,8 @@
 .activity-quick-chip > span:first-child { font-size: 1.3rem; line-height: 1; }
 .activity-quick-chip:active { transform: scale(0.93); }
 .activity-quick-chip:hover {
-  background: rgba(107,159,255,0.08);
-  border-color: rgba(107,159,255,0.4);
+  background: var(--selection-soft);
+  border-color: var(--selection);
   color: var(--ink);
 }
 
@@ -79,8 +79,8 @@
   margin-top: 8px;
   padding: 5px 16px;
   border-radius: 20px;
-  background: rgba(76,217,100,0.12);
-  border: 1px solid rgba(76,217,100,0.3);
+  background: var(--success-soft);
+  border: 1px solid color-mix(in srgb, var(--success-ink) 35%, transparent);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--success-ink);
@@ -161,13 +161,13 @@
 }
 .activity-preset-chip:active { transform: scale(0.92); }
 .activity-preset-chip.active {
-  border-color: var(--protein);
-  background: rgba(107,159,255,0.1);
+  border-color: var(--selection);
+  background: var(--selection-soft);
 }
 
 .activity-preset-emoji { font-size: 1.5rem; line-height: 1; }
 .activity-preset-name  { font-size: 0.62rem; font-weight: 700; color: var(--ink-soft); }
-.activity-preset-chip.active .activity-preset-name { color: var(--protein-ink); }
+.activity-preset-chip.active .activity-preset-name { color: var(--selection); }
 
 /* ── Duration stepper ────────────────────────────────────────── */
 .activity-duration-row {
@@ -201,9 +201,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 .activity-dur-chip.active {
-  border-color: var(--protein);
-  background: rgba(107,159,255,0.12);
-  color: var(--protein-ink);
+  border-color: var(--selection);
+  background: var(--selection-soft);
+  color: var(--selection);
 }
 
 /* ── Live kcal + override ────────────────────────────────────── */

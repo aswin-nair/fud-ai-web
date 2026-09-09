@@ -5,8 +5,8 @@
   gap: 6px;
   margin-top: 4px;
   padding: 5px 10px 5px 6px;
-  background: rgba(255, 179, 71, 0.08);
-  border: 1px solid rgba(255, 179, 71, 0.18);
+  background: var(--warning-soft);
+  border: 1px solid color-mix(in srgb, var(--amber-ink) 25%, transparent);
   border-radius: 20px;
   max-width: 100%;
   min-height: 34px;
@@ -19,17 +19,17 @@
 
 .streak-card:active {
   transform: scale(0.97);
-  background: rgba(255, 179, 71, 0.14);
+  background: var(--warning-soft);
 }
 
 .streak-card.at-risk {
-  background: rgba(255, 179, 71, 0.14);
-  border-color: rgba(255, 179, 71, 0.35);
+  background: var(--warning-soft);
+  border-color: var(--amber-ink);
   animation: at-risk-pulse 2s ease-in-out infinite;
 }
 
 .streak-card-zero {
-  background: rgba(26, 20, 14, 0.03);
+  background: var(--paper-deep);
   border-color: var(--rule);
   gap: 6px;
 }
@@ -88,7 +88,7 @@
 .streak-risk-badge {
   font-size: 0.62rem;
   font-weight: 700;
-  background: rgba(255, 179, 71, 0.22);
+  background: var(--warning-soft);
   color: var(--amber-ink);
   border-radius: 8px;
   padding: 1px 6px;
@@ -97,7 +97,7 @@
 
 .streak-progress-track {
   height: 3px;
-  background: rgba(255, 179, 71, 0.18);
+  background: color-mix(in srgb, var(--carbs) 20%, var(--paper-card));
   border-radius: 2px;
   overflow: hidden;
   width: 80px;
@@ -258,7 +258,7 @@
 .streak-freeze-badge {
   font-size: 0.68rem;
   font-weight: 700;
-  background: rgba(59,130,246,0.14);
+  background: var(--info-soft);
   color: var(--protein-ink);
   border-radius: 12px;
   padding: 1px 6px;

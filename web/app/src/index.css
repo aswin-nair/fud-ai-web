@@ -31,4 +31,6 @@
 @import './styles/components/buttons.css';
 @import './styles/components/forms.css';
 @import './styles/icon-motion.css';
+@import './styles/appearance.css';
+@import './styles/dark-mode.css';
 @import './styles/a11y.css';

@@ -207,20 +207,20 @@ function SwipeCard({ entry, bordered }: { entry: FoodEntry; bordered: boolean })
         <div className="food-quick-edit">
           {/* Macro chips */}
           <div className="fqe-chips">
-            <div className="fqe-chip" style={{ '--chip-c': '#6B9FFF', '--chip-bg': 'rgba(107,159,255,0.12)' } as React.CSSProperties}>
+            <div className="fqe-chip" style={{ '--chip-c': 'var(--protein-text)', '--chip-bg': 'var(--info-soft)' } as React.CSSProperties}>
               <span className="fqe-chip-val">{Math.round(entry.protein)}g</span>
               <span className="fqe-chip-lbl">Protein</span>
             </div>
-            <div className="fqe-chip" style={{ '--chip-c': '#FFB347', '--chip-bg': 'rgba(255,179,71,0.12)' } as React.CSSProperties}>
+            <div className="fqe-chip" style={{ '--chip-c': 'var(--carbs-text)', '--chip-bg': 'var(--warning-soft)' } as React.CSSProperties}>
               <span className="fqe-chip-val">{Math.round(entry.carbs)}g</span>
               <span className="fqe-chip-lbl">Carbs</span>
             </div>
-            <div className="fqe-chip" style={{ '--chip-c': '#FF6B9D', '--chip-bg': 'rgba(255,107,157,0.12)' } as React.CSSProperties}>
+            <div className="fqe-chip" style={{ '--chip-c': 'var(--fat-text)', '--chip-bg': 'var(--success-soft)' } as React.CSSProperties}>
               <span className="fqe-chip-val">{Math.round(entry.fat)}g</span>
               <span className="fqe-chip-lbl">Fat</span>
             </div>
             {entry.servingSizeGrams && (
-              <div className="fqe-chip" style={{ '--chip-c': 'var(--ink-soft)', '--chip-bg': 'rgba(26,20,14,0.04)' } as React.CSSProperties}>
+              <div className="fqe-chip" style={{ '--chip-c': 'var(--ink-soft)', '--chip-bg': 'var(--paper-deep)' } as React.CSSProperties}>
                 <span className="fqe-chip-val">{Math.round(entry.servingSizeGrams)}g</span>
                 <span className="fqe-chip-lbl">Serving</span>
               </div>
