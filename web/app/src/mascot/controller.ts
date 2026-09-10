@@ -166,6 +166,36 @@ function overlapArea(point: Point, size: number, rect: AvoidRect): number {
   return width * height
 }
 
+/** Sweep the whole mascot square along a straight segment, including clearance.
+ * Expanding each obstacle lets us intersect a point segment with its bounds.
+ * This is continuous collision detection, so even a thin control is protected.
+ */
+export function isSafeMascotPath(
+  from: Point, to: Point, size: number, viewport: Viewport,
+  avoidRects: readonly AvoidRect[] = [],
+): boolean {
+  if (![from, to].every(point => isSafeMascotPosition(point, size, viewport, avoidRects))) return false
+  return avoidRects.every(rect => {
+    let enter = 0
+    let leave = 1
+    for (const [start, delta, min, max] of [
+      [from.x, to.x - from.x, rect.left - size - CONTROL_CLEARANCE, rect.right + CONTROL_CLEARANCE],
+      [from.y, to.y - from.y, rect.top - size - CONTROL_CLEARANCE, rect.bottom + CONTROL_CLEARANCE],
+    ]) {
+      if (delta === 0) {
+        if (start <= min || start >= max) return true
+      } else {
+        const a = (min - start) / delta
+        const b = (max - start) / delta
+        enter = Math.max(enter, Math.min(a, b))
+        leave = Math.min(leave, Math.max(a, b))
+        if (enter >= leave) return true
+      }
+    }
+    return false
+  })
+}
+
 function safestCandidate(
   candidates: readonly Point[],
   size: number,
@@ -286,7 +316,7 @@ export function roamPosition(
     size,
     { width, height },
     avoidRects,
-  ))
+  ) && (!current || isSafeMascotPath(current, point, size, { width, height }, avoidRects)))
   if (current) {
     const travelled = safeCandidates.find(point => (
       Math.hypot(point.x - current.x, point.y - current.y) >= minimumTravel

@@ -2,6 +2,8 @@ import { useApp } from '../store/AppContext'
 import { MomoSticker } from './MomoSticker'
 import { IconCalendar, IconCheck, IconEnergy, IconMeal, IconSettings, IconShield, IconSparkles, IconSprout, IconStar, IconWalk } from './icons'
 import type { Mood } from '../mascot/behaviors'
+import type { MomoExpression } from '../mascot/expressions'
+import type { UserProfile } from '../types'
 import { useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 import { motionIdle, motionOpacity, motionSoftSpring } from '../lib/motionPresets'
@@ -31,11 +33,34 @@ export function OnboardingStepBadge({ step }: { step: number }) {
   </div>
 }
 
-export function OnboardingCompanion({ step, error }: { step: number; error: boolean }) {
+export function OnboardingCompanion({ step, error, profile }: { step: number; error: boolean; profile?: UserProfile }) {
   const { state } = useApp()
   const prefersReducedMotion = useReducedMotion()
   const moment = MOMENTS[step]
+  // Only categorical choices affect the reaction; measurements never become jokes.
+  const answerLine = profile && step === 3
+    ? {
+      lose: 'A gradual plan. I packed patience, not a stopwatch.',
+      maintain: 'Steady it is. I am appointing myself captain of consistency.',
+      gain: 'Your direction is set. Tiny cheer squad reporting for duty.',
+    }[profile.goal]
+    : profile && step === 4
+      ? `Your everyday rhythm: ${profile.activityLevel === 'sedentary' ? 'desk days included. My office is this corner.' : 'noted. No superhero schedule required.'}`
+      : profile && step === 5
+        ? {
+          light: 'One honest log. A small entrance still counts as showing up.',
+          regular: 'A regular rhythm. My imaginary clipboard is ready.',
+          detailed: 'Details! Finally, someone appreciates my tiny paperwork.',
+        }[profile.loggingCommitment ?? 'light']
+        : undefined
   const chapter = step < 3 ? 0 : step < 6 ? 1 : 2
+  const answerExpression: MomoExpression | undefined = error ? 'curious'
+    : step === 6 ? 'celebrating'
+      : step === 7 ? 'caught_snacking'
+        : profile && step === 3 ? ({ lose: 'proud', maintain: 'wink', gain: 'celebrating' } as const)[profile.goal]
+          : profile && step === 4 ? ({ sedentary: 'curious', light: 'wink', moderate: 'proud', active: 'curious', veryActive: 'wink', extraActive: 'proud' } as const)[profile.activityLevel]
+            : profile && step === 5 ? ({ light: 'wink', regular: 'proud', detailed: 'curious' } as const)[profile.loggingCommitment ?? 'light']
+              : undefined
   const visible = state.gamification.mascotActivity !== 'off'
   const reduced = prefersReducedMotion || state.profile.mascotReducedMotion === true
   const lively = !reduced && state.gamification.mascotActivity === 'lively' && !error
@@ -53,12 +78,12 @@ export function OnboardingCompanion({ step, error }: { step: number; error: bool
         initial={false}
         animate={lively ? { rotate: [0, 3, 0], y: [0, -5, 0] } : { rotate: 0, y: 0 }}
         transition={lively ? motionIdle : { duration: 0 }}>
-        <MomoSticker mood={error ? 'curious' : moment.mood} pose={error ? 'ponder' : moment.pose} />
+        <MomoSticker mood={error ? 'curious' : moment.mood} pose={error ? 'ponder' : moment.pose} expression={answerExpression} />
       </m.div>
       <span className="setup-momo-name">Momo, your food buddy</span>
     </m.div>}
-      {visible && !state.profile.mascotMuted && <m.p key={`${step}-${error}`} className="setup-companion-line" {...motionOpacity}>
-        {error ? 'We’ve got this. Let’s check that detail together.' : moment.line}
+      {visible && !state.profile.mascotMuted && <m.p key={`${step}-${error}-${answerLine}`} className="setup-companion-line" {...motionOpacity}>
+        {error ? 'We’ve got this. Let’s check that detail together.' : answerLine ?? moment.line}
       </m.p>}
     <ol className="setup-chapters" aria-label="Setup chapters">
       {CHAPTERS.map((item, index) => <li key={item.label} className={index < chapter ? 'is-complete' : index === chapter ? 'is-current' : ''} aria-current={index === chapter ? 'step' : undefined}>

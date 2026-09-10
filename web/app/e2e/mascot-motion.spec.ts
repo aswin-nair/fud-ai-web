@@ -1,0 +1,30 @@
+import { expect, test } from '@playwright/test'
+import { signUpAndOnboard } from './helpers'
+
+test('the saved reduced-motion preference stops every Momo animation but keeps expressions', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await signUpAndOnboard(page)
+  await page.goto('/settings')
+  await page.getByRole('switch', { name: 'Reduce Momo motion', exact: true }).check()
+  await page.getByRole('button', { name: 'Save settings', exact: true }).click()
+  await expect(page.locator('.you-save-bar')).toContainText('Settings saved')
+  await page.goto('/')
+  const momo = page.locator('.mascot-host')
+  await expect(momo).toBeVisible()
+  await expect(momo).toHaveClass(/is-static/)
+  const before = await momo.boundingBox()
+  await momo.click()
+  expect(errors).toEqual([])
+  const face = momo.locator('.momo-art')
+  await expect(face).toHaveAttribute('data-expression', 'wink')
+  await momo.click()
+  await expect(face).toHaveAttribute('data-expression', 'surprised')
+  const after = await momo.boundingBox()
+  expect(after!.x).toBeCloseTo(before!.x, 0)
+  expect(after!.y).toBeCloseTo(before!.y, 0)
+  const animations = await momo.evaluate(element => element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length)
+  expect(animations).toBe(0)
+})

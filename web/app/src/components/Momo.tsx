@@ -1,7 +1,7 @@
 import { useId } from 'react'
 
 import type { Mood } from '../mascot/behaviors'
-import { momoExpression } from '../mascot/expressions'
+import { momoExpression, type MomoExpression } from '../mascot/expressions'
 
 /**
  * Momo is a hand-drawn dumpling with a recognisable pleated silhouette. Her
@@ -13,18 +13,20 @@ export function Momo({
   pose = 'idle_breathe',
   cosmeticId = null,
   thinking = false,
-}: { mood?: Mood; pose?: string; cosmeticId?: string | null; thinking?: boolean }) {
+  expression: requestedExpression,
+}: { mood?: Mood; pose?: string; cosmeticId?: string | null; thinking?: boolean; expression?: MomoExpression }) {
   const rawId = useId().replace(/:/g, '')
   const doughId = `momo-dough-${rawId}`
   const cheekId = `momo-cheek-${rawId}`
-  const expression = momoExpression(mood, pose, thinking)
-  const blush = expression === 'happy' || expression === 'wink' || mood === 'cozy'
+  const expression = requestedExpression ?? momoExpression(mood, pose, thinking)
+  const blush = ['happy', 'wink', 'proud', 'celebrating', 'confetti', 'caught_snacking'].includes(expression) || mood === 'cozy'
   const blinking = expression === 'blink'
-  const celebrating = expression === 'happy'
-  const startled = expression === 'surprised'
+  const celebrating = ['happy', 'celebrating', 'confetti'].includes(expression)
+  const startled = expression === 'surprised' || expression === 'dramatic'
   const sleepy = expression === 'sleepy'
-  const winking = expression === 'wink'
-  const thoughtful = expression === 'thinking'
+  const winking = ['wink', 'proud', 'caught_snacking'].includes(expression)
+  const thoughtful = expression === 'thinking' || expression === 'curious'
+  const skeptical = expression === 'skeptical'
   const waving = pose === 'wave_at_user'
   const lookingAround = pose === 'look_around'
   const stretching = pose === 'stretch'
@@ -144,6 +146,8 @@ export function Momo({
             </g>
           ) : blinking ? (
             <g className="momo-blink-eyes"><path d="M32 61h12M56 61h12" /></g>
+          ) : skeptical ? (
+            <g className="momo-blink-eyes momo-skeptical-eyes"><path d="M32 58l12 3M56 61l12-3" /></g>
           ) : celebrating ? (
             <g className="momo-happy-eyes"><path d="M32 62q6-8 12 0M56 62q6-8 12 0" /></g>
           ) : (
@@ -161,7 +165,7 @@ export function Momo({
             </g>
           )}
 
-          <path className="momo-brow momo-brow-left" d={startled || thoughtful ? 'M32 49q6-3 12 0' : 'M32 51q6-2 12 0'} />
+          <path className="momo-brow momo-brow-left" d={skeptical ? 'M32 47l12 4' : startled || thoughtful ? 'M32 49q6-3 12 0' : 'M32 51q6-2 12 0'} />
           <path className="momo-brow momo-brow-right" d={startled ? 'M56 49q6-3 12 0' : 'M56 51q6-2 12 0'} />
           {blush && <ellipse cx="28" cy="71" rx="8" ry="5" fill={`url(#${cheekId})`} />}
           {blush && <ellipse cx="72" cy="71" rx="8" ry="5" fill={`url(#${cheekId})`} />}
@@ -175,6 +179,8 @@ export function Momo({
               className="momo-mouth"
               d={sleepy
                 ? 'M45 74q5 3 10 0'
+                : skeptical
+                  ? 'M44 75l12-2'
                 : winking
                   ? 'M43 74q10 5 16-4'
                   : thoughtful
@@ -197,6 +203,15 @@ export function Momo({
           <circle cx="84" cy="37" r="1.8" />
         </g>
       )}
+
+      {expression === 'caught_snacking' && <g className="momo-snack-crumbs" fill="#C4822B" stroke="#3A2A22" strokeWidth=".7">
+        <circle cx="63" cy="77" r="1.8" /><circle cx="67" cy="80" r="1.2" />
+      </g>}
+      {expression === 'confetti' && <g className="momo-confetti" strokeWidth="2.5" fill="none">
+        <path stroke="#E74735" d="M6 19l4 6M90 9l-3 6" />
+        <path stroke="#4357CE" d="M22 7l3 5M93 43l4-3" />
+        <path stroke="#3F8954" d="M6 42l5-2M77 8l3 4" />
+      </g>}
 
       {thinking && (
         <g className="momo-thought-orbit">

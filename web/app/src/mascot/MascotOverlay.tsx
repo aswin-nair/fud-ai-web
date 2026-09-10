@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { localDayKey } from '../lib/dates'
@@ -16,6 +16,7 @@ import {
   authPosition,
   behaviorByKey,
   isSafeMascotPosition,
+  isSafeMascotPath,
   pickAmbient,
   restPosition,
   roamPosition,
@@ -129,6 +130,8 @@ export function MascotOverlay() {
   const location = useLocation()
   const anchors = useAnchorRegistry()
   const hostRef = useRef<HTMLButtonElement>(null)
+  const bubbleRef = useRef<HTMLSpanElement>(null)
+  const [bubbleSafe, setBubbleSafe] = useState(false)
   const lastInteraction = useRef(Date.now())
   const currentRef = useRef<{ key: BehaviorKey; endsAt: number } | null>(null)
   const cooldowns = useRef(new Map<BehaviorKey, number>())
@@ -262,15 +265,19 @@ export function MascotOverlay() {
     if (!behavior) return
     stopWalk()
     let next: { x: number; y: number } | null = null
-    if (behavior.anchor) {
+    if (!reduced && behavior.anchor) {
       if (!anchors) return
       const rect = anchors.getRect(behavior.anchor)
       if (!rect) return
       next = targetFromRect(rect, SIZE, undefined, collectAvoidRects())
-    } else if (behavior.roams && !authScreen) {
+    } else if (!reduced && behavior.roams && !authScreen) {
       next = roamPosition(SIZE, undefined, positionRef.current, Math.random, collectAvoidRects())
     }
 
+    // If the straight route is blocked, perform the gesture in place.
+    // Never cross a control just because the destination happens to be clear.
+    if (next && !isSafeMascotPath(positionRef.current, next, SIZE,
+      { width: window.innerWidth, height: window.innerHeight }, collectAvoidRects())) next = null
     let travelMs = 0
     if (next) {
       const from = positionRef.current
@@ -304,9 +311,9 @@ export function MascotOverlay() {
 
   const react = useCallback((key: BehaviorKey) => {
     lastInteraction.current = Date.now()
-    if (reduced || paused) return
+    if (paused) return
     play(key)
-  }, [play, reduced, paused])
+  }, [play, paused])
 
   const say = useCallback((line: string) => {
     if (mutedRef.current) return
@@ -648,6 +655,13 @@ export function MascotOverlay() {
       if (!blocked && !authScreen) {
         const viewport = { width: window.innerWidth, height: window.innerHeight }
         const avoid = collectAvoidRects()
+        const host = hostRef.current
+        if (host) {
+          const rect = host.getBoundingClientRect()
+          // A new control can appear after a walk begins. Freeze at the rendered
+          // position before reconsidering where Momo can safely stand.
+          if (!isSafeMascotPath({ x: rect.left, y: rect.top }, positionRef.current, SIZE, viewport, avoid)) stopWalk()
+        }
         const rest = restPosition(SIZE, viewport, avoid)
         // The placement fallback can overlap on dense phones. Step aside until
         // a clear resting spot opens up; inline Momo remains part of the page.
@@ -688,6 +702,44 @@ export function MascotOverlay() {
   useEffect(() => {
     if (reduced || paused || interactionPaused) stopWalk()
   }, [interactionPaused, paused, reduced, stopWalk])
+
+  // Measure the actual bubble, not an assumed text width. Optional commentary
+  // stays hidden when it would cover a control or leave the visible viewport.
+  useLayoutEffect(() => {
+    let frame = 0
+    const check = () => {
+      frame = 0
+      const bubble = bubbleRef.current
+      if (!bubble || walking || paused) { setBubbleSafe(false); return }
+      const rect = bubble.getBoundingClientRect()
+      const viewport = window.visualViewport
+      const left = viewport?.offsetLeft ?? 0
+      const top = viewport?.offsetTop ?? 0
+      const right = left + (viewport?.width ?? window.innerWidth)
+      const bottom = top + (viewport?.height ?? window.innerHeight)
+      setBubbleSafe(rect.left >= left + 8 && rect.right <= right - 8
+        && rect.top >= top + 8 && rect.bottom <= bottom - 8
+        && collectAvoidRects().every(avoid => rect.right + 8 <= avoid.left
+          || rect.left - 8 >= avoid.right || rect.bottom + 8 <= avoid.top || rect.top - 8 >= avoid.bottom))
+    }
+    const schedule = () => { if (!frame) frame = window.requestAnimationFrame(check) }
+    check()
+    window.addEventListener('resize', schedule)
+    window.addEventListener('scroll', schedule, { passive: true, capture: true })
+    window.visualViewport?.addEventListener('resize', schedule)
+    const mutations = new MutationObserver(schedule)
+    mutations.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'open'] })
+    const resize = new ResizeObserver(schedule)
+    if (bubbleRef.current) resize.observe(bubbleRef.current)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      mutations.disconnect()
+      resize.disconnect()
+      window.removeEventListener('resize', schedule)
+      window.removeEventListener('scroll', schedule, { capture: true })
+      window.visualViewport?.removeEventListener('resize', schedule)
+    }
+  }, [says, thinking, walking, paused, bubblePlacement, bubbleSide, interactionPaused])
 
   useEffect(() => {
     if (timerRef.current) window.clearTimeout(timerRef.current)
@@ -743,6 +795,9 @@ export function MascotOverlay() {
     previousScreen.current = screen
     if (leaving !== null && leaving !== screen) react('exit')
     const t = window.setTimeout(() => {
+      // An eager click/focus beats the delayed route entrance; do not replace
+      // the user's expression with a neutral "enter" pose after they interact.
+      if (mascotEngaged.current) return
       if (authScreen) react('wave_at_user')
       else if (screen === 'log') react('sniff_plate')
       else react('enter')
@@ -804,7 +859,7 @@ export function MascotOverlay() {
         aria-label={muted
           ? 'Momo, your food-tracking companion; dialogue muted'
           : 'Talk to Momo, your food-tracking companion'}
-        aria-expanded={Boolean(says || thinking)}
+        aria-expanded={bubbleSafe && Boolean(says || thinking)}
       >
         <div key={poseRun} className={`mascot-pose pose-${pose}${walking ? ` is-walking walk-${walkDirection}` : ''}`}>
           <Momo
@@ -815,7 +870,9 @@ export function MascotOverlay() {
           />
         </div>
         {(says || thinking) && (
-          <span className={`mascot-quip${thinking && !says ? ' is-thinking' : ''}`} role="status" aria-live="polite">
+          <span ref={bubbleRef} className={`mascot-quip${thinking && !says ? ' is-thinking' : ''}`}
+            style={{ visibility: bubbleSafe ? 'visible' : 'hidden', animation: 'none', pointerEvents: 'none' }}
+            role="status" aria-live="polite">
             {says ?? <span className="mascot-thinking-dots" aria-label="Momo is thinking"><i /><i /><i /></span>}
           </span>
         )}

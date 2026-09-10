@@ -419,3 +419,15 @@
   background: var(--scene);
   color: var(--scene-ink);
 }
+
+/* Keep the entire selected answer on one contrast-tested color pair, including
+   hovered cards and child labels left over from earlier page styles. */
+:root .setup-refresh :is(.onboarding-chip, .activity-option)[aria-pressed="true"],
+:root .setup-refresh :is(.onboarding-chip, .activity-option)[aria-pressed="true"]:hover {
+  background: var(--scene);
+  color: var(--scene-ink);
+}
+:root .setup-refresh [aria-pressed="true"] :is(.activity-option-label, .setup-option-copy, .commitment-option-copy, strong, small) {
+  color: var(--scene-ink);
+}
+:root .setup-refresh [aria-pressed="true"] .activity-option-icon { color: var(--ink); }

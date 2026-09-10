@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   authPosition,
   isSafeMascotPosition,
+  isSafeMascotPath,
   restPosition,
   roamPosition,
   scheduleDelay,
@@ -12,6 +13,33 @@ import {
 
 const SIZE = 88
 const VIEW = { width: 420, height: 900 }
+
+describe('safe walking paths', () => {
+  const obstacle = { left: 300, top: 300, right: 420, bottom: 400 }
+  it('rejects a route through a control even when both endpoints are clear', () => {
+    const from = { x: 320, y: 104 }
+    const to = { x: 320, y: 652 }
+    expect(isSafeMascotPosition(from, SIZE, VIEW, [obstacle])).toBe(true)
+    expect(isSafeMascotPosition(to, SIZE, VIEW, [obstacle])).toBe(true)
+    expect(isSafeMascotPath(from, to, SIZE, VIEW, [obstacle])).toBe(false)
+    expect(isSafeMascotPath(to, from, SIZE, VIEW, [obstacle])).toBe(false)
+  })
+  it('allows a clear lane and stationary reactions', () => {
+    expect(isSafeMascotPath({ x: 12, y: 104 }, { x: 12, y: 652 }, SIZE, VIEW, [obstacle])).toBe(true)
+    expect(isSafeMascotPath({ x: 12, y: 104 }, { x: 12, y: 104 }, SIZE, VIEW, [obstacle])).toBe(true)
+  })
+  it('checks diagonal sweeps continuously, including thin obstacles', () => {
+    expect(isSafeMascotPath({ x: 12, y: 104 }, { x: 320, y: 652 }, SIZE, VIEW,
+      [{ left: 190, top: 360, right: 191, bottom: 361 }])).toBe(false)
+  })
+  it('only picks a reachable roam destination', () => {
+    const from = { x: 320, y: 104 }
+    for (const roll of [0, .25, .5, .75, 1]) {
+      const to = roamPosition(SIZE, VIEW, from, () => roll, [obstacle])
+      expect(isSafeMascotPath(from, to, SIZE, VIEW, [obstacle])).toBe(true)
+    }
+  })
+})
 
 /** Anchors report their centre point, which is what the app's registry returns. */
 function anchor(cx: number, cy: number, height = 40) {

@@ -14,10 +14,16 @@ test('daily summary, settings navigation and editor stay clear on a phone', asyn
   await page.locator('.toast').getByRole('button', { name: 'Dismiss', exact: true }).click()
   await expect(page.locator('.mascot-host')).toHaveCount(0)
   await page.screenshot({ path: testInfo.outputPath('today.png'), animations: 'disabled' })
+  // The editorial summary is taller than one phone screen. Check that its
+  // macros can be read clear of the fixed navigation after scrolling to them.
+  await page.locator('.home-macro-chips').evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }))
   const macros = await page.locator('.home-macro-chips').boundingBox()
   const navigation = await nav(page).boundingBox()
   console.log('Today layout', { macros, navigation })
+  expect(macros!.y).toBeGreaterThanOrEqual(0)
   expect(macros!.y + macros!.height).toBeLessThan(navigation!.y)
+  await page.screenshot({ path: testInfo.outputPath('today-macros.png'), animations: 'disabled' })
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
   // Space-aware hiding is temporary, not a change to the user's Momo setting.
   await page.setViewportSize({ width: 1440, height: 960 })
   await settlePageLayout(page)

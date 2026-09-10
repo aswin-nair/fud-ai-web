@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { birthdayYearsAgo, settlePageLayout } from './helpers'
 
-for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 900 }]) {
+for (const viewport of [{ width: 320, height: 844 }, { width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1280, height: 900 }]) {
   test(`onboarding keeps every step usable at ${viewport.width}px`, async ({ page }, testInfo) => {
     test.setTimeout(120_000)
     await page.setViewportSize(viewport)
@@ -28,6 +28,27 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 900 
       if (step === 4) {
         await page.getByRole('button', { name: /^Moderate / }).click()
         await expect(page.getByRole('button', { name: /^Moderate / })).toHaveAttribute('aria-pressed', 'true')
+      }
+      if ([3, 4, 5].includes(step)) {
+        for (const theme of ['Light', 'Dark']) {
+          await page.getByRole('radio', { name: theme, exact: true }).check()
+          const selected = page.locator('.setup-form [aria-pressed="true"]').first()
+          await selected.hover()
+          const ratio = await selected.evaluate(element => {
+            const luminance = (color: string) => {
+              const [r, g, b] = color.match(/[\d.]+/g)!.slice(0, 3).map(channel => {
+                const c = Number(channel) / 255
+                return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4
+              })
+              return r * .2126 + g * .7152 + b * .0722
+            }
+            const text = element.querySelector('.activity-option-label, strong') ?? element
+            const fg = luminance(getComputedStyle(text).color)
+            const bg = luminance(getComputedStyle(element).backgroundColor)
+            return (Math.max(fg, bg) + .05) / (Math.min(fg, bg) + .05)
+          })
+          expect(ratio, `${theme} selected answer contrast`).toBeGreaterThanOrEqual(4.5)
+        }
       }
       if (step === 7) {
         await page.getByLabel('Meal name').fill('Yogurt and berries')

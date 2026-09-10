@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { settlePageLayout, signUpAndOnboard } from './helpers'
 
-for (const width of [320, 390, 1280]) {
+for (const width of [320, 390, 768, 1280]) {
   test(`You page stays useful and expressive at ${width}px`, async ({ page }, testInfo) => {
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))
@@ -19,10 +19,10 @@ for (const width of [320, 390, 1280]) {
       await expect(page.getByRole('link', { name: 'Momo' })).toBeVisible()
       await page.getByRole('link', { name: 'Momo' }).click()
       await expect(page.getByRole('heading', { name: 'Your kitchen companion' })).toBeVisible()
-      await page.getByRole('checkbox', { name: 'Mute Momo' }).check()
-      await page.getByRole('checkbox', { name: 'Reduce Momo motion' }).check()
+      await page.getByRole('switch', { name: 'Mute Momo' }).setChecked(colorScheme === 'light')
+      await page.getByRole('switch', { name: 'Reduce Momo motion' }).setChecked(colorScheme === 'light')
       await page.getByRole('button', { name: 'Save settings' }).click()
-      await expect(page.getByRole('status')).toContainText('Settings saved')
+      await expect(page.getByRole('status').filter({ hasText: 'Settings saved' })).toBeVisible()
       await settlePageLayout(page)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       await page.screenshot({ path: testInfo.outputPath(`you-${colorScheme}.png`), fullPage: true, animations: 'disabled' })

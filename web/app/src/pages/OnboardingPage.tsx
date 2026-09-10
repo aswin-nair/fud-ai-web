@@ -32,8 +32,8 @@ import { selectLogMethod, startLogFlow, track } from '../lib/analytics'
 import { guestUserId } from '../lib/guestMode'
 import { useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
-import { motionOpacity, motionPop, motionSpring, motionStep } from '../lib/motionPresets'
-import { ProgressRecipe } from '../components/SnackAttackPrimitives'
+import { motionOpacity, motionPop, motionSpring, motionStep, plateReveal } from '../lib/motionPresets'
+import { FoodSticker, NeoCard, ProgressRecipe } from '../components/SnackAttackPrimitives'
 
 const STEPS = ['Age', 'About you', 'Body', 'Goal', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
@@ -324,7 +324,7 @@ export function OnboardingPage() {
           <ProgressRecipe current={step} labels={STEPS} />
         </div>
 
-        <OnboardingCompanion step={step} error={Boolean(validationError)} />
+        <OnboardingCompanion step={step} error={Boolean(validationError)} profile={profile} />
         {/* Replace the old form immediately so focus and submit always belong to the current step. */}
         <m.form key={STEPS[step]} className="setup-form" {...(reducedMotion ? motionOpacity : motionStep)} noValidate onSubmit={event => {
           event.preventDefault()
@@ -581,6 +581,12 @@ export function OnboardingPage() {
             <h1 className="onboarding-title">Your daily targets</h1>
             <p className="onboarding-sub">A starting estimate, not a daily pass or fail. Review your details below before logging your first meal.</p>
             {targets.clamped && <p className="onboarding-clamp-note">{targets.clamped}</p>}
+            <m.div {...(reducedMotion ? motionOpacity : plateReveal)}>
+            <NeoCard className="setup-daily-recipe" as="section">
+            <header className="setup-recipe-heading">
+              <div><span>YOUR DAILY RECIPE</span><h2>Made for {profile.name?.trim() || 'you'}.</h2></div>
+              <FoodSticker variant="meal" />
+            </header>
             <div className="onboarding-goals-grid">
               <div className="onboarding-goal-card" style={{ gridColumn: '1 / -1' }}>
                 <span className="onboarding-goal-label">Calories</span>
@@ -600,6 +606,9 @@ export function OnboardingPage() {
                 <span className="onboarding-goal-value">{effectiveFat(profile)}g</span>
               </div>
             </div>
+            <p className="setup-recipe-foot">A flexible starting point. Season to suit your day.</p>
+            </NeoCard>
+            </m.div>
             <section className="setup-profile-review" aria-label="Profile used for this estimate">
               <h2>Based on your profile</h2>
               <dl>

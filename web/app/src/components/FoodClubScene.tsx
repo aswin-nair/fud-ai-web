@@ -2,7 +2,7 @@ import { Camera, Check, Flame, Pizza, Sparkles, Sprout, Utensils } from 'lucide-
 import { MotionConfig, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 import { useApp } from '../store/AppContext'
-import { motionSoftSpring } from '../lib/motionPresets'
+import { bubblePop, motionOpacity, motionSoftSpring, stickerDrop } from '../lib/motionPresets'
 import { MomoSticker } from './MomoSticker'
 
 /** The account flow's decorative food poster. Example values are never user data. */
@@ -27,7 +27,7 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
           <div className="food-club-starburst"><span>ALL FOODS<br />WELCOME</span></div>
           <div className="food-club-orbit" />
           <span className="food-club-spark"><Sparkles size={38} strokeWidth={2.5} /></span>
-          <m.div className="food-club-pizza" initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={motionSoftSpring}>
+          <m.div className="food-club-pizza" {...(reduced ? motionOpacity : stickerDrop)}>
             <Pizza size={60} strokeWidth={1.7} /><span>pizza? yes.</span>
           </m.div>
           <div className="food-club-plate">
@@ -35,7 +35,8 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
             {visible ? <m.div className="food-club-momo" initial={false}
               animate={{ rotate: privateFocus ? -5 : error ? 4 : 0, y: loading ? -5 : 0 }}
               transition={motionSoftSpring}>
-              <MomoSticker mood={privateFocus ? 'sleepy' : error || loading ? 'curious' : 'excited'} pose={loading ? 'ponder' : 'still'} />
+              <MomoSticker mood={privateFocus ? 'sleepy' : error || loading ? 'curious' : 'excited'} pose={loading ? 'ponder' : 'still'}
+                expression={privateFocus ? 'sleepy' : error ? 'skeptical' : loading ? 'curious' : returning ? 'proud' : 'celebrating'} />
             </m.div> : <Utensils className="food-club-fallback" size={90} strokeWidth={1.5} />}
           </div>
           <div className="food-club-greens"><Sprout size={40} /><span>room for greens</span></div>
@@ -47,7 +48,7 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
         </div>
         {visible && !state.profile.mascotMuted && <div className="food-club-bubble-wrap">
           <span className="food-club-momo-label">MOMO SAYS</span>
-          <m.p className="food-club-bubble" key={line} initial={{ opacity: .3 }} animate={{ opacity: 1 }} transition={{ duration: .18 }}>{line}</m.p>
+          <m.p className="food-club-bubble" key={line} {...(reduced ? motionOpacity : bubblePop)}>{line}</m.p>
         </div>}
         <div className="food-club-poster-foot"><span>SNAP IT.</span><Sparkles size={16} /><span>LOG IT.</span><Sparkles size={16} /><span>LIVE A LITTLE.</span></div>
       </aside>

@@ -551,7 +551,15 @@
 .mascot-pose.is-walking.walk-right { animation: mascot-walk-right 420ms ease-in-out infinite !important; }
 .mascot-pose.is-walking.walk-left { animation: mascot-walk-left 420ms ease-in-out infinite !important; }
 
-.mascot-host.is-static .mascot-pose { animation: none !important; }
+.mascot-host.is-static,
+.mascot-host.is-static .mascot-pose,
+.mascot-host.is-static .momo-art,
+.mascot-host.is-static .momo-art *,
+.mascot-host.is-static .mascot-quip,
+.mascot-host.is-static .mascot-thinking-dots i {
+  animation: none !important;
+  transition: none !important;
+}
 
 .mascot-pose.pose-idle_breathe:not(.is-static) { animation: mascot-breathe 3s ease-in-out infinite; }
 .mascot-pose.pose-celebrate_small:not(.is-static),

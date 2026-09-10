@@ -10,14 +10,15 @@ import { PressableButton } from '../components/PressableButton'
 import { FoodClubScene } from '../components/FoodClubScene'
 import { ArrowUpRight, Check, ChefHat, ShieldCheck } from 'lucide-react'
 import { AppearanceControl } from '../components/AppearanceControl'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
-import { motionFade } from '../lib/motionPresets'
+import { microShake, motionFade, snapSpring, tactilePress } from '../lib/motionPresets'
 
 type AuthMode = 'signin' | 'signup'
 
 function passwordStrength(value: string): number {
   if (!value) return 0
+  if (value.length < 8) return 1
   return [
     value.length >= 8,
     /[A-Z]/.test(value),
@@ -29,8 +30,8 @@ function passwordStrength(value: string): number {
 function passwordStrengthLabel(score: number): string {
   if (score <= 1) return 'A little more secret sauce, please.'
   if (score === 2) return 'Getting there. Add another twist.'
-  if (score === 3) return 'Nice and sturdy.'
-  return 'Chef’s kiss. That password has range.'
+  if (score === 3) return 'Length helps. Try a longer, unique phrase.'
+  return 'Good variety. Keep this password unique.'
 }
 
 export function LoginPage() {
@@ -48,12 +49,31 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [privateFocus, setPrivateFocus] = useState(false)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
+  const reducedMotion = useReducedMotion()
   const errorRef = useRef<HTMLDivElement>(null)
   const passwordScore = mode === 'signup' ? passwordStrength(password) : 0
 
   useEffect(() => { if (error) errorRef.current?.focus() }, [error])
 
   useEffect(() => track({ name: 'welcome_viewed' }), [])
+
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+    const update = () => setKeyboardOpen(
+      document.activeElement instanceof HTMLInputElement
+      && viewport.scale === 1 && window.innerHeight - viewport.height > 150,
+    )
+    viewport.addEventListener('resize', update)
+    document.addEventListener('focusin', update)
+    document.addEventListener('focusout', update)
+    return () => {
+      viewport.removeEventListener('resize', update)
+      document.removeEventListener('focusin', update)
+      document.removeEventListener('focusout', update)
+    }
+  }, [])
 
   async function handleEmailSubmit(e: FormEvent) {
     e.preventDefault()
@@ -121,9 +141,10 @@ export function LoginPage() {
             aria-pressed={mode === 'signin'}
             disabled={loading}
             onClick={() => switchMode('signin')}
-            whileTap={{ scale: 0.96 }}
+            whileTap={reducedMotion ? undefined : tactilePress}
           >
-            Sign in
+            {mode === 'signin' && <m.span className="auth-tab-marker" layoutId="account-access-marker" transition={snapSpring} aria-hidden="true" />}
+            <span className="auth-tab-label">Sign in</span>
           </m.button>
           <m.button
             type="button"
@@ -131,15 +152,17 @@ export function LoginPage() {
             aria-pressed={mode === 'signup'}
             disabled={loading}
             onClick={() => switchMode('signup')}
-            whileTap={{ scale: 0.96 }}
+            whileTap={reducedMotion ? undefined : tactilePress}
           >
-            Sign up
+            {mode === 'signup' && <m.span className="auth-tab-marker" layoutId="account-access-marker" transition={snapSpring} aria-hidden="true" />}
+            <span className="auth-tab-label">Sign up</span>
           </m.button>
         </div>
 
         <AnimatePresence initial={false}>
           {error && <m.div className="error-banner" role="alert" ref={errorRef} tabIndex={-1}
-            initial={{ opacity: .4 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={motionFade}>{error}</m.div>}
+            initial={{ opacity: .4 }} animate={reducedMotion ? { opacity: 1 } : { x: [...microShake.animate.x], opacity: 1 }}
+            exit={{ opacity: 0 }} transition={reducedMotion ? motionFade : microShake.transition}>{error}</m.div>}
         </AnimatePresence>
 
         <form className="auth-form" onSubmit={handleEmailSubmit} aria-busy={loading}
@@ -208,7 +231,8 @@ export function LoginPage() {
                   ))}
                 </div>
                 <span className={`auth-password-strength-label strength-${passwordScore}`}>
-                  {password ? passwordStrengthLabel(passwordScore) : 'Make it memorable, not guessable.'}
+                  {password && password.length < 8 ? 'Use at least 8 characters to continue.'
+                    : password ? passwordStrengthLabel(passwordScore) : 'Make it memorable, not guessable.'}
                 </span>
               </div>
             )}
@@ -223,18 +247,21 @@ export function LoginPage() {
                 onChange={e => setConfirmPassword(e.target.value)}
               placeholder="Repeat password"
               autoComplete="new-password"
+              aria-describedby={confirmPassword ? 'auth-password-match' : undefined}
               required
             />
             {confirmPassword && (
-              <span className={`auth-password-match${password === confirmPassword ? ' is-match' : ' is-mismatch'}`} role="status">
+              <span id="auth-password-match" className={`auth-password-match${password === confirmPassword ? ' is-match' : ' is-mismatch'}`} role="status">
                 {password === confirmPassword ? 'Passwords match.' : 'Those passwords are playing hide-and-seek.'}
               </span>
             )}
           </div>
           )}
+          <div className={`auth-submit-dock${keyboardOpen ? ' is-keyboard-open' : ''}`}>
           <PressableButton type="submit" fullWidth disabled={loading}>
             {loading ? 'Please wait…' : <>{mode === 'signin' ? 'Sign in' : claiming ? 'Continue' : 'Create account'} <ArrowUpRight size={21} aria-hidden="true" /></>}
           </PressableButton>
+          </div>
           </fieldset>
           {mode === 'signin' && isCloudBackend() && (
             <p className="login-hint">

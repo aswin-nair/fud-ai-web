@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { momoExpression } from './expressions'
+import { momoExpression, type MomoExpression } from './expressions'
 import { Momo } from '../components/Momo'
 import type { Mood } from './behaviors'
 
@@ -42,5 +42,21 @@ describe('Momo facial expressions', () => {
     const html = renderToStaticMarkup(createElement(Momo, { mood: 'proud', cosmeticId: 'chef-hat' }))
     expect(html).toContain('data-expression="happy"')
     expect(html).toContain('momo-chef-hat')
+  })
+
+  it.each([
+    ['curious', 'M32 49q6-3 12 0'], ['proud', 'momo-wink-eye'],
+    ['skeptical', 'momo-skeptical-eyes'], ['celebrating', 'momo-happy-mouth'],
+    ['dramatic', 'momo-mouth-fill'], ['caught_snacking', 'momo-snack-crumbs'],
+    ['confetti', 'momo-confetti'],
+  ] as Array<[MomoExpression, string]>)('renders the named %s expression without motion', (expression, feature) => {
+    const html = renderToStaticMarkup(createElement(Momo, { expression, pose: 'still' }))
+    expect(html).toContain(`data-expression="${expression}"`)
+    expect(html).toContain(feature)
+  })
+
+  it('reacts to big celebrations and dramatic pokes with named faces', () => {
+    expect(momoExpression('excited', 'celebrate_big', false)).toBe('confetti')
+    expect(momoExpression('neutral', 'poke_spin', false)).toBe('dramatic')
   })
 })

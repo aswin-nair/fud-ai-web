@@ -14,7 +14,7 @@ test.describe('Onboarding activation', () => {
 
     await completeOnboarding(page, { meal: { name: 'Guest yogurt bowl' } })
     await expect(page.getByRole('heading', { name: 'Save your progress' })).toBeVisible()
-    await expect(page.getByText('Guest yogurt bowl')).toBeVisible()
+    await expect(page.locator('.home-today-row').filter({ hasText: 'Guest yogurt bowl' })).toBeVisible()
     await expect(page.getByLabel('Main')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible()
   })
@@ -61,6 +61,8 @@ test.describe('Onboarding activation', () => {
     await page.getByRole('button', { name: 'Regular' }).click()
     await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Your daily targets' })).toBeVisible()
+    await expect(page.locator('.setup-daily-recipe')).toContainText('YOUR DAILY RECIPE')
+    await expect(page.locator('.setup-daily-recipe')).toContainText('Made for Activation User.')
     await page.getByRole('button', { name: 'Continue to first meal' }).click()
 
     await page.getByLabel('Meal name').fill('Banana oat bowl')
@@ -79,7 +81,7 @@ test.describe('Onboarding activation', () => {
     await expect(celebration).toContainText('Banana oat bowl')
     await celebration.getByRole('button', { name: 'Continue' }).click()
     await celebration.waitFor({ state: 'hidden' })
-    await expect(page.getByText('Banana oat bowl')).toBeVisible()
+    await expect(page.locator('.home-today-row').filter({ hasText: 'Banana oat bowl' })).toBeVisible()
 
     const draftKeys = await page.evaluate(() => (
       Object.keys(localStorage).filter(key => key.startsWith('fud-onboarding-draft-'))

@@ -39,11 +39,11 @@ describe('character-led login', () => {
   })
 
   it('honours hidden and muted mascot preferences', () => {
-    expect(render()).toContain('data-expression="happy"')
+    expect(render()).toContain('data-expression="proud"')
     expect(render()).toContain('Your plate called. It missed you.')
     state.profile.mascotMuted = true
     expect(render()).not.toContain('food-club-bubble-wrap')
-    expect(render()).toContain('data-expression="happy"')
+    expect(render()).toContain('data-expression="proud"')
     state.profile.mascotMuted = false
     state.gamification.mascotActivity = 'off'
     expect(render()).not.toContain('data-expression=')
