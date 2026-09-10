@@ -42,6 +42,8 @@ import { MomoSticker } from '../components/MomoSticker'
 import { RoastPreview } from '../components/RoastPreview'
 import { SettingsNavigation } from '../components/SettingsNavigation'
 import { AppearanceControl } from '../components/AppearanceControl'
+import * as m from 'motion/react-m'
+import { motionSpring } from '../lib/motionPresets'
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h3 className="settings-section-label">{children}</h3>
@@ -231,15 +233,19 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="app-shell you-refresh">
+    <div className="app-shell you-refresh food-club-app">
       <main className="app-main">
         <header className="you-header">
           <div>
+            <p className="club-edition">THE GOOD FOOD CLUB / YOUR CORNER</p>
             <p className="you-eyebrow">Your profile</p>
             <h1 className="page-title">You</h1>
             <p className="page-sub">{profile.name || user?.name || 'Your food journal'}</p>
+            <span className="you-header-stamp">NO GUILT. JUST GOOD DATA.</span>
           </div>
-          <MomoSticker />
+          <m.div className="you-momo-mark" whileHover={{ rotate: -5, y: -4 }} whileTap={{ scale: .96 }} transition={motionSpring}>
+            <MomoSticker />
+          </m.div>
         </header>
         <p className="you-status">{profile.trackingPaused ? 'Tracking paused · your streak is held' : 'Your routine · your pace'}</p>
         <section className="appearance-settings" aria-labelledby="appearance-settings-title">

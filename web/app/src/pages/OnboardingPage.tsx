@@ -33,6 +33,7 @@ import { guestUserId } from '../lib/guestMode'
 import { useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 import { motionOpacity, motionPop, motionSpring, motionStep } from '../lib/motionPresets'
+import { ProgressRecipe } from '../components/SnackAttackPrimitives'
 
 const STEPS = ['Age', 'About you', 'Body', 'Goal', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
@@ -320,21 +321,7 @@ export function OnboardingPage() {
             <span className="onboarding-step-label">Step {step + 1} of {STEPS.length}: {STEPS[step]}</span>
             <span className="setup-section-label">{step < 3 ? 'Your profile' : step < 6 ? 'Your routine' : 'Ready to begin'}</span>
           </div>
-          <div
-            className="onboarding-progress"
-            role="progressbar"
-            aria-label="Onboarding progress"
-            aria-valuemin={1}
-            aria-valuemax={STEPS.length}
-            aria-valuenow={step + 1}
-            aria-valuetext={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
-          >
-            <span
-              className="onboarding-progress-fill"
-              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-            />
-            <span className="setup-progress-stops" aria-hidden="true">{STEPS.map(label => <i key={label} />)}</span>
-          </div>
+          <ProgressRecipe current={step} labels={STEPS} />
         </div>
 
         <OnboardingCompanion step={step} error={Boolean(validationError)} />

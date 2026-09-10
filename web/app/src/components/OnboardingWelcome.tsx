@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, Camera, Check, ChefHat, Pizza, SlidersHorizontal, Soup, Sparkles, Sprout } from 'lucide-react'
+import { CalendarDays, Camera, Check, ChefHat, SlidersHorizontal, Soup, Sparkles } from 'lucide-react'
 import type { Mood } from '../mascot/behaviors'
 import { IconChevronLeft, IconChevronRight } from './icons'
 import { MomoSticker } from './MomoSticker'
@@ -9,6 +9,7 @@ import { AppearanceControl } from './AppearanceControl'
 import { useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 import { motionFade, motionOpacity, motionSoftSpring, motionSpring, motionStep } from '../lib/motionPresets'
+import { FoodSticker, MomoBubble } from './SnackAttackPrimitives'
 
 const WELCOME_SLIDES = [
   {
@@ -83,11 +84,11 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
           <div className="welcome-scene-grain" />
           <m.span className="welcome-scene-spark welcome-spark-one" initial={reducedDecorations ? false : { opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...motionSpring, delay: 0.22 }}><Sparkles /></m.span>
           <m.span className="welcome-scene-spark welcome-spark-two" initial={reducedDecorations ? false : { opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...motionSpring, delay: 0.34 }}><Sparkles /></m.span>
-          <m.span className="welcome-scene-food welcome-food-pizza" initial={reducedDecorations ? false : { opacity: 0, x: -24, rotate: -26 }} animate={{ opacity: 1, x: 0, rotate: -12 }} transition={{ ...motionSpring, delay: 0.16 }} whileHover={reducedDecorations ? undefined : { y: -4, rotate: -6 }}><Pizza size={33} /></m.span>
-          <m.span className="welcome-scene-food welcome-food-sprout" initial={reducedDecorations ? false : { opacity: 0, x: 24, rotate: 25 }} animate={{ opacity: 1, x: 0, rotate: 11 }} transition={{ ...motionSpring, delay: 0.28 }} whileHover={reducedDecorations ? undefined : { y: -4, rotate: 6 }}><Sprout size={32} /></m.span>
-          {state.gamification.mascotActivity !== 'off' && !state.profile.mascotMuted && <p className="welcome-momo-speech">
+          <m.span className="welcome-scene-food welcome-food-pizza" initial={reducedDecorations ? false : { opacity: 0, x: -24, rotate: -26 }} animate={{ opacity: 1, x: 0, rotate: -12 }} transition={{ ...motionSpring, delay: 0.16 }} whileHover={reducedDecorations ? undefined : { y: -4, rotate: -6 }}><FoodSticker variant="pizza" /></m.span>
+          <m.span className="welcome-scene-food welcome-food-sprout" initial={reducedDecorations ? false : { opacity: 0, x: 24, rotate: 25 }} animate={{ opacity: 1, x: 0, rotate: 11 }} transition={{ ...motionSpring, delay: 0.28 }} whileHover={reducedDecorations ? undefined : { y: -4, rotate: 6 }}><FoodSticker variant="sprout" /></m.span>
+          {state.gamification.mascotActivity !== 'off' && !state.profile.mascotMuted && <MomoBubble className="welcome-momo-speech">
             <m.span key={slide.theme} {...motionOpacity}>{slide.speech}</m.span>
-          </p>}
+          </MomoBubble>}
           {/* CSS owns centering; Motion only transforms the artwork inside it. */}
           <div className="welcome-mascot-wrap">
           <m.div className="welcome-mascot-motion" style={{ position: 'relative', display: 'grid', placeItems: 'center', width: '100%', height: '100%' }}

@@ -55,3 +55,27 @@ export const motionPop = {
   exit: { opacity: 0, scale: 0.92, y: -8 },
   transition: motionSoftSpring,
 } as const
+
+/** Snack Attack vocabulary: use a named recipe when motion has a clear job. */
+export const snapSpring = motionSoftSpring
+export const stickerDrop = {
+  initial: { opacity: 0, y: 18, rotate: -8, scale: .84 },
+  animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
+  transition: motionSoftSpring,
+} as const
+export const tactilePress = { scale: .96 } as const
+export const bubblePop = {
+  initial: { opacity: 0, scale: .94, y: 6 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  transition: motionFade,
+} as const
+export const plateReveal = {
+  initial: { opacity: 0, scale: .88, rotate: -3 },
+  animate: { opacity: 1, scale: 1, rotate: 0 },
+  transition: motionSoftSpring,
+} as const
+export const pageWipe = motionStep
+export const microShake = {
+  animate: { x: [0, -3, 3, -2, 2, 0] },
+  transition: { type: 'tween', duration: .3 },
+} as const

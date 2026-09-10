@@ -16,6 +16,23 @@ import { motionFade } from '../lib/motionPresets'
 
 type AuthMode = 'signin' | 'signup'
 
+function passwordStrength(value: string): number {
+  if (!value) return 0
+  return [
+    value.length >= 8,
+    /[A-Z]/.test(value),
+    /\d/.test(value),
+    /[^A-Za-z0-9]/.test(value),
+  ].filter(Boolean).length
+}
+
+function passwordStrengthLabel(score: number): string {
+  if (score <= 1) return 'A little more secret sauce, please.'
+  if (score === 2) return 'Getting there. Add another twist.'
+  if (score === 3) return 'Nice and sturdy.'
+  return 'Chef’s kiss. That password has range.'
+}
+
 export function LoginPage() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth()
   const googleConfigured = isGoogleAuthConfigured()
@@ -32,6 +49,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [privateFocus, setPrivateFocus] = useState(false)
   const errorRef = useRef<HTMLDivElement>(null)
+  const passwordScore = mode === 'signup' ? passwordStrength(password) : 0
 
   useEffect(() => { if (error) errorRef.current?.focus() }, [error])
 
@@ -168,7 +186,7 @@ export function LoginPage() {
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               required
               minLength={mode === 'signup' ? 8 : undefined}
-              aria-describedby={mode === 'signup' ? 'auth-password-hint' : undefined}
+              aria-describedby={mode === 'signup' ? 'auth-password-hint auth-password-strength' : undefined}
             />
             <div className="auth-password-tools">
               {mode === 'signup' && <span id="auth-password-hint">At least 8 characters</span>}
@@ -176,6 +194,24 @@ export function LoginPage() {
                 {showPassword ? 'Hide password' : 'Show password'}
               </button>
             </div>
+            {mode === 'signup' && (
+              <div className="auth-password-strength" id="auth-password-strength" aria-live="polite">
+                <div className="auth-password-meter" aria-hidden="true">
+                  {[0, 1, 2, 3].map(index => (
+                    <m.span
+                      key={index}
+                      className={`auth-password-meter-bar${index < passwordScore ? ' is-on' : ''}`}
+                      initial={false}
+                      animate={{ scaleX: index < passwordScore ? 1 : .55 }}
+                      transition={{ duration: .16, delay: index * .025 }}
+                    />
+                  ))}
+                </div>
+                <span className={`auth-password-strength-label strength-${passwordScore}`}>
+                  {password ? passwordStrengthLabel(passwordScore) : 'Make it memorable, not guessable.'}
+                </span>
+              </div>
+            )}
           </div>
           {mode === 'signup' && (
             <div className="field">
@@ -185,11 +221,16 @@ export function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Repeat password"
-                autoComplete="new-password"
-                required
-              />
-            </div>
+              placeholder="Repeat password"
+              autoComplete="new-password"
+              required
+            />
+            {confirmPassword && (
+              <span className={`auth-password-match${password === confirmPassword ? ' is-match' : ' is-mismatch'}`} role="status">
+                {password === confirmPassword ? 'Passwords match.' : 'Those passwords are playing hide-and-seek.'}
+              </span>
+            )}
+          </div>
           )}
           <PressableButton type="submit" fullWidth disabled={loading}>
             {loading ? 'Please wait…' : <>{mode === 'signin' ? 'Sign in' : claiming ? 'Continue' : 'Create account'} <ArrowUpRight size={21} aria-hidden="true" /></>}

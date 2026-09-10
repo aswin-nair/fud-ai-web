@@ -8,6 +8,10 @@ import { providerLabel } from '../lib/aiConfig'
 import { IconSend } from '../components/icons'
 import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
+import { KeyRound, MessageCircle, Sparkles, Trash2 } from 'lucide-react'
+import { MomoSticker } from '../components/MomoSticker'
+import * as m from 'motion/react-m'
+import { motionSoftSpring } from '../lib/motionPresets'
 
 /** Render AI message with paragraphs, bullet lists, and **bold**. */
 function CoachMessage({ text }: { text: string }) {
@@ -143,17 +147,19 @@ export function CoachPage() {
   const hasKey = !!state.aiSettings.apiKey
 
   return (
-    <div className="app-shell coach-shell">
+    <div className="app-shell coach-shell food-club-app">
       <header className="coach-header-bar">
-        <div className="coach-header-avatar" aria-hidden>🤖</div>
+        <div className="coach-header-avatar" aria-hidden><MomoSticker mood="excited" pose="still" /></div>
         <div className="coach-header-info">
+          <span className="club-edition">THE GOOD FOOD CLUB / COACH CORNER</span>
           <span className="coach-header-title">AI Coach</span>
           <span className="coach-header-sub">Powered by {providerLabel(state.aiSettings.provider)}</span>
         </div>
         {state.chatMessages.length > 0 && (
-          <button
+          <m.button
             type="button"
             className="coach-clear-btn"
+            whileTap={{ scale: .96 }} transition={motionSoftSpring}
             onClick={() => {
               if (confirm('Clear chat history?')) {
                 clearChat()
@@ -161,8 +167,8 @@ export function CoachPage() {
               }
             }}
           >
-            Clear
-          </button>
+            <Trash2 size={15} aria-hidden="true" /> Clear
+          </m.button>
         )}
       </header>
 
@@ -171,7 +177,7 @@ export function CoachPage() {
 
         {!hasKey && (
           <div className="coach-no-key-card">
-            <span className="coach-no-key-icon" aria-hidden>🔑</span>
+            <span className="coach-no-key-icon" aria-hidden><KeyRound size={26} /></span>
             <p>Add your <Link to="/settings">{providerLabel(state.aiSettings.provider)}</Link> API key in Settings to start chatting.</p>
           </div>
         )}
@@ -179,7 +185,7 @@ export function CoachPage() {
         <div className="chat-thread">
           {state.chatMessages.length === 0 && (
             <div className="chat-empty-state">
-              <div className="chat-empty-icon" aria-hidden>💬</div>
+              <div className="chat-empty-icon" aria-hidden><MessageCircle size={42} strokeWidth={1.7} /></div>
               <p className="chat-empty-title">Ask me anything</p>
               <p className="chat-empty-sub">Reflect on recent logging patterns or ask for general meal ideas.</p>
               <p className="chat-empty-sub">
@@ -188,15 +194,16 @@ export function CoachPage() {
               </p>
               <div className="starter-chips">
                 {STARTERS.map(s => (
-                  <button
+                  <m.button
                     key={s}
                     type="button"
                     className="starter-chip"
+                    whileTap={{ scale: .97 }} transition={motionSoftSpring}
                     onClick={() => send(s)}
                     disabled={!hasKey}
                   >
-                    {s}
-                  </button>
+                    <Sparkles size={15} aria-hidden="true" /> {s}
+                  </m.button>
                 ))}
               </div>
             </div>
@@ -205,7 +212,7 @@ export function CoachPage() {
           {state.chatMessages.map(msg => (
             <div key={msg.id} className={`chat-bubble ${msg.role}`}>
               {msg.role === 'assistant' && (
-                <span className="chat-bubble-avatar" aria-hidden>🤖</span>
+                <span className="chat-bubble-avatar" aria-hidden><MomoSticker mood="cozy" pose="still" /></span>
               )}
               {msg.role === 'assistant'
                 ? <CoachMessage text={msg.content} />

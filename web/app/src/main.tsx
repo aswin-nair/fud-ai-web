@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './styles/snack-attack-primitives.css'
 import App from './App'
 import {
   DATA_BACKEND_BUILD_ID,

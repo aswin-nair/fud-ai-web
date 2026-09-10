@@ -92,6 +92,18 @@
 :root .food-club-auth.auth-refresh .auth-form .field input:focus { background: var(--club-card); border-color: var(--club-line); box-shadow: 3px 3px 0 var(--club-shadow); outline: 2px solid var(--club-blue); outline-offset: 3px; }
 :root .food-club-auth.auth-refresh .auth-password-tools { font-size: .7rem; color: var(--club-muted); }
 :root .food-club-auth.auth-refresh .auth-show-password { font-size: .75rem; color: var(--club-ink); }
+:root .food-club-auth.auth-refresh .auth-password-strength { display: grid; gap: 5px; margin-top: 7px; }
+:root .food-club-auth.auth-refresh .auth-password-meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; height: 5px; }
+:root .food-club-auth.auth-refresh .auth-password-meter-bar { display: block; min-width: 0; border-radius: 999px; background: var(--club-line); transform-origin: left center; opacity: .45; }
+:root .food-club-auth.auth-refresh .auth-password-meter-bar.is-on { background: var(--club-blue); opacity: 1; }
+:root .food-club-auth.auth-refresh .auth-password-meter-bar:nth-child(4).is-on { background: var(--club-mint); }
+:root .food-club-auth.auth-refresh .auth-password-strength-label,
+:root .food-club-auth.auth-refresh .auth-password-match { display: block; font-size: .7rem; line-height: 1.4; color: var(--club-muted); }
+:root .food-club-auth.auth-refresh .auth-password-strength-label.strength-0,
+:root .food-club-auth.auth-refresh .auth-password-strength-label.strength-1,
+:root .food-club-auth.auth-refresh .auth-password-match.is-mismatch { color: var(--club-pink-text, var(--club-muted)); }
+:root .food-club-auth.auth-refresh .auth-password-strength-label.strength-4,
+:root .food-club-auth.auth-refresh .auth-password-match.is-match { color: var(--club-green-text, #2f7a55); }
 :root .food-club-auth.auth-refresh .pressable-primary .pressable-face { min-height: 52px; border: 2px solid #23221f; border-radius: 7px; background: var(--club-tomato); color: #23221f; box-shadow: 4px 4px 0 var(--club-shadow); font: 700 1rem/1.3 var(--sans); text-transform: none; letter-spacing: 0; }
 :root .food-club-auth.auth-refresh .pressable:is(:disabled, [aria-disabled="true"]) .pressable-face { background: var(--disabled-fill); color: var(--ink-soft); border-color: var(--control-border); box-shadow: none; }
 :root .food-club-auth.auth-refresh .pressable:not(:disabled):active .pressable-face { box-shadow: 1px 1px 0 var(--club-shadow); }
