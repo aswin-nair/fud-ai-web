@@ -122,7 +122,7 @@ export function SupportPage() {
         </div>
 
         <p className="about-version">
-          Fud AI is a habit tracker, not a medical tool.
+          Poiem is a habit tracker, not a medical tool.
         </p>
       </main>
       <BottomNav />

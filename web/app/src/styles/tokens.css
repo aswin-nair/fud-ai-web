@@ -1,13 +1,21 @@
 :root {
-  /* Tangerine + ocean: complementary accents with a clear job for each hue.
-     White reading surfaces, blue selection, orange action, lemon celebration. */
+  --poiem-paper: #FFF8EB;
+  --poiem-ink: #26241F;
+  --poiem-persimmon: #FF8055;
+  --poiem-citron: #F4DF70;
+  --poiem-leaf: #BCDBB4;
+  --poiem-iris: #5458C9;
+  --poiem-rose: #EDBDD0;
+  --poiem-night: #191B1A;
+  /* Poiem: warm paper/ink, persimmon actions, iris navigation, citron rewards.
+     Foregrounds are independently tuned for readable light and dark themes. */
   color-scheme: light;
-  --ink: #202D38;
-  --coral-hue: #FF873D;
-  --enamel: #F3F8FB;
-  --apricot: #FFD84D;
+  --ink: #26241F;
+  --coral-hue: #FF8055;
+  --enamel: #F5ECDD;
+  --apricot: #F4DF70;
   --herb: #32BF88;
-  --chalk: #DCE7ED;
+  --chalk: #E7DFD0;
   --dough: #FFE3B5;
 
   /* Compatibility alias: --cobalt is the old enamel primary and is still read
@@ -15,24 +23,24 @@
      palette instead of being repainted one by one. */
   --cobalt: var(--coral-hue);
 
-  --paper: #F5F9FC;
-  --paper-deep: #E8F0F5;
-  --paper-warm: #EDF4F8;
-  --paper-card: #FFFFFF;
-  --paper-raised: #FFFFFF;
-  --paper-float: #FFFFFF;
-  --ink-soft: #4B5D6B;
-  --ink-mute: #596D7C;
+  --paper: #FFF8EB;
+  --paper-deep: #F1E9D9;
+  --paper-warm: #F8F0E2;
+  --paper-card: #FFFDF7;
+  --paper-raised: #FFFDF7;
+  --paper-float: #FFFDF7;
+  --ink-soft: #555248;
+  --ink-mute: #666156;
   --ink-muted: var(--ink-mute);
   --rule: rgba(32, 45, 56, 0.12);
   --rule-strong: rgba(32, 45, 56, 0.24);
 
   --coral: var(--coral-hue);
-  --coral-start: #FFA65A;
+  --coral-start: #FFAB80;
   --coral-end: var(--coral-hue);
   --coral-deep: #A94710;
   /* Text variants are separately tuned for contrast on reading surfaces. */
-  --coral-text: #A23D0B;
+  --coral-text: #A63C16;
 
   /* Text-only variants of the nutrition and status hues. The fills keep the
      original colours — a macro bar is a shape, and shapes are not held to the
@@ -42,8 +50,8 @@
   --carbs-text: #785200;
   --fat-text: #176446;
   --danger-text: #B52F40;
-  --coral-soft: #FFF0DF;
-  --gradient-calorie: linear-gradient(160deg, #FFA65A, #FF873D);
+  --coral-soft: #FFE5D7;
+  --gradient-calorie: linear-gradient(160deg, var(--coral-start), var(--coral-hue));
   --green-goal: var(--herb);
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --display: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -54,9 +62,9 @@
   --radius-sm: 12px;
   --nav-h: 92px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --shadow-ink: #D0E0E9;
-  --edge-ink: #ADC6D6;
-  --control-border: #718897;
+  --shadow-ink: #D9CDBA;
+  --edge-ink: #B9AD97;
+  --control-border: #817561;
   --shadow-card: 0 3px 0 var(--shadow-ink), 0 8px 24px rgb(32 45 56 / 4%);
   --shadow-sm: 0 2px 0 var(--shadow-ink);
   --fun-yellow: #FFE073;
@@ -65,9 +73,9 @@
   --fun-pink: #FFD0AE;
   --fun-lilac: #D0E3FF;
   --fun-outline: 1.5px solid var(--edge-ink);
-  --selection: #0063A2;
-  --selection-soft: #D8EEFC;
-  --selection-hover: #C2E5FA;
+  --selection: #5458C9;
+  --selection-soft: #EAE8FF;
+  --selection-hover: #E5E1FF;
   --on-selection: #FFFFFF;
   --success-soft: #DCF5E9;
   --info-soft: #E0F2FF;
@@ -120,7 +128,7 @@
   --card-radius: 1.375rem;
   --focus-ring: 3px solid var(--selection);
   --page-heading-size: clamp(2rem, 6vw, 2.75rem);
-  --disabled-fill: #E2EAF0;
+  --disabled-fill: #E7DFD0;
 
   --radius-md: 20px;
   --radius-lg: 26px;
@@ -196,7 +204,7 @@
 
   --on-accent: #FFFFFF;
   /* Action fills are intentionally bright and friendly. Dark role colours keep
-     their labels readable without muting the Fud AI tangerine palette. */
+     their labels readable without muting the Poiem persimmon palette. */
   --on-brand: var(--ink);
   --on-danger: #1A1416;
   --ink-press: #000000;
@@ -230,31 +238,31 @@
    Independent foreground roles keep small, bright accents readable. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #121416;
-  --paper-deep: #17191C;
-  --paper-warm: #23272C;
-  --paper-card: #1D2024;
-  --paper-raised: #25292E;
-  --paper-float: #30363D;
-  --ink: #F5F6F8;
-  --ink-soft: #C6CBD2;
-  --ink-mute: #AFB7C2;
+  --paper: #191B1A;
+  --paper-deep: #202220;
+  --paper-warm: #292C28;
+  --paper-card: #242723;
+  --paper-raised: #2E322C;
+  --paper-float: #363C33;
+  --ink: #F8F1E4;
+  --ink-soft: #D1CABB;
+  --ink-mute: #B9B3A6;
   --ink-press: #FFFFFF;
   --rule: rgb(230 234 240 / 10%);
   --rule-strong: rgb(230 234 240 / 20%);
-  --edge-ink: #3D424A;
-  --control-border: #7D8794;
+  --edge-ink: #505648;
+  --control-border: #929583;
   --edge-hover: #90B9FA;
-  --shadow-ink: #0C0E10;
+  --shadow-ink: #0E100D;
   --shadow-card: 0 1px 0 rgb(255 255 255 / 4%) inset, 0 8px 24px rgb(0 0 0 / 18%);
   --shadow-sm: 0 2px 8px rgb(0 0 0 / 16%);
-  --enamel: #23272C;
-  --chalk: #363C44;
+  --enamel: #292C28;
+  --chalk: #383D34;
   --dough: #383329;
-  --coral-hue: #FF9A62;
-  --coral-start: #FFB17F;
-  --coral-text: #FFB17F;
-  --coral-soft: #362C29;
+  --coral-hue: #FF996F;
+  --coral-start: #FFB393;
+  --coral-text: #FFB393;
+  --coral-soft: #3D2C24;
   --coral-deep: #C46635;
   --on-brand: #181B20;
   --on-danger: #181B20;
@@ -264,10 +272,10 @@
   --fun-blue: #263448;
   --fun-pink: #3B2E30;
   --fun-lilac: #33304A;
-  --selection: #90B9FA;
-  --selection-soft: #25344A;
-  --selection-hover: #2C3E57;
-  --on-selection: #172238;
+  --selection: #B6B3FF;
+  --selection-soft: #302F46;
+  --selection-hover: #3B3954;
+  --on-selection: #25223C;
   --success-soft: #233830;
   --success-ink: #83D9AD;
   --icon-teal: #83D9AD;
@@ -297,7 +305,7 @@
   --protein-ink: #9EC3FC;
   --protein-soft: #263448;
   --amber-ink: #F2D58A;
-  --disabled-fill: #343A42;
+  --disabled-fill: #383D34;
   --clay-base: #25292E;
   --clay-lift: #30363D;
   --clay-coral-base: var(--coral-hue);

@@ -125,7 +125,7 @@ export function SettingsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `fud-ai-export-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `poiem-export-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
     track({ name: 'export_completed' })
@@ -222,7 +222,7 @@ export function SettingsPage() {
       }
 
       if (localCleanupFailed) {
-        alert('Your account was deleted, but this browser could not confirm removal of every device copy. Clear site data for fud-ai.app before sharing this device.')
+        alert(`Your account was deleted, but this browser could not confirm removal of every device copy. Clear site data for ${window.location.hostname} before sharing this device.`)
       }
       signOut()
     } catch (error) {
@@ -824,13 +824,13 @@ export function SettingsPage() {
         <SectionLabel>About</SectionLabel>
         <SettingsCard>
           <Link to="/about" className="settings-data-btn settings-link-row">
-            <span>About Fud AI</span>
+            <span>About Poiem</span>
             <IconChevronRight size={16} className="settings-link-chevron" />
           </Link>
         </SettingsCard>
         </section>
 
-        <p className="settings-footer">Fud AI · Local-first · BYOK AI · Privacy-first</p>
+        <p className="settings-footer">Poiem · Local-first · BYOK AI · Privacy-first</p>
       </main>
       <BottomNav />
     </div>

@@ -38,8 +38,8 @@ function aiHeaders(settings: AISettings): Record<string, string> {
   const h: Record<string, string> = { 'Content-Type': 'application/json' }
   if (settings.provider === 'openrouter') {
     h.Authorization = `Bearer ${settings.apiKey.trim()}`
-    h['HTTP-Referer'] = typeof window !== 'undefined' ? window.location.origin : 'https://fud-ai.app'
-    h['X-Title'] = 'Fud AI'
+    h['HTTP-Referer'] = typeof window !== 'undefined' ? window.location.origin : 'https://poiem.app'
+    h['X-Title'] = 'Poiem'
   }
   return h
 }

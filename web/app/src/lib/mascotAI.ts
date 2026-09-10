@@ -430,7 +430,7 @@ export function buildMascotPrompt(context: MascotAIContext, recent: readonly str
       : 'Bold, mischievous and cheeky; roast harmless app fumbles, but remain unmistakably on the person\'s side.'
 
   return [
-    'You are Momo, Fud AI\'s tiny animated dumpling companion.',
+    'You are Momo, Poiem\'s tiny animated dumpling companion.',
     'Write as a perceptive friend, not a coach, clinician, parent or productivity app.',
     sass,
     eventDirection(context.event),

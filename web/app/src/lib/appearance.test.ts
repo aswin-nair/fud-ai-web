@@ -50,11 +50,11 @@ describe('device appearance preference', () => {
     expect(appearance.getAppearancePreference()).toBe('system')
     expect(fixture.root.dataset.theme).toBe('dark')
     expect(fixture.root.style.colorScheme).toBe('dark')
-    expect(fixture.meta.setAttribute).toHaveBeenLastCalledWith('content', '#121416')
+    expect(fixture.meta.setAttribute).toHaveBeenLastCalledWith('content', '#191B1A')
 
     fixture.systemChanges(false)
     expect(fixture.root.dataset.theme).toBe('light')
-    expect(fixture.meta.setAttribute).toHaveBeenLastCalledWith('content', '#F5F9FC')
+    expect(fixture.meta.setAttribute).toHaveBeenLastCalledWith('content', '#FFF8EB')
     expect(fixture.localStorage.setItem).not.toHaveBeenCalled()
   })
 

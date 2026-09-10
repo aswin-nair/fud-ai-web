@@ -82,7 +82,7 @@ async function deliver(kind: NotifyKind, streak: number): Promise<boolean> {
   if (bannedNotificationCopy(body)) return false
 
   try {
-    new Notification('Fud AI', { body, silent: true })
+    new Notification('Poiem', { body, silent: true })
     record(kind)
     return true
   } catch {

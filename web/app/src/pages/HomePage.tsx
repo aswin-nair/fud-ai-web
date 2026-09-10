@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
+import { BrandLogo } from '../components/BrandLogo'
 import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
 import { MomoSticker } from '../components/MomoSticker'
@@ -174,7 +175,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       {/* Streak and level remain context; meal logging is the primary action. */}
       <header className="home-counter-chips" data-mascot-avoid>
         <div className="today-heading">
-          <p className="club-edition">THE GOOD FOOD CLUB / DAILY JOURNAL</p>
+          <div className="poiem-journal-signature"><BrandLogo /><span>Your daily journal</span></div>
           <p className="today-date">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
           <h1>{selectedDayLabel}</h1>
         </div>

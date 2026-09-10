@@ -189,7 +189,7 @@ export function CoachPage() {
               <p className="chat-empty-title">Ask me anything</p>
               <p className="chat-empty-sub">Reflect on recent logging patterns or ask for general meal ideas.</p>
               <p className="chat-empty-sub">
-                Your chat is stored with your Fud AI data. When you send a message, limited recent log context is sent
+                Your chat is stored with your Poiem data. When you send a message, limited recent log context is sent
                 directly to {providerLabel(state.aiSettings.provider)}; that provider controls its own retention.
               </p>
               <div className="starter-chips">

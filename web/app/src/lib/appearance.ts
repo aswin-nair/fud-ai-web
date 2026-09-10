@@ -3,7 +3,7 @@ export type ResolvedAppearance = Exclude<AppearancePreference, 'system'>
 
 export const APPEARANCE_STORAGE_KEY = 'fud-appearance-v1'
 const SYSTEM_QUERY = '(prefers-color-scheme: dark)'
-const THEME_COLORS = { light: '#F5F9FC', dark: '#121416' }
+const THEME_COLORS = { light: '#FFF8EB', dark: '#191B1A' }
 
 let preference: AppearancePreference = 'system'
 let mediaQuery: MediaQueryList | undefined

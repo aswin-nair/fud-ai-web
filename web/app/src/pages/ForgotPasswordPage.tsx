@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import logo from '@assets/calorie logo transparent.png'
+import { BrandLogo } from '../components/BrandLogo'
 import { apiForgotPassword } from '../lib/apiClient'
 import { PressableButton } from '../components/PressableButton'
 
@@ -27,7 +27,7 @@ export function ForgotPasswordPage() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <img src={logo} alt="Fud AI" className="login-logo" />
+        <BrandLogo className="poiem-auth-logo" />
         <h1 className="login-title">Forgot password</h1>
         <p className="login-sub">
           {submitted

@@ -1,4 +1,6 @@
 import { useEffect } from 'react'
+import { BrandLogo } from './components/BrandLogo'
+import identity from './brand/identity.json'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { googleClientId, isGoogleAuthConfigured } from './lib/auth'
@@ -33,11 +35,15 @@ import { LazyMotion, MotionConfig } from 'motion/react'
 
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  useEffect(() => {
+    const title = pathname === '/login' && new URLSearchParams(search).get('mode') === 'signup'
+      ? 'Sign up' : routeTitle(pathname)
+    document.title = `${title} · ${identity.name}`
+  }, [pathname, search])
+
   useEffect(() => {
     window.scrollTo(0, 0)
-    document.title = `${routeTitle(pathname)} · Fud AI`
-
     const frame = window.requestAnimationFrame(() => {
       const heading = document.querySelector<HTMLElement>('main h1, .app-shell > header h1')
       if (!heading) return
@@ -65,7 +71,9 @@ function routeTitle(pathname: string): string {
   if (pathname === '/about') return 'About'
   if (pathname === '/onboarding') return 'Get started'
   if (pathname === '/login') return 'Sign in'
-  return 'Fud AI'
+  if (pathname === '/forgot-password') return 'Forgot password'
+  if (pathname === '/reset-password') return 'Reset password'
+  return identity.name
 }
 
 function routerBasename(): string | undefined {
@@ -168,7 +176,7 @@ function AppGate() {
     return (
       <div className="login-page">
         <div className="login-card">
-          <h1 className="login-title">Fud AI</h1>
+          <h1 className="login-title"><BrandLogo className="poiem-session-logo" /></h1>
           <p className="login-sub">Checking your session…</p>
         </div>
       </div>

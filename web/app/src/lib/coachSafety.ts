@@ -52,7 +52,7 @@ export function coachSafetyResponse(message: string): CoachSafetyResponse | null
     return {
       category: 'unsafe_target',
       showSupport: true,
-      message: 'I can’t help create an extreme weight-loss or below-floor eating plan. Fud AI keeps profile targets inside its approved safety limits. If thoughts about food or your body are feeling hard, Support has current options for talking with a qualified person.',
+      message: 'I can’t help create an extreme weight-loss or below-floor eating plan. Poiem keeps profile targets inside its approved safety limits. If thoughts about food or your body are feeling hard, Support has current options for talking with a qualified person.',
     }
   }
   return null

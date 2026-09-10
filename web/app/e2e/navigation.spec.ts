@@ -19,7 +19,7 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/settings')
     await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
 
-    await page.getByRole('link', { name: 'About Fud AI' }).click()
+    await page.getByRole('link', { name: 'About Poiem' }).click()
     await expect(page).toHaveURL('/about')
     await expect(page.getByRole('heading', { name: 'About' })).toBeVisible()
 
@@ -79,7 +79,7 @@ test.describe('Navigation', () => {
     const page = await context.newPage()
     await page.goto('/')
     await expect(page).toHaveURL(/\/onboarding/)
-    await expect(page.getByRole('heading', { name: 'Food tracking, at your pace.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Big flavour. Less effort.' })).toBeVisible()
     await context.close()
   })
 

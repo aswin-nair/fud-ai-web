@@ -57,7 +57,7 @@ export function FlowFeedback({ message, error = false, children }: { message: st
 export function PhotoPrivacyNote({ provider }: { provider: string }) {
   return <div className="flow-privacy" role="note"><IconShield size={20} />
     <p>Nothing is sent until you choose Analyze photo. Then your image goes directly to {provider} to estimate nutrition.
-      Fud AI does not store the image; the provider controls retention under its policy.
+      Poiem does not store the image; the provider controls retention under its policy.
       {' '}<Link to="/log/manual">Use manual entry without uploading</Link>.</p>
   </div>
 }

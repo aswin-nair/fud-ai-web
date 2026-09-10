@@ -9,5 +9,5 @@
     && typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.dataset.theme = dark ? 'dark' : 'light'
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#121416' : '#F5F9FC')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#191B1A' : '#FFF8EB')
 })()

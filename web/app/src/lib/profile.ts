@@ -132,7 +132,7 @@ export function profileInputIssue(profile: UserProfile): string | null {
 
   const age = ageFromBirthday(profile.birthday)
   if (!Number.isFinite(age)) return 'Enter a valid date of birth.'
-  if (age < 18) return 'Fud AI is only available to adults.'
+  if (age < 18) return 'Poiem is only available to adults.'
 
   if (profile.goal !== 'maintain') {
     const weekly = profile.weeklyChangeKg ?? 0.5

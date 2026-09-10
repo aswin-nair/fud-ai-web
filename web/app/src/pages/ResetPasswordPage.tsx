@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import logo from '@assets/calorie logo transparent.png'
+import { BrandLogo } from '../components/BrandLogo'
 import { apiResetPassword } from '../lib/apiClient'
 import { PressableButton } from '../components/PressableButton'
 
@@ -34,7 +34,7 @@ export function ResetPasswordPage() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <img src={logo} alt="Fud AI" className="login-logo" />
+        <BrandLogo className="poiem-auth-logo" />
         <h1 className="login-title">Choose a new password</h1>
         <p className="login-sub">This link works once and expires in 30 minutes.</p>
         {error && <div className="error-banner" role="alert">{error}</div>}

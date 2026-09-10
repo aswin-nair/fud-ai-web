@@ -8,6 +8,7 @@ import { useAuth } from '../store/AuthContext'
 import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
 import { FoodClubScene } from '../components/FoodClubScene'
+import { BrandLogo } from '../components/BrandLogo'
 import { ArrowUpRight, Check, ChefHat, ShieldCheck } from 'lucide-react'
 import { AppearanceControl } from '../components/AppearanceControl'
 import { AnimatePresence, useReducedMotion } from 'motion/react'
@@ -114,8 +115,8 @@ export function LoginPage() {
     <main className="login-page auth-refresh food-club-auth">
       <div className="food-club-frame">
         <header className="food-club-header">
-          <Link to="/onboarding" className="welcome-brand" aria-label="Fud AI welcome">Fud AI<span aria-hidden="true">.</span></Link>
-          <span className="food-club-header-note"><ChefHat size={19} aria-hidden="true" /> THE GOOD FOOD CLUB</span>
+          <Link to="/onboarding" className="welcome-brand" aria-label="Poiem welcome"><BrandLogo decorative /></Link>
+          <span className="food-club-header-note"><ChefHat size={19} aria-hidden="true" /> YOUR DAILY DOSE OF POIEM</span>
           <div className="appearance-header-actions">
             <AppearanceControl compact />
           </div>
@@ -301,7 +302,7 @@ export function LoginPage() {
         <p className="login-foot"><ShieldCheck size={16} aria-hidden="true" /> Your journal. Your pace. No food guilt.</p>
         {!claiming && (
           <p className="login-hint">
-            <Link to="/onboarding">Try Fud AI first</Link>
+            <Link to="/onboarding">Try Poiem first</Link>
           </p>
         )}
         </section>

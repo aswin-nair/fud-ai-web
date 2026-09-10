@@ -1,0 +1,39 @@
+/* Poiem logos and screen integration. Shared palette lives in tokens.css. */
+:root :is(.food-club-auth, .food-club-app),
+:root[data-theme="dark"] :is(.food-club-auth, .food-club-app) {
+  --club-paper: var(--paper);
+  --club-card: var(--paper-card);
+  --club-input: var(--paper-warm);
+  --club-ink: var(--ink);
+  --club-muted: var(--ink-mute);
+  --club-tomato: var(--poiem-persimmon);
+  --club-lemon: var(--poiem-citron);
+  --club-mint: var(--poiem-leaf);
+  --club-pink: var(--poiem-rose);
+  --club-blue: var(--selection);
+}
+.poiem-logo { display: inline-block; vertical-align: middle; flex: none; overflow: visible; }
+.poiem-logo--wordmark { width: 126px; height: auto; color: var(--ink); }
+.poiem-logo-letter { fill: currentColor; }
+.poiem-logo-spark, .poiem-logo-tile { fill: var(--poiem-persimmon); }
+.poiem-logo--mark { width: 48px; height: 48px; color: var(--poiem-ink); }
+:root .welcome-brand { display: inline-flex; align-items: center; line-height: 1; text-decoration: none; flex-shrink: 0; }
+.welcome-brand .poiem-logo { width: clamp(112px, 15vw, 145px); }
+.welcome-brand:focus-visible { outline: 3px solid var(--selection); outline-offset: 8px; border-radius: 4px; }
+.poiem-auth-logo { margin: 0 auto 28px; display: block; width: 150px; }
+.poiem-session-logo { width: 154px; margin-bottom: 8px; }
+.splash-wordmark .poiem-logo { width: 190px; }
+.splash-ring-wrap .poiem-logo--mark { position: absolute; inset: 28px; width: 72px; height: 72px; }
+.poiem-journal-signature { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 0 0 18px; margin: 0 0 24px; border-bottom: 1px solid var(--rule-strong); }
+.poiem-journal-signature .poiem-logo { width: 100px; }
+.poiem-journal-signature span { color: var(--ink-mute); font: 700 .625rem/1.5 var(--sans); letter-spacing: .1em; text-transform: uppercase; }
+.poiem-about-hero { margin-block: 24px; padding: clamp(24px, 5vw, 40px); background: var(--poiem-citron); color: var(--poiem-ink); border: 2px solid var(--poiem-ink); border-radius: 8px 28px 8px 8px; box-shadow: 5px 5px 0 var(--poiem-ink); }
+.poiem-about-hero .poiem-logo { color: var(--poiem-ink); width: min(230px, 80%); }
+.poiem-about-hero h2 { margin: 26px 0 12px; max-width: 15ch; font: 600 clamp(2rem, 6vw, 3rem)/1.1 var(--display); letter-spacing: -.035em; }
+.poiem-about-hero p { max-width: 48ch; line-height: 1.7; }
+.poiem-about-label { display: block; margin-top: 26px; font: 800 .7rem/1.5 var(--sans); letter-spacing: .08em; text-transform: uppercase; }
+@media (max-width: 380px) {
+  .welcome-brand .poiem-logo { width: 104px; }
+  .poiem-journal-signature { gap: 10px; }
+  .poiem-journal-signature span { font-size: .5625rem; }
+}

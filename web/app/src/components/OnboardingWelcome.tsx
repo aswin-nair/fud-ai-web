@@ -3,6 +3,7 @@ import { CalendarDays, Camera, Check, ChefHat, SlidersHorizontal, Soup, Sparkles
 import type { Mood } from '../mascot/behaviors'
 import { IconChevronLeft, IconChevronRight } from './icons'
 import { MomoSticker } from './MomoSticker'
+import { BrandLogo } from './BrandLogo'
 import { PressableButton } from './PressableButton'
 import { useApp } from '../store/AppContext'
 import { AppearanceControl } from './AppearanceControl'
@@ -68,10 +69,10 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
   const TicketIcon = slide.ticketIcon
 
   return (
-    <m.main className={`welcome-shell welcome-refresh welcome-theme-${slide.theme}`} aria-label="Welcome to Fud AI"
+    <m.main className={`welcome-shell welcome-refresh welcome-theme-${slide.theme}`} aria-label="Welcome to Poiem"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={motionFade}>
       <header className="welcome-brand-row">
-        <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
+        <span className="welcome-brand"><BrandLogo /></span>
         <div className="appearance-header-actions">
           <span className="welcome-club-label"><ChefHat size={19} aria-hidden="true" /> The food club</span>
           <AppearanceControl compact />

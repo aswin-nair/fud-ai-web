@@ -1,4 +1,5 @@
-import logo from '@assets/calorie logo transparent.png'
+import { BrandLogo } from './BrandLogo'
+import identity from '../brand/identity.json'
 
 const RADIUS = 54
 const CIRC = 2 * Math.PI * RADIUS
@@ -13,7 +14,7 @@ export function SplashScreen({ exiting = false }: SplashScreenProps) {
     <div
       className={`splash-screen${exiting ? ' splash-exit' : ''}`}
       role="status"
-      aria-label="Loading Fud AI"
+      aria-label="Loading Poiem"
     >
       <div className="splash-ring-wrap">
         <svg className="splash-ring-svg" viewBox="0 0 128 128" aria-hidden>
@@ -39,11 +40,11 @@ export function SplashScreen({ exiting = false }: SplashScreenProps) {
             style={{ '--circ': CIRC } as React.CSSProperties}
           />
         </svg>
-        <img src={logo} alt="" className="splash-logo" />
+        <BrandLogo variant="mark" decorative />
       </div>
 
-      <div className="splash-wordmark">Fud AI</div>
-      <div className="splash-tagline">Fueling your journey</div>
+      <div className="splash-wordmark"><BrandLogo decorative /></div>
+      <div className="splash-tagline">{identity.tagline}</div>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { PressableButton } from '../components/PressableButton'
 import { OnboardingCompanion, OnboardingStepBadge } from '../components/OnboardingCompanion'
 import { OnboardingWelcome, WELCOME_SLIDE_COUNT } from '../components/OnboardingWelcome'
 import { AppearanceControl } from '../components/AppearanceControl'
+import { BrandLogo } from '../components/BrandLogo'
 import {
   computeTargets,
   effectiveProtein,
@@ -275,7 +276,7 @@ export function OnboardingPage() {
       <div className="app-shell setup-refresh">
         <main ref={setupMain} className="app-main onboarding-main">
           <div className="setup-brand-row">
-            <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
+            <span className="welcome-brand"><BrandLogo /></span>
             <div className="appearance-header-actions">
               {!user && <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
               <AppearanceControl compact />
@@ -285,7 +286,7 @@ export function OnboardingPage() {
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">This one is built for adults</h1>
             <p className="onboarding-sub">
-              Fud AI is only available to adults. A doctor, dietitian, parent, or guardian is the right place to start.
+              Poiem is only available to adults. A doctor, dietitian, parent, or guardian is the right place to start.
             </p>
           </div>
           <p className="onboarding-recovery-note">Entered the date by mistake? You can go back and check it again.</p>
@@ -308,7 +309,7 @@ export function OnboardingPage() {
     <div className="app-shell setup-refresh" data-chapter={step < 3 ? 'profile' : step < 6 ? 'routine' : 'ready'}>
       <main ref={setupMain} className="app-main onboarding-main">
         <div className="setup-brand-row">
-          <span className="welcome-brand">Fud AI<span aria-hidden="true">.</span></span>
+          <span className="welcome-brand"><BrandLogo /></span>
           <div className="appearance-header-actions">
             {user ? <span className="setup-account-note"><IconCheck size={16} /> Your account is ready</span>
               : <Link to="/login" className="onboarding-signin-link">Already a member? Sign in</Link>}
@@ -337,7 +338,7 @@ export function OnboardingPage() {
         {step === 0 && (
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">What is your date of birth?</h1>
-            <p className="onboarding-sub" id="birthday-purpose">Fud AI is for adults aged 18 and over. Your age helps us tailor your starting targets.</p>
+            <p className="onboarding-sub" id="birthday-purpose">Poiem is for adults aged 18 and over. Your age helps us tailor your starting targets.</p>
             <div className="field">
               <label htmlFor="onboarding-birthday">Date of birth</label>
               <input
