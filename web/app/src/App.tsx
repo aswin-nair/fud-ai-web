@@ -29,6 +29,7 @@ import { AnchorProvider } from './mascot/anchors'
 import { MascotOverlay } from './mascot/MascotOverlay'
 import type { ReactNode } from 'react'
 import { useNavDirection } from './hooks/useNavDirection'
+import { LazyMotion, MotionConfig, domAnimation } from 'motion/react'
 
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
@@ -191,14 +192,18 @@ function AppGate() {
 
 function AppShell() {
   return (
-    <AuthProvider>
-      <BrowserRouter basename={routerBasename()}>
-        <ScrollToTop />
-        <ToastProvider>
-          <AppGate />
-        </ToastProvider>
-      </BrowserRouter>
-    </AuthProvider>
+    <LazyMotion features={domAnimation}>
+      <MotionConfig reducedMotion="user">
+        <AuthProvider>
+          <BrowserRouter basename={routerBasename()}>
+            <ScrollToTop />
+            <ToastProvider>
+              <AppGate />
+            </ToastProvider>
+          </BrowserRouter>
+        </AuthProvider>
+      </MotionConfig>
+    </LazyMotion>
   )
 }
 

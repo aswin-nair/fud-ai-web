@@ -30,6 +30,9 @@ import {
 } from '../lib/onboarding'
 import { selectLogMethod, startLogFlow, track } from '../lib/analytics'
 import { guestUserId } from '../lib/guestMode'
+import { useReducedMotion } from 'motion/react'
+import * as m from 'motion/react-m'
+import { motionOpacity, motionPop, motionSpring, motionStep } from '../lib/motionPresets'
 
 const STEPS = ['Age', 'About you', 'Body', 'Goal', 'Activity', 'Your pace', 'Review', 'First meal']
 const FIRST_MEAL_STEP = STEPS.length - 1
@@ -82,6 +85,7 @@ function birthdayMessage(status: ReturnType<typeof birthdayEligibility>): string
 export function OnboardingPage() {
   const { state, updateProfile, setOnboarded, addEntry } = useApp()
   const { user } = useAuth()
+  const reducedMotion = useReducedMotion()
   const navigate = useNavigate()
   const userId = user?.sub ?? guestUserId()
   const finishing = useRef(false)
@@ -276,7 +280,7 @@ export function OnboardingPage() {
               <AppearanceControl compact />
             </div>
           </div>
-          <div className="onboarding-blocked-card">
+          <m.div className="onboarding-blocked-card" {...(reducedMotion ? motionOpacity : motionPop)}>
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">This one is built for adults</h1>
             <p className="onboarding-sub">
@@ -288,7 +292,7 @@ export function OnboardingPage() {
             <PressableButton fullWidth onClick={revisitAgeGate}>Change date of birth</PressableButton>
             <PressableButton fullWidth variant="secondary" onClick={restartOnboarding}>Back to welcome</PressableButton>
           </div>
-          </div>
+          </m.div>
         </main>
       </div>
     )
@@ -334,7 +338,8 @@ export function OnboardingPage() {
         </div>
 
         <OnboardingCompanion step={step} error={Boolean(validationError)} />
-        <form className="setup-form" noValidate onSubmit={event => {
+        {/* Replace the old form immediately so focus and submit always belong to the current step. */}
+        <m.form key={STEPS[step]} className="setup-form" {...(reducedMotion ? motionOpacity : motionStep)} noValidate onSubmit={event => {
           event.preventDefault()
           if (step === FIRST_MEAL_STEP) finishWithFirstMeal()
           else next()
@@ -383,16 +388,18 @@ export function OnboardingPage() {
               <p className="setup-field-hint" id="equation-hint">Choose the equation that best matches your physiology. This is separate from your identity.</p>
               <div className="onboarding-chip-row" role="group" aria-labelledby="equation-label" aria-describedby="equation-hint">
                 {(['female', 'male'] as Gender[]).map(gender => (
-                  <button
+                  <m.button
                     key={gender}
                     type="button"
                     className={`onboarding-chip${profile.gender === gender ? ' active' : ''}`}
                     aria-pressed={profile.gender === gender}
+                    whileTap={reducedMotion ? undefined : { scale: 0.97 }}
+                    transition={motionSpring}
                     onClick={() => updateDraftProfile(current => ({ ...current, gender }))}
                   >
                     {gender === 'female' ? 'Female equation' : 'Male equation'}
                     <span className="setup-selected" aria-hidden="true">{profile.gender === gender && <IconCheck size={17} />}</span>
-                  </button>
+                  </m.button>
                 ))}
               </div>
             </div>
@@ -466,17 +473,19 @@ export function OnboardingPage() {
               {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map(level => {
                 const ActivityIcon = ACTIVITY_ICONS[level]
                 return (
-                <button
+                <m.button
                   key={level}
                   type="button"
                   className={`activity-option${profile.activityLevel === level ? ' active' : ''}`}
                   aria-pressed={profile.activityLevel === level}
+                  whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                  transition={motionSpring}
                   onClick={() => updateDraftProfile(current => ({ ...current, activityLevel: level }))}
                 >
                   <span className="activity-option-icon" aria-hidden="true"><ActivityIcon size={28} /></span>
                   <span className="setup-option-copy"><strong className="activity-option-label">{ACTIVITY_LABELS[level]}</strong><small>{ACTIVITY_DESCRIPTIONS[level]}</small></span>
                   <span className="setup-selected" aria-hidden="true">{profile.activityLevel === level && <IconCheck size={17} />}</span>
-                </button>
+                </m.button>
               )})}
             </div>
           </div>
@@ -490,11 +499,13 @@ export function OnboardingPage() {
             </p>
             <div className="activity-option-list commitment-option-list" role="group" aria-label="Logging pace">
               {COMMITMENTS.map(commitment => (
-                <button
+                <m.button
                   key={commitment.id}
                   type="button"
                   className={`activity-option commitment-option${(profile.loggingCommitment ?? 'light') === commitment.id ? ' active' : ''}`}
                   aria-pressed={(profile.loggingCommitment ?? 'light') === commitment.id}
+                  whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                  transition={motionSpring}
                   onClick={() => updateDraftProfile(current => ({ ...current, loggingCommitment: commitment.id }))}
                 >
                   <span className="activity-option-icon" aria-hidden="true"><commitment.Icon size={28} /></span>
@@ -503,7 +514,7 @@ export function OnboardingPage() {
                     <small>{commitment.description}</small>
                   </span>
                   <span className="setup-selected" aria-hidden="true">{(profile.loggingCommitment ?? 'light') === commitment.id && <IconCheck size={17} />}</span>
-                </button>
+                </m.button>
               ))}
             </div>
           </div>
@@ -515,11 +526,13 @@ export function OnboardingPage() {
             <p className="onboarding-sub">This adjusts your calorie target.</p>
             <div className="onboarding-chip-row" role="group" aria-label="Weight goal" style={{ flexDirection: 'column' }}>
               {(Object.keys(GOAL_LABELS) as WeightGoal[]).map(goal => (
-                <button
+                <m.button
                   key={goal}
                   type="button"
                   className={`onboarding-chip goal-chip${profile.goal === goal ? ' active' : ''}`}
                   aria-pressed={profile.goal === goal}
+                  whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                  transition={motionSpring}
                   onClick={() => updateDraftProfile(current => ({
                     ...current,
                     goal,
@@ -529,7 +542,7 @@ export function OnboardingPage() {
                   <span className="activity-option-icon" aria-hidden="true">{goal === 'lose' ? <IconSprout size={26} /> : goal === 'maintain' ? <IconShield size={26} /> : <IconEnergy size={26} />}</span>
                   <span className="setup-option-copy"><strong>{GOAL_LABELS[goal]}</strong><small>{GOAL_DESCRIPTIONS[goal]}</small></span>
                   <span className="setup-selected" aria-hidden="true">{profile.goal === goal && <IconCheck size={17} />}</span>
-                </button>
+                </m.button>
               ))}
             </div>
             {profile.goal !== 'maintain' && (
@@ -665,15 +678,17 @@ export function OnboardingPage() {
               <span className="onboarding-step-label" id="first-meal-type-label">Meal type</span>
               <div className="chip-row" role="group" aria-labelledby="first-meal-type-label">
                 {(Object.keys(MEAL_LABELS) as MealType[]).map(mealType => (
-                  <button
+                  <m.button
                     key={mealType}
                     type="button"
                     className={`chip${firstMeal.mealType === mealType ? ' active' : ''}`}
                     aria-pressed={firstMeal.mealType === mealType}
+                    whileTap={reducedMotion ? undefined : { scale: 0.96 }}
+                    transition={motionSpring}
                     onClick={() => updateFirstMeal('mealType', mealType)}
                   >
                     {MEAL_LABELS[mealType]}
-                  </button>
+                  </m.button>
                 ))}
               </div>
             </div>
@@ -703,7 +718,7 @@ export function OnboardingPage() {
         </div>
         <p className="setup-next-hint">{step < FIRST_MEAL_STEP ? `Next: ${STEPS[step + 1]}` : 'Your meal will be saved to Today.'}</p>
         </div>
-        </form>
+        </m.form>
         </div>
       </main>
     </div>

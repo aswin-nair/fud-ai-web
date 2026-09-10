@@ -322,6 +322,216 @@
 .auth-refresh :is(button, a):not(.pressable):focus-visible { outline: var(--focus-ring); outline-offset: 4px; }
 @media (min-width: 768px) { .auth-refresh { padding-top: 48px; } }
 @media (max-width: 350px) { .auth-refresh .login-card { padding: 18px; } .auth-brand-note { font-size: .875rem; } }
+
+/* Login composition: a small Momo stage gives the account flow a point of
+   view, while the form stays the calm, obvious next step. */
+.auth-refresh {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 12%, color-mix(in srgb, var(--fun-blue) 76%, transparent), transparent 27rem),
+    radial-gradient(circle at 92% 92%, color-mix(in srgb, var(--fun-pink) 74%, transparent), transparent 24rem),
+    var(--paper);
+}
+
+.auth-refresh::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(var(--selection) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: .12;
+  mask-image: linear-gradient(135deg, black, transparent 58%);
+}
+
+.auth-refresh .login-card {
+  border: 1.5px solid var(--edge-ink);
+  box-shadow: 0 8px 0 var(--shadow-ink), 0 24px 56px rgb(32 45 56 / 10%);
+}
+
+.auth-refresh .auth-momo-greeting {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--scene-edge);
+  border-radius: 22px;
+  background: linear-gradient(145deg, var(--scene), var(--scene-lift));
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--scene) 76%, var(--shadow-ink));
+}
+
+.auth-refresh .auth-momo-greeting::before,
+.auth-refresh .auth-momo-greeting::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.auth-refresh .auth-momo-greeting::before {
+  width: 150px;
+  height: 150px;
+  top: -58px;
+  right: -46px;
+  border: 1px solid color-mix(in srgb, var(--scene-ink) 25%, transparent);
+}
+
+.auth-refresh .auth-momo-greeting::after {
+  width: 9px;
+  height: 9px;
+  left: 22px;
+  bottom: 20px;
+  background: var(--apricot);
+  box-shadow: 18px -10px 0 var(--coral-start), 36px 2px 0 var(--success-ink);
+}
+
+.auth-refresh .auth-momo-greeting .momo-sticker { position: relative; z-index: 1; }
+.auth-refresh .auth-momo-greeting p { position: relative; z-index: 1; }
+
+@media (min-width: 760px) {
+  .auth-refresh { padding: 48px 24px; }
+  .auth-refresh .login-card {
+    display: grid;
+    grid-template-columns: minmax(220px, .84fr) minmax(320px, 1.16fr);
+    column-gap: 30px;
+    max-width: 780px;
+    padding: 28px;
+    text-align: left;
+  }
+  .auth-refresh .login-card > :not(.auth-brand-row):not(.auth-momo-greeting) { grid-column: 2; }
+  .auth-refresh .auth-brand-row { grid-column: 1 / -1; margin-bottom: 22px; }
+  .auth-refresh .auth-momo-greeting {
+    grid-column: 1;
+    grid-row: 2 / span 8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    min-height: 510px;
+    margin: 0;
+    padding: 24px 18px;
+  }
+  .auth-refresh .auth-momo-greeting .momo-sticker { width: 168px; height: 182px; flex-basis: 182px; }
+  .auth-refresh .auth-momo-greeting p { width: 100%; font-size: 1.125rem; }
+  .auth-refresh .login-title { margin-top: 0; font-size: clamp(2.5rem, 4vw, 3.5rem); }
+  .auth-refresh .login-sub { max-width: 38ch; }
+  .auth-refresh .auth-tabs { margin-top: 4px; }
+  .auth-refresh .auth-form { margin-bottom: 0; }
+  .auth-refresh .login-foot { margin-top: 18px; }
+}
+
+@media (max-width: 759px) {
+  .auth-refresh .auth-momo-greeting {
+    padding: 10px;
+    border-radius: 18px;
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--scene) 76%, var(--shadow-ink));
+  }
+  .auth-refresh .auth-momo-greeting p { border-color: var(--scene-edge); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-refresh::before { opacity: .08; }
+}
+
+/* Final auth polish: one calm surface, one character moment, one clear CTA. */
+.auth-refresh .login-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--edge-ink) 72%, transparent);
+  border-radius: 30px;
+  background: var(--paper-card);
+  box-shadow: 0 22px 60px rgb(32 45 56 / 12%);
+}
+
+.auth-refresh .login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 7px;
+  background: linear-gradient(90deg, var(--coral-hue) 0 48%, var(--apricot) 48% 72%, var(--selection) 72%);
+}
+
+.auth-refresh .auth-brand-row { padding-top: 6px; }
+.auth-refresh .auth-brand-row .welcome-brand { font-size: 1.9rem; letter-spacing: -.06em; }
+.auth-refresh .auth-brand-row .welcome-brand > span { color: var(--coral-hue); }
+.auth-refresh .auth-brand-note { background: var(--fun-yellow); border-color: transparent; }
+
+.auth-refresh .auth-momo-greeting {
+  border: 0;
+  background: linear-gradient(145deg, var(--scene), var(--scene-lift));
+  box-shadow: none;
+}
+
+.auth-refresh .auth-momo-greeting p {
+  border: 0;
+  background: var(--paper-card);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+}
+
+.auth-refresh .auth-tabs {
+  border: 0;
+  background: var(--paper-warm);
+  box-shadow: inset 0 1px 2px rgb(32 45 56 / 7%);
+}
+
+.auth-refresh .auth-tab { color: var(--ink-soft); }
+.auth-refresh .auth-tab.active { box-shadow: 0 3px 0 color-mix(in srgb, var(--selection) 70%, var(--shadow-ink)); }
+
+.auth-refresh .auth-form .field input {
+  background: var(--paper-warm);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--edge-ink);
+}
+
+.auth-refresh .auth-form .field input:focus {
+  background: var(--paper-card);
+  box-shadow: inset 0 0 0 2px var(--selection);
+}
+
+.auth-refresh .login-foot { color: var(--ink-mute); }
+
+:root[data-theme="dark"] .auth-refresh .login-card {
+  border-color: var(--edge-ink);
+  background: var(--paper-card);
+  box-shadow: 0 22px 60px rgb(0 0 0 / 34%);
+}
+
+:root[data-theme="dark"] .auth-refresh .login-card::before {
+  background: linear-gradient(90deg, var(--coral-hue) 0 48%, var(--apricot) 48% 72%, var(--selection) 72%);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-brand-note {
+  color: var(--on-brand);
+  background: var(--apricot);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-momo-greeting p {
+  background: var(--paper-float);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 24%);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-tabs {
+  background: var(--paper-warm);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 20%);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-form .field input {
+  background: var(--paper-raised);
+  box-shadow: inset 0 0 0 1px var(--edge-ink);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-form .field input:focus {
+  background: var(--paper-float);
+  box-shadow: inset 0 0 0 2px var(--selection);
+}
+
+@media (max-width: 759px) {
+  .auth-refresh .login-card { border-radius: 26px; }
+  .auth-refresh .auth-momo-greeting { box-shadow: none; }
+}
+
 @media (hover: hover) {
   .log-refresh .log-method-card:hover { box-shadow: 2px 2px 0 var(--shadow-ink); transform: translate(2px, 2px); }
   .app-shell .nav-item:not(.active):hover .nav-item-inner { background: var(--selection-soft); color: var(--selection); }

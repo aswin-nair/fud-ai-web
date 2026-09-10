@@ -1,31 +1,42 @@
-/* Dark mode is a designed palette, not a filter over the light theme.
-   Keep three quiet surface levels so cards remain legible without glowing. */
+/* Graphite surfaces; colour belongs to buttons, selected states and small badges.
+   Keep large reading panels neutral instead of turning pastel cards muddy. */
 :root[data-theme="dark"] body {
-  background:
-    radial-gradient(circle at 12% -8%, color-mix(in srgb, var(--scene-lift) 20%, transparent), transparent 34rem),
-    var(--paper);
+  background: var(--paper);
 }
 
 :root[data-theme="dark"] .app-shell {
   background: var(--paper);
 }
 
+:root[data-theme="dark"] .auth-refresh {
+  background: var(--paper);
+}
+
+:root[data-theme="dark"] .auth-refresh::before {
+  opacity: .05;
+}
+
 :root[data-theme="dark"] .app-shell :is(.page-heading, .card, .surface, .progress-card, .settings-card, .discover-card) {
   border-color: var(--edge-ink);
-  box-shadow: 0 3px 0 var(--shadow-ink), 0 12px 28px rgb(0 0 0 / 12%);
+  box-shadow: var(--shadow-card);
 }
 
 :root[data-theme="dark"] .app-shell .bottom-nav {
-  background: linear-gradient(160deg, var(--paper-float), var(--paper-card));
+  background: var(--paper-raised);
   border-color: var(--edge-ink);
-  box-shadow: 0 4px 0 var(--shadow-ink), 0 14px 26px rgb(0 0 0 / 20%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 28%);
 }
 
-:root[data-theme="dark"] .app-shell .nav-item.active .nav-item-inner,
 :root[data-theme="dark"] .app-shell .bottom-nav .nav-item.active {
-  background: color-mix(in srgb, var(--selection) 22%, var(--paper-card));
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .app-shell .nav-item.active .nav-item-inner {
+  background: var(--selection-soft);
   border-color: var(--selection);
-  color: var(--ink);
+  color: var(--selection);
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .app-shell .nav-fab {
@@ -34,15 +45,15 @@
   box-shadow: 0 4px 0 var(--shadow-ink), 0 10px 20px rgb(0 0 0 / 22%);
 }
 
-/* Warm surfaces stay recognisable, but are deepened so they don't compete with text. */
+/* The orange ring carries the calorie colour, not the entire reading surface. */
 :root[data-theme="dark"] .today-refresh .home-ring-hero {
-  background: var(--coral-soft);
-  border: 1px solid color-mix(in srgb, var(--coral-text) 35%, var(--edge-ink));
+  background: var(--paper-card);
+  border: 1px solid var(--edge-ink);
 }
 
 :root[data-theme="dark"] .today-refresh .calorie-ring {
-  background: var(--fun-yellow);
-  border: 1px solid color-mix(in srgb, var(--coral-start) 42%, var(--edge-ink));
+  background: var(--paper-raised);
+  border: 1px solid var(--edge-ink);
 }
 
 :root[data-theme="dark"] .today-refresh .home-today-empty,
@@ -52,21 +63,21 @@
 }
 
 :root[data-theme="dark"] .today-refresh .home-today-empty {
-  background: var(--fun-blue);
-  border-color: var(--scene-edge);
+  background: var(--paper-raised);
+  border-color: var(--control-border);
 }
 
 :root[data-theme="dark"] .today-refresh .today-momo-note,
 :root[data-theme="dark"] .roast-preview {
-  background: var(--fun-yellow);
-  border-color: color-mix(in srgb, var(--coral-start) 40%, var(--edge-ink));
+  background: var(--paper-raised);
+  border-color: var(--edge-ink);
 }
 
-/* The same ocean-blue scene anchors You, welcome, and onboarding. */
+/* Momo keeps a rich blue stage while the surrounding controls stay graphite. */
 :root[data-theme="dark"] .you-refresh .you-header {
   background: linear-gradient(135deg, var(--scene), var(--scene-lift));
   border-color: var(--scene-edge);
-  box-shadow: 0 3px 0 var(--shadow-ink), 0 14px 28px rgb(0 0 0 / 15%);
+  box-shadow: var(--shadow-card);
 }
 
 :root[data-theme="dark"] .you-refresh .you-header :is(.page-title, .page-sub, .you-eyebrow) {
@@ -105,19 +116,15 @@
 }
 
 :root[data-theme="dark"] .log-refresh .log-page-heading,
-:root[data-theme="dark"] .saved-refresh .page-heading {
-  background: var(--selection-soft);
-  border-color: var(--selection);
-}
-
+:root[data-theme="dark"] .saved-refresh .page-heading,
 :root[data-theme="dark"] .insights-refresh .page-heading {
-  background: var(--selection-soft);
-  border-color: var(--selection);
+  background: var(--paper-raised);
+  border-color: var(--edge-ink);
 }
 
 :root[data-theme="dark"] .insights-refresh .consistency-card {
-  background: color-mix(in srgb, var(--selection-soft) 70%, var(--paper-card));
-  border-color: var(--selection);
+  background: var(--paper-raised);
+  border-color: var(--edge-ink);
 }
 
 :root[data-theme="dark"] .auth-refresh .login-card,
@@ -125,7 +132,112 @@
 :root[data-theme="dark"] .welcome-refresh .welcome-content {
   background: var(--paper-raised);
   border-color: var(--edge-ink);
-  box-shadow: 0 4px 0 var(--shadow-ink), 0 16px 32px rgb(0 0 0 / 18%);
+  box-shadow: var(--shadow-card);
+}
+
+/* Small, luminous stickers give dark mode personality without coloured slabs. */
+:root[data-theme="dark"] .setup-refresh { --setup-pop: var(--apricot); }
+:root[data-theme="dark"] .setup-refresh[data-chapter="routine"] { --setup-pop: var(--selection); }
+:root[data-theme="dark"] .setup-refresh[data-chapter="ready"] { --setup-pop: var(--success-ink); }
+
+:root[data-theme="dark"] .setup-refresh :is(.setup-section-label, .setup-question-icon) {
+  background: var(--setup-pop);
+  color: var(--on-brand);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .setup-refresh .setup-footer { background: transparent; }
+
+:root[data-theme="dark"] .setup-refresh :is(.onboarding-chip, .activity-option):not(.active) {
+  background: var(--paper-card);
+  border-color: var(--control-border);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .setup-refresh :is(.onboarding-chip, .activity-option).active {
+  background: var(--selection-soft);
+  border-color: var(--selection);
+  box-shadow: 0 0 0 1px var(--selection);
+}
+
+:root[data-theme="dark"] .setup-refresh .setup-note,
+:root[data-theme="dark"] .setup-refresh .setup-optional {
+  background: var(--paper-card);
+}
+
+:root[data-theme="dark"] .momo-sticker,
+:root[data-theme="dark"] .auth-momo-greeting .momo-sticker {
+  background: var(--apricot);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* These are bare artwork, not sticker cards. */
+:root[data-theme="dark"] .welcome-refresh .welcome-mascot-wrap .momo-sticker,
+:root[data-theme="dark"] .setup-companion-scene .momo-sticker { background: none; }
+
+:root[data-theme="dark"] .welcome-refresh .welcome-momo-speech,
+:root[data-theme="dark"] .auth-momo-greeting p { background: var(--paper-float); border-color: var(--edge-ink); }
+
+:root[data-theme="dark"] .welcome-ticket-icon,
+:root[data-theme="dark"] .setup-companion .setup-scene-spark {
+  background: var(--apricot);
+  color: var(--on-brand);
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .welcome-scene .welcome-food-sprout,
+:root[data-theme="dark"] .welcome-ticket-check {
+  background: var(--success-ink);
+  color: var(--on-brand);
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .welcome-scene .welcome-scene-sticker {
+  background: var(--selection);
+  color: var(--on-selection);
+  border-color: transparent;
+}
+
+/* The macro identity stays on the number, top edge and bar, across every page. */
+:root[data-theme="dark"] .today-refresh .home-macro-chip,
+:root[data-theme="dark"] .setup-refresh .onboarding-goal-card,
+:root[data-theme="dark"] .you-refresh .settings-goal-card,
+:root[data-theme="dark"] .flow-calories,
+:root[data-theme="dark"] .flow-macro,
+:root[data-theme="dark"] .meal-flow .flow-review-summary,
+:root[data-theme="dark"] .manual-refresh .manual-summary {
+  background: var(--paper-raised);
+  border-color: var(--edge-ink);
+  box-shadow: var(--shadow-sm);
+}
+
+:root[data-theme="dark"] .today-refresh .home-macro-chip.tone-protein,
+:root[data-theme="dark"] .setup-refresh .onboarding-goal-card:nth-child(2),
+:root[data-theme="dark"] .you-refresh .settings-goal-card:nth-child(2) { border-top: 3px solid var(--protein); }
+
+:root[data-theme="dark"] .today-refresh .home-macro-chip.tone-carbs,
+:root[data-theme="dark"] .setup-refresh .onboarding-goal-card:nth-child(3),
+:root[data-theme="dark"] .you-refresh .settings-goal-card:nth-child(3) { border-top: 3px solid var(--carbs); }
+
+:root[data-theme="dark"] .today-refresh .home-macro-chip.tone-fat,
+:root[data-theme="dark"] .setup-refresh .onboarding-goal-card:nth-child(4),
+:root[data-theme="dark"] .you-refresh .settings-goal-card:nth-child(4) { border-top: 3px solid var(--fat); }
+
+:root[data-theme="dark"] .setup-refresh .onboarding-goal-card:first-child,
+:root[data-theme="dark"] .you-refresh .settings-goal-card:first-child { border-top: 3px solid var(--coral-hue); }
+
+:root[data-theme="dark"] .you-refresh .you-section-heading h2 {
+  background: var(--paper-raised);
+  border-color: var(--edge-ink);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .insights-refresh .consistency-card .consistency-streak {
+  background: var(--apricot);
+  color: var(--on-brand);
+  border-color: transparent;
 }
 
 :root[data-theme="dark"] .auth-refresh .auth-tabs {
@@ -166,4 +278,33 @@
 
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme="dark"] body { background: var(--paper); }
+}
+
+/* Keep the auth screen on the same graphite hierarchy as the rest of the app. */
+:root[data-theme="dark"] .auth-refresh .login-card {
+  background: var(--paper-card);
+  border-color: var(--edge-ink);
+  box-shadow: 0 22px 60px rgb(0 0 0 / 34%);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-tabs {
+  background: var(--paper-warm);
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-form .field input {
+  background: var(--paper-raised);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--edge-ink);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-form .field input:focus {
+  background: var(--paper-float);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--selection);
+}
+
+:root[data-theme="dark"] .auth-refresh .auth-momo-greeting p {
+  background: var(--paper-float);
+  border-color: transparent;
 }

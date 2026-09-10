@@ -18,6 +18,9 @@ import {
 } from '../lib/meals'
 import type { FoodEntry, SavedMeal } from '../types'
 import { mascotEvent } from '../mascot/MascotOverlay'
+import * as m from 'motion/react-m'
+import { useReducedMotion } from 'motion/react'
+import { motionSpring } from '../lib/motionPresets'
 
 const OTHER_WAYS = [
   {
@@ -56,6 +59,7 @@ const OTHER_WAYS = [
 
 /** How many recents to offer before the list stops being scannable. */
 const RECENT_LIMIT = 12
+const MotionLink = m.create(Link)
 
 /**
  * New users see entry methods; returning users see their meal shortcuts first.
@@ -66,6 +70,7 @@ const RECENT_LIMIT = 12
 export function LogMenuPage() {
   const { state, addEntry } = useApp()
   const navigate = useNavigate()
+  const reducedMotion = useReducedMotion()
   const [query, setQuery] = useState('')
   const [shelf, setShelf] = useState<'recent' | 'favourite'>('recent')
   const [showAllRecents, setShowAllRecents] = useState(false)
@@ -134,19 +139,21 @@ export function LogMenuPage() {
   const loggingMethods = (
         <nav className="log-method-grid" aria-label="Ways to log a meal">
           {OTHER_WAYS.map(opt => (
-            <Link key={opt.to} to={opt.to} className="log-method-card" data-method={opt.method}
+            <MotionLink key={opt.to} to={opt.to} className="log-method-card" data-method={opt.method}
+              whileHover={reducedMotion ? undefined : { y: -3 }}
+              whileTap={reducedMotion ? undefined : { scale: .98 }} transition={motionSpring}
               onClick={() => selectLogMethod(opt.method)}>
               <span className={`icon-tile icon-tile-sm icon-tile-${opt.accent}`}><opt.Icon size={28} /></span>
               <strong>{opt.title}</strong>
               <span>{opt.desc}</span>
-            </Link>
+            </MotionLink>
           ))}
         </nav>
   )
   const activeShelf = recents.length === 0 ? 'favourite' : favourites.length === 0 ? 'recent' : shelf
 
   return (
-    <div className="app-shell log-refresh">
+    <div className="app-shell log-refresh food-club-app">
       {portionFor && (
         <PortionSheet
           name={portionFor.item.name}
@@ -162,6 +169,7 @@ export function LogMenuPage() {
       <main className="app-main motion-stagger">
         <BackLink to="/" />
         <header className="page-heading log-page-heading">
+          <p className="club-edition">THE GOOD FOOD CLUB / ORDER UP</p>
           <h1 className="page-title">Log a meal</h1>
           <p className="log-intro">Something new, or a familiar favourite?</p>
         </header>

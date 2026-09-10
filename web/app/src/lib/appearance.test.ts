@@ -50,7 +50,7 @@ describe('device appearance preference', () => {
     expect(appearance.getAppearancePreference()).toBe('system')
     expect(fixture.root.dataset.theme).toBe('dark')
     expect(fixture.root.style.colorScheme).toBe('dark')
-    expect(fixture.meta.setAttribute).toHaveBeenLastCalledWith('content', '#111C25')
+    expect(fixture.meta.setAttribute).toHaveBeenLastCalledWith('content', '#121416')
 
     fixture.systemChanges(false)
     expect(fixture.root.dataset.theme).toBe('light')

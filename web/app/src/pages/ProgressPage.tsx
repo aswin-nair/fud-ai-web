@@ -122,7 +122,7 @@ export function ProgressPage() {
 
   if (state.profile.trackingPaused) {
     return (
-      <div className="app-shell progress-shell insights-refresh">
+      <div className="app-shell progress-shell insights-refresh food-club-app">
         <main className="app-main progress-main motion-stagger">
           <div className="progress-page-header">
             <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
@@ -141,12 +141,14 @@ export function ProgressPage() {
   }
 
   return (
-    <div className="app-shell progress-shell insights-refresh">
+    <div className="app-shell progress-shell insights-refresh food-club-app">
       <main className="app-main progress-main motion-stagger">
 
         <header className="progress-page-header page-heading">
+          <p className="club-edition">THE GOOD FOOD CLUB / THE BIGGER PICTURE</p>
           <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
           <p className="insights-intro">See your routine over time, one logged day at a time.</p>
+          <span className="club-library-stamp">YOUR ROUTINE. NOT A REPORT CARD.</span>
         </header>
 
         <HabitMilestones loggedDays={getTotalLoggedDays(state.foodEntries)} />
@@ -202,7 +204,7 @@ export function ProgressPage() {
             {RANGES.map(r => <button key={r.id} type="button" className={`range-chip${range === r.id ? ' active' : ''}`}
               aria-pressed={range === r.id} onClick={() => setRange(r.id)}>{r.label}</button>)}
           </div>
-          <p>Last {days} days · Applies to the two charts below.</p>
+          <p role="status" aria-live="polite">Last {days} days · Applies to the two charts below.</p>
         </section>
 
         {/* Weight card */}

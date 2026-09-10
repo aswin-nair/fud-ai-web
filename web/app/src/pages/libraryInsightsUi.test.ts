@@ -40,6 +40,10 @@ describe('Saved UI', () => {
     expect(html).toContain('href="/log"')
     expect(html).toContain('role="group" aria-label="Filter saved meals by type"')
     expect(html).toContain('Your logged meals will appear here')
+    expect(html).toContain('food-club-app')
+    expect(html).toContain('0 saved · 0 recent in your collection')
+    expect(html).toContain('role="status" aria-live="polite" aria-atomic="true"')
+    expect(html).not.toContain('🕐')
   })
   it('names every meal action and shows nutrition before logging', () => {
     state.favoriteMeals = [{ id: 'rice', name: 'Rice bowl', calories: 320, protein: 8, carbs: 60, fat: 5, mealType: 'lunch' }]
@@ -65,6 +69,8 @@ describe('Insights UI', () => {
     expect(html).toContain('role="group" aria-label="Chart time range"')
     expect(html).toContain('aria-pressed="true">Week</button>')
     expect(html).toContain('Last 7 days · Applies to the two charts below.')
+    expect(html).toContain('role="status" aria-live="polite"')
+    expect(html).toContain('YOUR ROUTINE. NOT A REPORT CARD.')
     expect(html).toContain('All time')
     expect(html).toContain('class="progress-card consistency-card"')
   })

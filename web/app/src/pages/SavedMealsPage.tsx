@@ -9,6 +9,9 @@ import { filterMealLibrary } from '../lib/mealLibrary'
 import { MEAL_LABELS } from '../types'
 import type { SavedMeal } from '../types'
 import type { FoodEntry } from '../types'
+import { Bookmark, History } from 'lucide-react'
+import * as m from 'motion/react-m'
+import { motionSpring } from '../lib/motionPresets'
 
 const FILTERS = ['all', ...Object.keys(MEAL_LABELS)] as const
 type Filter = (typeof FILTERS)[number]
@@ -45,15 +48,16 @@ function DiscoverCard({
     <article className="discover-card" aria-label={name}>
       <div className="discover-card-top">
         <span className="discover-card-emoji"><FoodIcon emoji={emoji} size={28} /></span>
-        <button
+        <m.button
           type="button"
           className={`star-btn${starred ? ' active' : ''}`}
+          whileTap={{ scale: .9 }} transition={motionSpring}
           onClick={onStar}
           aria-label={`${starred ? 'Unfavorite' : 'Favorite'} ${name}`}
           aria-pressed={starred}
         >
           <IconStar active={starred} size={17} />
-        </button>
+        </m.button>
       </div>
 
       <h3 className="discover-card-name">{name}</h3>
@@ -114,15 +118,16 @@ function MealRow({
       </div>
       <div className="saved-meal-actions">
         {onStar && (
-          <button
+          <m.button
             type="button"
             className={`star-btn${starred ? ' active' : ''}`}
+            whileTap={{ scale: .9 }} transition={motionSpring}
             onClick={onStar}
             aria-label={`${starred ? 'Unfavorite' : 'Favorite'} ${name}`}
             aria-pressed={Boolean(starred)}
           >
             <IconStar active={starred} size={17} />
-          </button>
+          </m.button>
         )}
         <div className="serving-stepper-compact">
           <button type="button" className="ssc-btn" onClick={() => changeServings(servings - 0.25)} disabled={servings <= 0.25} aria-label={`Decrease servings for ${name}`}><IconMinus size={13} strokeWidth={2.6} /></button>
@@ -182,12 +187,14 @@ export function SavedMealsPage() {
   }
 
   return (
-    <div className="app-shell saved-refresh">
+    <div className="app-shell saved-refresh food-club-app">
       <main className="app-main motion-stagger">
         {isSubRoute && <BackLink to="/log" />}
         <header className="page-heading" style={isSubRoute ? { marginTop: 12 } : undefined}>
+          <p className="club-edition">THE GOOD FOOD CLUB / YOUR RECIPE BOX</p>
           <h1 className="page-title discover-title">Saved</h1>
           <p className="page-sub">Your familiar meals, ready for another day. Adjust the portion, then log.</p>
+          <span className="club-library-stamp"><Bookmark size={16} aria-hidden="true" /> GOOD ENOUGH TO REPEAT</span>
         </header>
 
         <label className="saved-search-label" htmlFor="saved-meal-search">Find a saved or recent meal</label>
@@ -216,6 +223,9 @@ export function SavedMealsPage() {
           ))}
         </div>
         {hasFilters && <button type="button" className="saved-reset" onClick={resetFilters}>Clear search and filters</button>}
+        <p className="club-results" role="status" aria-live="polite" aria-atomic="true">
+          {filteredFavorites.length} saved · {filteredRecents.length} recent{hasFilters ? ' matching your filters' : ' in your collection'}
+        </p>
 
         <div className="discover-section-header">
           <h2 className="discover-section-title">Your saved meals</h2>
@@ -247,7 +257,7 @@ export function SavedMealsPage() {
 
         <div className="saved-section" style={{ marginTop: 24 }}>
           <div className="saved-section-header">
-            <span className="saved-section-icon">🕐</span>
+            <span className="saved-section-icon"><History size={20} aria-hidden="true" /></span>
             <h2 className="saved-section-title">Recents</h2>
             <span className="discover-count-badge">{filteredRecents.length}</span>
           </div>

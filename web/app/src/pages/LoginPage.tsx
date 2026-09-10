@@ -7,20 +7,22 @@ import { isCloudBackend } from '../lib/dataBackend'
 import { useAuth } from '../store/AuthContext'
 import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
-import { MomoSticker } from '../components/MomoSticker'
-import { useApp } from '../store/AppContext'
+import { FoodClubScene } from '../components/FoodClubScene'
+import { ArrowUpRight, Check, ChefHat, ShieldCheck } from 'lucide-react'
 import { AppearanceControl } from '../components/AppearanceControl'
+import { AnimatePresence } from 'motion/react'
+import * as m from 'motion/react-m'
+import { motionFade } from '../lib/motionPresets'
 
 type AuthMode = 'signin' | 'signup'
 
 export function LoginPage() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth()
-  const { state } = useApp()
   const googleConfigured = isGoogleAuthConfigured()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const claiming = searchParams.get('claim') === '1'
 
-  const [mode, setMode] = useState<AuthMode>(() => searchParams.get('mode') === 'signup' ? 'signup' : 'signin')
+  const mode: AuthMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,7 +32,6 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [privateFocus, setPrivateFocus] = useState(false)
   const errorRef = useRef<HTMLDivElement>(null)
-  const momoVisible = state.gamification.mascotActivity !== 'off'
 
   useEffect(() => { if (error) errorRef.current?.focus() }, [error])
 
@@ -62,7 +63,8 @@ export function LoginPage() {
   }
 
   function switchMode(next: AuthMode) {
-    setMode(next)
+    if (next === mode) return
+    setSearchParams(current => { const updated = new URLSearchParams(current); updated.set('mode', next); return updated }, { replace: true })
     setError(null)
     setPassword('')
     setConfirmPassword('')
@@ -71,52 +73,56 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page auth-refresh">
-      <div className="login-card login-card-wide">
-        <div className="auth-brand-row">
+    <main className="login-page auth-refresh food-club-auth">
+      <div className="food-club-frame">
+        <header className="food-club-header">
           <Link to="/onboarding" className="welcome-brand" aria-label="Fud AI welcome">Fud AI<span aria-hidden="true">.</span></Link>
+          <span className="food-club-header-note"><ChefHat size={19} aria-hidden="true" /> THE GOOD FOOD CLUB</span>
           <div className="appearance-header-actions">
-            <span className="auth-brand-note">Your food buddy</span>
             <AppearanceControl compact />
           </div>
-        </div>
-        {momoVisible && <div className="auth-momo-greeting">
-          <MomoSticker mood={privateFocus ? 'sleepy' : loading || error ? 'curious' : 'excited'} pose={loading ? 'ponder' : 'still'} />
-          {!state.profile.mascotMuted && <p>{privateFocus
-            ? 'Eyes closed. Your password is your business.'
-            : loading ? 'One moment. Getting your journal…'
-              : error ? 'Let’s give that another try.'
-                : mode === 'signin' ? 'Hey, you! Ready when you are.' : 'Hi! I’m Momo. Let’s get to know you.'}</p>}
-        </div>}
-        <h1 className="login-title">{mode === 'signin' ? 'Welcome back!' : 'Meet your food buddy.'}</h1>
-        <p className="login-sub">
-          {mode === 'signin'
-            ? claiming ? 'Sign in to connect the progress on this device.' : 'Your journal is right where you left it.'
-            : claiming ? 'Continue to save the progress you just made.' : 'Create your account to keep your food journal.'}
-        </p>
+        </header>
+        <div className="food-club-layout">
+        <FoodClubScene privateFocus={privateFocus} loading={loading} error={Boolean(error)} returning={mode === 'signin'} />
+        <section className="login-card login-card-wide" aria-labelledby="account-heading">
+        <div className="food-club-card-top"><span>YOUR SEAT AT THE TABLE</span><span aria-hidden="true">NO. 001</span></div>
+        <m.div key={mode} initial={{ opacity: .4 }} animate={{ opacity: 1 }} transition={motionFade}>
+          <h1 id="account-heading" className="login-title">{mode === 'signin' ? 'Welcome back!' : 'Join the food club.'}</h1>
+          <p className="login-sub">
+            {mode === 'signin'
+              ? claiming ? 'Sign in to connect the progress on this device.' : 'Your journal is right where you left it.'
+              : claiming ? 'Continue to save the progress you just made.' : 'Create your account to keep your food journal.'}
+          </p>
+        </m.div>
+        {claiming && <p className="food-club-claim"><Check size={17} aria-hidden="true" /> Connect the progress on this device.</p>}
 
         <div className="auth-tabs" role="group" aria-label="Account access">
-          <button
+          <m.button
             type="button"
             className={`auth-tab${mode === 'signin' ? ' active' : ''}`}
             aria-pressed={mode === 'signin'}
             disabled={loading}
             onClick={() => switchMode('signin')}
+            whileTap={{ scale: 0.96 }}
           >
             Sign in
-          </button>
-          <button
+          </m.button>
+          <m.button
             type="button"
             className={`auth-tab${mode === 'signup' ? ' active' : ''}`}
             aria-pressed={mode === 'signup'}
             disabled={loading}
             onClick={() => switchMode('signup')}
+            whileTap={{ scale: 0.96 }}
           >
             Sign up
-          </button>
+          </m.button>
         </div>
 
-        {error && <div className="error-banner" role="alert" ref={errorRef} tabIndex={-1}>{error}</div>}
+        <AnimatePresence initial={false}>
+          {error && <m.div className="error-banner" role="alert" ref={errorRef} tabIndex={-1}
+            initial={{ opacity: .4 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={motionFade}>{error}</m.div>}
+        </AnimatePresence>
 
         <form className="auth-form" onSubmit={handleEmailSubmit} aria-busy={loading}
           onFocusCapture={event => setPrivateFocus(event.target instanceof HTMLInputElement && ['password', 'confirm'].includes(event.target.id))}
@@ -186,7 +192,7 @@ export function LoginPage() {
             </div>
           )}
           <PressableButton type="submit" fullWidth disabled={loading}>
-            {loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : claiming ? 'Continue' : 'Create account'}
+            {loading ? 'Please wait…' : <>{mode === 'signin' ? 'Sign in' : claiming ? 'Continue' : 'Create account'} <ArrowUpRight size={21} aria-hidden="true" /></>}
           </PressableButton>
           </fieldset>
           {mode === 'signin' && isCloudBackend() && (
@@ -212,7 +218,7 @@ export function LoginPage() {
                   }
                 }}
                 onError={() => setError(
-                  `Google blocked this origin (${window.location.origin}). Expand "Google sign-in blocked?" below and add it in Google Cloud Console.`,
+                  'Google sign-in could not connect. Please try again or use email.',
                 )}
                 theme="outline"
                 size="large"
@@ -220,24 +226,19 @@ export function LoginPage() {
                 text={mode === 'signup' ? 'signup_with' : 'signin_with'}
               />
             </div>
-            <GoogleOriginHelp />
+            {import.meta.env.DEV && error && <GoogleOriginHelp />}
           </>
         )}
 
-        {!googleConfigured && import.meta.env.DEV && (
-          <p className="login-hint">
-            Google sign-in is optional. Add <code>VITE_GOOGLE_CLIENT_ID</code> to <code>.env.local</code> to enable it.
-          </p>
-        )}
-
-        <p className="login-foot">
-          Your journal. Your pace. No food guilt.
-        </p>
+        <p className="login-foot"><ShieldCheck size={16} aria-hidden="true" /> Your journal. Your pace. No food guilt.</p>
         {!claiming && (
           <p className="login-hint">
             <Link to="/onboarding">Try Fud AI first</Link>
           </p>
         )}
+        </section>
+        </div>
+        <footer className="food-club-footer"><span>ALL APPETITES WELCOME.</span><span>Calories & macros. With a side of personality.</span></footer>
       </div>
     </main>
   )

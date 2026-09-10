@@ -28,6 +28,8 @@ import { effectiveCalories } from '../lib/profile'
 import { mascotEvent } from '../mascot/MascotOverlay'
 import { dayRingProgress } from '../lib/dayRing'
 import { DayRing } from '../components/DayRing'
+import * as m from 'motion/react-m'
+import { motionSpring } from '../lib/motionPresets'
 
 interface JustLogged { id?: string; calories: number; name: string }
 
@@ -149,7 +151,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   }
 
   return (
-    <div className="app-shell home-shell today-refresh">
+    <div className="app-shell home-shell today-refresh food-club-app">
       {!paused && pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
       {!paused && celebration && !pendingLevelUp && (
         <LogCelebration
@@ -172,6 +174,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       {/* Streak and level remain context; meal logging is the primary action. */}
       <header className="home-counter-chips" data-mascot-avoid>
         <div className="today-heading">
+          <p className="club-edition">THE GOOD FOOD CLUB / DAILY JOURNAL</p>
           <p className="today-date">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
           <h1>{selectedDayLabel}</h1>
         </div>
@@ -241,6 +244,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                   <h2>{snapshotLabel}</h2>
                   <button type="button" className="today-date-button" onClick={() => setShowDatePicker(true)} aria-label="Choose date"><IconCalendar /></button>
                 </div>
+                <p className="club-journal-title">A little tracking.<br /><span>A lot of living.</span></p>
                 <div className="home-factual-readout">
                   <CalorieRing
                     consumed={totals.calories}
@@ -254,13 +258,15 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                     </p>
                   </div>
                 </div>
-                {!guest && <button
+                {!guest && <m.button
                   type="button"
                   className="home-log-cta"
+                  whileTap={{ scale: .98 }}
+                  transition={motionSpring}
                   onClick={() => { feel('press'); navigate('/log') }}
                 >
                   <IconPlus size={24} /> {selectedDayIsToday ? 'Log a meal' : 'Log a meal today'} <IconArrowRight size={22} />
-                </button>}
+                </m.button>}
                 {!guest && <div className="today-shortcuts">
                   <Link className="today-shortcut" to="/log/photo"><IconCamera /> Scan food</Link>
                   <Link className="today-shortcut" to="/log/saved"><IconJourney /> Saved meals</Link>

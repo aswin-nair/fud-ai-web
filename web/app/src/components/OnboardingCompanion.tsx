@@ -2,6 +2,9 @@ import { useApp } from '../store/AppContext'
 import { MomoSticker } from './MomoSticker'
 import { IconCalendar, IconCheck, IconEnergy, IconMeal, IconSettings, IconShield, IconSparkles, IconSprout, IconStar, IconWalk } from './icons'
 import type { Mood } from '../mascot/behaviors'
+import { useReducedMotion } from 'motion/react'
+import * as m from 'motion/react-m'
+import { motionIdle, motionOpacity, motionSoftSpring } from '../lib/motionPresets'
 
 const MOMENTS: Array<{ line: string; mood: Mood; pose: string; label: string; Icon: typeof IconMeal }> = [
   { line: 'Hey, I’m Momo. Let’s make this feel like you.', mood: 'cozy', pose: 'wave_at_user', label: 'A quick hello', Icon: IconCalendar },
@@ -30,24 +33,33 @@ export function OnboardingStepBadge({ step }: { step: number }) {
 
 export function OnboardingCompanion({ step, error }: { step: number; error: boolean }) {
   const { state } = useApp()
+  const prefersReducedMotion = useReducedMotion()
   const moment = MOMENTS[step]
   const chapter = step < 3 ? 0 : step < 6 ? 1 : 2
   const visible = state.gamification.mascotActivity !== 'off'
+  const reduced = prefersReducedMotion || state.profile.mascotReducedMotion === true
+  const lively = !reduced && state.gamification.mascotActivity === 'lively' && !error
   return <aside className={`setup-companion${!visible ? ' without-momo' : ''}`} aria-label="Your setup journey">
     <div className="setup-companion-intro">
       <span className="setup-club-label"><IconSprout size={16} /> The good food club</span>
       <h2>Small steps.<br /><span>A very you start.</span></h2>
     </div>
-    {visible && <div className="setup-companion-scene" aria-hidden="true">
+    {visible && <m.div className="setup-companion-scene" aria-hidden="true"
+      initial={reduced ? false : { opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={motionSoftSpring}>
       <span className="setup-scene-orbit" />
       <span className="setup-scene-spark"><IconSparkles size={28} /></span>
       <span className="setup-scene-meal"><IconMeal size={28} /></span>
-      <MomoSticker mood={error ? 'curious' : moment.mood} pose={error ? 'ponder' : moment.pose} />
+      <m.div className="setup-mascot-motion"
+        initial={false}
+        animate={lively ? { rotate: [0, 3, 0], y: [0, -5, 0] } : { rotate: 0, y: 0 }}
+        transition={lively ? motionIdle : { duration: 0 }}>
+        <MomoSticker mood={error ? 'curious' : moment.mood} pose={error ? 'ponder' : moment.pose} />
+      </m.div>
       <span className="setup-momo-name">Momo, your food buddy</span>
-    </div>}
-    {visible && !state.profile.mascotMuted && <p className="setup-companion-line">
-      {error ? 'We’ve got this. Let’s check that detail together.' : moment.line}
-    </p>}
+    </m.div>}
+      {visible && !state.profile.mascotMuted && <m.p key={`${step}-${error}`} className="setup-companion-line" {...motionOpacity}>
+        {error ? 'We’ve got this. Let’s check that detail together.' : moment.line}
+      </m.p>}
     <ol className="setup-chapters" aria-label="Setup chapters">
       {CHAPTERS.map((item, index) => <li key={item.label} className={index < chapter ? 'is-complete' : index === chapter ? 'is-current' : ''} aria-current={index === chapter ? 'step' : undefined}>
         <span className="setup-chapter-number" aria-hidden="true">{index < chapter ? <IconCheck size={18} /> : index + 1}</span>
