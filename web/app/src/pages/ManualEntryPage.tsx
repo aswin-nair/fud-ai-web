@@ -1,3 +1,4 @@
+import { PosterStrip } from '../components/PosterPrimitives'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { PressableButton } from '../components/PressableButton'
@@ -101,11 +102,14 @@ export function ManualEntryPage() {
   }
 
   return (
-    <div className="app-shell manual-refresh">
+    <div className="app-shell manual-refresh poster-ui">
       <main className="app-main motion-stagger">
         <BackLink to="/log" />
-        <h1 className="page-title" style={{ marginTop: 12 }}>Manual entry</h1>
-        <p className="page-sub">Enter the nutrition for one serving. We’ll calculate your total.</p>
+        <PosterStrip items={['By the numbers', 'Your call']} />
+        <header className="manual-heading">
+          <h1 className="page-title">Manual entry</h1>
+          <p className="page-sub">Enter the nutrition for one serving. We’ll calculate your total.</p>
+        </header>
 
         {templateName && (
           <div className="manual-default-note">

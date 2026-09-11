@@ -118,7 +118,7 @@
 .food-club-poster-foot svg { flex: none; }
 
 /* Form controls stay level, readable and predictable inside the poster. */
-:root .food-club-auth.auth-refresh .login-card { display: block; position: relative; width: 100%; min-width: 0; max-width: none; margin: 0; padding: 30px clamp(22px, 3vw, 40px) 24px; border: 0; border-left: 3px solid var(--auth-line); border-radius: 0; background: var(--auth-card); box-shadow: none; color: var(--auth-ink); overflow: visible; text-align: left; transform: none; }
+:root .food-club-auth.auth-refresh .login-card { display: block; position: relative; width: 100%; min-width: 0; max-width: none; margin: 0; padding: 30px clamp(22px, 3vw, 40px) 24px; border: 0; border-left: 3px solid var(--auth-line); border-radius: 0; background: var(--auth-card); box-shadow: none; color: var(--auth-ink); overflow: visible; text-align: left; transform: none; opacity: 1; animation: none; }
 :root .food-club-auth.auth-refresh .login-card::before { content: none; }
 .food-club-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0 0 24px; padding-bottom: 14px; border-bottom: 3px solid var(--auth-line); font: 800 .625rem/1.4 var(--sans); letter-spacing: .12em; }
 .food-club-card-top svg { flex: none; color: var(--auth-ink); }

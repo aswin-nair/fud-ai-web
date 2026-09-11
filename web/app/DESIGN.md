@@ -480,3 +480,25 @@ When adding new UI:
 - [README.md](./README.md) — setup & features
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — Vercel & env vars
 - Native app reference: [fud-ai](https://github.com/apoorvdarshan/fud-ai) iOS/Android UI
+
+## Poster system (September 2026)
+
+Onboarding and every main screen (Today, Log, meal flow, Saved, Insights, Coach, You)
+now share the account poster's language instead of three older dialects.
+
+- **Opt-in scope.** A screen adds the `poster-ui` class to its shell. All rules live in
+  `src/styles/poster-system.css`, imported after `poiem-brand.css` and before `a11y.css`.
+  Selectors use `:is(.poster-ui, #poster-ui)` so the layer carries ID weight and wins
+  over earlier class chains without `!important`.
+- **Tokens.** `--pst-*` values reuse `--paper`, `--paper-card` and `--ink`, and add acid
+  yellow (`#E7F258`, olive `#303521` in dark), 3px ink rules and hard offset shadows.
+  Colourful fills always take `#20221D` ink, in both themes.
+- **Parts.** `components/PosterPrimitives.tsx` provides the decorative `PosterStrip`
+  (black manifesto band), `PosterSticker`, `PosterBurst` and `PosterArt` collage. They are
+  `aria-hidden`; headings and controls carry the meaning.
+- **Hierarchy.** One acid masthead per screen, with condensed Barlow titles. Primary actions are persimmon, with an ink
+  border and 5px shadow; secondary actions are outlined with a 3px shadow; ghost actions are
+  outlined without a shadow; tertiary actions are underlined text. Chosen chips, tabs and answers turn
+  solid ink (acid in dark).
+- **Left alone on purpose.** Touch-target sizes, pressable focus outlines, the calorie-ring
+  centre and the Momo note's citron colours are pinned by tests and not restyled here.

@@ -36,7 +36,7 @@ test.describe('Authentication', () => {
     await page.goto('/login')
     const password = page.getByLabel('Password', { exact: true })
     await password.focus()
-    await expect(page.locator('.auth-momo-greeting [data-expression="sleepy"]')).toBeVisible()
+    await expect(page.locator('.food-club-momo [data-expression="sleepy"]')).toBeVisible()
     await page.getByRole('button', { name: 'Show password', exact: true }).click()
     await expect(password).toHaveAttribute('type', 'text')
     await page.getByRole('button', { name: 'Hide password', exact: true }).click()
@@ -70,7 +70,7 @@ test.describe('Authentication', () => {
     await signInWithEmail(page, email, password)
 
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
-    await expect(page.getByText('Onboarding yogurt bowl')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Today', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Onboarding yogurt bowl/ })).toBeVisible()
   })
 })

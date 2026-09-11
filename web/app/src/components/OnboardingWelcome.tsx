@@ -1,3 +1,4 @@
+import { PosterStrip } from './PosterPrimitives'
 import { Link } from 'react-router-dom'
 import { CalendarDays, Camera, Check, ChefHat, SlidersHorizontal, Soup, Sparkles } from 'lucide-react'
 import type { Mood } from '../mascot/behaviors'
@@ -69,7 +70,7 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
   const TicketIcon = slide.ticketIcon
 
   return (
-    <m.main className={`welcome-shell welcome-refresh welcome-theme-${slide.theme}`} aria-label="Welcome to Poiem"
+    <m.main className={`welcome-shell welcome-refresh welcome-theme-${slide.theme} poster-ui`} aria-label="Welcome to Poiem"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={motionFade}>
       <header className="welcome-brand-row">
         <span className="welcome-brand"><BrandLogo /></span>
@@ -78,6 +79,7 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
           <AppearanceControl compact />
         </div>
       </header>
+      <PosterStrip items={['Real food. Real life.', 'All foods welcome.']} />
 
       <div className="welcome-cover">
         <m.div className="welcome-scene" aria-hidden="true"

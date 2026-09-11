@@ -1,3 +1,4 @@
+import { PosterStrip } from '../components/PosterPrimitives'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
@@ -148,7 +149,8 @@ export function CoachPage() {
   const hasKey = !!state.aiSettings.apiKey
 
   return (
-    <div className="app-shell coach-shell food-club-app">
+    <div className="app-shell coach-shell food-club-app poster-ui">
+      <PosterStrip items={['A fresh perspective', 'No food guilt']} />
       <header className="coach-header-bar">
         <div className="coach-header-avatar" aria-hidden><MomoSticker mood="excited" pose="still" /></div>
         <div className="coach-header-info">

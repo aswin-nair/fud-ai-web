@@ -25,7 +25,7 @@ export function EditFoodPage() {
   const [mealType, setMealType] = useState<MealType>(entry?.mealType ?? 'other')
   const [error, setError] = useState<string | null>(null)
 
-  if (!entry) return <div className="app-shell meal-flow"><main className="app-main">
+  if (!entry) return <div className="app-shell meal-flow poster-ui"><main className="app-main">
     <BackLink to="/" label="Today" />
     <LogFlowHeader title="This entry isn’t here." description="It may have been removed. Your other meals are waiting on Today." />
     <PressableButton to="/" label="Back to Today" />
@@ -64,7 +64,7 @@ export function EditFoodPage() {
   }
 
   return (
-    <div className="app-shell meal-flow meal-flow-wide">
+    <div className="app-shell meal-flow poster-ui meal-flow-wide">
       <main className="app-main motion-stagger">
         <div className="flow-edit-topbar">
           <BackLink onClick={leave} label="Today" />

@@ -126,14 +126,14 @@ export function LoginPage() {
         <FoodClubScene privateFocus={privateFocus} loading={loading} error={Boolean(error)} returning={mode === 'signin'} />
         <section className="login-card login-card-wide" aria-labelledby="account-heading">
         <div className="food-club-card-top"><span>{mode === 'signin' ? 'YOUR SEAT IS SAVED' : 'PULL UP A CHAIR'}</span><ArrowUpRight size={22} aria-hidden="true" /></div>
-        <m.div key={mode} initial={{ opacity: .4 }} animate={{ opacity: 1 }} transition={motionFade}>
+        <div key={mode}>
           <h1 id="account-heading" className="login-title">{mode === 'signin' ? 'Welcome back!' : 'Join Poiem.'}</h1>
           <p className="login-sub">
             {mode === 'signin'
-              ? claiming ? 'Sign in to connect the progress on this device.' : 'Your journal is right where you left it.'
+              ? claiming ? 'Pick up where you left off.' : 'Your journal is right where you left it.'
               : claiming ? 'Save your first little win. Your journal comes with you.' : 'A home for your meals, your routine, and the little wins.'}
           </p>
-        </m.div>
+        </div>
         {claiming && <p className="food-club-claim"><Check size={17} aria-hidden="true" /> Connect the progress on this device.</p>}
 
         <div className="auth-tabs" role="group" aria-label="Account access">
@@ -163,7 +163,7 @@ export function LoginPage() {
 
         <AnimatePresence initial={false}>
           {error && <m.div className="error-banner" role="alert" ref={errorRef} tabIndex={-1}
-            initial={{ opacity: .4 }} animate={reducedMotion ? { opacity: 1 } : { x: [...microShake.animate.x], opacity: 1 }}
+            initial={false} animate={reducedMotion ? { opacity: 1 } : { x: [...microShake.animate.x], opacity: 1 }}
             exit={{ opacity: 0 }} transition={reducedMotion ? motionFade : microShake.transition}>{error}</m.div>}
         </AnimatePresence>
 

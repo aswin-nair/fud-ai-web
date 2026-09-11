@@ -92,7 +92,7 @@ export function LogTextPage() {
   const hasKey = !!state.aiSettings.apiKey
 
   return (
-    <div className="app-shell meal-flow">
+    <div className="app-shell meal-flow poster-ui">
       <main className="app-main motion-stagger">
         <BackLink to="/log" />
         <LogFlowHeader step={1} title="What’s on the menu?" description="Describe your meal in your own words. We’ll turn it into an estimate you can edit." />

@@ -1,3 +1,4 @@
+import { PosterArt, PosterStrip } from '../components/PosterPrimitives'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -154,7 +155,7 @@ export function LogMenuPage() {
   const activeShelf = recents.length === 0 ? 'favourite' : favourites.length === 0 ? 'recent' : shelf
 
   return (
-    <div className="app-shell log-refresh food-club-app">
+    <div className="app-shell log-refresh food-club-app poster-ui">
       {portionFor && (
         <PortionSheet
           name={portionFor.item.name}
@@ -169,7 +170,9 @@ export function LogMenuPage() {
       )}
       <main className="app-main motion-stagger">
         <BackLink to="/" />
+        <PosterStrip items={['Snap it', 'Say it', 'Log it']} />
         <header className="page-heading log-page-heading">
+          <PosterArt burst={['Snap', 'it.']} burstTone="rose" stickers={[{ food: 'sandwich', tone: 'paper', tilt: -8 }, { food: 'coffee', tone: 'leaf', tilt: 10 }]} />
           <PoiemSectionLabel>A little log</PoiemSectionLabel>
           <h1 className="page-title">Log a meal</h1>
           <p className="log-intro">Something new, or a familiar favourite?</p>
