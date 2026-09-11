@@ -20,11 +20,9 @@
     { "source": "/app/favicon.svg", "destination": "/favicon.svg" },
     { "source": "/app/manifest.webmanifest", "destination": "/manifest.webmanifest" },
     { "source": "/app/appearance-init.js", "destination": "/appearance-init.js" },
+    { "source": "/", "destination": "/index.html" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
-  ],
-  "redirects": [
-    { "source": "/", "destination": "/app/welcome", "permanent": false }
   ],
   "crons": [
     { "path": "/api/cron/retention", "schedule": "0 4 * * *" }

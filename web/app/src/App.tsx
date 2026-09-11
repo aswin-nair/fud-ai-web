@@ -80,9 +80,18 @@ function routeTitle(pathname: string): string {
 }
 
 function routerBasename(): string | undefined {
-  const base = import.meta.env.BASE_URL
-  if (!base || base === '/') return undefined
-  return base.endsWith('/') ? base.slice(0, -1) : base
+  if (typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)) return '/app'
+  return undefined
+}
+
+/** Keep the public brand surface outside the authenticated product shell. */
+function RootSurface() {
+  const location = useLocation()
+  const isAppPath = typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)
+  if (!isAppPath && (location.pathname === '/' || location.pathname === '/welcome')) {
+    return <Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>
+  }
+  return <AppGate />
 }
 
 /**
@@ -148,7 +157,6 @@ function GuestRoutes() {
       <AnchorProvider>
         <MascotOverlay />
         <Routes>
-          <Route path="/" element={<Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -212,10 +220,7 @@ function AppShell() {
           <BrowserRouter basename={routerBasename()}>
             <ScrollToTop />
             <ToastProvider>
-              <Routes>
-                <Route path="/welcome" element={<Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>} />
-                <Route path="*" element={<AppGate />} />
-              </Routes>
+              <RootSurface />
             </ToastProvider>
           </BrowserRouter>
         </AuthProvider>

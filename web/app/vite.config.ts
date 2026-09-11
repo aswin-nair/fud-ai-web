@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command }) => {
   if (command === 'build') {
     const backend = (process.env.VITE_DATA_BACKEND ?? '').trim().toLowerCase()
     if (backend !== 'local' && backend !== 'neon') {
@@ -18,8 +18,9 @@ export default defineConfig(({ command, mode }) => {
     build: {
       sourcemap: process.env.VITE_SOURCEMAP === 'true' ? 'hidden' : false,
     },
-    // Dev: http://localhost:5173/  |  Production build + preview: /app/
-    base: mode === 'production' ? '/app/' : '/',
+    // The same build serves both surfaces: the public landing page at `/` and
+    // the product at `/app`. Assets stay root-relative so both URLs work.
+    base: '/',
     resolve: {
       alias: {
         '@assets': path.resolve(root, '../assets'),
@@ -29,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
       port: 5173,
       strictPort: true,
       host: 'localhost',
-      open: '/login',
+      open: '/',
     },
     preview: {
       port: 4173,

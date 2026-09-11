@@ -16,12 +16,17 @@ const MEALS = [
   { name: 'Cookie break', detail: 'One chocolate-chip cookie', kcal: 210, protein: 3, carbs: 30, fat: 9, food: 'cookie' as const, note: 'The cookie has entered the chat. I support this storyline.' },
 ]
 
+function productPath(path: string): string {
+  return import.meta.env.PROD ? `/app${path}` : path
+}
+
 export default function WelcomePage() {
   const { user } = useAuth()
   const reduced = useReducedMotion()
   const [mealIndex, setMealIndex] = useState(0)
   const meal = MEALS[mealIndex]
-  const destination = user ? '/' : '/login?mode=signup'
+  const destination = user ? productPath('/') : productPath('/login?mode=signup')
+  const signInDestination = user ? productPath('/') : productPath('/login?mode=signin')
   const cta = user ? 'Open my journal' : 'Get started'
   return (
     <div className="welcome-poster">
@@ -29,7 +34,7 @@ export default function WelcomePage() {
       <header className="wp-nav">
         <Link to="/welcome" aria-label="Poiem home"><BrandLogo /></Link>
         <nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="#meet-momo">Meet Momo</a></nav>
-        <div className="wp-nav-actions"><AppearanceControl compact /><Link className="wp-signin" to={user ? '/' : '/login?mode=signin'}>{user ? 'My journal' : 'Sign in'}<ArrowUpRight size={18} /></Link></div>
+        <div className="wp-nav-actions"><AppearanceControl compact /><a className="wp-signin" href={signInDestination}>{user ? 'My journal' : 'Sign in'}<ArrowUpRight size={18} /></a></div>
       </header>
       <main id="welcome-content">
         <section className="wp-hero" aria-labelledby="welcome-title">
@@ -37,7 +42,7 @@ export default function WelcomePage() {
             <p className="wp-eyebrow"><span /> A FOOD JOURNAL WITH PERSONALITY</p>
             <h1 id="welcome-title">BIG LIFE.<br />GOOD FOOD.<br /><span>LESS FUSS.</span></h1>
             <p className="wp-intro">Eat the food. Log the moment. Get to know your calories and macros—with a little help from AI and a very opinionated dumpling.</p>
-            <div className="wp-hero-actions"><Link className="wp-button" to={destination}>{cta}<ArrowUpRight /></Link><a className="wp-text-link" href="#try-it">Take a little bite <ArrowDown size={18} /></a></div>
+            <div className="wp-hero-actions"><a className="wp-button" href={destination}>{cta}<ArrowUpRight /></a><a className="wp-text-link" href="#try-it">Take a little bite <ArrowDown size={18} /></a></div>
             <p className="wp-fine">Google or email signup. Your pace. Your plate.</p>
           </div>
           <div className="wp-collage" aria-label="Momo, Poiem’s dumpling mascot, with a sample food journal ticket">
@@ -71,7 +76,7 @@ export default function WelcomePage() {
           ['Can I use Google to sign up?', 'Yes. Choose Get started, then Sign up with Google. Email signup is available too. You will set up your profile after signing in.'],
           ['Is this medical advice?', 'No. Poiem is a food-tracking tool for adults, not a medical service. For personal nutrition or medical advice, speak with a qualified professional.'],
         ].map(([question, answer]) => <details key={question}><summary>{question}<Plus size={22} aria-hidden="true" /></summary><p>{answer}</p></details>)}</div></section>
-        <section className="wp-finale"><p className="wp-eyebrow">YOUR NEXT CHAPTER STARTS WITH A BITE.</p><h2>GO ON.<br /><span>MAKE A MEAL OF IT.</span></h2><Link className="wp-button" to={destination}>{cta}<ArrowUpRight /></Link><span className="wp-finale-sticker" aria-hidden="true"><PosterSticker food="croissant" tone="rose" tilt={14} /></span></section>
+        <section className="wp-finale"><p className="wp-eyebrow">YOUR NEXT CHAPTER STARTS WITH A BITE.</p><h2>GO ON.<br /><span>MAKE A MEAL OF IT.</span></h2><a className="wp-button" href={destination}>{cta}<ArrowUpRight /></a><span className="wp-finale-sticker" aria-hidden="true"><PosterSticker food="croissant" tone="rose" tilt={14} /></span></section>
       </main>
       <footer className="wp-footer"><BrandLogo /><p>Made for messy, delicious, real life.</p><a href="#welcome-content">Back to the top <ArrowUpRight size={16} /></a><span>© {new Date().getFullYear()} Poiem</span></footer>
     </div>
