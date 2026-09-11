@@ -46,7 +46,7 @@ export default function AppLockSettings() {
                 {status}
               </Text>
               <Text color="textSecondary" variant="body">
-                When on, Fud AI asks for a strong enrolled biometric after launch and when
+                When on, Poiem asks for a strong enrolled biometric after launch and when
                 returning from the background. The operating system may offer the device
                 passcode as a fallback.
               </Text>
@@ -104,4 +104,3 @@ export default function AppLockSettings() {
     </Screen>
   );
 }
-

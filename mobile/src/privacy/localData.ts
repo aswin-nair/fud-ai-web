@@ -142,7 +142,7 @@ async function shareJsonFile(json: string): Promise<ShareExportResult> {
     return { ok: false, error: 'No cache directory is available on this device.' }
   }
 
-  const uri = `${directory}fud-ai-export.json`
+  const uri = `${directory}poiem-export.json`
   await FileSystem.writeAsStringAsync(uri, json)
 
   if (!(await Sharing.isAvailableAsync())) {
@@ -151,7 +151,7 @@ async function shareJsonFile(json: string): Promise<ShareExportResult> {
 
   await Sharing.shareAsync(uri, {
     mimeType: 'application/json',
-    dialogTitle: 'Export Fud AI data',
+    dialogTitle: 'Export Poiem data',
   })
   return { ok: true, shared: true }
 }

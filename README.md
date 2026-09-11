@@ -1,3 +1,21 @@
+<p align="center"><img src="web/app/public/brand/poiem-wordmark.svg" width="240" alt="Poiem" /></p>
+
+# Poiem
+
+**A little tracking. A lot of living.**
+
+The active web application and Expo companion are now **Poiem**, with **poiem.app** as the chosen brand domain. Momo remains the mascot.
+
+- Web application: `web/app` — run `npm run dev` from the repository root.
+- Local brand kit: [localhost:5173/brand/index.html](http://localhost:5173/brand/index.html).
+- [Brand guide and domain launch checklist](design/branding/poiem/brand-guide.md).
+- [Logo and icon exports](web/app/public/brand).
+
+This rebrand preserves account, package, and storage identifiers. Connecting the new domain, OAuth branding, email sender verification, and store releases are separate launch steps. The original Swift/Kotlin apps and their historical documentation below remain upstream reference material, not Poiem release claims.
+
+<details>
+<summary>Original Fud AI documentation and attribution</summary>
+
 <p align="center">
   <img src="web/assets/calorie%20logo%20transparent.png" width="120" height="120" alt="Fud AI Logo">
 </p>
@@ -390,3 +408,5 @@ Thanks to everyone who has contributed to making Fud AI better:
 <a href="https://github.com/apoorvdarshan/fud-ai/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=apoorvdarshan/fud-ai&amp;max=100&amp;columns=12" alt="Contributors" />
 </a>
+
+</details>

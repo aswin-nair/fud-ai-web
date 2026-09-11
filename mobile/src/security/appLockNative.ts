@@ -114,10 +114,10 @@ export async function authenticateForAppLock(): Promise<LocalAuthenticationResul
     biometricsSecurityLevel: 'strong',
     cancelLabel: 'Cancel',
     // The operating system can offer the device passcode after biometric
-    // failures. Fud AI never receives that passcode.
+    // failures. Poiem never receives that passcode.
     disableDeviceFallback: false,
     fallbackLabel: 'Use device passcode',
     promptDescription: 'Confirm it is you to view your local food log.',
-    promptMessage: 'Unlock Fud AI',
+    promptMessage: 'Unlock Poiem',
   });
 }

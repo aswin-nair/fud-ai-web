@@ -40,7 +40,7 @@ database, and runs the retention job daily around 04:00 UTC.
    certificate.
 8. **Verify** — `https://poiem.app/api/health` returns `"live":true`,
    `https://poiem.app/api/ready` returns `"ready":true`, and `https://poiem.app`
-   opens the login screen. Sign up, log a meal, then sign in from a second
+   opens the Poiem welcome page at `/`. Follow its Get started link; the product lives at `/app`. Sign up, log a meal, then sign in from a second
    browser to confirm sync.
 
 For Google sign-in, also add `https://poiem.app` to the OAuth client's
@@ -84,7 +84,7 @@ Run everything from `web`, in your own terminal:
    Optional mail: `npx wrangler secret put RESEND_API_KEY` and `MAIL_FROM`.
 5. **Verify** — `https://poiem.app/api/health` returns `"live":true`,
    `https://poiem.app/api/ready` returns `"ready":true`, and
-   `https://poiem.app` opens the login screen.
+   `https://poiem.app` opens the Poiem welcome page and `https://poiem.app/app` opens the product.
 
 For Google sign-in, add `https://poiem.app` to the OAuth client's Authorized
 JavaScript origins. `APP_ORIGIN` and `COOKIE_SECURE` are plain vars in
@@ -176,7 +176,8 @@ git push -u origin main
 
 Your app will be live at:
 
-- `https://your-project.vercel.app/app/`
+- `https://your-project.vercel.app/` (landing page)
+- `https://your-project.vercel.app/app/` (product)
 
 ---
 
@@ -278,7 +279,7 @@ requests:
 ## Architecture
 
 ```
-Browser (React SPA at /app/)
+Browser (React SPA: landing at /, product at /app/)
     ↓ fetch /api/*
 Vercel Serverless Functions (web/api/)
     ↓ SQL

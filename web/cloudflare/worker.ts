@@ -16,9 +16,9 @@ import state from '../api/state.js'
 /*
  * Poiem on Cloudflare: one Worker serves the app, the API and the daily job.
  *
- *   /              -> redirect to /app/login (as on Vercel)
+ *   /              -> the public Poiem welcome page
  *   /api/...       -> the existing API handlers, through the Vercel adapter
- *   /app, /app/... -> the built app, which Vite emits for the /app/ base path
+ *   /app, /app/... -> the product application
  *   anything else  -> static files at the root of the build (brand kit, icons)
  */
 
@@ -99,7 +99,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       ? runVercelHandler(route.handler, request, route.params)
       : runVercelHandler(notFound, request)
   }
-  if (pathname === '/') return Response.redirect(new URL('/app/login', url).toString(), 302)
+  if (pathname === '/') {
+    const response = await env.ASSETS.fetch(new Request(new URL('/', url), request))
+    return withAppHeaders(response)
+  }
   if (pathname === APP_PREFIX || pathname.startsWith(`${APP_PREFIX}/`)) return serveApp(request, env)
   return env.ASSETS.fetch(request)
 }

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { POIEM_GOOGLE_CLIENT_ID } from '../../shared/googleOAuth.js'
 import { withApiTelemetry } from '../_lib/telemetry.js'
 import { verifyGoogleCredential } from '../_lib/googleIdentity.js'
 import { prepareAuth } from '../_lib/ensureAuthSchema.js'
@@ -26,7 +27,11 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!await prepareAuth(res)) return
 
-  const clientId = process.env.VITE_GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID
+  const clientId = (
+    process.env.VITE_GOOGLE_CLIENT_ID?.trim()
+    || process.env.GOOGLE_CLIENT_ID?.trim()
+    || POIEM_GOOGLE_CLIENT_ID
+  )
   if (!clientId) return json(res, 503, { error: 'Google OAuth not configured' })
 
   try {

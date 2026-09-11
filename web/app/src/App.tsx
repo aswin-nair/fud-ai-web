@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrandLogo } from './components/BrandLogo'
 import identity from './brand/identity.json'
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -33,6 +33,8 @@ import type { ReactNode } from 'react'
 import { useNavDirection } from './hooks/useNavDirection'
 import { LazyMotion, MotionConfig } from 'motion/react'
 
+const WelcomePage = lazy(() => import('./pages/WelcomePage'))
+
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
   const { pathname, search } = useLocation()
@@ -56,6 +58,7 @@ function ScrollToTop() {
 }
 
 function routeTitle(pathname: string): string {
+  if (pathname === '/welcome') return 'Big life. Good food. Less fuss.'
   if (pathname === '/') return 'Today'
   if (pathname === '/progress') return 'Insights'
   if (pathname === '/discover' || pathname === '/log/saved') return 'Saved'
@@ -77,9 +80,18 @@ function routeTitle(pathname: string): string {
 }
 
 function routerBasename(): string | undefined {
-  const base = import.meta.env.BASE_URL
-  if (!base || base === '/') return undefined
-  return base.endsWith('/') ? base.slice(0, -1) : base
+  if (typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)) return '/app'
+  return undefined
+}
+
+/** Keep the public brand surface outside the authenticated product shell. */
+function RootSurface() {
+  const location = useLocation()
+  const isAppPath = typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)
+  if (!isAppPath && (location.pathname === '/' || location.pathname === '/welcome')) {
+    return <Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>
+  }
+  return <AppGate />
 }
 
 /**
@@ -208,7 +220,7 @@ function AppShell() {
           <BrowserRouter basename={routerBasename()}>
             <ScrollToTop />
             <ToastProvider>
-              <AppGate />
+              <RootSurface />
             </ToastProvider>
           </BrowserRouter>
         </AuthProvider>

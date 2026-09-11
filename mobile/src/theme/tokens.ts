@@ -5,6 +5,8 @@
  * No other file may contain a hex value, a font size, or a border radius.
  */
 
+export const brand = { accent: '#FF8055' } as const;
+
 export const palette = {
   light: {
     // Nutrition semantics — one job each, never reused
@@ -24,12 +26,12 @@ export const palette = {
     danger: '#E5484D',
     dangerDeep: '#C13438',
 
-    background: '#FFEFE0',
+    background: '#FFF8EB',
     surface: '#FFFFFF',
     track: '#F6E3D0',
     border: '#E8D4C2',
 
-    textPrimary: '#241A2E',
+    textPrimary: '#26241F',
     textSecondary: '#6D5C66',
     textMuted: '#7D6974',
     textOnFill: '#FFFFFF',
@@ -53,8 +55,8 @@ export const palette = {
     dough: '#3A2A22',
     danger: '#FF7070',
     dangerDeep: '#C93B3B',
-    background: '#1A1416',
-    surface: '#2A2226',
+    background: '#191B1A',
+    surface: '#242723',
     track: '#3A3034',
     border: '#4A3E42',
     textPrimary: '#FFF6EC',

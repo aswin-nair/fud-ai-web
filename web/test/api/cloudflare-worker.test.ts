@@ -40,11 +40,12 @@ afterEach(() => {
 })
 
 describe('Cloudflare Worker routing', () => {
-  it('sends the bare domain to the login screen, as Vercel did', async () => {
-    const { env } = assets({})
+  it('serves the bare domain as the Poiem welcome page', async () => {
+    const { env, requested } = assets({ '/': '<html>welcome</html>' })
     const response = await handleRequest(new Request('https://poiem.app/'), env)
-    expect(response.status).toBe(302)
-    expect(response.headers.get('location')).toBe('https://poiem.app/app/login')
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe('<html>welcome</html>')
+    expect(requested).toEqual(['/'])
   })
 
   it('serves the app shell for in-app routes, with the pinned browser headers', async () => {
