@@ -37,7 +37,7 @@
     "undici": "6.28.0"
   },
   "devDependencies": {
-    "@types/node": "24.13.2",
+    "@types/node": "26.5.0",
     "@vercel/node": "^5.3.21",
     "typescript": "5.9.3",
     "vitest": "4.1.10",
