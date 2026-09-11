@@ -13,7 +13,14 @@ interface DbUser {
   password_salt: string | null
 }
 
-const DUMMY_CREDENTIAL = hashPassword('not-a-real-account-password')
+// Only ever passed to verifyPassword() to spend the same scrypt work as a real
+// check; the result is ignored, so any 64-byte hash and 16-byte salt will do.
+// It is a constant because Cloudflare Workers refuse to generate random values
+// while a module loads.
+const DUMMY_CREDENTIAL = {
+  hash: Buffer.alloc(64).toString('base64'),
+  salt: Buffer.alloc(16).toString('base64'),
+}
 
 export class DuplicateAccountError extends Error {
   constructor() {

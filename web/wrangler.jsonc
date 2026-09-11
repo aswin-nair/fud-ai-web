@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // One Worker serves the app, the API and the daily retention job.
+  "name": "poiem",
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2026-08-01",
+  // nodejs_compat provides node:crypto (scrypt password hashes) and
+  // AsyncLocalStorage, and fills process.env from vars and secrets, so the
+  // existing API code reads its configuration unchanged.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./app/dist",
+    "binding": "ASSETS",
+    // The Worker decides every route: /api, the /app base path and its headers.
+    "run_worker_first": true
+  },
+  "routes": [
+    { "pattern": "poiem.app", "custom_domain": true }
+  ],
+  "triggers": {
+    // Same schedule the Vercel cron used: daily at 04:00 UTC.
+    "crons": ["0 4 * * *"]
+  },
+  // Not secrets. DATABASE_URL, JWT_SECRET, CRON_SECRET and GOOGLE_CLIENT_ID are
+  // set with `wrangler secret` and never live in this file.
+  "vars": {
+    "APP_ORIGIN": "https://poiem.app",
+    "COOKIE_SECURE": "1"
+  },
+  "observability": { "enabled": true }
+}

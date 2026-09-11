@@ -18,10 +18,8 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('google-auth-library', () => ({
-  OAuth2Client: class {
-    verifyIdToken = mocks.verifyGoogleToken
-  },
+vi.mock('../../api/_lib/googleIdentity.js', () => ({
+  verifyGoogleCredential: mocks.verifyGoogleToken,
 }))
 vi.mock('../../api/_lib/users.js', () => ({
   upsertGoogleUser: mocks.upsert,
@@ -49,13 +47,11 @@ describe('Google account provider collisions', () => {
     mocks.rateAccount.mockResolvedValue(undefined)
     mocks.findBySub.mockResolvedValue(null)
     mocks.verifyGoogleToken.mockResolvedValue({
-      getPayload: () => ({
         sub: 'google-subject',
         email: 'person@example.com',
         email_verified: true,
         name: 'Person',
-      }),
-    })
+      })
   })
 
   afterEach(() => {
@@ -80,12 +76,10 @@ describe('Google account provider collisions', () => {
 
   it('does not accept an unverified Google email claim', async () => {
     mocks.verifyGoogleToken.mockResolvedValue({
-      getPayload: () => ({
         sub: 'google-subject',
         email: 'person@example.com',
         email_verified: false,
-      }),
-    })
+      })
     const res = response()
     await googleHandler({
       method: 'POST',

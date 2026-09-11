@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto'
-import { isIP } from 'node:net'
+import { ipVersion } from './ipAddress.js'
 import type { VercelRequest } from '@vercel/node'
 import { asRows, getDb } from './db.js'
 
@@ -31,10 +31,10 @@ function firstHeader(value: string | string[] | undefined): string | undefined {
 function normalizeIp(raw: string | undefined): string | null {
   if (!raw) return null
   let candidate = raw.split(',')[0]?.trim() ?? ''
-  if (candidate.startsWith('::ffff:') && isIP(candidate.slice(7)) === 4) {
+  if (candidate.startsWith('::ffff:') && ipVersion(candidate.slice(7)) === 4) {
     candidate = candidate.slice(7)
   }
-  return isIP(candidate) ? candidate : null
+  return ipVersion(candidate) ? candidate : null
 }
 
 /**
