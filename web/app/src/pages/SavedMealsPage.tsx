@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
+import { PoiemSectionLabel } from '../components/PoiemSectionLabel'
 import { BackLink } from '../components/BackLink'
 import { FoodIcon, IconMinus, IconPlus, IconSearch, IconStar } from '../components/icons'
 import { useApp, isFavorite } from '../store/AppContext'
@@ -191,7 +192,7 @@ export function SavedMealsPage() {
       <main className="app-main motion-stagger">
         {isSubRoute && <BackLink to="/log" />}
         <header className="page-heading" style={isSubRoute ? { marginTop: 12 } : undefined}>
-          <p className="club-edition">THE GOOD FOOD CLUB / YOUR RECIPE BOX</p>
+          <PoiemSectionLabel>Your usuals</PoiemSectionLabel>
           <h1 className="page-title discover-title">Saved</h1>
           <p className="page-sub">Your familiar meals, ready for another day. Adjust the portion, then log.</p>
           <span className="club-library-stamp"><Bookmark size={16} aria-hidden="true" /> GOOD ENOUGH TO REPEAT</span>

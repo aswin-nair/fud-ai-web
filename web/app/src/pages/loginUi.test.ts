@@ -16,7 +16,7 @@ beforeEach(() => { state = freshState() })
 describe('character-led login', () => {
   it('keeps sign-in focused, named, and password-masked initially', () => {
     const html = render()
-    expect(html).toContain('<main class="login-page auth-refresh food-club-auth">')
+    expect(html).toContain('<main class="login-page auth-refresh food-club-auth poiem-auth-signin">')
     expect(html).toContain('Welcome back!')
     expect(html).toContain('role="group" aria-label="Account access"')
     expect(html).toContain('<fieldset class="auth-fields">')
@@ -29,8 +29,8 @@ describe('character-led login', () => {
 
   it('shows signup-specific requirements and retains the claim explanation', () => {
     const html = render('/login?mode=signup&claim=1')
-    expect(html).toContain('Join the food club.')
-    expect(html).toContain('Continue to save the progress you just made.')
+    expect(html).toContain('Join Poiem.')
+    expect(html).toContain('Save your first little win. Your journal comes with you.')
     expect(html).toContain('aria-describedby="auth-password-hint auth-password-strength"')
     expect(html).toContain('auth-password-strength')
     expect(html).toContain('minLength="8"')

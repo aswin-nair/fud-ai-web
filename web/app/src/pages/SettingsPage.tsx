@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
 import { useAuth } from '../store/AuthContext'
 import { BottomNav } from '../components/BottomNav'
+import { PoiemSectionLabel } from '../components/PoiemSectionLabel'
+import { SettingsFinder } from '../components/SettingsFinder'
 import type { ActivityLevel, AIProvider, Gender, LoggingCommitment, UserProfile, WeightGoal } from '../types'
 import type { MascotPersonality } from '../lib/aiConfig'
 import { ACTIVITY_LABELS, GOAL_LABELS } from '../types'
@@ -237,21 +239,21 @@ export function SettingsPage() {
       <main className="app-main">
         <header className="you-header">
           <div>
-            <p className="club-edition">THE GOOD FOOD CLUB / YOUR CORNER</p>
-            <p className="you-eyebrow">Your profile</p>
+            <PoiemSectionLabel>Your space</PoiemSectionLabel>
             <h1 className="page-title">You</h1>
             <p className="page-sub">{profile.name || user?.name || 'Your food journal'}</p>
-            <span className="you-header-stamp">NO GUILT. JUST GOOD DATA.</span>
+            <span className="you-header-stamp">MADE A LITTLE MORE YOU.</span>
           </div>
           <m.div className="you-momo-mark" whileHover={{ rotate: -5, y: -4 }} whileTap={{ scale: .96 }} transition={motionSpring}>
             <MomoSticker />
           </m.div>
         </header>
         <p className="you-status">{profile.trackingPaused ? 'Tracking paused · your streak is held' : 'Your routine · your pace'}</p>
-        <section className="appearance-settings" aria-labelledby="appearance-settings-title">
+        <SettingsFinder />
+        <section className="appearance-settings" id="you-appearance" tabIndex={-1} aria-labelledby="appearance-settings-title">
           <div className="appearance-settings-copy">
             <h2 id="appearance-settings-title">Make yourself at home</h2>
-            <p>Choose your colours. Saves instantly on this device. System follows your device setting.</p>
+            <p>Light, dark, or in step with your device. Your choice saves instantly.</p>
           </div>
           <AppearanceControl />
         </section>
@@ -260,7 +262,7 @@ export function SettingsPage() {
         <section className="you-section" id="you-profile" aria-labelledby="you-profile-title" tabIndex={-1}>
           <header className="you-section-heading">
             <h2 id="you-profile-title">Profile &amp; goals</h2>
-            <p>Keep your details current. Your daily targets update as you edit.</p>
+            <p>Your daily guide updates as you edit. Save when it feels right.</p>
           </header>
         {/* Daily goals summary */}
         {profile.trackingPaused ? <p className="you-pause-note">Tracking is paused. Your daily target numbers are hidden.</p> : currentProfileIssue ? <p className="you-pause-note">Check your profile details to preview daily targets.</p> : <>

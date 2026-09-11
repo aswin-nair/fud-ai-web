@@ -9,7 +9,7 @@ import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
 import { FoodClubScene } from '../components/FoodClubScene'
 import { BrandLogo } from '../components/BrandLogo'
-import { ArrowUpRight, Check, ChefHat, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Check, ShieldCheck, Sparkles } from 'lucide-react'
 import { AppearanceControl } from '../components/AppearanceControl'
 import { AnimatePresence, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
@@ -112,25 +112,26 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page auth-refresh food-club-auth">
+    <main className={`login-page auth-refresh food-club-auth poiem-auth-${mode}`}>
       <div className="food-club-frame">
         <header className="food-club-header">
           <Link to="/onboarding" className="welcome-brand" aria-label="Poiem welcome"><BrandLogo decorative /></Link>
-          <span className="food-club-header-note"><ChefHat size={19} aria-hidden="true" /> YOUR DAILY DOSE OF POIEM</span>
+          <span className="food-club-header-note">A LITTLE TRACKING. <ArrowUpRight size={20} aria-hidden="true" /> A LOT OF LIVING.</span>
           <div className="appearance-header-actions">
             <AppearanceControl compact />
           </div>
         </header>
+        <div className="food-club-manifesto"><span>REAL FOOD. REAL LIFE.</span><Sparkles size={18} aria-hidden="true" /><span>ALL FOODS WELCOME.</span></div>
         <div className="food-club-layout">
         <FoodClubScene privateFocus={privateFocus} loading={loading} error={Boolean(error)} returning={mode === 'signin'} />
         <section className="login-card login-card-wide" aria-labelledby="account-heading">
-        <div className="food-club-card-top"><span>YOUR SEAT AT THE TABLE</span><span aria-hidden="true">NO. 001</span></div>
+        <div className="food-club-card-top"><span>{mode === 'signin' ? 'YOUR SEAT IS SAVED' : 'PULL UP A CHAIR'}</span><ArrowUpRight size={22} aria-hidden="true" /></div>
         <m.div key={mode} initial={{ opacity: .4 }} animate={{ opacity: 1 }} transition={motionFade}>
-          <h1 id="account-heading" className="login-title">{mode === 'signin' ? 'Welcome back!' : 'Join the food club.'}</h1>
+          <h1 id="account-heading" className="login-title">{mode === 'signin' ? 'Welcome back!' : 'Join Poiem.'}</h1>
           <p className="login-sub">
             {mode === 'signin'
               ? claiming ? 'Sign in to connect the progress on this device.' : 'Your journal is right where you left it.'
-              : claiming ? 'Continue to save the progress you just made.' : 'Create your account to keep your food journal.'}
+              : claiming ? 'Save your first little win. Your journal comes with you.' : 'A home for your meals, your routine, and the little wins.'}
           </p>
         </m.div>
         {claiming && <p className="food-club-claim"><Check size={17} aria-hidden="true" /> Connect the progress on this device.</p>}
@@ -233,7 +234,7 @@ export function LoginPage() {
                 </div>
                 <span className={`auth-password-strength-label strength-${passwordScore}`}>
                   {password && password.length < 8 ? 'Use at least 8 characters to continue.'
-                    : password ? passwordStrengthLabel(passwordScore) : 'Make it memorable, not guessable.'}
+                    : password ? passwordStrengthLabel(passwordScore) : 'A longer, unique password works best.'}
                 </span>
               </div>
             )}
@@ -253,7 +254,7 @@ export function LoginPage() {
             />
             {confirmPassword && (
               <span id="auth-password-match" className={`auth-password-match${password === confirmPassword ? ' is-match' : ' is-mismatch'}`} role="status">
-                {password === confirmPassword ? 'Passwords match.' : 'Those passwords are playing hide-and-seek.'}
+                {password === confirmPassword ? 'Passwords match.' : 'Passwords don’t match yet.'}
               </span>
             )}
           </div>
@@ -307,7 +308,7 @@ export function LoginPage() {
         )}
         </section>
         </div>
-        <footer className="food-club-footer"><span>ALL APPETITES WELCOME.</span><span>Calories & macros. With a side of personality.</span></footer>
+        <footer className="food-club-footer"><span>POIEM.APP <ArrowUpRight size={16} aria-hidden="true" /></span><span>Made for messy, delicious, real life.</span></footer>
       </div>
     </main>
   )

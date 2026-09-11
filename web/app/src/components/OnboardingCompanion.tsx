@@ -66,7 +66,7 @@ export function OnboardingCompanion({ step, error, profile }: { step: number; er
   const lively = !reduced && state.gamification.mascotActivity === 'lively' && !error
   return <aside className={`setup-companion${!visible ? ' without-momo' : ''}`} aria-label="Your setup journey">
     <div className="setup-companion-intro">
-      <span className="setup-club-label"><IconSprout size={16} /> The good food club</span>
+      <span className="setup-club-label"><IconSprout size={16} /> Your daily Poiem</span>
       <h2>Small steps.<br /><span>A very you start.</span></h2>
     </div>
     {visible && <m.div className="setup-companion-scene" aria-hidden="true"

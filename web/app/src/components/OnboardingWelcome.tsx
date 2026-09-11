@@ -15,9 +15,9 @@ import { FoodSticker, MomoBubble } from './SnackAttackPrimitives'
 const WELCOME_SLIDES = [
   {
     theme: 'lemon',
-    kicker: 'Your new food sidekick',
+    kicker: 'Meet your daily Poiem',
     title: ['Big flavour.', 'Less effort.'],
-    description: 'Snap a meal or type what you ate. Keep calories and macros in one happy little journal.',
+    description: 'A photo. A few words. Poiem makes room for your meals, calories, and the little wins.',
     speech: 'I do the counting. You do the crunching.',
     sticker: 'All foods welcome',
     ticketTitle: 'Your lunch, logged.',
@@ -74,7 +74,7 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
       <header className="welcome-brand-row">
         <span className="welcome-brand"><BrandLogo /></span>
         <div className="appearance-header-actions">
-          <span className="welcome-club-label"><ChefHat size={19} aria-hidden="true" /> The food club</span>
+          <span className="welcome-club-label"><ChefHat size={19} aria-hidden="true" /> A little more you</span>
           <AppearanceControl compact />
         </div>
       </header>
@@ -146,7 +146,7 @@ export function OnboardingWelcome({ index, onSlideChange, onStart, signedIn }: {
             <PressableButton fullWidth onClick={onStart}>
               Get started <IconChevronRight size={19} />
             </PressableButton>
-            <p className="welcome-setup-note">A little setup, then your first meal.</p>
+            <p className="welcome-setup-note">Your rhythm. Your starting guide. Your first meal.</p>
             {!signedIn && (
               <Link to="/login" className="welcome-signin-link">
                 Already have an account? <strong>Sign in</strong>

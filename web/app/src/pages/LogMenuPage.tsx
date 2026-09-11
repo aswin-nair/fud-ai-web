@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { BottomNav } from '../components/BottomNav'
+import { PoiemSectionLabel } from '../components/PoiemSectionLabel'
 import { BackLink } from '../components/BackLink'
 import { PortionSheet } from '../components/PortionSheet'
 import { useLongPress } from '../hooks/useLongPress'
@@ -169,7 +170,7 @@ export function LogMenuPage() {
       <main className="app-main motion-stagger">
         <BackLink to="/" />
         <header className="page-heading log-page-heading">
-          <p className="club-edition">THE GOOD FOOD CLUB / ORDER UP</p>
+          <PoiemSectionLabel>A little log</PoiemSectionLabel>
           <h1 className="page-title">Log a meal</h1>
           <p className="log-intro">Something new, or a familiar favourite?</p>
         </header>

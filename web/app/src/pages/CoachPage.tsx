@@ -10,6 +10,7 @@ import { track } from '../lib/analytics'
 import { PressableButton } from '../components/PressableButton'
 import { KeyRound, MessageCircle, Sparkles, Trash2 } from 'lucide-react'
 import { MomoSticker } from '../components/MomoSticker'
+import { PoiemSectionLabel } from '../components/PoiemSectionLabel'
 import * as m from 'motion/react-m'
 import { motionSoftSpring } from '../lib/motionPresets'
 
@@ -151,7 +152,7 @@ export function CoachPage() {
       <header className="coach-header-bar">
         <div className="coach-header-avatar" aria-hidden><MomoSticker mood="excited" pose="still" /></div>
         <div className="coach-header-info">
-          <span className="club-edition">THE GOOD FOOD CLUB / COACH CORNER</span>
+          <PoiemSectionLabel>A fresh perspective</PoiemSectionLabel>
           <span className="coach-header-title">AI Coach</span>
           <span className="coach-header-sub">Powered by {providerLabel(state.aiSettings.provider)}</span>
         </div>

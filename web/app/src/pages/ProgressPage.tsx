@@ -10,6 +10,7 @@ import { IconChevronRight, IconMenuLines, IconFlame, IconTrophy } from '../compo
 import { PressableButton } from '../components/PressableButton'
 import { Surface } from '../components/Surface'
 import { WeightLogSheet } from '../components/WeightLogSheet'
+import { PoiemSectionLabel } from '../components/PoiemSectionLabel'
 
 const RANGES = [
   { id: '1W', label: 'Week', days: 7 },
@@ -145,7 +146,7 @@ export function ProgressPage() {
       <main className="app-main progress-main motion-stagger">
 
         <header className="progress-page-header page-heading">
-          <p className="club-edition">THE GOOD FOOD CLUB / THE BIGGER PICTURE</p>
+          <PoiemSectionLabel>The bigger picture</PoiemSectionLabel>
           <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
           <p className="insights-intro">See your routine over time, one logged day at a time.</p>
           <span className="club-library-stamp">YOUR ROUTINE. NOT A REPORT CARD.</span>

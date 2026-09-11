@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
 import { BrandLogo } from '../components/BrandLogo'
+import { ChevronDown, Sparkles } from 'lucide-react'
 import { DatePickerModal } from '../components/DatePickerModal'
 import { BottomNav } from '../components/BottomNav'
 import { MomoSticker } from '../components/MomoSticker'
@@ -245,7 +246,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
                   <h2>{snapshotLabel}</h2>
                   <button type="button" className="today-date-button" onClick={() => setShowDatePicker(true)} aria-label="Choose date"><IconCalendar /></button>
                 </div>
-                <p className="club-journal-title">A little tracking.<br /><span>A lot of living.</span></p>
+                <p className="poiem-journal-intro">A little tracking. <span>A lot of living.</span></p>
                 <div className="home-factual-readout">
                   <CalorieRing
                     consumed={totals.calories}
@@ -357,32 +358,39 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
               </div>
             </aside>}
 
-            <Ticket
-            date={selectedDate}
-            ticketNo={ticketNumber(state.foodEntries) || getTotalLoggedDays(state.foodEntries) || 1}
-            entries={dayEntries}
-            protein={totals.protein}
-            carbs={totals.carbs}
-            fat={totals.fat}
-            proteinGoal={effectiveProtein(profile)}
-            carbsGoal={effectiveCarbs(profile)}
-            fatGoal={effectiveFat(profile)}
-            water={water}
-            notes={notes}
-            paused={paused}
-            onWater={n => patchGamification(g => applyWaterChange(g, selectedDayKey, n))}
-            onNote={() => patchGamification(g => applyNote(g, selectedDayKey))}
-              variant="extras"
-            />
-            <section className="today-routine-card">
-              <DayRing progress={dayProgress} />
-              {state.gamification.streakFreezes > 0 && <p className="today-freeze-note"><IconShield /> {state.gamification.streakFreezes} streak {state.gamification.streakFreezes === 1 ? 'freeze' : 'freezes'} available for a day off.</p>}
-            </section>
-            <HabitMilestones loggedDays={getTotalLoggedDays(state.foodEntries)} />
+            <details className="poiem-daily-extras">
+              <summary><span className="poiem-extras-icon"><Sparkles size={23} aria-hidden="true" /></span>
+                <span><strong>Your little extras</strong><small>{water || notes ? `${water}/8 water · ${notes} ${notes === 1 ? 'note' : 'notes'} · daily rhythm` : 'Water, notes & daily rhythm'}</small></span>
+                <ChevronDown size={20} className="poiem-disclosure-chevron" aria-hidden="true" />
+              </summary>
+              <div className="poiem-extras-content">
+                <Ticket
+                  date={selectedDate}
+                  ticketNo={ticketNumber(state.foodEntries) || getTotalLoggedDays(state.foodEntries) || 1}
+                  entries={dayEntries}
+                  protein={totals.protein}
+                  carbs={totals.carbs}
+                  fat={totals.fat}
+                  proteinGoal={effectiveProtein(profile)}
+                  carbsGoal={effectiveCarbs(profile)}
+                  fatGoal={effectiveFat(profile)}
+                  water={water}
+                  notes={notes}
+                  paused={paused}
+                  onWater={n => patchGamification(g => applyWaterChange(g, selectedDayKey, n))}
+                  onNote={() => patchGamification(g => applyNote(g, selectedDayKey))}
+                  variant="extras"
+                />
+                <section className="today-routine-card">
+                  <DayRing progress={dayProgress} />
+                  {state.gamification.streakFreezes > 0 && <p className="today-freeze-note"><IconShield /> {state.gamification.streakFreezes} streak {state.gamification.streakFreezes === 1 ? 'freeze' : 'freezes'} available for a day off.</p>}
+                </section>
+                <HabitMilestones loggedDays={getTotalLoggedDays(state.foodEntries)} />
+              </div>
+            </details>
 
           </>
         )}
-        <div className="home-scroll-pad" />
       </main>
       </PullToRefresh>
 

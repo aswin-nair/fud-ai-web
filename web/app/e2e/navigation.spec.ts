@@ -25,7 +25,7 @@ test.describe('Navigation', () => {
 
     await nav(page).getByRole('link', { name: 'Today' }).click()
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'You showed up.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Today', exact: true })).toBeVisible()
   })
 
   test('discover tab and you coach reach their full pages', async ({ page }) => {
