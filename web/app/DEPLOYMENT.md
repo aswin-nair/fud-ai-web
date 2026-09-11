@@ -2,6 +2,96 @@
 
 This guide walks through creating **your own** GitHub repo, connecting **Vercel**, and using **Neon Postgres** for cloud sync.
 
+> **poiem.app runs on Vercel's free Hobby plan**, with Neon for the database and
+> Cloudflare only for DNS. Follow "Deploy poiem.app on Vercel" below.
+
+---
+
+## Deploy poiem.app on Vercel (free)
+
+The Hobby plan is free for personal, non-commercial use. It allows one function
+region and cron jobs that run once a day (±59 minutes), which is all Poiem
+needs: `web/vercel.json` pins functions to `sin1` (Singapore), next to the Neon
+database, and runs the retention job daily around 04:00 UTC.
+
+1. **Merge to `main`.** Vercel deploys production from `main`.
+2. **Create the project.** Sign in at [vercel.com](https://vercel.com) with
+   GitHub, choose **Add New → Project**, import `aswin-nair/fud-ai-web`, and set:
+   - Project name: `poiem`
+   - Root Directory: `web`, with **Include files outside the root directory in
+     the Build Step** left on (the install needs `packages/`)
+   - Framework Preset: **Other** (build settings come from `web/vercel.json`)
+
+   Deploy. The API answers "Database not configured" until step 5.
+3. **Sign in from this computer**, in `web`: `npx vercel@latest login`.
+4. **Link the folder** to the new project:
+   `npx vercel@latest link --yes --project poiem`.
+5. **Add the settings** —
+   `powershell -ExecutionPolicy Bypass -File .\scripts\vercel-env.ps1`
+   (add `-GoogleClientId …` for Google sign-in). It sends `DATABASE_URL` from
+   `web/.env`, generates `JWT_SECRET`, `CRON_SECRET` and `RATE_LIMIT_SECRET`
+   (keeping any already set), and sets `APP_ORIGIN`. Everything goes to
+   Production only, so preview deployments never reach the live database, and
+   no value is printed.
+6. **Redeploy** — Deployments → latest deployment → **Redeploy**.
+7. **Connect the domain** — Settings → Domains → add `poiem.app`. Vercel shows
+   the DNS record to create. In Cloudflare → `poiem.app` → DNS, add exactly that
+   record with **Proxy status: DNS only** (grey cloud) so Vercel can issue the
+   certificate.
+8. **Verify** — `https://poiem.app/api/health` returns `"live":true`,
+   `https://poiem.app/api/ready` returns `"ready":true`, and `https://poiem.app`
+   opens the login screen. Sign up, log a meal, then sign in from a second
+   browser to confirm sync.
+
+For Google sign-in, also add `https://poiem.app` to the OAuth client's
+Authorized JavaScript origins. Password-reset mail is optional and needs
+`RESEND_API_KEY` and `MAIL_FROM`.
+
+---
+
+## Alternative: Cloudflare Workers (needs Workers Paid)
+
+One Worker (`web/wrangler.jsonc`, entry `web/cloudflare/worker.ts`) serves the
+app at `/app`, runs the existing API handlers at `/api` through a small Vercel
+request/response adapter, and runs the daily retention job on a cron at 04:00
+UTC. `poiem.app` is attached as a Custom Domain, so Cloudflare creates the DNS
+record and certificate. Remove any existing `poiem.app` A, AAAA or CNAME record
+first.
+
+**The Workers Paid plan is required.** Sign-up, sign-in and password changes
+hash with scrypt, which uses roughly 40–60 ms of CPU per hash in the Workers
+runtime. The Free plan allows 10 ms of CPU per request and ends Workers that
+keep exceeding it with error 1102, so those endpoints would fail. The Paid plan
+allows 30 seconds by default. Don't lower the scrypt cost to fit the Free plan.
+
+Run everything from `web`, in your own terminal:
+
+1. **Sign in to Cloudflare** — `npx wrangler login`, then `npx wrangler whoami`.
+   In the dashboard, make sure the account is on the Workers Paid plan.
+2. **Create a fresh database** —
+   `powershell -ExecutionPolicy Bypass -File .\scripts\create-neon-db.ps1`
+   creates a new Neon project, applies `db/schema.sql`, and saves `DATABASE_URL`
+   to the git-ignored `web/.env` without printing it.
+3. **Build and deploy** — `npm run cf:deploy` (builds the Neon client, then
+   `wrangler deploy`). For Google sign-in, set
+   `$env:VITE_GOOGLE_CLIENT_ID = "…apps.googleusercontent.com"` in the same
+   terminal first.
+4. **Add secrets** —
+   `powershell -ExecutionPolicy Bypass -File .\scripts\cloudflare-secrets.ps1`
+   (add `-GoogleClientId …` for Google sign-in). It sends `DATABASE_URL` from
+   `web/.env` plus generated `JWT_SECRET`, `CRON_SECRET` and `RATE_LIMIT_SECRET`,
+   and keeps any that already exist so a re-run never signs people out.
+   Optional mail: `npx wrangler secret put RESEND_API_KEY` and `MAIL_FROM`.
+5. **Verify** — `https://poiem.app/api/health` returns `"live":true`,
+   `https://poiem.app/api/ready` returns `"ready":true`, and
+   `https://poiem.app` opens the login screen.
+
+For Google sign-in, add `https://poiem.app` to the OAuth client's Authorized
+JavaScript origins. `APP_ORIGIN` and `COOKIE_SECURE` are plain vars in
+`wrangler.jsonc`; nothing secret is committed.
+
+Local Worker run: `npm run cf:dev` (reads `web/.dev.vars` or `web/.env`).
+
 ---
 
 ## 1. Create a Neon database

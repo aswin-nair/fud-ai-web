@@ -44,11 +44,13 @@ export async function sendPasswordResetEmail(mail: PasswordResetMail): Promise<v
     body: JSON.stringify({
       from,
       to: [mail.to],
-      subject: 'Reset your Fud AI password',
+      subject: 'Reset your Poiem password',
       text: [
+        'Your Poiem journal is waiting for you.',
         'Use this link to choose a new password. It expires in 30 minutes and can be used once.',
         mail.resetUrl,
         'If you did not ask for this, you can ignore the message.',
+        'Poiem — A little tracking. A lot of living.',
       ].join('\n\n'),
     }),
   })
