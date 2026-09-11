@@ -39,8 +39,9 @@ const WelcomePage = lazy(() => import('./pages/WelcomePage'))
 function ScrollToTop() {
   const { pathname, search } = useLocation()
   useEffect(() => {
-    const title = pathname === '/login' && new URLSearchParams(search).get('mode') === 'signup'
-      ? 'Sign up' : routeTitle(pathname)
+    const title = isWelcomeSurface(pathname) ? 'Big life. Good food. Less fuss.'
+      : pathname === '/login' && new URLSearchParams(search).get('mode') === 'signup' ? 'Sign up'
+        : routeTitle(pathname)
     document.title = `${title} · ${identity.name}`
   }, [pathname, search])
 
@@ -58,7 +59,6 @@ function ScrollToTop() {
 }
 
 function routeTitle(pathname: string): string {
-  if (pathname === '/welcome') return 'Big life. Good food. Less fuss.'
   if (pathname === '/') return 'Today'
   if (pathname === '/progress') return 'Insights'
   if (pathname === '/discover' || pathname === '/log/saved') return 'Saved'
@@ -84,11 +84,19 @@ function routerBasename(): string | undefined {
   return undefined
 }
 
+/**
+ * The public welcome page lives at `/welcome` everywhere, and at `/` in production builds, where
+ * the product is served under `/app`. The dev server has no `/app` prefix, so its `/` stays Today.
+ */
+function isWelcomeSurface(pathname: string): boolean {
+  if (typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)) return false
+  return pathname === '/welcome' || (import.meta.env.PROD && pathname === '/')
+}
+
 /** Keep the public brand surface outside the authenticated product shell. */
 function RootSurface() {
   const location = useLocation()
-  const isAppPath = typeof window !== 'undefined' && /^\/app(?:\/|$)/.test(window.location.pathname)
-  if (!isAppPath && (location.pathname === '/' || location.pathname === '/welcome')) {
+  if (isWelcomeSurface(location.pathname)) {
     return <Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>
   }
   return <AppGate />
