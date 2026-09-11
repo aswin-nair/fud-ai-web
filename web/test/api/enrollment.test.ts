@@ -40,10 +40,8 @@ vi.mock('../../api/_lib/rateLimit.js', () => ({
     retryAfterSeconds = 60
   },
 }))
-vi.mock('google-auth-library', () => ({
-  OAuth2Client: class {
-    verifyIdToken = mocks.verifyGoogleToken
-  },
+vi.mock('../../api/_lib/googleIdentity.js', () => ({
+  verifyGoogleCredential: mocks.verifyGoogleToken,
 }))
 
 import registerHandler from '../../api/_auth/register.js'
@@ -139,13 +137,11 @@ describe('account enrollment controls', () => {
     mocks.findBySub.mockResolvedValue(null)
     mocks.upsert.mockResolvedValue({ sub: 'user-id' })
     mocks.verifyGoogleToken.mockResolvedValue({
-      getPayload: () => ({
         sub: 'google-subject',
         email: 'person@example.com',
         email_verified: true,
         name: 'Person',
-      }),
-    })
+      })
   })
 
   afterEach(() => {

@@ -1,6 +1,7 @@
-import { OAuth2Client } from 'google-auth-library'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { POIEM_GOOGLE_CLIENT_ID } from '../../shared/googleOAuth.js'
 import { withApiTelemetry } from '../_lib/telemetry.js'
+import { verifyGoogleCredential } from '../_lib/googleIdentity.js'
 import { prepareAuth } from '../_lib/ensureAuthSchema.js'
 import {
   badRequest,
@@ -26,7 +27,11 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return methodNotAllowed(res)
   if (!await prepareAuth(res)) return
 
-  const clientId = process.env.VITE_GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID
+  const clientId = (
+    process.env.VITE_GOOGLE_CLIENT_ID?.trim()
+    || process.env.GOOGLE_CLIENT_ID?.trim()
+    || POIEM_GOOGLE_CLIENT_ID
+  )
   if (!clientId) return json(res, 503, { error: 'Google OAuth not configured' })
 
   try {
@@ -36,17 +41,12 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     if (transport === 'unavailable') return json(res, 503, MOBILE_AUTH_DISABLED_RESPONSE)
     if (!body.credential) return badRequest(res, 'Missing Google credential')
 
-    const client = new OAuth2Client(clientId)
-    let ticket
+    let payload
     try {
-      ticket = await client.verifyIdToken({
-        idToken: body.credential,
-        audience: clientId,
-      })
+      payload = await verifyGoogleCredential(body.credential, clientId)
     } catch {
       return unauthorized(res, 'Unable to sign in')
     }
-    const payload = ticket.getPayload()
     if (!payload?.sub || !payload.email || payload.email_verified !== true) {
       return badRequest(res, 'Invalid Google token')
     }

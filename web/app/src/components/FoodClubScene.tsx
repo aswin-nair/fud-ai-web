@@ -2,7 +2,7 @@ import { ArrowUpRight, Camera, Check, Flame, Pizza, Sparkles, Sprout, Utensils }
 import { MotionConfig, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 import { useApp } from '../store/AppContext'
-import { bubblePop, motionOpacity, motionSoftSpring, stickerDrop } from '../lib/motionPresets'
+import { bubblePop, motionSoftSpring, stickerDrop } from '../lib/motionPresets'
 import { MomoSticker } from './MomoSticker'
 
 /** The account flow's decorative food poster. Example values are never user data. */
@@ -12,6 +12,9 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
   const { state } = useApp()
   const reduced = useReducedMotion() || state.profile.mascotReducedMotion
   const visible = state.gamification.mascotActivity !== 'off'
+  // Keep the poster readable even if the optional animation chunk cannot load.
+  const stickerEntrance = { ...stickerDrop, initial: reduced ? false as const : { opacity: 1, y: 10, rotate: -3, scale: .97 } }
+  const speechEntrance = { ...bubblePop, initial: reduced ? false as const : { opacity: 1, scale: .97, y: 4 } }
   const line = privateFocus ? 'Eyes closed. Your password is your business.'
     : loading ? 'Setting your place at the table…'
       : error ? 'Tiny hiccup. Let’s try that again.'
@@ -27,7 +30,7 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
           <div className="food-club-starburst"><span>BIG<br />APPETITE<br />ENERGY</span></div>
           <div className="food-club-orbit" />
           <span className="food-club-spark"><Sparkles size={38} strokeWidth={2.5} /></span>
-          <m.div className="food-club-pizza" {...(reduced ? motionOpacity : stickerDrop)}>
+          <m.div className="food-club-pizza" {...stickerEntrance}>
             <Pizza size={60} strokeWidth={2} /><span>YES, PIZZA.</span>
           </m.div>
           <div className="food-club-plate">
@@ -40,7 +43,7 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
             </m.div> : <Utensils className="food-club-fallback" size={90} strokeWidth={1.5} />}
           </div>
           <div className="food-club-greens"><Sprout size={40} /><span>AND GREENS.</span></div>
-          <m.div className="food-club-receipt" {...(reduced ? motionOpacity : stickerDrop)}>
+          <m.div className="food-club-receipt" {...stickerEntrance}>
             <div><Camera size={16} /><span>ON THE MENU</span><Check size={16} /></div>
             <strong>Yogurt & berries</strong>
             <p><Flame size={18} /><b>320</b> kcal <small>example meal</small></p>
@@ -50,7 +53,7 @@ export function FoodClubScene({ privateFocus, loading, error, returning }: {
         <p className="food-club-description"><strong>A food journal with an appetite for life.</strong> Track calories and macros with a photo or a few words. Then get on with the good stuff.</p>
         {visible && !state.profile.mascotMuted && <div className="food-club-bubble-wrap">
           <span className="food-club-momo-label">MOMO SAYS</span>
-          <m.p className="food-club-bubble" key={line} {...(reduced ? motionOpacity : bubblePop)}>{line}</m.p>
+          <m.p className="food-club-bubble" key={line} {...speechEntrance}>{line}</m.p>
         </div>}
         <div className="food-club-poster-foot"><span>01 / SNAP</span><Sparkles size={16} aria-hidden="true" /><span>02 / LOG</span><Sparkles size={16} aria-hidden="true" /><span>03 / LIVE</span></div>
       </aside>

@@ -2,7 +2,7 @@ import type { ExpoConfig } from 'expo/config';
 
 // Explicit extension: the Expo config loader requires this import untranspiled,
 // so it resolves through Node's native TypeScript support.
-import { palette } from './src/theme/tokens.ts';
+import { brand, palette } from './src/theme/tokens.ts';
 
 /**
  * TypeScript config rather than app.json so the splash and adaptive-icon
@@ -10,11 +10,11 @@ import { palette } from './src/theme/tokens.ts';
  * place a hex value is written.
  */
 const config: ExpoConfig = {
-  name: 'Fud AI',
+  name: 'Poiem',
   slug: 'fud-ai',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/poiem/icon.png',
   scheme: 'fudai',
   userInterfaceStyle: 'automatic',
   ios: {
@@ -24,27 +24,26 @@ const config: ExpoConfig = {
       // There is no approved iCloud restore path for the nutrition database.
       // Runtime code also marks Documents/SQLite excluded from backup.
       UIFileSharingEnabled: false,
-      NSCameraUsageDescription: 'Fud AI uses the camera so you can log a meal from a photo.',
-      NSPhotoLibraryUsageDescription: 'Fud AI can use a library photo when you choose to log from one.',
+      NSCameraUsageDescription: 'Poiem uses the camera so you can log a meal from a photo.',
+      NSPhotoLibraryUsageDescription: 'Poiem can use a library photo when you choose to log from one.',
       NSUserNotificationsUsageDescription: 'Optional logging reminders. At most two a day, never about calories.',
     },
     usesAppleSignIn: true,
     config: {
-      // SecureStore uses the operating-system keychain/keystore. Fud AI does
+      // SecureStore uses the operating-system keychain/keystore. Poiem does
       // not ship a custom, non-exempt encryption implementation.
       usesNonExemptEncryption: false,
     },
-    icon: './assets/expo.icon',
+    icon: './assets/poiem/icon.png',
   },
   android: {
     // The local SQLite log can contain health-adjacent data. Keep it out of
     // Android/Google Drive Auto Backup; export/sync must be an explicit flow.
     allowBackup: false,
     adaptiveIcon: {
-      backgroundColor: palette.light.background,
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      backgroundImage: './assets/images/android-icon-background.png',
-      monochromeImage: './assets/images/android-icon-monochrome.png',
+      backgroundColor: brand.accent,
+      foregroundImage: './assets/poiem/adaptive-foreground.png',
+      monochromeImage: './assets/poiem/adaptive-monochrome.png',
     },
     package: 'com.fudai.mobile',
     permissions: [
@@ -56,7 +55,7 @@ const config: ExpoConfig = {
   },
   web: {
     output: 'static',
-    favicon: './assets/images/favicon.png',
+    favicon: './assets/poiem/icon.png',
   },
   plugins: [
     'expo-router',
@@ -65,25 +64,25 @@ const config: ExpoConfig = {
     [
       'expo-local-authentication',
       {
-        faceIDPermission: 'Allow Fud AI to use Face ID to unlock the app.',
+        faceIDPermission: 'Allow Poiem to use Face ID to unlock the app.',
       },
     ],
     [
       'expo-secure-store',
       {
         configureAndroidBackup: true,
-        faceIDPermission: 'Allow Fud AI to use Face ID to unlock the app.',
+        faceIDPermission: 'Allow Poiem to use Face ID to unlock the app.',
       },
     ],
     [
       'expo-splash-screen',
       {
         backgroundColor: palette.light.background,
-        image: './assets/images/splash-icon.png',
+        image: './assets/poiem/splash.png',
         imageWidth: 76,
         dark: {
           backgroundColor: palette.dark.background,
-          image: './assets/images/splash-icon.png',
+          image: './assets/poiem/icon.png',
         },
       },
     ],

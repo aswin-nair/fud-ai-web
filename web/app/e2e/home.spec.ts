@@ -8,7 +8,7 @@ test.describe('Home & food logging', () => {
 
   test('keeps meals visible and opens optional daily extras on request', async ({ page }) => {
     await expect(page.locator('.ticket')).toBeHidden()
-    await expect(page.getByText('Onboarding yogurt bowl')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Onboarding yogurt bowl/ })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Carbs' })).toBeVisible()
     await expect(page.getByRole('progressbar', { name: 'Fat' })).toBeVisible()
@@ -39,7 +39,7 @@ test.describe('Home & food logging', () => {
     await expect(page.locator('.home-quest-row')).toHaveCount(0)
     await expect(page.locator('.calorie-ring')).toHaveCount(0)
     await expect(page.getByRole('progressbar', { name: 'Protein' })).toHaveCount(0)
-    await expect(page.getByText('Onboarding yogurt bowl')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Onboarding yogurt bowl/ })).toHaveCount(0)
 
     await mainNav.getByRole('link', { name: 'Insights' }).click()
     await expect(page.getByRole('heading', { name: 'Tracking is paused' })).toBeVisible()
@@ -57,7 +57,7 @@ test.describe('Home & food logging', () => {
       fat: '4',
     })
 
-    await expect(page.getByText('Greek Yogurt')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Greek Yogurt/ })).toBeVisible()
     await expect(page.locator('.home-today-kcal', { hasText: '150' })).toBeVisible()
   })
 
@@ -70,7 +70,7 @@ test.describe('Home & food logging', () => {
       fat: '6',
     })
 
-    await expect(page.getByText('Oatmeal')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Oatmeal/ })).toBeVisible()
 
     const yesterdayLabel = await page.evaluate(() => {
       const date = new Date()
@@ -88,20 +88,20 @@ test.describe('Home & food logging', () => {
       const today = new Date()
       return yesterday.getMonth() !== today.getMonth()
     })
-    await page.getByRole('button', { name: 'Choose date' }).click()
+    await page.getByRole('button', { name: 'Choose date', exact: true }).click()
     if (needsPrevMonth) {
       await page.getByRole('button', { name: 'Previous month' }).click()
     }
     await page.getByRole('button', { name: yesterdayLabel }).click()
-    await expect(page.getByText('Oatmeal')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Oatmeal/ })).toHaveCount(0)
     await expect(page.getByText('Yesterday’s snapshot')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Yesterday', exact: true })).toBeVisible()
     await expect(page.getByText('Nothing was logged yesterday.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Log a meal today', exact: true })).toBeVisible()
 
-    await page.getByRole('button', { name: 'Choose date' }).click()
+    await page.getByRole('button', { name: 'Choose date', exact: true }).click()
     await page.getByRole('button', { name: 'Jump to today' }).click()
-    await expect(page.getByText('Oatmeal')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Oatmeal/ })).toBeVisible()
   })
 
   test('log FAB reaches every option from the log menu', async ({ page }) => {

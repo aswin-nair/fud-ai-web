@@ -87,7 +87,7 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
           onPress: () =>
             Alert.alert(
               'Continue without app lock?',
-              'The secure preference could not be read. Continuing will show the local log without app-lock protection until Fud AI restarts.',
+              'The secure preference could not be read. Continuing will show the local log without app-lock protection until Poiem restarts.',
               [
                 { text: 'Keep app covered', style: 'cancel' },
                 { text: 'Continue', onPress: continueAfterStorageError },
@@ -195,7 +195,7 @@ function AppLockStatusScreen({
         ) : null}
 
         <Text align="center" color="textMuted" variant="caption">
-          App lock requires authentication when Fud AI returns from the background. It does
+          App lock requires authentication when Poiem returns from the background. It does
           not encrypt the SQLite food log or replace the device lock.
         </Text>
       </View>

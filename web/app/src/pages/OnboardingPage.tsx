@@ -1,3 +1,4 @@
+import { PosterStrip } from '../components/PosterPrimitives'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../store/AppContext'
@@ -273,7 +274,7 @@ export function OnboardingPage() {
 
   if (draft.blocked) {
     return (
-      <div className="app-shell setup-refresh">
+      <div className="app-shell setup-refresh poster-ui">
         <main ref={setupMain} className="app-main onboarding-main">
           <div className="setup-brand-row">
             <span className="welcome-brand"><BrandLogo /></span>
@@ -282,6 +283,7 @@ export function OnboardingPage() {
               <AppearanceControl compact />
             </div>
           </div>
+          <PosterStrip items={['Real food. Real life.', 'All foods welcome.']} />
           <m.div className="onboarding-blocked-card" {...(reducedMotion ? motionOpacity : motionPop)}>
           <div className="onboarding-step-content">
             <h1 className="onboarding-title">This one is built for adults</h1>
@@ -306,7 +308,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="app-shell setup-refresh" data-chapter={step < 3 ? 'profile' : step < 6 ? 'routine' : 'ready'}>
+    <div className="app-shell setup-refresh poster-ui" data-chapter={step < 3 ? 'profile' : step < 6 ? 'routine' : 'ready'}>
       <main ref={setupMain} className="app-main onboarding-main">
         <div className="setup-brand-row">
           <span className="welcome-brand"><BrandLogo /></span>
@@ -316,6 +318,7 @@ export function OnboardingPage() {
             <AppearanceControl compact />
           </div>
         </div>
+        <PosterStrip items={['Real food. Real life.', 'All foods welcome.']} />
         <div className="setup-workspace">
         <div className="onboarding-header">
           <div className="setup-step-row">

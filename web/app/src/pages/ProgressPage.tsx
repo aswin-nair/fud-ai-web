@@ -1,3 +1,4 @@
+import { PosterArt, PosterStrip } from '../components/PosterPrimitives'
 import { useMemo, useState } from 'react'
 import { BottomNav } from '../components/BottomNav'
 import { ProgressLineChart, ProgressBarChart } from '../components/Charts'
@@ -123,7 +124,7 @@ export function ProgressPage() {
 
   if (state.profile.trackingPaused) {
     return (
-      <div className="app-shell progress-shell insights-refresh food-club-app">
+      <div className="app-shell progress-shell insights-refresh food-club-app poster-ui">
         <main className="app-main progress-main motion-stagger">
           <div className="progress-page-header">
             <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
@@ -142,10 +143,14 @@ export function ProgressPage() {
   }
 
   return (
-    <div className="app-shell progress-shell insights-refresh food-club-app">
+    <div className="app-shell progress-shell insights-refresh food-club-app poster-ui">
       <main className="app-main progress-main motion-stagger">
 
+        <PosterStrip items={['The bigger picture', 'A routine, not a report card']} />
+
         <header className="progress-page-header page-heading">
+
+          <PosterArt burst={['Small', 'steps']} burstTone="rose" stickers={[{ food: 'carrot', tone: 'paper', tilt: -8 }, { food: 'apple', tone: 'leaf', tilt: 10 }]} />
           <PoiemSectionLabel>The bigger picture</PoiemSectionLabel>
           <h1 className="screen-title" style={{ marginBottom: 0 }}>Insights</h1>
           <p className="insights-intro">See your routine over time, one logged day at a time.</p>

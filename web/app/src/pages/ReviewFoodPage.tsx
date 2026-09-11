@@ -87,7 +87,7 @@ export function ReviewFoodPage() {
     track({ name: 'entry_reviewed', method: sourceToMethod(source) })
   }, [analysis, source])
 
-  if (!analysis) return <div className="app-shell meal-flow"><main className="app-main">
+  if (!analysis) return <div className="app-shell meal-flow poster-ui"><main className="app-main">
     <BackLink to="/log" />
     {loadingDraft ? <p role="status">Restoring your review…</p> : <>
       <LogFlowHeader title="Let’s start with a meal." description="There isn’t an estimate to review yet. Choose how you’d like to add one." />
@@ -185,7 +185,7 @@ export function ReviewFoodPage() {
   }
 
   return (
-    <div className="app-shell meal-flow meal-flow-wide">
+    <div className="app-shell meal-flow poster-ui meal-flow-wide">
       <main className="app-main motion-stagger">
         <BackLink onClick={discard} label="Start over" />
         <LogFlowHeader step={2} title="Make it your meal." description="The estimate is a starting point. You’re in charge of the final details." />

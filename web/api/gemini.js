@@ -263,7 +263,7 @@ async function checkQuota(installID, task) {
     return {
       allowed: false,
       ...usage,
-      message: `Daily Fud AI Premium safety limit reached (${usage.globalLimit}/day). Try again tomorrow, or switch to BYOK for unlimited usage.`,
+      message: `Daily Poiem Premium safety limit reached (${usage.globalLimit}/day). Try again tomorrow, or switch to BYOK for unlimited usage.`,
     };
   }
   return { allowed: true, ...usage };
@@ -437,7 +437,7 @@ function taskLabel(task) {
     case "goals":
       return "Goal calculation";
     default:
-      return "Fud AI Premium";
+      return "Poiem Premium";
   }
 }
 

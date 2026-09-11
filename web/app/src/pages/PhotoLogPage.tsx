@@ -95,7 +95,7 @@ export function PhotoLogPage() {
   }
 
   return (
-    <div className="app-shell meal-flow">
+    <div className="app-shell meal-flow poster-ui">
       <main className="app-main motion-stagger">
         <BackLink to="/log" />
         <LogFlowHeader step={1} title="Give your meal a close-up." description="Choose a photo, check the frame, then let AI make a first estimate." />

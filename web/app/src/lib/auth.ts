@@ -1,3 +1,5 @@
+import { POIEM_GOOGLE_CLIENT_ID } from '../../../shared/googleOAuth'
+
 export type AuthProvider = 'google' | 'email'
 
 export interface AuthUser {
@@ -52,7 +54,7 @@ export function authTokenSubject(token: string): string | null {
   }
 }
 
-export const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim()
+export const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? POIEM_GOOGLE_CLIENT_ID).trim()
 
 export function isGoogleAuthConfigured(): boolean {
   return googleClientId.length > 0

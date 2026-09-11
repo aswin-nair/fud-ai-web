@@ -1,3 +1,4 @@
+import { PosterArt, PosterStrip } from '../components/PosterPrimitives'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LevelUpOverlay } from '../components/LevelUpOverlay'
@@ -153,7 +154,7 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
   }
 
   return (
-    <div className="app-shell home-shell today-refresh food-club-app">
+    <div className="app-shell home-shell today-refresh food-club-app poster-ui">
       {!paused && pendingLevelUp && <LevelUpOverlay level={pendingLevelUp} onDone={ackLevelUp} />}
       {!paused && celebration && !pendingLevelUp && (
         <LogCelebration
@@ -174,7 +175,9 @@ export function HomePage({ guest = false }: { guest?: boolean }) {
       )}
 
       {/* Streak and level remain context; meal logging is the primary action. */}
+      <PosterStrip items={['Today’s table', 'All foods welcome']} />
       <header className="home-counter-chips" data-mascot-avoid>
+        <PosterArt placement="top" burst={['All', 'foods', 'welcome']} stickers={[{ food: 'pizza', tone: 'paper', tilt: -10 }, { food: 'salad', tone: 'leaf', tilt: 9 }]} />
         <div className="today-heading">
           <div className="poiem-journal-signature"><BrandLogo /><span>Your daily journal</span></div>
           <p className="today-date">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>

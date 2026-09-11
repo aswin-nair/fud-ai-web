@@ -3,6 +3,7 @@
   "devCommand": "cd app && npm run dev:cloud",
   "installCommand": "node scripts/install-with-domain.mjs",
   "outputDirectory": "app/dist",
+  "regions": ["sin1"],
   "functions": {
     "api/**/*.ts": {
       "includeFiles": "api/_runtime/**"
@@ -15,12 +16,15 @@
     { "source": "/api/auth/:action", "destination": "/api/auth?action=:action" },
     { "source": "/app/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/app/mascots/(.*)", "destination": "/mascots/$1" },
+    { "source": "/app/brand/(.*)", "destination": "/brand/$1" },
+    { "source": "/app/favicon.svg", "destination": "/favicon.svg" },
+    { "source": "/app/manifest.webmanifest", "destination": "/manifest.webmanifest" },
     { "source": "/app/appearance-init.js", "destination": "/appearance-init.js" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/app/(.*)", "destination": "/index.html" }
   ],
   "redirects": [
-    { "source": "/", "destination": "/app/login", "permanent": false }
+    { "source": "/", "destination": "/app/welcome", "permanent": false }
   ],
   "crons": [
     { "path": "/api/cron/retention", "schedule": "0 4 * * *" }

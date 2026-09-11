@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrandLogo } from './components/BrandLogo'
 import identity from './brand/identity.json'
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -33,6 +33,8 @@ import type { ReactNode } from 'react'
 import { useNavDirection } from './hooks/useNavDirection'
 import { LazyMotion, MotionConfig } from 'motion/react'
 
+const WelcomePage = lazy(() => import('./pages/WelcomePage'))
+
 /** Client-side navigation keeps the browser's scroll offset by default; land each new page at the top. */
 function ScrollToTop() {
   const { pathname, search } = useLocation()
@@ -56,6 +58,7 @@ function ScrollToTop() {
 }
 
 function routeTitle(pathname: string): string {
+  if (pathname === '/welcome') return 'Big life. Good food. Less fuss.'
   if (pathname === '/') return 'Today'
   if (pathname === '/progress') return 'Insights'
   if (pathname === '/discover' || pathname === '/log/saved') return 'Saved'
@@ -145,6 +148,7 @@ function GuestRoutes() {
       <AnchorProvider>
         <MascotOverlay />
         <Routes>
+          <Route path="/" element={<Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -208,7 +212,10 @@ function AppShell() {
           <BrowserRouter basename={routerBasename()}>
             <ScrollToTop />
             <ToastProvider>
-              <AppGate />
+              <Routes>
+                <Route path="/welcome" element={<Suspense fallback={<main><p>Opening Poiem…</p></main>}><WelcomePage /></Suspense>} />
+                <Route path="*" element={<AppGate />} />
+              </Routes>
             </ToastProvider>
           </BrowserRouter>
         </AuthProvider>
