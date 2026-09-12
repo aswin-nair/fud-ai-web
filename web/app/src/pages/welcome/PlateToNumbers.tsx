@@ -36,25 +36,29 @@ function Head({ phase }: { phase: number }) {
   )
 }
 
+/** The entry reads like a nutrition label: title and serving, heavy rules, foods, calories, then macros. */
 function EntryCard({ items, kcal, widths }: { items: ReactNode; kcal: ReactNode; widths: readonly (string | MotionValue<string>)[] }) {
   return (
     <>
-      <div className="wp-entry-bar"><span>New entry</span><span>Sample</span></div>
-      <div className="wp-p2n-entry-body">
-        <p className="wp-label">Breakfast</p>
-        <h3>{MEAL.name}</h3>
-        <ul className="wp-p2n-items">{items}</ul>
-        <div className="wp-p2n-kcal"><strong className="tabular">{kcal}</strong><span>kcal<br />estimated</span></div>
-        <ul className="wp-entry-macros">
-          {MACROS.map((macro, i) => (
-            <li key={macro.key}>
-              <span>{macro.label}</span>
-              <strong>{MEAL[macro.key]} g</strong>
-              <span className="wp-bar"><m.span style={{ width: widths[i], background: macro.tone }} /></span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <p className="wp-nl-kicker"><span>New entry</span><span>Sample</span></p>
+      <h3 className="wp-nl-title">{MEAL.name}</h3>
+      <p className="wp-nl-serving"><span>Breakfast</span><span>1 plate</span></p>
+      <span className="wp-nl-rule is-thick" aria-hidden="true" />
+      <ul className="wp-p2n-items">{items}</ul>
+      <span className="wp-nl-rule is-medium" aria-hidden="true" />
+      <p className="wp-nl-kcal"><span>Calories</span>{' '}<strong className="tabular">{kcal}</strong></p>
+      <span className="wp-nl-rule is-medium" aria-hidden="true" />
+      <ul className="wp-entry-macros">
+        {MACROS.map((macro, i) => (
+          <li key={macro.key}>
+            <span>{macro.label}</span>
+            <strong>{MEAL[macro.key]} g</strong>
+            <span className="wp-bar"><m.span style={{ width: widths[i], background: macro.tone }} /></span>
+          </li>
+        ))}
+      </ul>
+      <span className="wp-nl-rule is-thick" aria-hidden="true" />
+      <p className="wp-nl-note">Sample estimate. Edit anything before you save.</p>
     </>
   )
 }
@@ -97,6 +101,7 @@ function PinnedSequence() {
   const phoneY = useTransform(progress, [0.56, 0.8], ['120%', '0%'])
   const flash = useTransform(progress, [0.86, 0.94], [0, 1])
   const flashY = useTransform(progress, [0.86, 0.94], [18, 0])
+  const cue = useTransform(progress, [0.3, 0.5], [1, 0])
 
   return (
     <section ref={section} className="wp-p2n wp-band-ink is-pinned" id="plate-to-numbers" aria-labelledby="p2n-title">
@@ -105,7 +110,7 @@ function PinnedSequence() {
           <Head phase={phase} />
           <div className="wp-p2n-grid">
             <m.div className="wp-p2n-plate" style={{ scale: plateScale }}><PlateArt meal={MEAL.id} /></m.div>
-            <m.div className="wp-p2n-entry" style={{ x: entryX, scale: entryScale }}>
+            <m.div className="wp-p2n-entry wp-nl" style={{ x: entryX, scale: entryScale }}>
               <EntryCard
                 items={MEAL.items.map((item, i) => <MovingItem key={item.label} item={item} index={i} progress={progress} />)}
                 kcal={<m.span>{kcalText}</m.span>}
@@ -113,6 +118,7 @@ function PinnedSequence() {
               />
             </m.div>
             <m.div className="wp-p2n-phone" style={{ y: phoneY }}><PhoneScreen flash={flash} flashY={flashY} /></m.div>
+            <m.p className="wp-p2n-cue" style={{ opacity: cue }} aria-hidden="true">Keep scrolling. The entry lands in Today.</m.p>
           </div>
         </div>
       </div>
@@ -128,7 +134,7 @@ function StaticSequence() {
         <Head phase={-1} />
         <div className="wp-p2n-grid">
           <div className="wp-p2n-plate"><PlateArt meal={MEAL.id} /></div>
-          <div className="wp-p2n-entry">
+          <div className="wp-p2n-entry wp-nl">
             <EntryCard
               items={MEAL.items.map(item => <li key={item.label}><span>{item.label}</span><span className="tabular">{item.kcal} kcal</span></li>)}
               kcal={TOTAL}

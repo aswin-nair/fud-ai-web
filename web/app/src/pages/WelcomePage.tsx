@@ -7,6 +7,7 @@ import { Momo } from '../components/Momo'
 import { useAuth } from '../store/AuthContext'
 import { PlateArt } from './welcome/PlateArt'
 import { PlateToNumbers } from './welcome/PlateToNumbers'
+import { PoiemFacts } from './welcome/PoiemFacts'
 import { ScanPanel } from './welcome/ScanPanel'
 import { SectionHead } from './welcome/SectionHead'
 import { useCutNavigation } from './welcome/useCutNavigation'
@@ -18,13 +19,6 @@ const STEPS = [
   { number: '02', title: 'Check the estimate', shot: 'edit', caption: 'Fig. 03 — Edit', text: 'Every estimate is a starting point. Adjust the name, calories and macros before you save.', alt: 'Editing the calories and macros of a logged meal in Poiem' },
   { number: '03', title: 'See the pattern', shot: 'insights', caption: 'Fig. 04 — Insights', text: 'Insights show your routine over time, and breaks never reset your milestones.', alt: 'Poiem Insights with logged-day milestones' },
   { number: '04', title: 'Repeat your usuals', shot: 'saved', caption: 'Fig. 05 — Saved', text: 'Save the meals you eat often and log them again in a tap.', alt: 'Saved meals in Poiem, ready to log again' },
-] as const
-
-const PRINCIPLES = [
-  { title: 'Edit everything', text: 'AI estimates are a starting point. Change anything before you save.' },
-  { title: 'Your data, your call', text: 'Delete your account and your journal whenever you like.' },
-  { title: 'No food guilt', text: 'No scorecards. Poiem supports showing up, not hitting a perfect number.' },
-  { title: 'Log it your way', text: 'Photo, description, manual entry or a saved meal. Use whatever fits the moment.' },
 ] as const
 
 const FAQS = [
@@ -126,14 +120,16 @@ export default function WelcomePage() {
         <section className="wp-hero" aria-labelledby="welcome-title">
           <div className="wp-hero-grid">
             <div className="wp-hero-copy">
-              <p className="wp-label">[ Poiem ] Food journal — calories, macros, no guilt</p>
-              <h1 id="welcome-title" className="wp-stack"><span>A little</span>{' '}<span>tracking.</span>{' '}<span className="wp-mark">A lot of</span>{' '}<span className="wp-mark">living.</span></h1>
+              <p className="wp-meta-row"><span>Poiem — food journal</span><span>Calories · macros · no guilt</span></p>
+              <h1 id="welcome-title" className="wp-hero-title">
+                <span className="wp-hero-small">A little tracking.</span>{' '}
+                <span className="wp-hero-big"><span>A lot of</span>{' '}<span className="wp-mark">living.</span></span>
+              </h1>
               <p className="wp-hero-intro">Snap, describe or type what you ate. Poiem estimates the calories and macros, you check the numbers, and your day carries on.</p>
               <div className="wp-actions">
                 <a className="wp-btn wp-btn-primary" href={destination} onClick={onNavigate}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
                 <a className="wp-btn wp-btn-ghost" href="#plate-to-numbers">See it work<ArrowDown size={18} aria-hidden="true" /></a>
               </div>
-              <p className="wp-hero-hint">Pick a sample plate to see it read. Nothing is saved.</p>
             </div>
             <div className="wp-hero-scan"><ScanPanel /></div>
           </div>
@@ -188,28 +184,22 @@ export default function WelcomePage() {
 
         <WeekBlocks />
 
-        <section className="wp-section" id="principles" aria-labelledby="principles-title">
-          <div className="wp-wrap">
-            <SectionHead index="04" label="Principles" titleId="principles-title" title={<>Built to support.<br /><span>Not to judge.</span></>} />
-            <ul className="wp-principles">
-              {PRINCIPLES.map((item, index) => (
-                <li key={item.title} className="wp-principle">
-                  <span className="wp-principle-index">P.0{index + 1}</span>
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        <PoiemFacts />
 
         <section className="wp-section" id="faq" aria-labelledby="faq-title">
-          <div className="wp-wrap">
-            <SectionHead index="05" label="FAQ" titleId="faq-title" title={<>Good<br /><span>questions.</span></>} />
+          <div className="wp-wrap wp-faq-grid">
+            <div className="wp-faq-head">
+              <p className="wp-label">[05] FAQ</p>
+              <h2 id="faq-title">Good<br /><span>questions.</span></h2>
+            </div>
             <div className="wp-faq">
               {FAQS.map(([question, answer], index) => (
                 <details key={question}>
-                  <summary><span className="wp-faq-index">Q.0{index + 1}</span><span className="wp-faq-question">{question}</span><Plus size={22} aria-hidden="true" /></summary>
+                  <summary>
+                    <span className="wp-faq-index">Q.0{index + 1}</span>
+                    <span className="wp-faq-question">{question}</span>
+                    <span className="wp-faq-toggle" aria-hidden="true"><Plus size={20} /></span>
+                  </summary>
                   <p>{answer}</p>
                 </details>
               ))}

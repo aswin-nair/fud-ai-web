@@ -15,7 +15,7 @@ test.describe('welcome page', () => {
     for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport)
       await page.goto('/welcome')
-      await expect(page.getByRole('heading', { level: 1 })).toContainText('A little')
+      await expect(page.getByRole('heading', { level: 1 })).toContainText('A little tracking')
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
     }
 
@@ -23,7 +23,7 @@ test.describe('welcome page', () => {
     await picker.getByRole('button', { name: 'Bowl', exact: true }).click()
     await expect(picker.getByRole('button', { name: 'Bowl', exact: true })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByText('Chicken rice bowl: about 610 kcal.')).toBeAttached()
-    await expect(page.locator('.wp-scan-legend li')).toHaveCount(4)
+    await expect(page.locator('.wp-scan-tags li')).toHaveCount(4)
     expect(errors).toEqual([])
   })
 
@@ -32,7 +32,7 @@ test.describe('welcome page', () => {
     await page.goto('/welcome')
     const story = page.locator('#plate-to-numbers')
     await expect(story).toHaveClass(/is-pinned/)
-    const kcal = story.locator('.wp-p2n-kcal strong')
+    const kcal = story.locator('.wp-nl-kcal strong')
     await expect(kcal).toHaveText('0')
     await scrollPlateStoryToEnd(page)
     await expect(kcal).toHaveText('380')
@@ -45,9 +45,10 @@ test.describe('welcome page', () => {
     await page.goto('/welcome')
     const story = page.locator('#plate-to-numbers')
     await expect(story).toHaveClass(/is-static/)
-    await expect(story.locator('.wp-p2n-kcal strong')).toHaveText('380')
+    await expect(story.locator('.wp-nl-kcal strong')).toHaveText('380')
     await expect(page.locator('#week .wp-week')).toHaveClass(/is-playing/)
     await expect(page.locator('#week')).toContainText('Average kcal on logged days')
+    await expect(page.getByRole('figure', { name: 'Poiem Facts' })).toContainText('Food guilt')
   })
 
   test('starting a journal leads to sign up', async ({ page }) => {
