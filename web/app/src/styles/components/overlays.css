@@ -4,7 +4,9 @@
 .celebrate-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  /* A modal: above toasts (1000), so a lingering "Logged … Undo" toast never
+     covers Continue, and below the level-up (5000) and splash (6000) screens. */
+  z-index: 1100;
   display: flex;
   align-items: center;
   justify-content: center;

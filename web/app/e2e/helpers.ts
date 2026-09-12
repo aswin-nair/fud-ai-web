@@ -8,12 +8,16 @@ export function uniqueEmail(): string {
 export async function settlePageLayout(page: Page): Promise<void> {
   await page.evaluate(async () => {
     await document.fonts.ready
+    // A paused animation never resolves `finished`, so wait only on running ones, and never
+    // longer than a few seconds: entrances are short, and a stuck wait hides the real assertion.
     const entrances = document.getAnimations().filter(animation => {
       const effect = animation.effect
-      return effect instanceof KeyframeEffect && effect.target instanceof Element
+      return animation.playState === 'running'
+        && effect instanceof KeyframeEffect && effect.target instanceof Element
         && effect.target.closest('.app-shell') && Number.isFinite(effect.getComputedTiming().endTime)
     })
-    await Promise.all(entrances.map(animation => animation.finished.catch(() => undefined)))
+    const settled = Promise.all(entrances.map(animation => animation.finished.catch(() => undefined)))
+    await Promise.race([settled, new Promise(resolve => setTimeout(resolve, 5_000))])
   })
 }
 

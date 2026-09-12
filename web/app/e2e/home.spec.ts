@@ -126,5 +126,16 @@ test.describe('Home & food logging', () => {
     await expect(celebration).toContainText('Toast Test Meal')
     await expect(celebration).toContainText('XP revealed')
     await expect(celebration.getByRole('button', { name: 'Continue' })).toBeVisible()
+
+    // The previous meal's "Logged … Undo" toast lasts 10 seconds. The celebration is a full-screen
+    // modal, so it must cover that toast; otherwise the toast can end up on top of Continue.
+    const toast = page.locator('.toast').first()
+    await expect(toast).toBeVisible()
+    const toastIsCovered = await toast.evaluate(element => {
+      const rect = element.getBoundingClientRect()
+      const topmost = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+      return Boolean(topmost?.closest('[role="dialog"][aria-label="Meal logged"]'))
+    })
+    expect(toastIsCovered).toBe(true)
   })
 })
