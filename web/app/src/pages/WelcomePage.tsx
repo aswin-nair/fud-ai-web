@@ -1,48 +1,53 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDown, ArrowUpRight, Check, Cookie, Globe, HeartHandshake, MessageSquare, PencilLine, Plus, ShieldCheck, Sparkles, Utensils } from 'lucide-react'
-import * as m from 'motion/react-m'
-import { useInView, useReducedMotion } from 'motion/react'
+import { ArrowDown, ArrowRight, Check, Plus } from 'lucide-react'
 import { AppearanceToggle } from '../components/AppearanceToggle'
 import { BrandLogo } from '../components/BrandLogo'
 import { Momo } from '../components/Momo'
-import { PosterSticker } from '../components/PosterPrimitives'
 import { useCountUp } from '../hooks/useCountUp'
 import { useAuth } from '../store/AuthContext'
 import '../styles/welcome-poster.css'
 
-const MEALS = [
-  { name: 'Avocado toast', detail: 'Toast + avocado + egg', kcal: 380, protein: 15, carbs: 34, fat: 20, food: 'egg', reaction: 'happy', note: 'Toast with the most. A very strong opening act.' },
-  { name: 'Pizza night', detail: 'Two slices of veggie pizza', kcal: 520, protein: 22, carbs: 62, fat: 20, food: 'pizza', reaction: 'wink', note: 'A slice of life. Actually, two. Excellent plot twist.' },
-  { name: 'Cookie break', detail: 'One chocolate-chip cookie', kcal: 210, protein: 3, carbs: 30, fat: 9, food: 'cookie', reaction: 'caught_snacking', note: 'The cookie has entered the chat. I support this storyline.' },
+const STATS = [
+  { value: '03', label: 'Ways to log', note: 'Photo, text or manual' },
+  { value: '100%', label: 'Editable', note: 'Every estimate, before you save' },
+  { value: '00', label: 'Streak shame', note: 'Breaks never reset milestones' },
 ] as const
 
-/** Grams that fill a macro bar on the sample receipt. */
-const MACRO_SCALE = 70
-const MACROS = [
-  { label: 'Protein', key: 'protein', color: '#bce6c4' },
-  { label: 'Carbs', key: 'carbs', color: '#e7f258' },
-  { label: 'Fat', key: 'fat', color: '#ff8055' },
-] as const
+const TICKER = ['Photo logging', 'Describe a meal', 'Manual entry', 'Calories + macros', 'Saved meals', 'Insights'] as const
 
 const STEPS = [
-  { number: '01', title: 'SNAP IT.', label: 'SNAP, SAY OR TYPE', shot: 'log', text: 'Take a photo or describe your meal. Prefer the details? Enter it yourself.', alt: 'The Poiem log screen with photo, describe and manual entry options' },
-  { number: '02', title: 'MAKE IT YOURS.', label: 'YOUR CALL', shot: 'edit', text: 'Every estimate is a starting point. Adjust the details before they go in your journal.', alt: 'Editing a logged meal in Poiem' },
-  { number: '03', title: 'SEE THE STORY.', label: 'THE BIG PICTURE', shot: 'insights', text: 'Look back at your days and spot the patterns that matter to you.', alt: 'Poiem Insights showing calories and macros over time' },
-  { number: '04', title: 'SAVE YOUR USUALS.', label: 'ON REPEAT', shot: 'saved', text: 'Favourite the meals you have on repeat, then log them again with a tap.', alt: 'Saved meals in Poiem, ready to log again' },
+  { number: '01', title: 'Snap or describe', shot: 'log', caption: 'Fig. 02 — Log', text: 'Take a photo, describe what you ate, or enter the numbers yourself.', alt: 'The Poiem log screen with photo, describe and manual entry options' },
+  { number: '02', title: 'Check the estimate', shot: 'edit', caption: 'Fig. 03 — Edit', text: 'Every estimate is a starting point. Adjust the name, calories and macros before you save.', alt: 'Editing the calories and macros of a logged meal in Poiem' },
+  { number: '03', title: 'See the pattern', shot: 'insights', caption: 'Fig. 04 — Insights', text: 'Insights show your routine over time, and breaks never reset your milestones.', alt: 'Poiem Insights with logged-day milestones' },
+  { number: '04', title: 'Repeat your usuals', shot: 'saved', caption: 'Fig. 05 — Saved', text: 'Save the meals you eat often and log them again in a tap.', alt: 'Saved meals in Poiem, ready to log again' },
 ] as const
 
-const PROMISES = [
-  { Icon: PencilLine, title: 'EDIT EVERY ESTIMATE.', text: 'AI numbers are a starting point. Change anything before you save.' },
-  { Icon: ShieldCheck, title: 'YOUR DATA, YOUR CALL.', text: 'Delete your account and your journal whenever you like.' },
-  { Icon: HeartHandshake, title: 'NO FOOD GUILT.', text: 'Poiem cheers for showing up, not for hitting a perfect number.' },
-  { Icon: Globe, title: 'NOTHING TO INSTALL.', text: 'Open Poiem in the browser on your phone, tablet or laptop.' },
+const MEALS = [
+  { name: 'Avocado toast', detail: 'Sourdough, avocado, egg', kcal: 380, protein: 15, carbs: 34, fat: 20 },
+  { name: 'Chicken rice bowl', detail: 'Chicken, rice, greens', kcal: 610, protein: 38, carbs: 72, fat: 16 },
+  { name: 'Veggie pizza', detail: 'Two slices', kcal: 520, protein: 22, carbs: 62, fat: 20 },
+] as const
+
+/** Grams that fill a macro bar on the sample entry. */
+const MACRO_SCALE = 80
+const MACROS = [
+  { label: 'Protein', key: 'protein', tone: 'var(--wp-accent)' },
+  { label: 'Carbs', key: 'carbs', tone: 'var(--wp-hot)' },
+  { label: 'Fat', key: 'fat', tone: 'var(--wp-fg)' },
+] as const
+
+const PRINCIPLES = [
+  { title: 'Edit everything', text: 'AI estimates are a starting point. Change anything before you save.' },
+  { title: 'Your data, your call', text: 'Delete your account and your journal whenever you like.' },
+  { title: 'No food guilt', text: 'No scorecards. Poiem supports showing up, not hitting a perfect number.' },
+  { title: 'Log it your way', text: 'Photo, description, manual entry or a saved meal. Use whatever fits the moment.' },
 ] as const
 
 const FAQS = [
   ['Do I have to log every single bite?', 'No. Poiem is a journal, not a rulebook. Use it at a pace that helps you, and come back whenever you want.'],
-  ['Are the AI numbers exact?', 'No. Photo and text analysis produce estimates, and portions matter. Always review and adjust the entry before saving. You can also log food manually.'],
-  ['Can I use Google to sign up?', 'Yes. Choose Get started, then Sign up with Google. Email signup is available too. You will set up your profile after signing in.'],
+  ['Are the AI numbers exact?', 'No. Photo and text analysis produce estimates, and portions matter. Review and adjust entries before saving, or log food manually.'],
+  ['Can I sign up with Google?', 'Yes. Choose Start your journal, then continue with Google. Email signup is available too. You set up your profile after signing in.'],
   ['Is this medical advice?', 'No. Poiem is a food-tracking tool for adults, not a medical service. For personal nutrition or medical advice, speak with a qualified professional.'],
 ] as const
 
@@ -54,11 +59,22 @@ function screenUrl(name: string): string {
   return `${import.meta.env.BASE_URL}showcase/${name}.jpg`
 }
 
-function PhoneShot({ name, alt, eager = false }: { name: string; alt: string; eager?: boolean }) {
+function Figure({ shot, caption, alt, eager = false }: { shot: string; caption: string; alt: string; eager?: boolean }) {
   return (
-    <figure className="wp-phone">
-      <img src={screenUrl(name)} alt={alt} width={390} height={844} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+    <figure className="wp-figure">
+      <figcaption className="wp-figure-bar"><span>{caption}</span><span>App screen</span></figcaption>
+      <img src={screenUrl(shot)} alt={alt} width={390} height={844} loading={eager ? 'eager' : 'lazy'} decoding="async" />
     </figure>
+  )
+}
+
+function SectionHead({ index, label, titleId, title, note }: { index: string; label: string; titleId: string; title: ReactNode; note?: string }) {
+  return (
+    <header className="wp-head">
+      <p className="wp-label">[{index}] {label}</p>
+      <h2 id={titleId}>{title}</h2>
+      {note && <p className="wp-head-note">{note}</p>}
+    </header>
   )
 }
 
@@ -84,7 +100,7 @@ function useCondensedHeader(): boolean {
   return condensed
 }
 
-/** The step nearest the middle of the viewport drives the pinned phone. */
+/** The step nearest the middle of the viewport drives the pinned screen. */
 function useActiveStep() {
   const [active, setActive] = useState(0)
   const steps = useRef<(HTMLElement | null)[]>([])
@@ -103,253 +119,225 @@ function useActiveStep() {
 
 export default function WelcomePage() {
   const { user } = useAuth()
-  const reduced = useReducedMotion()
   const condensed = useCondensedHeader()
   const { active, steps } = useActiveStep()
   const [mealIndex, setMealIndex] = useState(0)
   const meal = MEALS[mealIndex]
-  const kcal = useCountUp(meal.kcal, 700)
-  const demoStage = useRef<HTMLDivElement>(null)
-  const demoInView = useInView(demoStage, { once: true, amount: 0.35 })
-  const finale = useRef<HTMLElement>(null)
-  const finaleInView = useInView(finale, { once: true, amount: 0.4 })
+  const kcal = useCountUp(meal.kcal, 600)
   const home = import.meta.env.PROD ? '/' : '/welcome'
   const destination = user ? productPath('/') : productPath('/login?mode=signup')
   const signInDestination = user ? productPath('/') : productPath('/login?mode=signin')
-  const cta = user ? 'Open my journal' : 'Get started'
+  const cta = user ? 'Open my journal' : 'Start your journal'
 
   return (
     <div className="welcome-poster">
       <a className="wp-skip" href="#welcome-content">Skip to content</a>
       <header className={`wp-header${condensed ? ' is-condensed' : ''}`}>
-        <div className="wp-nav">
-          <Link to={home} aria-label="Poiem home"><BrandLogo /></Link>
-          <nav aria-label="Main navigation">
+        <div className="wp-header-inner">
+          <Link className="wp-brand" to={home} aria-label="Poiem home"><BrandLogo /></Link>
+          <nav className="wp-nav-links" aria-label="Main navigation">
             <a href="#how-it-works">How it works</a>
             <a href="#try-it">Try it</a>
-            <a href="#meet-momo">Meet Momo</a>
+            <a href="#principles">Principles</a>
             <a href="#faq">FAQ</a>
           </nav>
-          <div className="wp-nav-actions">
+          <div className="wp-header-actions">
             <AppearanceToggle />
-            {!user && <a className="wp-signin" href={signInDestination}>Sign in</a>}
-            <a className="wp-button wp-nav-cta" href={destination}>{user ? 'My journal' : 'Get started'}<ArrowUpRight size={18} /></a>
+            {!user && <a className="wp-header-link" href={signInDestination}>Sign in</a>}
+            <a className="wp-btn wp-btn-primary wp-btn-sm" href={destination}>{user ? 'My journal' : 'Start'}<ArrowRight size={16} aria-hidden="true" /></a>
           </div>
         </div>
       </header>
 
       <main id="welcome-content">
         <section className="wp-hero" aria-labelledby="welcome-title">
-          <div className="wp-hero-copy">
-            <p className="wp-eyebrow"><span /> A FOOD JOURNAL WITH PERSONALITY</p>
-            <h1 id="welcome-title">BIG LIFE.<br />GOOD FOOD.<br /><span>LESS FUSS.</span></h1>
-            <p className="wp-intro">Eat the food. Log the moment. Get to know your calories and macros—with a little help from AI and a very opinionated dumpling.</p>
-            <div className="wp-hero-actions">
-              <a className="wp-button" href={destination}>{cta}<ArrowUpRight /></a>
-              <a className="wp-text-link" href="#how-it-works">See how it works <ArrowDown size={18} /></a>
+          <div className="wp-hero-grid">
+            <div className="wp-hero-copy">
+              <p className="wp-label">[ Poiem ] Food journal — calories, macros, no guilt</p>
+              <h1 id="welcome-title" className="wp-stack"><span>A little</span>{' '}<span>tracking.</span>{' '}<span className="wp-mark">A lot of</span>{' '}<span className="wp-mark">living.</span></h1>
+              <p className="wp-hero-intro">Log a meal by photo, description or the numbers. Check the estimate, see your calories and macros clearly, and get back to your day.</p>
+              <div className="wp-actions">
+                <a className="wp-btn wp-btn-primary" href={destination}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
+                <a className="wp-btn wp-btn-ghost" href="#how-it-works">See how it works<ArrowDown size={18} aria-hidden="true" /></a>
+              </div>
+              <ul className="wp-stats">
+                {STATS.map(stat => (
+                  <li className="wp-stat" key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span><small>{stat.note}</small></li>
+                ))}
+              </ul>
             </div>
-            <ul className="wp-hero-points" aria-label="Why Poiem">
-              <li><Check aria-hidden="true" /> Google or email signup</li>
-              <li><Check aria-hidden="true" /> Edit every estimate</li>
-              <li><Check aria-hidden="true" /> No food guilt</li>
-            </ul>
-          </div>
-          <div className="wp-collage">
-            <div className="wp-grid-paper" aria-hidden="true" />
-            <div className="wp-big-circle" aria-hidden="true" />
-            <m.div className="wp-momo" aria-hidden="true" whileHover={reduced ? undefined : { rotate: -5, y: -8 }} transition={{ type: 'spring', stiffness: 230, damping: 17 }}>
-              <Momo expression="proud" pose={reduced ? 'still' : 'wave_at_user'} />
-            </m.div>
-            <span className="wp-speech" aria-hidden="true">Your lunch called.<br />It wants a fan club.</span>
-            <m.div
-              className="wp-hero-phone"
-              initial={reduced ? false : { y: 48, rotate: -14, opacity: 0 }}
-              animate={{ y: 0, rotate: -7, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 140, damping: 18, delay: 0.15 }}
-            >
-              <PhoneShot name="today" alt="Poiem’s Today screen with a day of logged meals, calories and macros" eager />
-            </m.div>
-            <PosterSticker food="pizza" tone="coral" className="wp-pizza" tilt={12} />
-            <PosterSticker food="cherry" tone="rose" className="wp-cherry" tilt={-14} />
-            <span className="wp-orbit-label" aria-hidden="true">SMALL LOGS. BIG PICTURE.</span>
+            <div className="wp-hero-figure">
+              <Figure shot="today" caption="Fig. 01 — Today" alt="Poiem’s Today screen with logged meals, calories left and macros" eager />
+            </div>
           </div>
         </section>
 
-        <div className="wp-marquee">
-          <p className="sr-only">Eat. Log. Live. All foods welcome.</p>
-          <div className="wp-marquee-track" aria-hidden="true">
+        <div className="wp-ticker">
+          <p className="sr-only">Photo logging, describe a meal, manual entry, calories and macros, saved meals, insights.</p>
+          <div className="wp-ticker-track" aria-hidden="true">
             {[0, 1].map(copy => (
-              <div className="wp-marquee-group" key={copy}>
-                <span>EAT.</span><Sparkles /><span>LOG.</span><Sparkles /><span>LIVE.</span><Sparkles /><span>ALL FOODS WELCOME.</span><Utensils />
-              </div>
+              <div className="wp-ticker-group" key={copy}>{TICKER.map(item => <span key={item}>{item}</span>)}</div>
             ))}
           </div>
         </div>
 
-        <section className="wp-story wp-section" id="how-it-works" aria-labelledby="how-title">
-          <div className="wp-section-heading">
-            <div>
-              <p className="wp-eyebrow">01 / THE NOT-SO-SECRET RECIPE</p>
-              <h2 id="how-title">LESS TAPPING.<br />MORE <span>LIVING.</span></h2>
+        <section className="wp-section" id="how-it-works" aria-labelledby="how-title">
+          <div className="wp-wrap">
+            <SectionHead index="01" label="How it works" titleId="how-title" title={<>Four steps.<br /><span>Zero homework.</span></>} note="Real screens from the Poiem app" />
+            <div className="wp-steps-grid">
+              <ol className="wp-steps">
+                {STEPS.map((step, index) => (
+                  <li
+                    key={step.number}
+                    ref={element => { steps.current[index] = element }}
+                    data-step={index}
+                    className={`wp-step${index === active ? ' is-active' : ''}`}
+                  >
+                    <span className="wp-step-num">{step.number}</span>
+                    <div className="wp-step-body">
+                      <h3>{step.title}</h3>
+                      <p>{step.text}</p>
+                      <div className="wp-step-figure"><Figure shot={step.shot} caption={step.caption} alt={step.alt} /></div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <div className="wp-steps-stage">
+                <figure className="wp-figure">
+                  <figcaption className="wp-figure-bar"><span>{STEPS[active].caption}</span><span>App screen</span></figcaption>
+                  <div className="wp-stage-screens">
+                    {STEPS.map((step, index) => (
+                      <img
+                        key={step.shot}
+                        src={screenUrl(step.shot)}
+                        alt={index === active ? step.alt : ''}
+                        aria-hidden={index !== active}
+                        data-active={index === active}
+                        width={390}
+                        height={844}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ))}
+                  </div>
+                </figure>
+              </div>
             </div>
-            <p>Real screens from the Poiem app.<br />Four steps. Zero homework.</p>
           </div>
-          <div className="wp-story-layout">
-            <ol className="wp-story-steps">
-              {STEPS.map((step, index) => (
-                <li
-                  key={step.number}
-                  ref={element => { steps.current[index] = element }}
-                  data-step={index}
-                  className={`wp-story-step${index === active ? ' is-active' : ''}`}
-                >
-                  <span className="wp-step-number">{step.number}</span>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                  <PhoneShot name={step.shot} alt={step.alt} />
+        </section>
+
+        <section className="wp-section wp-band-acid" id="try-it" aria-labelledby="demo-title">
+          <div className="wp-wrap">
+            <SectionHead index="02" label="Try it" titleId="demo-title" title={<>Pick a meal.<br /><span>Read the numbers.</span></>} note="Sample data. Nothing is saved" />
+            <div className="wp-demo">
+              <div className="wp-demo-picker" role="group" aria-label="Choose a sample meal">
+                {MEALS.map((item, index) => (
+                  <button key={item.name} type="button" className="wp-meal" aria-pressed={index === mealIndex} onClick={() => setMealIndex(index)}>
+                    <span className="wp-meal-index">0{index + 1}</span>
+                    <span className="wp-meal-name">{item.name}<small>{item.detail}</small></span>
+                    <span className="wp-meal-kcal">{item.kcal} kcal</span>
+                  </button>
+                ))}
+                <p className="wp-demo-note">Estimates vary with portion size. You can adjust any entry in Poiem.</p>
+              </div>
+              <div className="wp-entry">
+                <p className="sr-only" aria-live="polite" aria-atomic="true">{`${meal.name}: about ${meal.kcal} kcal, ${meal.protein} g protein, ${meal.carbs} g carbs, ${meal.fat} g fat.`}</p>
+                <div className="wp-entry-bar" aria-hidden="true"><span>Sample entry</span><span>No. 00{mealIndex + 1}</span></div>
+                <div className="wp-entry-body" aria-hidden="true">
+                  <p className="wp-label">{meal.detail}</p>
+                  <h3>{meal.name}</h3>
+                  <div className="wp-entry-kcal"><strong className="tabular">{kcal}</strong><span>kcal<br />estimated</span></div>
+                  <ul className="wp-entry-macros">
+                    {MACROS.map(({ label, key, tone }) => (
+                      <li key={key}>
+                        <span>{label}</span>
+                        <strong>{meal[key]} g</strong>
+                        <span className="wp-bar">
+                          <span key={meal.name} style={{ '--wp-fill': `${Math.min(100, Math.round((meal[key] / MACRO_SCALE) * 100))}%`, '--wp-bar-tone': tone } as CSSProperties} />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="wp-entry-foot" aria-hidden="true"><span><Check size={14} /> Ready to log</span><span>Editable</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="wp-section" id="principles" aria-labelledby="principles-title">
+          <div className="wp-wrap">
+            <SectionHead index="03" label="Principles" titleId="principles-title" title={<>Built to support.<br /><span>Not to judge.</span></>} />
+            <ul className="wp-principles">
+              {PRINCIPLES.map((item, index) => (
+                <li key={item.title} className="wp-principle">
+                  <span className="wp-principle-index">P.0{index + 1}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
                 </li>
               ))}
-            </ol>
-            <div className="wp-story-stage">
-              <span className="wp-story-sticker" aria-hidden="true">{STEPS[active].label}</span>
-              <figure className="wp-phone">
-                <div className="wp-story-screens">
-                  {STEPS.map((step, index) => (
-                    <img
-                      key={step.shot}
-                      src={screenUrl(step.shot)}
-                      alt={index === active ? step.alt : ''}
-                      aria-hidden={index !== active}
-                      data-active={index === active}
-                      width={390}
-                      height={844}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ))}
-                </div>
-              </figure>
+            </ul>
+          </div>
+        </section>
+
+        <section className="wp-section wp-band-hot" id="momo" aria-labelledby="momo-title">
+          <div className="wp-wrap wp-companion">
+            <div className="wp-companion-art" aria-hidden="true"><Momo expression="proud" pose="still" /></div>
+            <div className="wp-companion-copy">
+              <p className="wp-label">[04] Companion</p>
+              <h2 id="momo-title">Meet Momo.</h2>
+              <p>An optional companion that notices the small wins and keeps logging from feeling like a chore.</p>
+              <p className="wp-companion-note">Prefer just the numbers? Turn Momo down or off in Settings.</p>
             </div>
           </div>
         </section>
 
-        <section className="wp-demo wp-section" id="try-it" aria-labelledby="demo-title">
-          <div className="wp-section-copy">
-            <p className="wp-eyebrow">02 / A TASTE OF POIEM</p>
-            <h2 id="demo-title">YOUR PLATE.<br /><span>THE PLOT.</span></h2>
-            <p>Meals are more than numbers. But a few useful numbers can help you see the whole story.</p>
-            <p>Pick a meal. Watch it land in your journal.</p>
-            <div className="wp-meal-picker" role="group" aria-label="Preview a sample meal">
-              {MEALS.map((item, index) => (
-                <button key={item.name} type="button" aria-pressed={index === mealIndex} onClick={() => setMealIndex(index)}>{item.name}<ArrowUpRight size={16} /></button>
+        <section className="wp-section" id="faq" aria-labelledby="faq-title">
+          <div className="wp-wrap">
+            <SectionHead index="05" label="FAQ" titleId="faq-title" title={<>Good<br /><span>questions.</span></>} />
+            <div className="wp-faq">
+              {FAQS.map(([question, answer], index) => (
+                <details key={question}>
+                  <summary><span className="wp-faq-index">Q.0{index + 1}</span><span className="wp-faq-question">{question}</span><Plus size={22} aria-hidden="true" /></summary>
+                  <p>{answer}</p>
+                </details>
               ))}
             </div>
-            <p className="wp-fine">Interactive example, not an AI analysis. Actual portions and estimates vary. Nothing here is saved.</p>
-          </div>
-          <div className="wp-demo-stage" ref={demoStage}>
-            <p className="sr-only" aria-live="polite" aria-atomic="true">{`${meal.name}: about ${meal.kcal} kcal, ${meal.protein} g protein, ${meal.carbs} g carbs, ${meal.fat} g fat.`}</p>
-            <m.div
-              key={meal.name}
-              className="wp-receipt"
-              aria-hidden="true"
-              initial={reduced ? false : { y: -18, rotate: -1, opacity: 0.4 }}
-              animate={{ y: 0, rotate: 2, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-            >
-              <div className="wp-receipt-top"><BrandLogo /><span>SAMPLE ENTRY<br />NO. 00{mealIndex + 1}</span></div>
-              <div className="wp-receipt-food"><PosterSticker food={meal.food} tone="citron" tilt={-5} /><span>ON THE MENU</span><h3>{meal.name}</h3><p>{meal.detail}</p></div>
-              <div className="wp-calories"><strong className="tabular">{kcal}</strong><span>ESTIMATED<br />KCAL</span><Check /></div>
-              <dl className="wp-macros">
-                {MACROS.map(({ label, key, color }) => (
-                  <div key={key}>
-                    <dt>{label}</dt>
-                    <dd>
-                      {meal[key]}g
-                      <span className="wp-macro-bar" style={{ '--wp-fill': `${Math.min(100, Math.round((meal[key] / MACRO_SCALE) * 100))}%`, '--wp-bar': color } as CSSProperties}><span /></span>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="wp-receipt-note"><Sparkles size={18} />{meal.note}</p>
-              <div className="wp-barcode" />
-              <p className="wp-receipt-end">NOT A SCORECARD. JUST YOUR STORY.</p>
-            </m.div>
-            <span className="wp-demo-stamp" aria-hidden="true">OH, THAT’S<br />MY LUNCH.</span>
-            <m.div
-              className="wp-demo-momo"
-              aria-hidden="true"
-              initial={reduced ? false : { y: 80, opacity: 0 }}
-              animate={demoInView ? { y: 0, opacity: 1 } : undefined}
-              transition={{ type: 'spring', stiffness: 200, damping: 16, delay: 0.2 }}
-            >
-              <Momo key={meal.name} expression={meal.reaction} pose={reduced ? 'still' : 'happy_hop'} />
-            </m.div>
           </div>
         </section>
 
-        <section className="wp-momo-section wp-section" id="meet-momo" aria-labelledby="momo-title">
-          <div className="wp-momo-portrait">
-            <span className="wp-eyebrow">CHIEF ENCOURAGEMENT OFFICER</span>
-            <Momo expression="caught_snacking" pose={reduced ? 'still' : 'tiny_dance'} />
-            <span className="wp-name-tag">HELLO, I’M MOMO.</span>
-          </div>
-          <div className="wp-section-copy">
-            <p className="wp-eyebrow">03 / MEET YOUR HYPE DUMPLING</p>
-            <h2 id="momo-title">A LITTLE SASS.<br /><span>ZERO SHAME.</span></h2>
-            <p>Momo celebrates the little wins, brings the occasional terrible joke, and keeps your journal from feeling like homework.</p>
-            <blockquote>“I’m technically a snack. My qualifications are impeccable.”</blockquote>
-            <p className="wp-momo-controls"><MessageSquare size={18} /> Here for the numbers? Quiet Momo down or hide the mascot in settings.</p>
-          </div>
-        </section>
-
-        <section className="wp-trust wp-section" aria-labelledby="trust-title">
-          <div className="wp-section-heading">
-            <div>
-              <p className="wp-eyebrow">04 / THE FINE PRINT, IN BIG LETTERS</p>
-              <h2 id="trust-title">KIND BY<br /><span>DESIGN.</span></h2>
+        <section className="wp-section wp-band-ink wp-final" aria-labelledby="final-title">
+          <div className="wp-wrap">
+            <p className="wp-label">[06] Start</p>
+            <h2 id="final-title" className="wp-stack"><span>Your journal is</span>{' '}<span className="wp-mark">one meal away.</span></h2>
+            <div className="wp-actions">
+              <a className="wp-btn wp-btn-primary" href={destination}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
+              {!user && <a className="wp-btn wp-btn-ghost" href={signInDestination}>I have an account</a>}
             </div>
-            <p>A journal should make eating feel lighter,<br />not heavier.</p>
           </div>
-          <ul className="wp-trust-grid">
-            {PROMISES.map(({ Icon, title, text }) => (
-              <li key={title} className="wp-promise"><Icon aria-hidden="true" strokeWidth={2.2} /><h3>{title}</h3><p>{text}</p></li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="wp-faq wp-section" id="faq" aria-labelledby="faq-title">
-          <div>
-            <p className="wp-eyebrow">THE SIDE DISH</p>
-            <h2 id="faq-title">GOOD<br />QUESTIONS.</h2>
-            <Cookie size={60} strokeWidth={1.8} aria-hidden="true" />
-          </div>
-          <div className="wp-questions">
-            {FAQS.map(([question, answer]) => <details key={question}><summary>{question}<Plus size={22} aria-hidden="true" /></summary><p>{answer}</p></details>)}
-          </div>
-        </section>
-
-        <section className="wp-finale" ref={finale} aria-labelledby="finale-title">
-          <div className="wp-finale-momo" aria-hidden="true">
-            <Momo expression={finaleInView ? 'confetti' : 'happy'} pose={reduced ? 'still' : finaleInView ? 'celebrate_small' : 'idle_breathe'} />
-          </div>
-          <p className="wp-eyebrow">YOUR NEXT CHAPTER STARTS WITH A BITE.</p>
-          <h2 id="finale-title">GO ON.<br /><span>MAKE A MEAL OF IT.</span></h2>
-          <a className="wp-button" href={destination}>{cta}<ArrowUpRight /></a>
-          <span className="wp-finale-sticker" aria-hidden="true"><PosterSticker food="croissant" tone="rose" tilt={14} /></span>
         </section>
       </main>
 
       <footer className="wp-footer">
-        <BrandLogo />
-        <p>Made for messy, delicious, real life.</p>
-        <nav aria-label="Footer">
-          {/* About and Support live inside the signed-in app; guests would only be redirected. */}
-          {user && <a href={productPath('/about')}>About</a>}
-          {user && <a href={productPath('/support')}>Support</a>}
-          <a href={signInDestination}>{user ? 'My journal' : 'Sign in'}</a>
-          <a href="#welcome-content">Back to the top <ArrowUpRight size={16} /></a>
-        </nav>
-        <small>© {new Date().getFullYear()} Poiem · A food journal for adults, not medical advice.</small>
+        <div className="wp-footer-grid">
+          <div className="wp-footer-brand"><BrandLogo /><p>A little tracking. A lot of living.</p></div>
+          <nav aria-label="Product">
+            <p className="wp-label">Product</p>
+            <a href="#how-it-works">How it works</a>
+            <a href="#try-it">Try it</a>
+            <a href="#principles">Principles</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <nav aria-label="Account">
+            <p className="wp-label">Account</p>
+            <a href={destination}>{cta}</a>
+            {!user && <a href={signInDestination}>Sign in</a>}
+            {/* About and Support live inside the signed-in app; guests would only be redirected. */}
+            {user && <a href={productPath('/about')}>About</a>}
+            {user && <a href={productPath('/support')}>Support</a>}
+          </nav>
+        </div>
+        <p className="wp-footer-legal">© {new Date().getFullYear()} Poiem — A food journal for adults. Not medical advice.</p>
       </footer>
     </div>
   )

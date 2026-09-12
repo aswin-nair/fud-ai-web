@@ -39,7 +39,7 @@ const WelcomePage = lazy(() => import('./pages/WelcomePage'))
 function ScrollToTop() {
   const { pathname, search } = useLocation()
   useEffect(() => {
-    const title = isWelcomeSurface(pathname) ? 'Big life. Good food. Less fuss.'
+    const title = isWelcomeSurface(pathname) ? 'A little tracking. A lot of living.'
       : pathname === '/login' && new URLSearchParams(search).get('mode') === 'signup' ? 'Sign up'
         : routeTitle(pathname)
     document.title = `${title} · ${identity.name}`
