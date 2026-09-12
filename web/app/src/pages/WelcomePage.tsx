@@ -1,40 +1,23 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDown, ArrowRight, Check, Plus } from 'lucide-react'
+import { ArrowDown, ArrowRight, Plus } from 'lucide-react'
 import { AppearanceToggle } from '../components/AppearanceToggle'
 import { BrandLogo } from '../components/BrandLogo'
 import { Momo } from '../components/Momo'
-import { useCountUp } from '../hooks/useCountUp'
 import { useAuth } from '../store/AuthContext'
+import { PlateArt } from './welcome/PlateArt'
+import { PlateToNumbers } from './welcome/PlateToNumbers'
+import { ScanPanel } from './welcome/ScanPanel'
+import { SectionHead } from './welcome/SectionHead'
+import { useCutNavigation } from './welcome/useCutNavigation'
+import { WeekBlocks } from './welcome/WeekBlocks'
 import '../styles/welcome-poster.css'
-
-const STATS = [
-  { value: '03', label: 'Ways to log', note: 'Photo, text or manual' },
-  { value: '100%', label: 'Editable', note: 'Every estimate, before you save' },
-  { value: '00', label: 'Streak shame', note: 'Breaks never reset milestones' },
-] as const
-
-const TICKER = ['Photo logging', 'Describe a meal', 'Manual entry', 'Calories + macros', 'Saved meals', 'Insights'] as const
 
 const STEPS = [
   { number: '01', title: 'Snap or describe', shot: 'log', caption: 'Fig. 02 — Log', text: 'Take a photo, describe what you ate, or enter the numbers yourself.', alt: 'The Poiem log screen with photo, describe and manual entry options' },
   { number: '02', title: 'Check the estimate', shot: 'edit', caption: 'Fig. 03 — Edit', text: 'Every estimate is a starting point. Adjust the name, calories and macros before you save.', alt: 'Editing the calories and macros of a logged meal in Poiem' },
   { number: '03', title: 'See the pattern', shot: 'insights', caption: 'Fig. 04 — Insights', text: 'Insights show your routine over time, and breaks never reset your milestones.', alt: 'Poiem Insights with logged-day milestones' },
   { number: '04', title: 'Repeat your usuals', shot: 'saved', caption: 'Fig. 05 — Saved', text: 'Save the meals you eat often and log them again in a tap.', alt: 'Saved meals in Poiem, ready to log again' },
-] as const
-
-const MEALS = [
-  { name: 'Avocado toast', detail: 'Sourdough, avocado, egg', kcal: 380, protein: 15, carbs: 34, fat: 20 },
-  { name: 'Chicken rice bowl', detail: 'Chicken, rice, greens', kcal: 610, protein: 38, carbs: 72, fat: 16 },
-  { name: 'Veggie pizza', detail: 'Two slices', kcal: 520, protein: 22, carbs: 62, fat: 20 },
-] as const
-
-/** Grams that fill a macro bar on the sample entry. */
-const MACRO_SCALE = 80
-const MACROS = [
-  { label: 'Protein', key: 'protein', tone: 'var(--wp-accent)' },
-  { label: 'Carbs', key: 'carbs', tone: 'var(--wp-hot)' },
-  { label: 'Fat', key: 'fat', tone: 'var(--wp-fg)' },
 ] as const
 
 const PRINCIPLES = [
@@ -59,22 +42,12 @@ function screenUrl(name: string): string {
   return `${import.meta.env.BASE_URL}showcase/${name}.jpg`
 }
 
-function Figure({ shot, caption, alt, eager = false }: { shot: string; caption: string; alt: string; eager?: boolean }) {
+function Figure({ shot, caption, alt }: { shot: string; caption: string; alt: string }) {
   return (
     <figure className="wp-figure">
       <figcaption className="wp-figure-bar"><span>{caption}</span><span>App screen</span></figcaption>
-      <img src={screenUrl(shot)} alt={alt} width={390} height={844} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+      <img src={screenUrl(shot)} alt={alt} width={390} height={844} loading="lazy" decoding="async" />
     </figure>
-  )
-}
-
-function SectionHead({ index, label, titleId, title, note }: { index: string; label: string; titleId: string; title: ReactNode; note?: string }) {
-  return (
-    <header className="wp-head">
-      <p className="wp-label">[{index}] {label}</p>
-      <h2 id={titleId}>{title}</h2>
-      {note && <p className="wp-head-note">{note}</p>}
-    </header>
   )
 }
 
@@ -100,30 +73,30 @@ function useCondensedHeader(): boolean {
   return condensed
 }
 
-/** The step nearest the middle of the viewport drives the pinned screen. */
+/** The step nearest the middle of the viewport drives the pinned screen; the last one stays under the wipe. */
 function useActiveStep() {
-  const [active, setActive] = useState(0)
+  const [state, setState] = useState({ active: 0, previous: -1 })
   const steps = useRef<(HTMLElement | null)[]>([])
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
-        if (entry.isIntersecting) setActive(Number((entry.target as HTMLElement).dataset.step ?? 0))
+        if (!entry.isIntersecting) continue
+        const next = Number((entry.target as HTMLElement).dataset.step ?? 0)
+        setState(current => current.active === next ? current : { active: next, previous: current.active })
       }
     }, { rootMargin: '-45% 0px -45% 0px' })
     for (const step of steps.current) if (step) observer.observe(step)
     return () => observer.disconnect()
   }, [])
-  return { active, steps }
+  return { ...state, steps }
 }
 
 export default function WelcomePage() {
   const { user } = useAuth()
   const condensed = useCondensedHeader()
-  const { active, steps } = useActiveStep()
-  const [mealIndex, setMealIndex] = useState(0)
-  const meal = MEALS[mealIndex]
-  const kcal = useCountUp(meal.kcal, 600)
+  const { active, previous, steps } = useActiveStep()
+  const { cutting, onNavigate } = useCutNavigation()
   const home = import.meta.env.PROD ? '/' : '/welcome'
   const destination = user ? productPath('/') : productPath('/login?mode=signup')
   const signInDestination = user ? productPath('/') : productPath('/login?mode=signin')
@@ -137,14 +110,14 @@ export default function WelcomePage() {
           <Link className="wp-brand" to={home} aria-label="Poiem home"><BrandLogo /></Link>
           <nav className="wp-nav-links" aria-label="Main navigation">
             <a href="#how-it-works">How it works</a>
-            <a href="#try-it">Try it</a>
+            <a href="#week">Your week</a>
             <a href="#principles">Principles</a>
             <a href="#faq">FAQ</a>
           </nav>
           <div className="wp-header-actions">
             <AppearanceToggle />
-            {!user && <a className="wp-header-link" href={signInDestination}>Sign in</a>}
-            <a className="wp-btn wp-btn-primary wp-btn-sm" href={destination}>{user ? 'My journal' : 'Start'}<ArrowRight size={16} aria-hidden="true" /></a>
+            {!user && <a className="wp-header-link" href={signInDestination} onClick={onNavigate}>Sign in</a>}
+            <a className="wp-btn wp-btn-primary wp-btn-sm" href={destination} onClick={onNavigate}>{user ? 'My journal' : 'Start'}<ArrowRight size={16} aria-hidden="true" /></a>
           </div>
         </div>
       </header>
@@ -155,35 +128,22 @@ export default function WelcomePage() {
             <div className="wp-hero-copy">
               <p className="wp-label">[ Poiem ] Food journal — calories, macros, no guilt</p>
               <h1 id="welcome-title" className="wp-stack"><span>A little</span>{' '}<span>tracking.</span>{' '}<span className="wp-mark">A lot of</span>{' '}<span className="wp-mark">living.</span></h1>
-              <p className="wp-hero-intro">Log a meal by photo, description or the numbers. Check the estimate, see your calories and macros clearly, and get back to your day.</p>
+              <p className="wp-hero-intro">Snap, describe or type what you ate. Poiem estimates the calories and macros, you check the numbers, and your day carries on.</p>
               <div className="wp-actions">
-                <a className="wp-btn wp-btn-primary" href={destination}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
-                <a className="wp-btn wp-btn-ghost" href="#how-it-works">See how it works<ArrowDown size={18} aria-hidden="true" /></a>
+                <a className="wp-btn wp-btn-primary" href={destination} onClick={onNavigate}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
+                <a className="wp-btn wp-btn-ghost" href="#plate-to-numbers">See it work<ArrowDown size={18} aria-hidden="true" /></a>
               </div>
-              <ul className="wp-stats">
-                {STATS.map(stat => (
-                  <li className="wp-stat" key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span><small>{stat.note}</small></li>
-                ))}
-              </ul>
+              <p className="wp-hero-hint">Pick a sample plate to see it read. Nothing is saved.</p>
             </div>
-            <div className="wp-hero-figure">
-              <Figure shot="today" caption="Fig. 01 — Today" alt="Poiem’s Today screen with logged meals, calories left and macros" eager />
-            </div>
+            <div className="wp-hero-scan"><ScanPanel /></div>
           </div>
         </section>
 
-        <div className="wp-ticker">
-          <p className="sr-only">Photo logging, describe a meal, manual entry, calories and macros, saved meals, insights.</p>
-          <div className="wp-ticker-track" aria-hidden="true">
-            {[0, 1].map(copy => (
-              <div className="wp-ticker-group" key={copy}>{TICKER.map(item => <span key={item}>{item}</span>)}</div>
-            ))}
-          </div>
-        </div>
+        <PlateToNumbers />
 
         <section className="wp-section" id="how-it-works" aria-labelledby="how-title">
           <div className="wp-wrap">
-            <SectionHead index="01" label="How it works" titleId="how-title" title={<>Four steps.<br /><span>Zero homework.</span></>} note="Real screens from the Poiem app" />
+            <SectionHead index="02" label="How it works" titleId="how-title" title={<>Four steps.<br /><span>Zero homework.</span></>} note="Real screens from the Poiem app" />
             <div className="wp-steps-grid">
               <ol className="wp-steps">
                 {STEPS.map((step, index) => (
@@ -212,7 +172,7 @@ export default function WelcomePage() {
                         src={screenUrl(step.shot)}
                         alt={index === active ? step.alt : ''}
                         aria-hidden={index !== active}
-                        data-active={index === active}
+                        data-state={index === active ? 'active' : index === previous ? 'previous' : 'idle'}
                         width={390}
                         height={844}
                         loading="lazy"
@@ -226,48 +186,11 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        <section className="wp-section wp-band-acid" id="try-it" aria-labelledby="demo-title">
-          <div className="wp-wrap">
-            <SectionHead index="02" label="Try it" titleId="demo-title" title={<>Pick a meal.<br /><span>Read the numbers.</span></>} note="Sample data. Nothing is saved" />
-            <div className="wp-demo">
-              <div className="wp-demo-picker" role="group" aria-label="Choose a sample meal">
-                {MEALS.map((item, index) => (
-                  <button key={item.name} type="button" className="wp-meal" aria-pressed={index === mealIndex} onClick={() => setMealIndex(index)}>
-                    <span className="wp-meal-index">0{index + 1}</span>
-                    <span className="wp-meal-name">{item.name}<small>{item.detail}</small></span>
-                    <span className="wp-meal-kcal">{item.kcal} kcal</span>
-                  </button>
-                ))}
-                <p className="wp-demo-note">Estimates vary with portion size. You can adjust any entry in Poiem.</p>
-              </div>
-              <div className="wp-entry">
-                <p className="sr-only" aria-live="polite" aria-atomic="true">{`${meal.name}: about ${meal.kcal} kcal, ${meal.protein} g protein, ${meal.carbs} g carbs, ${meal.fat} g fat.`}</p>
-                <div className="wp-entry-bar" aria-hidden="true"><span>Sample entry</span><span>No. 00{mealIndex + 1}</span></div>
-                <div className="wp-entry-body" aria-hidden="true">
-                  <p className="wp-label">{meal.detail}</p>
-                  <h3>{meal.name}</h3>
-                  <div className="wp-entry-kcal"><strong className="tabular">{kcal}</strong><span>kcal<br />estimated</span></div>
-                  <ul className="wp-entry-macros">
-                    {MACROS.map(({ label, key, tone }) => (
-                      <li key={key}>
-                        <span>{label}</span>
-                        <strong>{meal[key]} g</strong>
-                        <span className="wp-bar">
-                          <span key={meal.name} style={{ '--wp-fill': `${Math.min(100, Math.round((meal[key] / MACRO_SCALE) * 100))}%`, '--wp-bar-tone': tone } as CSSProperties} />
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="wp-entry-foot" aria-hidden="true"><span><Check size={14} /> Ready to log</span><span>Editable</span></div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <WeekBlocks />
 
         <section className="wp-section" id="principles" aria-labelledby="principles-title">
           <div className="wp-wrap">
-            <SectionHead index="03" label="Principles" titleId="principles-title" title={<>Built to support.<br /><span>Not to judge.</span></>} />
+            <SectionHead index="04" label="Principles" titleId="principles-title" title={<>Built to support.<br /><span>Not to judge.</span></>} />
             <ul className="wp-principles">
               {PRINCIPLES.map((item, index) => (
                 <li key={item.title} className="wp-principle">
@@ -277,18 +200,6 @@ export default function WelcomePage() {
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
-
-        <section className="wp-section wp-band-hot" id="momo" aria-labelledby="momo-title">
-          <div className="wp-wrap wp-companion">
-            <div className="wp-companion-art" aria-hidden="true"><Momo expression="proud" pose="still" /></div>
-            <div className="wp-companion-copy">
-              <p className="wp-label">[04] Companion</p>
-              <h2 id="momo-title">Meet Momo.</h2>
-              <p>An optional companion that notices the small wins and keeps logging from feeling like a chore.</p>
-              <p className="wp-companion-note">Prefer just the numbers? Turn Momo down or off in Settings.</p>
-            </div>
           </div>
         </section>
 
@@ -307,14 +218,24 @@ export default function WelcomePage() {
         </section>
 
         <section className="wp-section wp-band-ink wp-final" aria-labelledby="final-title">
-          <div className="wp-wrap">
-            <p className="wp-label">[06] Start</p>
-            <h2 id="final-title" className="wp-stack"><span>Your journal is</span>{' '}<span className="wp-mark">one meal away.</span></h2>
-            <div className="wp-actions">
-              <a className="wp-btn wp-btn-primary" href={destination}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
-              {!user && <a className="wp-btn wp-btn-ghost" href={signInDestination}>I have an account</a>}
+          <div className="wp-wrap wp-final-grid">
+            <div className="wp-final-copy">
+              <p className="wp-label">[06] Start</p>
+              <h2 id="final-title" className="wp-stack"><span>Your journal is</span>{' '}<span className="wp-mark">one meal away.</span></h2>
+              <div className="wp-actions">
+                <a className="wp-btn wp-btn-primary" href={destination} onClick={onNavigate}>{cta}<ArrowRight size={18} aria-hidden="true" /></a>
+                {!user && <a className="wp-btn wp-btn-ghost" href={signInDestination} onClick={onNavigate}>I have an account</a>}
+              </div>
             </div>
+            <figure className="wp-final-art">
+              <div className="wp-final-plate"><PlateArt meal="bowl" /></div>
+              <figcaption className="wp-final-stamp">
+                <span className="wp-final-momo" aria-hidden="true"><Momo expression="proud" pose="still" /></span>
+                <span>Momo<br />Optional companion</span>
+              </figcaption>
+            </figure>
           </div>
+          <p className="wp-wordmark" aria-hidden="true">Poiem</p>
         </section>
       </main>
 
@@ -324,21 +245,23 @@ export default function WelcomePage() {
           <nav aria-label="Product">
             <p className="wp-label">Product</p>
             <a href="#how-it-works">How it works</a>
-            <a href="#try-it">Try it</a>
+            <a href="#week">Your week</a>
             <a href="#principles">Principles</a>
             <a href="#faq">FAQ</a>
           </nav>
           <nav aria-label="Account">
             <p className="wp-label">Account</p>
-            <a href={destination}>{cta}</a>
-            {!user && <a href={signInDestination}>Sign in</a>}
+            <a href={destination} onClick={onNavigate}>{cta}</a>
+            {!user && <a href={signInDestination} onClick={onNavigate}>Sign in</a>}
             {/* About and Support live inside the signed-in app; guests would only be redirected. */}
-            {user && <a href={productPath('/about')}>About</a>}
-            {user && <a href={productPath('/support')}>Support</a>}
+            {user && <a href={productPath('/about')} onClick={onNavigate}>About</a>}
+            {user && <a href={productPath('/support')} onClick={onNavigate}>Support</a>}
           </nav>
         </div>
         <p className="wp-footer-legal">© {new Date().getFullYear()} Poiem — A food journal for adults. Not medical advice.</p>
       </footer>
+
+      <div className={`wp-cut${cutting ? ' is-cutting' : ''}`} aria-hidden="true"><span>Poiem</span></div>
     </div>
   )
 }
